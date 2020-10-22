@@ -26,7 +26,7 @@ pub struct RunTuple {
 */
 fn show_run(i : usize, t : RunTuple) -> Html {
     html!{
-        <div>        >
+        <div>
             <td>{t.time}</td>
             <td>{t.team_login}</td>
             <td>{t.prob}</td>
