@@ -2,8 +2,11 @@ use std::io::{self, Read};
 use std::fs::File;
 use std::{error::Error, fmt};
 use std::collections::BTreeMap;
+use serde::{Deserialize, Serialize};
+use serde_json;
 
-#[derive(Debug, PartialEq, Clone)]
+
+#[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum Answer {
     Yes,
     No,
@@ -25,6 +28,7 @@ impl fmt::Display for ContestError {
         write!(f, "Answer could not be parsed: {:?}", self)
     }
 }
+
 
 impl Answer {
     fn from_string(t : &str) -> Result<Answer, ContestError> {
@@ -128,7 +132,7 @@ impl Contest {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RunTuple {
     id : i64,
     pub time : i64,
@@ -149,8 +153,9 @@ impl RunsPanel {
         }
     }
 
-    pub fn from_file(s : &str) -> Result<Vec<RunTuple>, ContestError> {
-        RunTuple::from_file(s)
+    pub fn from_file(s : &str) -> Result<Self, ContestError> {
+        let r = RunTuple::from_file(s)?;
+        Ok(RunsPanel { runs : r })
     }
 
     pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {

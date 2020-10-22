@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 pub mod data;
+extern crate serde_json;
 
 use data::*;
 
