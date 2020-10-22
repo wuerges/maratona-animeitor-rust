@@ -7,7 +7,7 @@ use data::*;
 
 struct Model {
     link: ComponentLink<Self>,
-    runsPanel: RunsPanel,
+    runs_panel: RunsPanel,
     contest: Contest
 }
 
@@ -15,13 +15,35 @@ enum Msg {
     AddRun(RunTuple)
 }
 
+/*
+pub struct RunTuple {
+    id : i64,
+    pub time : i64,
+    team_login : String,
+    prob : String,
+    answer : Answer
+}
+*/
+fn show_run(i : usize, t : RunTuple) -> Html {
+    html!{
+        <div>        >
+            <td>{t.time}</td>
+            <td>{t.team_login}</td>
+            <td>{t.prob}</td>
+            <td>{t.answer}</td>
+        </div>
+
+    }
+}
+
+
 impl Component for Model {
     type Message = Msg;
     type Properties = ();
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            runsPanel : RunsPanel::empty(),
+            runs_panel : RunsPanel::empty(),
             contest : Contest::new(Vec::new(), 0, 100, 30, 20)
         }
     }
@@ -29,7 +51,7 @@ impl Component for Model {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::AddRun(t) => {
-                self.runsPanel.add_run(&t);
+                self.runs_panel.add_run(&t);
                 self.contest.add_run(t);
             }
         }
@@ -49,10 +71,12 @@ impl Component for Model {
                 <button onclick=self.link.callback(|_| 
                     Msg::AddRun(RunTuple::from_string("375971416299teambrbr3BN").unwrap()))>{ "+1" }
                 </button>
+                <table>
 
                 { 
-                    for self.runsPanel.latest_n(10).into_iter().map( |t| html!{ <p>{t.time}</p> } ) 
+                    for self.runs_panel.latest_n(10).into_iter().enumerate().map( |(i, t)| show_run(i, t) )
                 }
+                </table>
                 // <p>{ self.value[0].name }</p>
             </div>
         }

@@ -4,7 +4,7 @@ use std::{error::Error, fmt};
 use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq, Clone)]
-enum Answer {
+pub enum Answer {
     Yes,
     No,
     Wait,
@@ -34,6 +34,17 @@ impl Answer {
             "?" => Ok(Self::Wait),
             _ => Err(ContestError::Simple(t.to_string()))
         }        
+    }
+}
+
+impl fmt::Display for Answer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", match self {
+            Answer::Yes => "Accepted",
+            Answer::No => "Wrong Answer",
+            Answer::Wait => "Judging...",
+            _ => "Error!"
+        })
     }
 }
 
@@ -121,9 +132,9 @@ impl Contest {
 pub struct RunTuple {
     id : i64,
     pub time : i64,
-    team_login : String,
-    prob : String,
-    answer : Answer
+    pub team_login : String,
+    pub prob : String,
+    pub answer : Answer
 }
 
 #[derive(Debug)] 
