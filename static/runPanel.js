@@ -50,23 +50,20 @@ function App() {
   
     return (
       <>
-        <div border="1" style={{width: "400px"}}>
+        <div border="1">
           {devs.map((dev) => (
-              <div
+              <div class="run"
               key={dev.id}
               style={{
-                  'border-style': "solid",
-                  'border-width' : "1px",
-                  padding: '5px',
                   zIndex: dev.id,
                   position: "absolute",
-                  top: devs.indexOf(dev) * 40,
+                  top: 10 + devs.indexOf(dev) * 50,
                   transition: "1s ease top",
                 }}
                 >
-                <div style={{float: "left", width: '200px',  margin: '5px', 'border-style': "solid"}}>{dev.team_login}</div>
-                <div style={{float: "left", margin: '5px', 'border-style': "solid"}}>{dev.prob}</div>
-                <div style={{float: "left", margin: '5px', 'border-style': "solid"}}>{dev.answer}</div>
+                <div class="cell login">{dev.team_login}</div>
+                <div class="cell problem">{dev.prob}</div>
+                <div class="cell answer">{dev.answer}</div>
             </div>
           ))}
         </div>
