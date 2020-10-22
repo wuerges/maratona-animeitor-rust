@@ -3,15 +3,16 @@ use yew::prelude::*;
 
 pub mod data;
 
-use data::Team;
+use data::*;
 
 struct Model {
     link: ComponentLink<Self>,
-    value: Vec<Team>,
+    runsPanel: RunsPanel,
+    contest: Contest
 }
 
 enum Msg {
-    AddOne,
+    AddRun(RunTuple)
 }
 
 impl Component for Model {
@@ -20,13 +21,17 @@ impl Component for Model {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             link,
-            value: Vec::new(),
+            runsPanel : RunsPanel::empty(),
+            contest : Contest::new(Vec::new(), 0, 100, 30, 20)
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value.push(Team {name: "Kappa".to_string(), score: 0 })
+            Msg::AddRun(t) => {
+                self.runsPanel.add_run(&t);
+                self.contest.add_run(t);
+            }
         }
         true
     }
@@ -41,9 +46,13 @@ impl Component for Model {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+                <button onclick=self.link.callback(|_| 
+                    Msg::AddRun(RunTuple::from_string("375971416299teambrbr3BN").unwrap()))>{ "+1" }
+                </button>
 
-                { for self.value.iter().map( |v| html!{ <p>{&v.name}</p> } ) }
+                { 
+                    for self.runsPanel.latest_n(10).into_iter().map( |t| html!{ <p>{t.time}</p> } ) 
+                }
                 // <p>{ self.value[0].name }</p>
             </div>
         }

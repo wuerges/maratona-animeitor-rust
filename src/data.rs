@@ -1,9 +1,9 @@
 use std::io::{self, Read};
 use std::fs::File;
 use std::{error::Error, fmt};
+use std::collections::BTreeMap;
 
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Answer {
     Yes,
     No,
@@ -12,7 +12,7 @@ enum Answer {
 }
 
 #[derive(Debug)]
-enum ContestError {
+pub enum ContestError {
     IO(io::Error),
     Parse(std::num::ParseIntError),
     Simple(String)
@@ -38,18 +38,122 @@ impl Answer {
 }
 
 #[derive(Debug)]
-pub struct Team {
-    pub name : String,
-    pub score : i64
+pub struct Problem {
+    solved : bool,
+    submissions : i64,
+    penalty: i64
+}
+
+impl Problem {
+    fn empty() -> Self {
+        Problem { solved : false, submissions : 0, penalty : 0 }
+    }
+    fn add_run_problem(&mut self, tim : i64, answer: Answer) {
+        match answer {
+            Answer::Yes => {
+                self.solved = true;
+                self.submissions += 1;
+            },
+            Answer::No => {
+                // TODO many corner cases!
+                self.submissions += 1;
+                self.penalty += tim
+            },
+            _ => {
+
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
-struct RunTuple {
+pub struct Team {
+    pub login : String,
+    pub escola : String,
+    pub name : String,
+    pub problems : BTreeMap<String, Problem>
+}
+
+#[derive(Debug)]
+pub struct Contest {
+    pub teams : BTreeMap<String, Team>,
+    pub current_time : i64,
+    pub maximum_time : i64,
+    pub score_freeze_time : i64,
+    pub penalty_per_wrong_answer : i64
+}
+
+impl Contest {
+    pub fn new(teams : Vec<Team>
+        , current_time : i64
+        , maximum_time : i64
+        , score_freeze_time : i64
+        , penalty : i64 ) -> Self {
+
+        let mut m = BTreeMap::new();
+        for t in teams {
+            m.insert(t.login.clone(), t);
+        }
+        Contest {
+            teams : m,
+            current_time : current_time,
+            maximum_time : maximum_time,
+            score_freeze_time : score_freeze_time,
+            penalty_per_wrong_answer : penalty
+        }
+    }
+
+    pub fn add_run(&mut self, run : RunTuple) {
+        match self.teams.get_mut(&run.team_login) {
+            None => {
+
+            },
+            Some(t) => {
+                t.problems.entry(run.prob)
+                        .or_insert(Problem::empty())
+                        .add_run_problem(run.time, run.answer)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RunTuple {
     id : i64,
-    time : i64,
-    team : String,
+    pub time : i64,
+    team_login : String,
     prob : String,
     answer : Answer
+}
+
+#[derive(Debug)] 
+pub struct RunsPanel {
+    runs : Vec<RunTuple>
+}
+
+impl RunsPanel {
+    pub fn empty() -> Self {
+        RunsPanel {
+            runs : Vec::new()
+        }
+    }
+
+    pub fn from_file(s : &str) -> Result<Vec<RunTuple>, ContestError> {
+        RunTuple::from_file(s)
+    }
+
+    pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
+        let mut ret = self.runs.clone();
+        ret.sort_by(|a, b| 
+            a.time.cmp(&b.time)
+        );
+        ret.truncate(n);
+        ret
+    }
+
+    pub fn add_run(&mut self, t : &RunTuple) {
+        self.runs.push(t.clone())
+    }
 }
 
 impl RunTuple {
@@ -62,7 +166,7 @@ impl RunTuple {
         Ok(Self {
             id   : id,
             time : time,
-            team : v[2].to_string(),
+            team_login : v[2].to_string(),
             prob : v[3].to_string(),
             answer : ans
         })
@@ -90,7 +194,7 @@ mod tests {
 
         assert_eq!(t.id, 375971416);
         assert_eq!(t.time, 299);
-        assert_eq!(t.team, "teambrbr3");
+        assert_eq!(t.team_login, "teambrbr3");
         assert_eq!(t.prob, "B");
         assert_eq!(t.answer, Answer::No);
         Ok(())
