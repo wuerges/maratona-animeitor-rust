@@ -1,10 +1,9 @@
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
-struct Team {
-    name : &'static str,
-    score : i64
-}
+pub mod data;
+
+use data::Team;
 
 struct Model {
     link: ComponentLink<Self>,
@@ -27,7 +26,7 @@ impl Component for Model {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::AddOne => self.value.push(Team {name: "Kappa", score: 0 })
+            Msg::AddOne => self.value.push(Team {name: "Kappa".to_string(), score: 0 })
         }
         true
     }
@@ -44,7 +43,7 @@ impl Component for Model {
             <div>
                 <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
 
-                { for self.value.iter().map( |v| html!{ <p>{v.name}</p> } ) }
+                { for self.value.iter().map( |v| html!{ <p>{&v.name}</p> } ) }
                 // <p>{ self.value[0].name }</p>
             </div>
         }
