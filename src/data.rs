@@ -107,6 +107,22 @@ pub struct Team {
     pub problems : BTreeMap<String, Problem>
 }
 
+impl Team {
+    fn new(login : &str, escola : &str, name : &str) -> Self {
+        Self {
+            login : login.to_string(),
+            escola : escola.to_string(),
+            name : name.to_string(),
+            problems : BTreeMap::new()
+        }
+    }
+
+    fn from_contest_string(s : &str) -> Self {
+        let team_line : Vec<_> = s.split("").collect();
+        Team::new(team_line[0], team_line[1], team_line[2])
+    }
+}
+
 #[derive(Debug)]
 pub struct ContestFile {
     pub contest_name : String,
@@ -149,9 +165,20 @@ impl ContestFile {
         let score_freeze_time = contest_params[2].parse()?;
         let penalty = contest_params[3].parse()?;
 
+        let team_params : Vec<&str> = lines.next().unwrap().split("").collect();
+        let number_teams : usize = team_params[0].parse()?;
+        let number_problems : usize = team_params[1].parse()?;
+        
+        let mut teams = Vec::new();
+        for _ in 0..number_teams {
+            let t = Team::from_contest_string(lines.next().unwrap());
+            teams.push(t);
+        }
+        
+
         Ok(Self::new(
             contest_name.to_string(),
-            Vec::new(),
+            teams,
             current_time,
             maximum_time,
             score_freeze_time,
@@ -341,6 +368,7 @@ mod tests {
         assert_eq!(x.current_time, 285);
         assert_eq!(x.score_freeze_time, 240);
         assert_eq!(x.penalty_per_wrong_answer, 20);
+        assert_eq!(x.teams.keys().len(), 72);
         Ok(())
     }
 }

@@ -36,7 +36,7 @@ async fn main() {
 
 async fn update_runs(runs : Arc<Mutex<DB>>) {
     let mut db = runs.lock().await;
-
+    
     db.reload_runs("test/sample/runs").unwrap();
 }
 
