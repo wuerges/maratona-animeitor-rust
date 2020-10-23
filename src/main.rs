@@ -4,6 +4,9 @@ use tokio;
 use std::env;
 use warp::Filter;
 use maratona_animeitor_rust::data::*;
+use hyper::Client;
+use hyper::body;
+
 
 #[tokio::main]
 async fn main() {
@@ -41,6 +44,20 @@ async fn main() {
         .await;
 }
 
+
+async fn read_url(uri : String) -> Result<String, ContestError> {
+    // Still inside `async fn main`...
+    let client = Client::new();
+    let uri = uri.parse()?;
+
+   // Await the response...
+   let resp = client.get(uri).await?;
+   let body_bytes = body::to_bytes(resp.into_body()).await?;
+   let body = String::from_utf8(body_bytes.to_vec())
+                .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
+   Ok(body)
+}
+
 async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) {
     let mut db = runs.lock().await;
 
@@ -52,10 +69,15 @@ async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) {
 
     let mut time_path = url_base.clone();
     time_path.push_str(&"/time".to_owned());
+ 
+    let t = read_url(time_path).await.unwrap();
+    db.reload_time(t).unwrap();
 
-    db.reload_time(time_path.as_str()).unwrap();
-    db.reload_contest(contest_path.as_str()).unwrap();
-    db.reload_runs(runs_path.as_str()).unwrap();
+    let contest = read_url(contest_path).await.unwrap();
+    db.reload_contest(contest).unwrap();
+
+    let runs = read_url(runs_path).await.unwrap();
+    db.reload_runs(runs).unwrap();
 }
 
 async fn serve_runs(runs : Arc<Mutex<DB>>) 

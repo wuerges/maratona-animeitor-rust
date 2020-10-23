@@ -26,6 +26,8 @@ pub enum Answer {
 pub enum ContestError {
     IO(io::Error),
     Parse(std::num::ParseIntError),
+    InvalidUri(warp::http::uri::InvalidUri),
+    Hyper(hyper::Error),
     Simple(String)
 }
 
@@ -41,6 +43,21 @@ impl std::convert::From<io::Error> for ContestError {
         ContestError::IO(error)
     }
 }
+
+impl std::convert::From<hyper::Error> for ContestError {
+    fn from(error: hyper::Error) -> Self {
+        ContestError::Hyper(error)
+    }
+
+}
+
+impl std::convert::From<warp::http::uri::InvalidUri> for ContestError {
+    fn from(error: warp::http::uri::InvalidUri) -> Self {
+        ContestError::InvalidUri(error)
+    }
+}
+
+
 
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -156,6 +173,10 @@ impl ContestFile {
     }
     pub fn from_file(s :&str) -> Result<Self, ContestError> {
         let s = read_to_string(s)?;
+        Self::from_string(s)
+    }
+
+    pub fn from_string(s : String) -> Result<Self, ContestError> {
         let mut lines = s.lines();
 
         let contest_name = lines.next().unwrap();
@@ -252,20 +273,19 @@ impl DB {
         }
     }
 
-    pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestError> {
-        let runs = RunsFile::from_file(s)?;
+    pub fn reload_runs(&mut self, s: String) -> Result<(), ContestError> {
+        let runs = RunsFile::from_string(s)?;
         self.run_file = runs;
         Ok(())
     }
 
-    pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestError> {
-        self.contest_file = ContestFile::from_file(s)?;
+    pub fn reload_contest(&mut self, s: String) -> Result<(), ContestError> {
+        self.contest_file = ContestFile::from_string(s)?;
         Ok(())
     }
 
-    pub fn reload_time(&mut self, s: &str) -> Result<(), ContestError> {
-        let t = read_to_string(s)?;
-        let t = t.parse()?;
+    pub fn reload_time(&mut self, s: String) -> Result<(), ContestError> {
+        let t = s.parse()?;
         self.time_file = t;
         Ok(())
     }
@@ -303,9 +323,19 @@ impl RunsFile {
     }
 
     pub fn from_file(s : &str) -> Result<Self, ContestError> {
-        let r = RunTuple::from_file(s)?;
-        Ok(RunsFile { runs : r })
+        let s = read_to_string(s)?;
+        Self::from_string(s)
     }
+    
+    pub fn from_string(s: String) -> Result<Self, ContestError> {
+        let runs = s.lines()
+            .map( |line| RunTuple::from_string(line) );
+        let runs = runs.collect::<Result<_, _>>()?;
+        Ok(RunsFile {
+            runs: runs
+        })
+    }
+
 
     pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
         let mut ret = self.runs.clone();
@@ -336,15 +366,6 @@ impl RunTuple {
             answer : ans
         })
     }
-    
-    fn from_file(s: &str) -> Result<Vec<Self>, ContestError> {
-        let mut file = File::open(s).map_err(|e| ContestError::IO(e))?;
-        let mut s = String::new();
-        
-        file.read_to_string(&mut s).map_err(|e| ContestError::IO(e))?;
-        
-        s.lines().map( |line| Self::from_string(line) ).collect()
-    }
 }
 
 #[cfg(test)]
@@ -367,8 +388,8 @@ mod tests {
 
     #[test]
     fn test_parse_file() -> Result<(), ContestError> {
-        let x = RunTuple::from_file("test/sample/runs")?;
-        assert_eq!(x.len(), 716);
+        let x = RunsFile::from_file("test/sample/runs")?;
+        assert_eq!(x.runs.len(), 716);
         Ok(())
     }
 
