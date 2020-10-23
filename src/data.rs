@@ -57,8 +57,6 @@ impl std::convert::From<warp::http::uri::InvalidUri> for ContestError {
     }
 }
 
-
-
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Answer could not be parsed: {:?}", self)
@@ -121,6 +119,7 @@ pub struct Team {
     pub login : String,
     pub escola : String,
     pub name : String,
+    pub placement : i64,
     pub problems : BTreeMap<String, Problem>
 }
 
@@ -130,8 +129,13 @@ impl Team {
             login : login.to_string(),
             escola : escola.to_string(),
             name : name.to_string(),
+            placement : 0,
             problems : BTreeMap::new()
         }
+    }
+
+    fn dummy() -> Self {
+        Self::new("<login>", "<escola>", "<nome>")
     }
 
     fn from_contest_string(s : &str) -> Self {
@@ -188,13 +192,32 @@ impl ContestFile {
 
         let team_params : Vec<&str> = lines.next().unwrap().split("").collect();
         let number_teams : usize = team_params[0].parse()?;
-        let number_problems : usize = team_params[1].parse()?;
+        let _number_problems : usize = team_params[1].parse()?;
         
         let mut teams = Vec::new();
         for _ in 0..number_teams {
             let t = Team::from_contest_string(lines.next().unwrap());
             teams.push(t);
         }
+
+        let _line_unknown1 = lines.next();
+        let _line_unknown2 = lines.next();
+
+        for i in 0..number_teams {
+
+            let line : Vec<_> = lines.next().unwrap().split(",")
+                .map( |x| x.parse::<i64>() )
+                .collect::<Result<_,_>>()?;
+
+            // 330505,1,11,1379,290
+            let _unk_1 = line[0];
+            let placement = line[1];
+            teams[i].placement = placement;
+            let _num_solved_problems = line[2];
+            let _unk_2 = line[3];
+            let _unk_3 = line[4];
+        }
+
         
 
         Ok(Self::new(
@@ -249,15 +272,15 @@ pub struct DB {
 impl DB {
     pub fn latest_n(&self, n : usize) -> Vec<RunsPanelItem> {
         self.run_file.latest_n(n).into_iter().map(|r| {
-            let (escola, team_name) = self.contest_file.teams.get(&r.team_login)
-                             .map(|t| (t.escola.clone(), t.name.clone()) )
-                             .unwrap_or(("".to_string(), "".to_string()));
+            let dummy = Team::dummy();
+            let t = self.contest_file.teams.get(&r.team_login)
+                        .unwrap_or(&dummy);
             RunsPanelItem {
                 id : r.id,
-                placement: 0,
+                placement: t.placement,
                 color : 0,
-                escola : escola,
-                team_name : team_name,
+                escola : t.escola.clone(),
+                team_name : t.name.clone(),
                 problem : r.prob,
                 result : r.answer
             }
@@ -302,19 +325,6 @@ pub struct RunsPanelItem {
     result : Answer
 }
 
-impl RunsPanelItem {
-    // fn new() -> Self {
-    //     RunsPanelItem {
-    //         placement : 0,
-    //         color : 0,
-    //         escola : "".to_string(),
-    //         team_name : "".to_string(),
-    //         problem : "".to_string(),
-    //         result : Answer::Unk
-    //     }
-    // }
-}
-
 impl RunsFile {
     pub fn empty() -> Self {
         RunsFile {
@@ -340,7 +350,8 @@ impl RunsFile {
     pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
         let mut ret = self.runs.clone();
         ret.sort_by(|a, b| 
-            a.time.cmp(&b.time)
+            b.time.cmp(&a.time)
+            // a.time.cmp(&b.time)
         );
         ret.truncate(n);
         ret

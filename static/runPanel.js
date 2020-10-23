@@ -7,6 +7,19 @@ function getColor(n) {
   return 'black';
 }
 
+function getAnswer(t) {
+  if (t == "Yes") {
+    return <img src="assets/yes.png" />
+  }
+  else if (t == "No") {
+    return <img src="assets/no.png" />
+  }
+  else if (t == "Wait") {
+    return <img src="assets/question.png" />
+  }
+  return "Error";
+}
+
 class RunsPanel extends React.Component {
   constructor(props) {
     super(props);
@@ -53,19 +66,21 @@ class RunsPanel extends React.Component {
               style={{
                   zIndex: dev.id,
                   position: "absolute",
-                  top: 10 + this.state.devs.indexOf(dev) * 50,
+                  top: 10 + this.state.devs.indexOf(dev) * 90,
                   transition: "1s ease top",
                 }}
                 >
                 <div className="cell colocacao" 
                 style={{
-                  backgroundColor: getColor(dev.color)
+                  backgroundColor: getColor(dev.placement)
                 }}
                 >{dev.placement}</div>
-                <div className="cell nome_escola">{dev.escola}</div>
-                <div className="cell nome_time">{dev.team_name}</div>
+                <div className="cell time">
+                  <div className="nomeEscola">{dev.escola}</div>
+                  <div className="nomeTime">{dev.team_name}</div>
+                </div>
                 <div className="cell problema">{dev.problem}</div>
-                <div className="cell resposta">{dev.result}</div>
+                <div className="cell resposta">{getAnswer(dev.result)} </div>
             </div>
           ))}
         </div>
