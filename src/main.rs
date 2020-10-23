@@ -26,7 +26,11 @@ async fn main() {
         let mut interval = tokio::time::interval(dur);
         loop {
             interval.tick().await;
-            update_runs(&url_base, shared.clone()).await;
+            let r = update_runs(&url_base, shared.clone()).await;
+            match r {
+                Ok(_) => (),
+                Err(e) => eprintln!("Error updating run: {}", e)
+            }
         }        
     });
 
@@ -58,7 +62,7 @@ async fn read_url(uri : String) -> Result<String, ContestError> {
    Ok(body)
 }
 
-async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) {
+async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
     let mut db = runs.lock().await;
 
     let mut runs_path = url_base.clone();
@@ -70,14 +74,16 @@ async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) {
     let mut time_path = url_base.clone();
     time_path.push_str(&"/time".to_owned());
  
-    let t = read_url(time_path).await.unwrap();
-    db.reload_time(t).unwrap();
+    let t = read_url(time_path).await?;
+    db.reload_time(t)?;
 
-    let contest = read_url(contest_path).await.unwrap();
-    db.reload_contest(contest).unwrap();
+    let contest = read_url(contest_path).await?;
+    db.reload_contest(contest)?;
 
-    let runs = read_url(runs_path).await.unwrap();
-    db.reload_runs(runs).unwrap();
+    let runs = read_url(runs_path).await?;
+    db.reload_runs(runs)?;
+
+    Ok(())
 }
 
 async fn serve_runs(runs : Arc<Mutex<DB>>) 
