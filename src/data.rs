@@ -257,6 +257,18 @@ impl DB {
         self.run_file = runs;
         Ok(())
     }
+
+    pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestError> {
+        self.contest_file = ContestFile::from_file(s)?;
+        Ok(())
+    }
+
+    pub fn reload_time(&mut self, s: &str) -> Result<(), ContestError> {
+        let t = read_to_string(s)?;
+        let t = t.parse()?;
+        self.time_file = t;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize)]
