@@ -36,7 +36,8 @@ async fn main() {
 
 async fn update_runs(runs : Arc<Mutex<DB>>) {
     let mut db = runs.lock().await;
-    // *db = RunsPanel::from_file("test/sample/runs").unwrap();  
+
+    db.reload_runs("test/sample/runs").unwrap();
 }
 
 async fn serve_runs(runs : Arc<Mutex<DB>>) 

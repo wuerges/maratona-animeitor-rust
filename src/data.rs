@@ -164,6 +164,7 @@ impl DB {
                              .map(|t| (t.escola.clone(), t.name.clone()) )
                              .unwrap_or(("".to_string(), "".to_string()));
             RunsPanelItem {
+                id : r.id,
                 placement: 0,
                 color : 0,
                 escola : escola,
@@ -182,10 +183,17 @@ impl DB {
 
         }
     }
+
+    pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestError> {
+        let runs = RunsFile::from_file(s)?;
+        self.run_file = runs;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Serialize)]
 pub struct RunsPanelItem {
+    id : i64,
     placement : i64,
     color : i64,
     escola : String,
@@ -195,16 +203,16 @@ pub struct RunsPanelItem {
 }
 
 impl RunsPanelItem {
-    fn new() -> Self {
-        RunsPanelItem {
-            placement : 0,
-            color : 0,
-            escola : "".to_string(),
-            team_name : "".to_string(),
-            problem : "".to_string(),
-            result : Answer::Unk
-        }
-    }
+    // fn new() -> Self {
+    //     RunsPanelItem {
+    //         placement : 0,
+    //         color : 0,
+    //         escola : "".to_string(),
+    //         team_name : "".to_string(),
+    //         problem : "".to_string(),
+    //         result : Answer::Unk
+    //     }
+    // }
 }
 
 impl RunsFile {

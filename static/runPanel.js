@@ -1,4 +1,12 @@
 
+function getColor(n) {
+  if (n == 0) return 'red';
+  if (n <= 3) return 'yellow';
+  if (n <= 6) return 'gray';
+  if (n <= 10) return 'orange';
+  return 'black';
+}
+
 class RunsPanel extends React.Component {
   constructor(props) {
     super(props);
@@ -12,7 +20,7 @@ class RunsPanel extends React.Component {
     .then(res => res.json())
     .then(
       (result) => {
-        // console.log("Obtained results from api.")
+        console.log("Obtained results from api:", result)
         this.setState({devs: result});
       },
       // Nota: É importante lidar com os erros aqui
@@ -49,9 +57,15 @@ class RunsPanel extends React.Component {
                   transition: "1s ease top",
                 }}
                 >
-                <div className="cell login">{dev.team_login}</div>
-                <div className="cell problem">{dev.prob}</div>
-                <div className="cell answer">{dev.answer}</div>
+                <div className="cell colocacao" 
+                style={{
+                  backgroundColor: getColor(dev.color)
+                }}
+                >{dev.placement}</div>
+                <div className="cell nome_escola">{dev.escola}</div>
+                <div className="cell nome_time">{dev.team_name}</div>
+                <div className="cell problema">{dev.problem}</div>
+                <div className="cell resposta">{dev.result}</div>
             </div>
           ))}
         </div>
