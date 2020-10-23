@@ -12,7 +12,11 @@ async fn main() {
         ));
     let runs = warp::any().map(move || Arc::clone(&runs));
 
-    let routes = warp::path("runs").and(runs.clone()).and_then(serve_runs);
+
+    let static_assets = warp::path("static").and(warp::fs::dir("static"));
+    let runs = warp::path("runs").and(runs.clone()).and_then(serve_runs);
+
+    let routes = static_assets.or(runs);
 
 
     warp::serve(routes)
