@@ -8,7 +8,7 @@ use maratona_animeitor_rust::data::*;
 #[tokio::main]
 async fn main() {
 
-    let arc_runs = Arc::new(Mutex::new(RunsPanel::empty()));
+    let arc_runs = Arc::new(Mutex::new(DB::empty()));
 
     let shared = Arc::clone(&arc_runs);
     spawn(async move {
@@ -34,12 +34,12 @@ async fn main() {
         .await;
 }
 
-async fn update_runs(runs : Arc<Mutex<RunsPanel>>) {
+async fn update_runs(runs : Arc<Mutex<DB>>) {
     let mut db = runs.lock().await;
-    *db = RunsPanel::from_file("test/sample/runs").unwrap();  
+    // *db = RunsPanel::from_file("test/sample/runs").unwrap();  
 }
 
-async fn serve_runs(runs : Arc<Mutex<RunsPanel>>) 
+async fn serve_runs(runs : Arc<Mutex<DB>>) 
 -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&*db.latest_n(10)).unwrap();

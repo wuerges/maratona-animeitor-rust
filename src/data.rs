@@ -90,7 +90,7 @@ pub struct Team {
 }
 
 #[derive(Debug)]
-pub struct Contest {
+pub struct ContestFile {
     pub teams : BTreeMap<String, Team>,
     pub current_time : i64,
     pub maximum_time : i64,
@@ -98,7 +98,7 @@ pub struct Contest {
     pub penalty_per_wrong_answer : i64
 }
 
-impl Contest {
+impl ContestFile {
     pub fn new(teams : Vec<Team>
         , current_time : i64
         , maximum_time : i64
@@ -109,13 +109,17 @@ impl Contest {
         for t in teams {
             m.insert(t.login.clone(), t);
         }
-        Contest {
+        Self {
             teams : m,
             current_time : current_time,
             maximum_time : maximum_time,
             score_freeze_time : score_freeze_time,
             penalty_per_wrong_answer : penalty
         }
+    }
+
+    pub fn dummy() -> Self {
+        Self::new(Vec::new(), 0, 0, 0, 0)
     }
 
     pub fn add_run(&mut self, run : RunTuple) {
@@ -132,7 +136,7 @@ impl Contest {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct RunTuple {
     id : i64,
     pub time : i64,
@@ -142,20 +146,77 @@ pub struct RunTuple {
 }
 
 #[derive(Debug)] 
-pub struct RunsPanel {
+pub struct RunsFile {
     runs : Vec<RunTuple>
 }
 
-impl RunsPanel {
+#[derive(Debug)]
+pub struct DB {
+    run_file : RunsFile,
+    contest_file : ContestFile,
+    time_file : i64
+}
+
+impl DB {
+    pub fn latest_n(&self, n : usize) -> Vec<RunsPanelItem> {
+        self.run_file.latest_n(n).into_iter().map(|r| {
+            let (escola, team_name) = self.contest_file.teams.get(&r.team_login)
+                             .map(|t| (t.escola.clone(), t.name.clone()) )
+                             .unwrap_or(("".to_string(), "".to_string()));
+            RunsPanelItem {
+                placement: 0,
+                color : 0,
+                escola : escola,
+                team_name : team_name,
+                problem : r.prob,
+                result : r.answer
+            }
+        }).collect()
+    }
+
     pub fn empty() -> Self {
-        RunsPanel {
+        DB {
+            run_file : RunsFile::empty(),
+            contest_file  : ContestFile::dummy(),
+            time_file : 0
+
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct RunsPanelItem {
+    placement : i64,
+    color : i64,
+    escola : String,
+    team_name : String,
+    problem : String,
+    result : Answer
+}
+
+impl RunsPanelItem {
+    fn new() -> Self {
+        RunsPanelItem {
+            placement : 0,
+            color : 0,
+            escola : "".to_string(),
+            team_name : "".to_string(),
+            problem : "".to_string(),
+            result : Answer::Unk
+        }
+    }
+}
+
+impl RunsFile {
+    pub fn empty() -> Self {
+        RunsFile {
             runs : Vec::new()
         }
     }
 
     pub fn from_file(s : &str) -> Result<Self, ContestError> {
         let r = RunTuple::from_file(s)?;
-        Ok(RunsPanel { runs : r })
+        Ok(RunsFile { runs : r })
     }
 
     pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
