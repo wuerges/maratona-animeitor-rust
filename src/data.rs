@@ -6,6 +6,14 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 
+fn read_to_string(s : &str) -> io::Result<String> {
+    let mut file = File::open(s)?;
+    let mut s = String::new();
+    file.read_to_string(&mut s)?;
+    Ok(s)
+}
+        
+
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum Answer {
     Yes,
@@ -23,12 +31,22 @@ pub enum ContestError {
 
 impl Error for ContestError {}
 
+impl std::convert::From<std::num::ParseIntError> for ContestError {
+    fn from(error: std::num::ParseIntError) -> Self {
+        ContestError::Parse(error)
+    }
+}
+impl std::convert::From<io::Error> for ContestError {
+    fn from(error: io::Error) -> Self {
+        ContestError::IO(error)
+    }
+}
+
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Answer could not be parsed: {:?}", self)
     }
 }
-
 
 impl Answer {
     fn from_string(t : &str) -> Result<Answer, ContestError> {
@@ -91,6 +109,7 @@ pub struct Team {
 
 #[derive(Debug)]
 pub struct ContestFile {
+    pub contest_name : String,
     pub teams : BTreeMap<String, Team>,
     pub current_time : i64,
     pub maximum_time : i64,
@@ -99,7 +118,8 @@ pub struct ContestFile {
 }
 
 impl ContestFile {
-    pub fn new(teams : Vec<Team>
+    pub fn new(contest_name : String
+        , teams : Vec<Team>
         , current_time : i64
         , maximum_time : i64
         , score_freeze_time : i64
@@ -110,6 +130,7 @@ impl ContestFile {
             m.insert(t.login.clone(), t);
         }
         Self {
+            contest_name : contest_name,
             teams : m,
             current_time : current_time,
             maximum_time : maximum_time,
@@ -117,9 +138,29 @@ impl ContestFile {
             penalty_per_wrong_answer : penalty
         }
     }
+    pub fn from_file(s :&str) -> Result<Self, ContestError> {
+        let s = read_to_string(s)?;
+        let mut lines = s.lines();
+
+        let contest_name = lines.next().unwrap();
+        let contest_params : Vec<&str> = lines.next().unwrap().split("").collect();
+        let maximum_time = contest_params[0].parse()?;
+        let current_time = contest_params[1].parse()?;
+        let score_freeze_time = contest_params[2].parse()?;
+        let penalty = contest_params[3].parse()?;
+
+        Ok(Self::new(
+            contest_name.to_string(),
+            Vec::new(),
+            current_time,
+            maximum_time,
+            score_freeze_time,
+            penalty
+        ))
+    }
 
     pub fn dummy() -> Self {
-        Self::new(Vec::new(), 0, 0, 0, 0)
+        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0)
     }
 
     pub fn add_run(&mut self, run : RunTuple) {
@@ -289,6 +330,17 @@ mod tests {
     fn test_parse_file() -> Result<(), ContestError> {
         let x = RunTuple::from_file("test/sample/runs")?;
         assert_eq!(x.len(), 716);
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_contest_file() -> Result<(), ContestError> {
+        let x = ContestFile::from_file("test/sample/contest")?;
+        assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
+        assert_eq!(x.maximum_time, 300);
+        assert_eq!(x.current_time, 285);
+        assert_eq!(x.score_freeze_time, 240);
+        assert_eq!(x.penalty_per_wrong_answer, 20);
         Ok(())
     }
 }
