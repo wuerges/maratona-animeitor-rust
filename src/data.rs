@@ -28,7 +28,8 @@ pub enum ContestError {
     Parse(std::num::ParseIntError),
     InvalidUri(warp::http::uri::InvalidUri),
     Hyper(hyper::Error),
-    Simple(String)
+    Simple(String),
+    UnmatchedTeam(String)
 }
 
 impl Error for ContestError {}
@@ -101,11 +102,12 @@ impl Problem {
             Answer::Yes => {
                 self.solved = true;
                 self.submissions += 1;
+                self.penalty += tim;
             },
             Answer::No => {
                 // TODO many corner cases!
                 self.submissions += 1;
-                self.penalty += tim
+                self.penalty += 20;
             },
             _ => {
 
@@ -119,7 +121,7 @@ pub struct Team {
     pub login : String,
     pub escola : String,
     pub name : String,
-    pub placement : i64,
+    pub placement : usize,
     pub problems : BTreeMap<String, Problem>,
 }
 
@@ -148,6 +150,18 @@ impl Team {
             .or_insert(Problem::empty())
             .add_run_problem(run.time, run.answer.clone());
     }
+
+    fn score(&self) -> (i64, i64) {
+        let mut solved = 0;
+        let mut penalty = 0;
+        for (_, value) in self.problems.iter() {
+            if value.solved {
+                solved += 1;
+                penalty += value.penalty;
+            }
+        }
+        (solved, penalty)
+    }
 }
 
 #[derive(Debug)]
@@ -157,7 +171,8 @@ pub struct ContestFile {
     pub current_time : i64,
     pub maximum_time : i64,
     pub score_freeze_time : i64,
-    pub penalty_per_wrong_answer : i64
+    pub penalty_per_wrong_answer : i64,
+    pub score_board : Vec<String>
 }
 
 impl ContestFile {
@@ -178,7 +193,8 @@ impl ContestFile {
             current_time : current_time,
             maximum_time : maximum_time,
             score_freeze_time : score_freeze_time,
-            penalty_per_wrong_answer : penalty
+            penalty_per_wrong_answer : penalty,
+            score_board : Vec::new()
         }
     }
     pub fn from_file(s :&str) -> Result<Self, ContestError> {
@@ -186,8 +202,25 @@ impl ContestFile {
         Self::from_string(s)
     }
 
-    pub fn reload_score(&mut self, s: String) -> Result<(), ContestError> {
+    pub fn reload_score(&mut self) -> Result<(), ContestError> {
+        let mut score_board = Vec::new();
+        for (key, _) in self.teams.iter() {
+            score_board.push(key.clone());
+        }
+        score_board.sort_by(|a,b| {
+            let team_a = self.teams.get(a);
+            let team_b = self.teams.get(b);
+            team_a.map( |x| x.score()).cmp( &team_b.map( |x| x.score()) )
+        });
+        
+        for (i, v) in score_board.iter().enumerate() {
+            match self.teams.get_mut(v) {
+                None => return Err(ContestError::UnmatchedTeam(v.clone())),
+                Some(t) => t.placement = i+1
+            }
+        }
 
+        self.score_board = score_board;
         Ok(())
     }
 
@@ -330,6 +363,7 @@ impl DB {
                 Some(t) => t.apply_run(&r),
             }
         }        
+        self.contest_file.reload_score()?;
         Ok(())
     }
 }
@@ -337,7 +371,7 @@ impl DB {
 #[derive(Debug, Serialize)]
 pub struct RunsPanelItem {
     id : i64,
-    placement : i64,
+    placement : usize,
     color : i64,
     escola : String,
     team_name : String,
