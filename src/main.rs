@@ -20,9 +20,10 @@ async fn main() {
     }
     let url_base = args[1].clone();
 
-    let arc_runs = Arc::new(Mutex::new(DB::empty()));
+    let shared_db = Arc::new(Mutex::new(DB::empty()));
 
-    let shared = Arc::clone(&arc_runs);
+    
+    let shared = Arc::clone(&shared_db);
     spawn(async move {
         let dur = tokio::time::Duration::new(1, 0);
         let mut interval = tokio::time::interval(dur);
@@ -35,15 +36,17 @@ async fn main() {
             }
         }        
     });
-
-    let runs = warp::any().map(move || arc_runs.clone());
+    
+    type Shared = Arc<Mutex<DB>>;
+    fn with_db(db: Shared) -> impl Filter<Extract = (Shared,), Error = std::convert::Infallible> + Clone {
+        warp::any().map(move || db.clone())
+    }
 
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
-    let runs = warp::path("runs").and(runs.clone()).and_then(serve_runs);
+    let runs = warp::path("runs").and(with_db(shared_db.clone())).and_then(serve_runs);
+    let scoreboard = warp::path("score").and(with_db(shared_db)).and_then(serve_score);
 
-    let routes = static_assets.or(runs);
-
-
+    let routes = static_assets.or(runs).or(scoreboard);
 
     warp::serve(routes)
         .run(([127, 0, 0, 1], 3030))
@@ -136,5 +139,12 @@ async fn serve_runs(runs : Arc<Mutex<DB>>)
 -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&*db.latest_n(10)).unwrap();
+    Ok(r)
+}
+
+async fn serve_score(runs : Arc<Mutex<DB>>) 
+-> Result<impl warp::Reply, warp::Rejection> {
+    let db = runs.lock().await;
+    let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
     Ok(r)
 }

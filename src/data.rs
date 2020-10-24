@@ -86,7 +86,7 @@ impl fmt::Display for Answer {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Problem {
     solved : bool,
     submissions : i64,
@@ -116,7 +116,7 @@ impl Problem {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Team {
     pub login : String,
     pub escola : String,
@@ -124,6 +124,16 @@ pub struct Team {
     pub placement : usize,
     pub problems : BTreeMap<String, Problem>,
 }
+
+// pub struct TeamScore {
+//     pub login : String,
+//     pub placement : String,
+//     pub escola : String,
+//     pub name : String,
+//     pub solved_problems : usize,
+//     pub penalty : usize,
+//     pub solved : Vec<Option<Problem>>
+// }
 
 impl Team {
     fn new(login : &str, escola : &str, name : &str) -> Self {
@@ -365,6 +375,10 @@ impl DB {
         }        
         self.contest_file.reload_score()?;
         Ok(())
+    }
+
+    pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>) {
+        (&self.contest_file.score_board, &self.contest_file.teams)
     }
 }
 
