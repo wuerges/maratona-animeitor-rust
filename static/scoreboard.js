@@ -20,21 +20,22 @@ function getAnswer(t) {
   return "Error";
 }
 
-class RunsPanel extends React.Component {
+class Scoreboard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      devs: []
+      scoreOrder: [],
+      teams: []
     };
   }
 
   updateComponent() {
-    fetch("http://localhost:3030/runs")
+    fetch("http://localhost:3030/score")
     .then(res => res.json())
     .then(
       (result) => {
         console.log("Obtained results from api:", result)
-        this.setState({devs: result});
+        this.setState({scoreOrder: result[0], teams: result[1] });
       },
       // Nota: É importante lidar com os erros aqui
       // em vez de um bloco catch() para não recebermos
@@ -56,33 +57,58 @@ class RunsPanel extends React.Component {
     }, 1000);
   }
 
+  /*
+  escola: "UFPA"
+​​​
+login: "teambrbr01"
+​​​
+name: "[UFPA] Greedy d+"
+​​​
+placement: 240
+​​​
+problems: {…}
+​​​​
+E: Object { solved: true, submissions: 1, penalty: 48 }
+​​​​
+I: Object { solved: true, submissions: 1, penalty: 108 }
+​​​​
+K: Object { solved: false, submissions: 0, penalty: 0 }
+​​​​
+M: {…}*/
   render() {
+    const allProblems = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
     return (
       <>
         <div border="1">
-          {this.state.devs.map((dev) => (
-              <div className="run"
-              key={dev.id}
+          {this.state.scoreOrder.map((dev) => {
+            const team = this.state.teams[dev];
+            return <div className="run"
+              key={dev}
               style={{
-                  zIndex: dev.id,
+                  // zIndex: dev.id,
                   position: "absolute",
-                  top: 10 + this.state.devs.indexOf(dev) * 90,
+                  top: 10 + this.state.scoreOrder.indexOf(dev) * 90,
                   transition: "1s ease top",
                 }}
                 >
-                <div className="cell colocacao" 
-                style={{
-                  backgroundColor: getColor(dev.placement)
-                }}
-                >{dev.placement}</div>
-                <div className="cell time">
-                  <div className="nomeEscola">{dev.escola}</div>
-                  <div className="nomeTime">{dev.team_name}</div>
-                </div>
-                <div className="cell problema">{dev.problem}</div>
-                <div className="cell resposta">{getAnswer(dev.result)} </div>
+              <div className="cell colocacao"
+              style={{
+                backgroundColor: getColor(team.placement)
+              }}> {team.placement} </div>
+              <div className="cell time">
+                <div className="nomeEscola">{team.escola}</div>
+                <div className="nomeTime">{team.name}</div>
+              </div>
+              {allProblems.map((prob) => {
+                if(prob in team.problems) {
+                  return <div className="cell problema"> {prob} </div>;
+                }
+                else  {
+                  return <div className="cell problema"> - </div>;
+                }
+              })}
             </div>
-          ))}
+          })}
         </div>
       </>
     );
@@ -90,6 +116,6 @@ class RunsPanel extends React.Component {
 }
   
 ReactDOM.render(
-  <RunsPanel />,
+  <Scoreboard />,
   document.getElementById('root')
 );

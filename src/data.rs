@@ -220,7 +220,8 @@ impl ContestFile {
         score_board.sort_by(|a,b| {
             let team_a = self.teams.get(a);
             let team_b = self.teams.get(b);
-            team_a.map( |x| x.score()).cmp( &team_b.map( |x| x.score()) )
+            // team_a.map( |x| x.score()).cmp( &team_b.map( |x| x.score()) )
+            team_b.map( |x| x.score()).cmp( &team_a.map( |x| x.score()) )
         });
         
         for (i, v) in score_board.iter().enumerate() {
