@@ -138,7 +138,7 @@ async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), Contest
 async fn serve_runs(runs : Arc<Mutex<DB>>) 
 -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
-    let r = serde_json::to_string(&*db.latest_n(10)).unwrap();
+    let r = serde_json::to_string(&*db.latest_n(50)).unwrap();
     Ok(r)
 }
 

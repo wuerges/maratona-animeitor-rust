@@ -187,7 +187,8 @@ pub struct ContestFile {
     pub maximum_time : i64,
     pub score_freeze_time : i64,
     pub penalty_per_wrong_answer : i64,
-    pub score_board : Vec<String>
+    pub score_board : Vec<String>,
+    pub number_problems : usize
 }
 
 impl ContestFile {
@@ -196,7 +197,8 @@ impl ContestFile {
         , current_time : i64
         , maximum_time : i64
         , score_freeze_time : i64
-        , penalty : i64 ) -> Self {
+        , penalty : i64
+        , number_problems : usize) -> Self {
 
         let mut m = BTreeMap::new();
         for t in teams {
@@ -209,7 +211,8 @@ impl ContestFile {
             maximum_time : maximum_time,
             score_freeze_time : score_freeze_time,
             penalty_per_wrong_answer : penalty,
-            score_board : Vec::new()
+            score_board : Vec::new(),
+            number_problems : number_problems
         }
     }
     pub fn from_file(s :&str) -> Result<Self, ContestError> {
@@ -255,7 +258,7 @@ impl ContestFile {
 
         let team_params : Vec<&str> = lines.next().unwrap().split("").collect();
         let number_teams : usize = team_params[0].parse()?;
-        let _number_problems : usize = team_params[1].parse()?;
+        let number_problems : usize = team_params[1].parse()?;
         
         let mut teams = Vec::new();
         for _ in 0..number_teams {
@@ -287,12 +290,13 @@ impl ContestFile {
             current_time,
             maximum_time,
             score_freeze_time,
-            penalty
+            penalty,
+            number_problems
         ))
     }
 
     pub fn dummy() -> Self {
-        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0)
+        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 50)
     }
 
     // pub fn add_run(&mut self, run : RunTuple) {
@@ -386,8 +390,8 @@ impl DB {
         Ok(())
     }
 
-    pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>) {
-        (&self.contest_file.score_board, &self.contest_file.teams)
+    pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>, usize) {
+        (&self.contest_file.score_board, &self.contest_file.teams, self.contest_file.number_problems)
     }
 }
 

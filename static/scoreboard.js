@@ -7,6 +7,10 @@ function getColor(n) {
   return "";
 }
 
+const problemLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+                        "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+
+
 function getAnswer(t) {
   if (t == "Yes") {
     return <img src="assets/yes.png" />
@@ -25,7 +29,8 @@ class Scoreboard extends React.Component {
     super(props);
     this.state = {
       scoreOrder: [],
-      teams: []
+      teams: [],
+      numberProblems: 0
     };
   }
 
@@ -35,7 +40,7 @@ class Scoreboard extends React.Component {
     .then(
       (result) => {
         console.log("Obtained results from api:", result)
-        this.setState({scoreOrder: result[0], teams: result[1] });
+        this.setState({scoreOrder: result[0], teams: result[1], numberProblems: result[2] });
       },
       // Nota: É importante lidar com os erros aqui
       // em vez de um bloco catch() para não recebermos
@@ -76,7 +81,7 @@ K: Object { solved: false, submissions: 0, penalty: 0 }
 ​​​​
 M: {…}*/
   render() {
-    const allProblems = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
+    const allProblems = problemLetters.slice(0, this.state.numberProblems);
     return (
       <>
         <div border="1">
