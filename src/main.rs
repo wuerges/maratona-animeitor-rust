@@ -6,7 +6,9 @@ use warp::Filter;
 use maratona_animeitor_rust::data::*;
 use hyper::Client;
 use hyper::body;
-
+use std::fs::File;
+use std::io::prelude::*;
+use zip;
 
 #[tokio::main]
 async fn main() {
@@ -49,42 +51,83 @@ async fn main() {
 }
 
 
-async fn read_url(uri : String) -> Result<String, ContestError> {
+// async fn read_url(uri : String) -> Result<String, ContestError> {
+//    let bytes = read_bytes_from_url(uri).await?;
+//    let body = String::from_utf8(bytes)
+//         .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
+//    Ok(body)
+// }
+
+async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestError> {
     // Still inside `async fn main`...
     let client = Client::new();
     let uri = uri.parse()?;
 
-   // Await the response...
-   let resp = client.get(uri).await?;
-   let body_bytes = body::to_bytes(resp.into_body()).await?;
-   let body = String::from_utf8(body_bytes.to_vec())
-                .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
-   Ok(body)
+    // Await the response...
+    let resp = client.get(uri).await?;
+    let bytes = body::to_bytes(resp.into_body()).await?;
+    Ok(bytes.to_vec())
 }
 
-async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
+fn read_from_zip(zip : &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>, name: &str) 
+-> Result<String, ContestError> {
+
+    let mut runs_zip = zip.by_name(name)
+        .map_err(|_| ContestError::Simple("Could not unpack".to_string()))?;
+    let mut buffer = Vec::new();
+    runs_zip.read_to_end(&mut buffer)?;
+    let runs_data = String::from_utf8(buffer)
+        .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
+    Ok(runs_data)
+}
+
+async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
+
+    let zip_data = read_bytes_from_url(uri.clone()).await?;
+
+    let reader = std::io::Cursor::new(&zip_data);
+    let mut zip = zip::ZipArchive::new(reader)
+        .map_err(|_| ContestError::Simple("Could not open zipfile".to_string()))?;
+
     let mut db = runs.lock().await;
-
-    let mut runs_path = url_base.clone();
-    runs_path.push_str(&"/runs".to_owned());
-
-    let mut contest_path = url_base.clone();
-    contest_path.push_str(&"/contest".to_owned());
-
-    let mut time_path = url_base.clone();
-    time_path.push_str(&"/time".to_owned());
- 
-    let t = read_url(time_path).await?;
-    db.reload_time(t)?;
-
-    let contest = read_url(contest_path).await?;
-    db.reload_contest(contest)?;
-
-    let runs = read_url(runs_path).await?;
-    db.reload_runs(runs)?;
-
+    {
+        let time_data = read_from_zip(&mut zip, "./time")?;
+        db.reload_time(time_data)?;
+    }
+    {
+        let contest_data = read_from_zip(&mut zip, "./contest")?;
+        db.reload_contest(contest_data)?;
+    }
+    {
+        let runs_data = read_from_zip(&mut zip, "./runs")?;
+        db.reload_runs(runs_data)?;
+    }
     Ok(())
 }
+
+// async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
+//     let mut db = runs.lock().await;
+
+//     let mut runs_path = url_base.clone();
+//     runs_path.push_str(&"/runs".to_owned());
+
+//     let mut contest_path = url_base.clone();
+//     contest_path.push_str(&"/contest".to_owned());
+
+//     let mut time_path = url_base.clone();
+//     time_path.push_str(&"/time".to_owned());
+ 
+//     let t = read_url(time_path).await?;
+//     db.reload_time(t)?;
+
+//     let contest = read_url(contest_path).await?;
+//     db.reload_contest(contest)?;
+
+//     let runs = read_url(runs_path).await?;
+//     db.reload_runs(runs)?;
+
+//     Ok(())
+// }
 
 async fn serve_runs(runs : Arc<Mutex<DB>>) 
 -> Result<impl warp::Reply, warp::Rejection> {

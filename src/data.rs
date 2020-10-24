@@ -180,6 +180,11 @@ impl ContestFile {
         Self::from_string(s)
     }
 
+    pub fn reload_score(&mut self, s: String) -> Result<(), ContestError> {
+
+        Ok(())
+    }
+
     pub fn from_string(s : String) -> Result<Self, ContestError> {
         let mut lines = s.lines();
 
@@ -200,25 +205,23 @@ impl ContestFile {
             teams.push(t);
         }
 
-        let _line_unknown1 = lines.next();
-        let _line_unknown2 = lines.next();
+        // let _line_unknown1 = lines.next();
+        // let _line_unknown2 = lines.next();
 
-        for i in 0..number_teams {
+        // for i in 0..number_teams {
 
-            let line : Vec<_> = lines.next().unwrap().split(",")
-                .map( |x| x.parse::<i64>() )
-                .collect::<Result<_,_>>()?;
+        //     let line : Vec<_> = lines.next().unwrap().split(",")
+        //         .map( |x| x.parse::<i64>() )
+        //         .collect::<Result<_,_>>()?;
 
-            // 330505,1,11,1379,290
-            let _unk_1 = line[0];
-            let placement = line[1];
-            teams[i].placement = placement;
-            let _num_solved_problems = line[2];
-            let _unk_2 = line[3];
-            let _unk_3 = line[4];
-        }
-
-        
+        //     // 330505,1,11,1379,290
+        //     let _unk_1 = line[0];
+        //     let placement = line[1];
+        //     teams[i].placement = placement;
+        //     let _num_solved_problems = line[2];
+        //     let _unk_2 = line[3];
+        //     let _unk_3 = line[4];
+        // }
 
         Ok(Self::new(
             contest_name.to_string(),
