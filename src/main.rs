@@ -102,6 +102,9 @@ async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), Contest
         let runs_data = read_from_zip(&mut zip, "./runs")?;
         db.reload_runs(runs_data)?;
     }
+
+    db.recalculate_score()?;
+
     Ok(())
 }
 

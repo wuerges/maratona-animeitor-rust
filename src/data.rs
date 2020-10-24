@@ -120,7 +120,7 @@ pub struct Team {
     pub escola : String,
     pub name : String,
     pub placement : i64,
-    pub problems : BTreeMap<String, Problem>
+    pub problems : BTreeMap<String, Problem>,
 }
 
 impl Team {
@@ -141,6 +141,12 @@ impl Team {
     fn from_contest_string(s : &str) -> Self {
         let team_line : Vec<_> = s.split("").collect();
         Team::new(team_line[0], team_line[1], team_line[2])
+    }
+
+    fn apply_run(&mut self, run : &RunTuple) {
+        self.problems.entry(run.prob.clone())
+            .or_insert(Problem::empty())
+            .add_run_problem(run.time, run.answer.clone());
     }
 }
 
@@ -237,18 +243,18 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0)
     }
 
-    pub fn add_run(&mut self, run : RunTuple) {
-        match self.teams.get_mut(&run.team_login) {
-            None => {
+    // pub fn add_run(&mut self, run : RunTuple) {
+    //     match self.teams.get_mut(&run.team_login) {
+    //         None => {
 
-            },
-            Some(t) => {
-                t.problems.entry(run.prob)
-                        .or_insert(Problem::empty())
-                        .add_run_problem(run.time, run.answer)
-            }
-        }
-    }
+    //         },
+    //         Some(t) => {
+    //             t.problems.entry(run.prob)
+    //                     .or_insert(Problem::empty())
+    //                     .add_run_problem(run.time, run.answer)
+    //         }
+    //     }
+    // }
 }
 
 #[derive(Debug, Clone)]
@@ -313,6 +319,17 @@ impl DB {
     pub fn reload_time(&mut self, s: String) -> Result<(), ContestError> {
         let t = s.parse()?;
         self.time_file = t;
+        Ok(())
+    }
+
+    pub fn recalculate_score(&mut self)
+     -> Result<(), ContestError> {
+        for r in &self.run_file.runs {
+            match self.contest_file.teams.get_mut(&r.team_login) {
+                None => return Err(ContestError::Simple("Could not apply run to team".to_string())),
+                Some(t) => t.apply_run(&r),
+            }
+        }        
         Ok(())
     }
 }
