@@ -346,6 +346,7 @@ impl DB {
                 color : 0,
                 escola : t.escola.clone(),
                 team_name : t.name.clone(),
+                team_login : t.login.clone(),
                 problem : r.prob,
                 result : r.answer
             }
@@ -402,6 +403,7 @@ pub struct RunsPanelItem {
     color : i64,
     escola : String,
     team_name : String,
+    team_login : String,
     problem : String,
     result : Answer
 }

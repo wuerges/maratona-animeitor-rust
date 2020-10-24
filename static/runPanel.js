@@ -7,6 +7,17 @@ function getColor(n) {
   return "";
 }
 
+function getImgEscola(e) {
+  return <img 
+          className="logoimg" 
+          src={"assets/logos/" + e.toLowerCase() + ".png"}
+          alt={e.split('/').join(' /')} />
+}
+
+function getImgTeam(l) {
+  return <p> {l}</p>
+}
+
 function getAnswer(t) {
   if (t == "Yes") {
     return <img src="assets/yes.png" />
@@ -70,6 +81,7 @@ class RunsPanel extends React.Component {
                   transition: "1s ease top",
                 }}
                 >
+                {/* <div className="cell logo">{getImgTeam(dev.team_login)}</div> */}
                 <div className={"cell colocacao " + getColor(dev.placement)}>{dev.placement}</div>
                 <div className="cell time">
                   <div className="nomeEscola">{dev.escola}</div>

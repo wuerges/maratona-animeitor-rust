@@ -3,6 +3,15 @@ body {
     color: white;
 }
 
+.logoimg {
+    height: 55px;
+    font-size: 0.8vw;
+}
+
+.logo {
+    width: 75px;
+}
+
 .cell {
     height: 55px;
     float: left;
