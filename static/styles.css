@@ -28,6 +28,23 @@ body {
     font-size: 40px;
 }
 
+.verde {
+    background-color: green;
+}
+
+.vermelho {
+    background-color: red;
+}
+
+.cima {
+    line-height: 25px;
+    font-size: 20px;
+}
+.baixo {
+    line-height: 20px;
+    font-size: 15px;
+}
+
 .login {
     width: 150px;
 }

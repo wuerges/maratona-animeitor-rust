@@ -82,6 +82,14 @@ M: {…}*/
         <div border="1">
           {this.state.scoreOrder.map((dev) => {
             const team = this.state.teams[dev];
+            var solved = 0;
+            var penalty = 0;
+            Object.values(team.problems).forEach(prob => {
+              if (prob.solved) {
+                solved++;
+                penalty += prob.penalty;
+              }
+            });
             return <div className="run"
               key={dev}
               style={{
@@ -99,9 +107,23 @@ M: {…}*/
                 <div className="nomeEscola">{team.escola}</div>
                 <div className="nomeTime">{team.name}</div>
               </div>
+              <div className="cell problema"> 
+                <div className="cima"> {solved}  </div>
+                <div className="baixo"> {penalty} </div>
+              </div>
               {allProblems.map((prob) => {
                 if(prob in team.problems) {
-                  return <div className="cell problema"> {prob} </div>;
+                  const prob_v = team.problems[prob];
+                  if(prob_v.solved) {
+                    return <div className="cell problema verde"> 
+                              <div className="cima"> +{prob_v.submissions}  </div>
+                              <div className="baixo"> {prob_v.penalty} </div>
+                           </div>;
+                  }
+                  return <div className="cell problema vermelho"> 
+                           <div className="cima">X </div>
+                           <div className="baixo">({prob_v.submissions})</div> 
+                         </div>;
                 }
                 else  {
                   return <div className="cell problema"> - </div>;
