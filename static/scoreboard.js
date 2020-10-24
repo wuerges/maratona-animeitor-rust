@@ -80,6 +80,13 @@ M: {…}*/
     return (
       <>
         <div border="1">
+
+          <div className="run" style={{ position: "absolute", top: 10 }}>
+            <div className="cell titulo">Placar</div>
+            {allProblems.map(p => (<div className="cell problema">{p}</div>))}
+          </div>
+
+
           {this.state.scoreOrder.map((dev) => {
             const team = this.state.teams[dev];
             var solved = 0;
@@ -95,7 +102,7 @@ M: {…}*/
               style={{
                   // zIndex: dev.id,
                   position: "absolute",
-                  top: 10 + this.state.scoreOrder.indexOf(dev) * 90,
+                  top: 10 + (1+this.state.scoreOrder.indexOf(dev)) * 90,
                   transition: "1s ease top",
                 }}
                 >

@@ -12,6 +12,10 @@ body {
     padding: 5px;
 }
 
+.titulo {
+    width: 445px;
+}
+
 .nomeEscola {
     font-size: 20px;
 }
