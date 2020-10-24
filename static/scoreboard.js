@@ -1,10 +1,10 @@
 
 function getColor(n) {
-  if (n == 0) return 'red';
-  if (n <= 3) return 'yellow';
-  if (n <= 6) return 'gray';
-  if (n <= 10) return 'orange';
-  return 'black';
+  if (n == 0) return "vermelho";
+  if (n <= 3) return "ouro";
+  if (n <= 6) return "prata";
+  if (n <= 10) return "bronze";
+  return "";
 }
 
 function getAnswer(t) {
@@ -106,10 +106,7 @@ M: {…}*/
                   transition: "1s ease top",
                 }}
                 >
-              <div className="cell colocacao"
-              style={{
-                backgroundColor: getColor(team.placement)
-              }}> {team.placement} </div>
+              <div className={"cell colocacao " + getColor(team.placement)}>{team.placement}</div>
               <div className="cell time">
                 <div className="nomeEscola">{team.escola}</div>
                 <div className="nomeTime">{team.name}</div>
@@ -127,7 +124,7 @@ M: {…}*/
                               <div className="baixo"> {prob_v.penalty} </div>
                            </div>;
                   }
-                  return <div className="cell problema vermelho"> 
+                  return <div className={"cell problema "+ (prob_v.wait ? "amarelo" : "vermelho")}> 
                            <div className="cima">X </div>
                            <div className="baixo">({prob_v.submissions})</div> 
                          </div>;

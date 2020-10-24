@@ -1,10 +1,10 @@
 
 function getColor(n) {
-  if (n == 0) return 'red';
-  if (n <= 3) return 'yellow';
-  if (n <= 6) return 'gray';
-  if (n <= 10) return 'orange';
-  return 'black';
+  if (n == 0) return "vermelho";
+  if (n <= 3) return "ouro";
+  if (n <= 6) return "prata";
+  if (n <= 10) return "bronze";
+  return "";
 }
 
 function getAnswer(t) {
@@ -70,11 +70,7 @@ class RunsPanel extends React.Component {
                   transition: "1s ease top",
                 }}
                 >
-                <div className="cell colocacao" 
-                style={{
-                  backgroundColor: getColor(dev.placement)
-                }}
-                >{dev.placement}</div>
+                <div className={"cell colocacao " + getColor(dev.placement)}>{dev.placement}</div>
                 <div className="cell time">
                   <div className="nomeEscola">{dev.escola}</div>
                   <div className="nomeTime">{dev.team_name}</div>

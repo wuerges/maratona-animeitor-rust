@@ -89,13 +89,14 @@ impl fmt::Display for Answer {
 #[derive(Debug, Serialize)]
 pub struct Problem {
     solved : bool,
+    wait : bool,
     submissions : i64,
     penalty: i64
 }
 
 impl Problem {
     fn empty() -> Self {
-        Problem { solved : false, submissions : 0, penalty : 0 }
+        Problem { solved : false, wait : false, submissions : 0, penalty : 0 }
     }
     fn add_run_problem(&mut self, tim : i64, answer: Answer) {
         match answer {
@@ -108,6 +109,10 @@ impl Problem {
                 // TODO many corner cases!
                 self.submissions += 1;
                 self.penalty += 20;
+                self.wait = false;
+            },
+            Answer::Wait => {
+                self.wait = true;                
             },
             _ => {
 
@@ -371,7 +376,7 @@ impl DB {
 
     pub fn recalculate_score(&mut self)
      -> Result<(), ContestError> {
-        for r in &self.run_file.runs {
+        for r in self.run_file.runs.iter().rev() {
             match self.contest_file.teams.get_mut(&r.team_login) {
                 None => return Err(ContestError::Simple("Could not apply run to team".to_string())),
                 Some(t) => t.apply_run(&r),
