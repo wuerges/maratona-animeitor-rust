@@ -218,10 +218,13 @@ impl ContestFile {
             score_board.push(key.clone());
         }
         score_board.sort_by(|a,b| {
-            let team_a = self.teams.get(a);
-            let team_b = self.teams.get(b);
-            // team_a.map( |x| x.score()).cmp( &team_b.map( |x| x.score()) )
-            team_b.map( |x| x.score()).cmp( &team_a.map( |x| x.score()) )
+            let (solved_a, penalty_a) = self.teams.get(a).unwrap().score();
+            let (solved_b, penalty_b) = self.teams.get(b).unwrap().score();
+
+            if solved_a == solved_b {
+                return penalty_a.cmp(&penalty_b);
+            }
+            return solved_b.cmp(&solved_a);
         });
         
         for (i, v) in score_board.iter().enumerate() {
