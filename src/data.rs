@@ -1,19 +1,11 @@
-use std::io::{self, Read};
-use std::fs::File;
-use std::{error::Error, fmt};
+
+use std::io::Error;
+use std::fmt;
 use std::collections::BTreeMap;
 // use serde::Deserialize;
 use serde::Serialize;
 // use serde_json;
 
-
-fn read_to_string(s : &str) -> io::Result<String> {
-    let mut file = File::open(s)?;
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-    Ok(s)
-}
-        
 
 #[derive(Debug, PartialEq, Clone, Serialize)]
 pub enum Answer {
@@ -25,7 +17,7 @@ pub enum Answer {
 
 #[derive(Debug)]
 pub enum ContestError {
-    IO(io::Error),
+    IO(Error),
     Parse(std::num::ParseIntError),
     InvalidUri(warp::http::uri::InvalidUri),
     Hyper(hyper::Error),
@@ -33,15 +25,15 @@ pub enum ContestError {
     UnmatchedTeam(String)
 }
 
-impl Error for ContestError {}
+impl std::error::Error for ContestError {}
 
 impl std::convert::From<std::num::ParseIntError> for ContestError {
     fn from(error: std::num::ParseIntError) -> Self {
         ContestError::Parse(error)
     }
 }
-impl std::convert::From<io::Error> for ContestError {
-    fn from(error: io::Error) -> Self {
+impl std::convert::From<Error> for ContestError {
+    fn from(error: Error) -> Self {
         ContestError::IO(error)
     }
 }
@@ -65,16 +57,6 @@ impl fmt::Display for ContestError {
     }
 }
 
-impl Answer {
-    fn from_string(t : &str) -> Result<Answer, ContestError> {
-        match t {
-            "Y" => Ok(Self::Yes),
-            "N" => Ok(Self::No),
-            "?" => Ok(Self::Wait),
-            _ => Err(ContestError::Simple(t.to_string()))
-        }        
-    }
-}
 
 impl fmt::Display for Answer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -131,18 +113,8 @@ pub struct Team {
     pub problems : BTreeMap<String, Problem>,
 }
 
-// pub struct TeamScore {
-//     pub login : String,
-//     pub placement : String,
-//     pub escola : String,
-//     pub name : String,
-//     pub solved_problems : usize,
-//     pub penalty : usize,
-//     pub solved : Vec<Option<Problem>>
-// }
-
 impl Team {
-    fn new(login : &str, escola : &str, name : &str) -> Self {
+    pub fn new(login : &str, escola : &str, name : &str) -> Self {
         Self {
             login : login.to_string(),
             escola : escola.to_string(),
@@ -156,10 +128,6 @@ impl Team {
         Self::new("<login>", "<escola>", "<nome>")
     }
 
-    fn from_contest_string(s : &str) -> Self {
-        let team_line : Vec<_> = s.split("").collect();
-        Team::new(team_line[0], team_line[1], team_line[2])
-    }
 
     fn apply_run(&mut self, run : &RunTuple) {
         self.problems.entry(run.prob.clone())
@@ -216,10 +184,7 @@ impl ContestFile {
             number_problems : number_problems
         }
     }
-    pub fn from_file(s :&str) -> Result<Self, ContestError> {
-        let s = read_to_string(s)?;
-        Self::from_string(s)
-    }
+
 
     pub fn reload_score(&mut self) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
@@ -247,76 +212,15 @@ impl ContestFile {
         Ok(())
     }
 
-    pub fn from_string(s : String) -> Result<Self, ContestError> {
-        let mut lines = s.lines();
-
-        let contest_name = lines.next().unwrap();
-        let contest_params : Vec<&str> = lines.next().unwrap().split("").collect();
-        let maximum_time = contest_params[0].parse()?;
-        let current_time = contest_params[1].parse()?;
-        let score_freeze_time = contest_params[2].parse()?;
-        let penalty = contest_params[3].parse()?;
-
-        let team_params : Vec<&str> = lines.next().unwrap().split("").collect();
-        let number_teams : usize = team_params[0].parse()?;
-        let number_problems : usize = team_params[1].parse()?;
-        
-        let mut teams = Vec::new();
-        for _ in 0..number_teams {
-            let t = Team::from_contest_string(lines.next().unwrap());
-            teams.push(t);
-        }
-
-        // let _line_unknown1 = lines.next();
-        // let _line_unknown2 = lines.next();
-
-        // for i in 0..number_teams {
-
-        //     let line : Vec<_> = lines.next().unwrap().split(",")
-        //         .map( |x| x.parse::<i64>() )
-        //         .collect::<Result<_,_>>()?;
-
-        //     // 330505,1,11,1379,290
-        //     let _unk_1 = line[0];
-        //     let placement = line[1];
-        //     teams[i].placement = placement;
-        //     let _num_solved_problems = line[2];
-        //     let _unk_2 = line[3];
-        //     let _unk_3 = line[4];
-        // }
-
-        Ok(Self::new(
-            contest_name.to_string(),
-            teams,
-            current_time,
-            maximum_time,
-            score_freeze_time,
-            penalty,
-            number_problems
-        ))
-    }
 
     pub fn dummy() -> Self {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 50)
     }
-
-    // pub fn add_run(&mut self, run : RunTuple) {
-    //     match self.teams.get_mut(&run.team_login) {
-    //         None => {
-
-    //         },
-    //         Some(t) => {
-    //             t.problems.entry(run.prob)
-    //                     .or_insert(Problem::empty())
-    //                     .add_run_problem(run.time, run.answer)
-    //         }
-    //     }
-    // }
 }
 
 #[derive(Debug, Clone)]
 pub struct RunTuple {
-    id : i64,
+    pub id : i64,
     pub time : i64,
     pub team_login : String,
     pub prob : String,
@@ -325,7 +229,7 @@ pub struct RunTuple {
 
 #[derive(Debug)] 
 pub struct RunsFile {
-    runs : Vec<RunTuple>
+    pub runs : Vec<RunTuple>
 }
 
 #[derive(Debug)]
@@ -416,21 +320,6 @@ impl RunsFile {
         }
     }
 
-    pub fn from_file(s : &str) -> Result<Self, ContestError> {
-        let s = read_to_string(s)?;
-        Self::from_string(s)
-    }
-    
-    pub fn from_string(s: String) -> Result<Self, ContestError> {
-        let runs = s.lines()
-            .map( |line| RunTuple::from_string(line) );
-        let runs = runs.collect::<Result<_, _>>()?;
-        Ok(RunsFile {
-            runs: runs
-        })
-    }
-
-
     pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
         let mut ret = self.runs.clone();
         ret.sort_by(|a, b| 
@@ -446,57 +335,4 @@ impl RunsFile {
     }
 }
 
-impl RunTuple {
-    pub fn from_string(line : &str) -> Result<Self, ContestError> {
-        let v : Vec<&str> = line.split('').collect();
-        let id = v[0].parse().map_err(|e| ContestError::Parse(e))?;
-        let time = v[1].parse().map_err(|e| ContestError::Parse(e))?;
-        let ans = Answer::from_string(v[4])?;
-        
-        Ok(Self {
-            id   : id,
-            time : time,
-            team_login : v[2].to_string(),
-            prob : v[3].to_string(),
-            answer : ans
-        })
-    }
-}
 
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-
-    #[test]
-    fn test_from_string() -> Result<(), ContestError> {
-        let x = "375971416299teambrbr3BN";
-        let t = RunTuple::from_string(x)?;
-
-        assert_eq!(t.id, 375971416);
-        assert_eq!(t.time, 299);
-        assert_eq!(t.team_login, "teambrbr3");
-        assert_eq!(t.prob, "B");
-        assert_eq!(t.answer, Answer::No);
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_file() -> Result<(), ContestError> {
-        let x = RunsFile::from_file("test/sample/runs")?;
-        assert_eq!(x.runs.len(), 716);
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_contest_file() -> Result<(), ContestError> {
-        let x = ContestFile::from_file("test/sample/contest")?;
-        assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
-        assert_eq!(x.maximum_time, 300);
-        assert_eq!(x.current_time, 285);
-        assert_eq!(x.score_freeze_time, 240);
-        assert_eq!(x.penalty_per_wrong_answer, 20);
-        assert_eq!(x.teams.keys().len(), 72);
-        Ok(())
-    }
-}
