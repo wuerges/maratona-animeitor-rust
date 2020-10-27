@@ -31,7 +31,7 @@ async fn main() {
     
     let shared = Arc::clone(&shared_db);
     spawn(async move {
-        let dur = tokio::time::Duration::new(1, 0);
+        let dur = tokio::time::Duration::new(30, 0);
         let mut interval = tokio::time::interval(dur);
         loop {
             interval.tick().await;
