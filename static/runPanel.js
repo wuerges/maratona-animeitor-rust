@@ -40,7 +40,7 @@ class RunsPanel extends React.Component {
   }
 
   updateComponent() {
-    fetch("http://localhost:3030/runs")
+    fetch("/runs")
     .then(res => res.json())
     .then(
       (result) => {

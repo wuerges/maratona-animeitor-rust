@@ -16,11 +16,15 @@ use zip;
 async fn main() {
 
     let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
+    if args.len() != 3 {
         eprintln!("Expected 1 argument: {:?}", args);
         return;
     }
-    let url_base = args[1].clone();
+    let server_port = match args[1].parse() {
+        Ok(t) => t,
+        Err(e) => panic!("Could not parse port {}", e)
+    };
+    let url_base = args[2].clone();
 
     let shared_db = Arc::new(Mutex::new(DB::empty()));
 
@@ -50,8 +54,11 @@ async fn main() {
 
     let routes = static_assets.or(runs).or(scoreboard);
 
+    println!("Maratona Streimator rodando!");
+    println!("-> Placar em http://localhost:{}/static/runPanel.html", server_port);
+    println!("-> Runs em http://localhost:{}/static/scoreboard.html", server_port);
     warp::serve(routes)
-        .run(([127, 0, 0, 1], 3030))
+        .run(([127, 0, 0, 1], server_port))
         .await;
 }
 

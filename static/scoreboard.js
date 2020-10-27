@@ -35,7 +35,7 @@ class Scoreboard extends React.Component {
   }
 
   updateComponent() {
-    fetch("http://localhost:3030/score")
+    fetch("/score")
     .then(res => res.json())
     .then(
       (result) => {
