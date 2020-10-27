@@ -4,9 +4,11 @@ use tokio;
 use std::env;
 use warp::Filter;
 use maratona_animeitor_rust::data::*;
+
 use hyper::Client;
+use hyper_tls::HttpsConnector;
+
 use hyper::body;
-use std::fs::File;
 use std::io::prelude::*;
 use zip;
 
@@ -63,7 +65,15 @@ async fn main() {
 
 async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestError> {
     // Still inside `async fn main`...
-    let client = Client::new();
+
+    let https = HttpsConnector::new();
+    let client = Client::builder().build::<_, hyper::Body>(https);
+
+    // let ssl = NativeTlsClient::new().unwrap();
+    // let connector = HttpsConnector::new(ssl);
+    // let client = Client::with_connector(connector);
+
+    // let client = Client::new();
     let uri = uri.parse()?;
 
     // Await the response...
