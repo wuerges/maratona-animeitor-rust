@@ -7,7 +7,7 @@ Este placar foi feito para as etapas regional e nacional da Maratona de Programa
 
 Pré-requisitos:
 
-- Instale o (Rust)[https://www.rust-lang.org/pt-BR/tools/install]
+- Instale o [Rust](https://www.rust-lang.org/pt-BR/tools/install)
 
 Clone este repositório:
 
@@ -36,5 +36,5 @@ Maratona Rustrimeitor rodando!
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
-O placar e os runs podem ser customizados usando CSS, através do arquivo <static/styles.css>. 
+O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](static/styles.css). 
 
