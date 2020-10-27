@@ -124,12 +124,12 @@ impl Team {
         }
     }
 
-    fn dummy() -> Self {
+    pub fn dummy() -> Self {
         Self::new("<login>", "<escola>", "<nome>")
     }
 
 
-    fn apply_run(&mut self, run : &RunTuple) {
+    pub fn apply_run(&mut self, run : &RunTuple) {
         self.problems.entry(run.prob.clone())
             .or_insert(Problem::empty())
             .add_run_problem(run.time, run.answer.clone());
@@ -232,85 +232,16 @@ pub struct RunsFile {
     pub runs : Vec<RunTuple>
 }
 
-#[derive(Debug)]
-pub struct DB {
-    run_file : RunsFile,
-    contest_file : ContestFile,
-    time_file : i64
-}
-
-impl DB {
-    pub fn latest_n(&self, n : usize) -> Vec<RunsPanelItem> {
-        self.run_file.latest_n(n).into_iter().map(|r| {
-            let dummy = Team::dummy();
-            let t = self.contest_file.teams.get(&r.team_login)
-                        .unwrap_or(&dummy);
-            RunsPanelItem {
-                id : r.id,
-                placement: t.placement,
-                color : 0,
-                escola : t.escola.clone(),
-                team_name : t.name.clone(),
-                team_login : t.login.clone(),
-                problem : r.prob,
-                result : r.answer
-            }
-        }).collect()
-    }
-
-    pub fn empty() -> Self {
-        DB {
-            run_file : RunsFile::empty(),
-            contest_file  : ContestFile::dummy(),
-            time_file : 0
-
-        }
-    }
-
-    pub fn reload_runs(&mut self, s: String) -> Result<(), ContestError> {
-        let runs = RunsFile::from_string(s)?;
-        self.run_file = runs;
-        Ok(())
-    }
-
-    pub fn reload_contest(&mut self, s: String) -> Result<(), ContestError> {
-        self.contest_file = ContestFile::from_string(s)?;
-        Ok(())
-    }
-
-    pub fn reload_time(&mut self, s: String) -> Result<(), ContestError> {
-        let t = s.parse()?;
-        self.time_file = t;
-        Ok(())
-    }
-
-    pub fn recalculate_score(&mut self)
-     -> Result<(), ContestError> {
-        for r in self.run_file.runs.iter().rev() {
-            match self.contest_file.teams.get_mut(&r.team_login) {
-                None => return Err(ContestError::Simple("Could not apply run to team".to_string())),
-                Some(t) => t.apply_run(&r),
-            }
-        }        
-        self.contest_file.reload_score()?;
-        Ok(())
-    }
-
-    pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>, usize) {
-        (&self.contest_file.score_board, &self.contest_file.teams, self.contest_file.number_problems)
-    }
-}
-
 #[derive(Debug, Serialize)]
 pub struct RunsPanelItem {
-    id : i64,
-    placement : usize,
-    color : i64,
-    escola : String,
-    team_name : String,
-    team_login : String,
-    problem : String,
-    result : Answer
+    pub id : i64,
+    pub placement : usize,
+    pub color : i64,
+    pub escola : String,
+    pub team_name : String,
+    pub team_login : String,
+    pub problem : String,
+    pub result : Answer
 }
 
 impl RunsFile {

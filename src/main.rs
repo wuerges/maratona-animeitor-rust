@@ -4,6 +4,7 @@ use tokio;
 use std::env;
 use warp::Filter;
 use maratona_animeitor_rust::data::*;
+use maratona_animeitor_rust::dataio::*;
 
 use hyper::Client;
 use hyper_tls::HttpsConnector;
@@ -11,6 +12,10 @@ use hyper_tls::HttpsConnector;
 use hyper::body;
 use std::io::prelude::*;
 use zip;
+
+
+// use dataio::*;
+
 
 #[tokio::main]
 async fn main() {
@@ -63,27 +68,13 @@ async fn main() {
 }
 
 
-// async fn read_url(uri : String) -> Result<String, ContestError> {
-//    let bytes = read_bytes_from_url(uri).await?;
-//    let body = String::from_utf8(bytes)
-//         .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
-//    Ok(body)
-// }
 
 async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestError> {
-    // Still inside `async fn main`...
-
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
-    // let ssl = NativeTlsClient::new().unwrap();
-    // let connector = HttpsConnector::new(ssl);
-    // let client = Client::with_connector(connector);
-
-    // let client = Client::new();
     let uri = uri.parse()?;
 
-    // Await the response...
     let resp = client.get(uri).await?;
     let bytes = body::to_bytes(resp.into_body()).await?;
     Ok(bytes.to_vec())
@@ -127,30 +118,6 @@ async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), Contest
 
     Ok(())
 }
-
-// async fn update_runs(url_base : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
-//     let mut db = runs.lock().await;
-
-//     let mut runs_path = url_base.clone();
-//     runs_path.push_str(&"/runs".to_owned());
-
-//     let mut contest_path = url_base.clone();
-//     contest_path.push_str(&"/contest".to_owned());
-
-//     let mut time_path = url_base.clone();
-//     time_path.push_str(&"/time".to_owned());
- 
-//     let t = read_url(time_path).await?;
-//     db.reload_time(t)?;
-
-//     let contest = read_url(contest_path).await?;
-//     db.reload_contest(contest)?;
-
-//     let runs = read_url(runs_path).await?;
-//     db.reload_runs(runs)?;
-
-//     Ok(())
-// }
 
 async fn serve_runs(runs : Arc<Mutex<DB>>) 
 -> Result<impl warp::Reply, warp::Rejection> {
