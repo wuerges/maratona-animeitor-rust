@@ -7,3 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hyper = "0.13"
+hyper-tls = "0.4.3"
+tokio = { version = "0.2", features = ["full"] }
+zip = "0.5.8"
+warp = "0.2"
+
+[dependencies.maratona_animeitor_rust]
+path = ".."

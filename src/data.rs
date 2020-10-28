@@ -1,5 +1,5 @@
 
-use std::io::Error;
+// use std::io::Error;
 use std::fmt;
 use std::collections::BTreeMap;
 // use serde::Deserialize;
@@ -17,10 +17,10 @@ pub enum Answer {
 
 #[derive(Debug)]
 pub enum ContestError {
-    IO(Error),
+    // IO(Error),
     Parse(std::num::ParseIntError),
-    InvalidUri(warp::http::uri::InvalidUri),
-    Hyper(hyper::Error),
+    // InvalidUri(String),
+    // Hyper(String),
     Simple(String),
     UnmatchedTeam(String)
 }
@@ -32,24 +32,24 @@ impl std::convert::From<std::num::ParseIntError> for ContestError {
         ContestError::Parse(error)
     }
 }
-impl std::convert::From<Error> for ContestError {
-    fn from(error: Error) -> Self {
-        ContestError::IO(error)
-    }
-}
+// impl std::convert::From<Error> for ContestError {
+//     fn from(error: Error) -> Self {
+//         ContestError::IO(error)
+//     }
+// }
 
-impl std::convert::From<hyper::Error> for ContestError {
-    fn from(error: hyper::Error) -> Self {
-        ContestError::Hyper(error)
-    }
+// impl std::convert::From<hyper::Error> for ContestError {
+//     fn from(error: hyper::Error) -> Self {
+//         ContestError::Hyper(error)
+//     }
 
-}
+// }
 
-impl std::convert::From<warp::http::uri::InvalidUri> for ContestError {
-    fn from(error: warp::http::uri::InvalidUri) -> Self {
-        ContestError::InvalidUri(error)
-    }
-}
+// impl std::convert::From<warp::http::uri::InvalidUri> for ContestError {
+//     fn from(error: warp::http::uri::InvalidUri) -> Self {
+//         ContestError::InvalidUri(error)
+//     }
+// }
 
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
