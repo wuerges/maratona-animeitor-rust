@@ -17,20 +17,20 @@ pub enum Answer {
 #[derive(Debug)]
 pub enum ContestError {
     // IO(Error),
-    Parse(std::num::ParseIntError),
+    // Parse(std::num::ParseIntError),
     // InvalidUri(String),
     // Hyper(String),
-    Simple(String),
+    // Simple(String),
     UnmatchedTeam(String)
 }
 
 impl std::error::Error for ContestError {}
 
-impl std::convert::From<std::num::ParseIntError> for ContestError {
-    fn from(error: std::num::ParseIntError) -> Self {
-        ContestError::Parse(error)
-    }
-}
+// impl std::convert::From<std::num::ParseIntError> for ContestError {
+//     fn from(error: std::num::ParseIntError) -> Self {
+//         ContestError::Parse(error)
+//     }
+// }
 
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

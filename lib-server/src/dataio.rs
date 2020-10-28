@@ -1,6 +1,5 @@
-// use std::io::{self, Read};
-use std::io;
-// use std::fs::File;
+use std::io::{self, Read};
+use std::fs::File;
 use std::collections::BTreeMap;
 
 use maratona_animeitor_rust::data::*;
@@ -15,7 +14,9 @@ pub enum ContestIOError {
     InvalidUri(warp::http::uri::InvalidUri),
     Hyper(hyper::Error),
     ParseInt(std::num::ParseIntError),
-    Chain(ContestError)
+    InvalidAnswer(String),
+    Chain(ContestError),
+    Info(String) 
 }
 
 impl std::fmt::Display for ContestIOError {
@@ -60,9 +61,10 @@ trait FromString {
     where Self: std::marker::Sized;
 }
 
-// trait FromFile {
-//     fn from_file(s :&str) -> ContestResult<Self>;
-// }
+trait FromFile {
+    fn from_file(s :&str) -> ContestIOResult<Self>
+    where Self: std::marker::Sized;
+}
 
 impl FromString for Team {
     fn from_string(s : &str) -> ContestIOResult<Self> {
@@ -71,12 +73,12 @@ impl FromString for Team {
     }
 }
 
-// fn read_to_string(s : &str) -> io::Result<String> {
-//     let mut file = File::open(s)?;
-//     let mut s = String::new();
-//     file.read_to_string(&mut s)?;
-//     Ok(s)
-// }
+fn read_to_string(s : &str) -> io::Result<String> {
+    let mut file = File::open(s)?;
+    let mut s = String::new();
+    file.read_to_string(&mut s)?;
+    Ok(s)
+}
 
 impl FromString for  Answer {
     fn from_string(t : &str) -> Result<Answer, ContestIOError> {
@@ -84,7 +86,7 @@ impl FromString for  Answer {
             "Y" => Ok(Self::Yes),
             "N" => Ok(Self::No),
             "?" => Ok(Self::Wait),
-            _ => Err(ContestIOError::Chain(ContestError::Simple(t.to_string())))
+            _ => Err(ContestIOError::InvalidAnswer(t.to_string()))
         }        
     }
 }
@@ -92,8 +94,8 @@ impl FromString for  Answer {
 impl FromString for RunTuple {
     fn from_string(line : &str) -> Result<Self, ContestIOError> {
         let v : Vec<&str> = line.split('').collect();
-        let id = v[0].parse().map_err(|e| ContestError::Parse(e))?;
-        let time = v[1].parse().map_err(|e| ContestError::Parse(e))?;
+        let id = v[0].parse()?;
+        let time = v[1].parse()?;
         let ans = Answer::from_string(v[4])?;
         
         Ok(Self {
@@ -140,19 +142,19 @@ impl FromString for ContestFile {
     }
 }
 
-// impl FromFile for ContestFile {
-//     fn from_file(s :&str) -> Result<Self, ContestError> {
-//         let s = read_to_string(s)?;
-//         Self::from_string(s)
-//     }
-// }
+impl FromFile for ContestFile {
+    fn from_file(s :&str) -> Result<Self, ContestIOError> {
+        let s = read_to_string(s)?;
+        Self::from_string(&s)
+    }
+}
 
-// impl FromFile for RunsFile {
-//     fn from_file(s : &str) -> Result<Self, ContestError> {
-//         let s = read_to_string(s)?;
-//         Self::from_string(s)
-//     }
-// }
+impl FromFile for RunsFile {
+    fn from_file(s : &str) -> Result<Self, ContestIOError> {
+        let s = read_to_string(s)?;
+        Self::from_string(&s)
+    }
+}
 
 impl FromString for RunsFile {    
     fn from_string(s: &str) -> ContestIOResult<Self> {
@@ -165,44 +167,6 @@ impl FromString for RunsFile {
     }
 
 }
-
-// #[cfg(test)]
-// mod tests {
-
-//     use super::*;
-
-//     #[test]
-//     fn test_from_string() -> Result<(), ContestError> {
-//         let x = "375971416299teambrbr3BN";
-//         let t = RunTuple::from_string(x)?;
-
-//         assert_eq!(t.id, 375971416);
-//         assert_eq!(t.time, 299);
-//         assert_eq!(t.team_login, "teambrbr3");
-//         assert_eq!(t.prob, "B");
-//         assert_eq!(t.answer, Answer::No);
-//         Ok(())
-//     }
-
-//     #[test]
-//     fn test_parse_file() -> Result<(), ContestError> {
-//         let x = RunsFile::from_file("test/sample/runs")?;
-//         assert_eq!(x.runs.len(), 716);
-//         Ok(())
-//     }
-
-//     #[test]
-//     fn test_parse_contest_file() -> Result<(), ContestError> {
-//         let x = ContestFile::from_file("test/sample/contest")?;
-//         assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
-//         assert_eq!(x.maximum_time, 300);
-//         assert_eq!(x.current_time, 285);
-//         assert_eq!(x.score_freeze_time, 240);
-//         assert_eq!(x.penalty_per_wrong_answer, 20);
-//         assert_eq!(x.teams.keys().len(), 72);
-//         Ok(())
-//     }
-// }
 
 
 #[derive(Debug)]
@@ -265,7 +229,7 @@ impl DB {
      -> Result<(), ContestError> {
         for r in self.run_file.runs.iter().rev() {
             match self.contest_file.teams.get_mut(&r.team_login) {
-                None => return Err(ContestError::Simple("Could not apply run to team".to_string())),
+                None => return Err(ContestError::UnmatchedTeam("Could not apply run to team".to_string())),
                 Some(t) => t.apply_run(&r),
             }
         }        
@@ -273,4 +237,44 @@ impl DB {
         Ok(())
     }
 
+}
+
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn test_from_string() -> Result<(), ContestIOError> {
+        let x = "375971416299teambrbr3BN";
+        let t = RunTuple::from_string(x)?;
+
+        assert_eq!(t.id, 375971416);
+        assert_eq!(t.time, 299);
+        assert_eq!(t.team_login, "teambrbr3");
+        assert_eq!(t.prob, "B");
+        assert_eq!(t.answer, Answer::No);
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_file() -> Result<(), ContestIOError> {
+        let x = RunsFile::from_file("test/sample/runs")?;
+        assert_eq!(x.runs.len(), 716);
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_contest_file() -> Result<(), ContestIOError> {
+        let x = ContestFile::from_file("test/sample/contest")?;
+        assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
+        assert_eq!(x.maximum_time, 300);
+        assert_eq!(x.current_time, 285);
+        assert_eq!(x.score_freeze_time, 240);
+        assert_eq!(x.penalty_per_wrong_answer, 20);
+        assert_eq!(x.teams.keys().len(), 72);
+        Ok(())
+    }
 }

@@ -4,7 +4,6 @@ use tokio;
 use std::env;
 use warp::Filter;
 use lib_server::dataio::*;
-use maratona_animeitor_rust::data::*;
 
 use hyper::Client;
 use hyper_tls::HttpsConnector;
@@ -83,11 +82,11 @@ fn read_from_zip(zip : &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>
 -> Result<String, ContestIOError> {
 
     let mut runs_zip = zip.by_name(name)
-        .map_err(|_| ContestError::Simple("Could not unpack".to_string()))?;
+        .map_err(|_| ContestIOError::Info("Could not unpack".to_string()))?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
     let runs_data = String::from_utf8(buffer)
-        .map_err(|_| ContestError::Simple("Could not parse to UTF8".to_string()))?;
+        .map_err(|_| ContestIOError::Info("Could not parse to UTF8".to_string()))?;
     Ok(runs_data)
 }
 
@@ -97,7 +96,7 @@ async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), Contest
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|_| ContestError::Simple("Could not open zipfile".to_string()))?;
+        .map_err(|_| ContestIOError::Info("Could not open zipfile".to_string()))?;
 
     let mut db = runs.lock().await;
     {
