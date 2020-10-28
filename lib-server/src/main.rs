@@ -3,8 +3,8 @@ use tokio::{sync::Mutex, spawn};
 use tokio;
 use std::env;
 use warp::Filter;
+use lib_server::dataio::*;
 use maratona_animeitor_rust::data::*;
-use maratona_animeitor_rust::dataio::*;
 
 use hyper::Client;
 use hyper_tls::HttpsConnector;
@@ -68,11 +68,11 @@ async fn main() {
 
 
 
-async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestError> {
+async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestIOError> {
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
-    let uri = uri.parse()?;
+    let uri = uri.parse()?; //.map_err( |x| ContestIOError::Chain(x))?;
 
     let resp = client.get(uri).await?;
     let bytes = body::to_bytes(resp.into_body()).await?;
@@ -80,7 +80,7 @@ async fn read_bytes_from_url(uri : String) -> Result<Vec<u8>, ContestError> {
 }
 
 fn read_from_zip(zip : &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>, name: &str) 
--> Result<String, ContestError> {
+-> Result<String, ContestIOError> {
 
     let mut runs_zip = zip.by_name(name)
         .map_err(|_| ContestError::Simple("Could not unpack".to_string()))?;
@@ -91,7 +91,7 @@ fn read_from_zip(zip : &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>
     Ok(runs_data)
 }
 
-async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestError> {
+async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), ContestIOError> {
 
     let zip_data = read_bytes_from_url(uri.clone()).await?;
 
@@ -106,11 +106,11 @@ async fn update_runs(uri : &String, runs : Arc<Mutex<DB>>) -> Result<(), Contest
     }
     {
         let contest_data = read_from_zip(&mut zip, "./contest")?;
-        db.reload_contest(contest_data)?;
+        db.reload_contest(&contest_data)?;
     }
     {
         let runs_data = read_from_zip(&mut zip, "./runs")?;
-        db.reload_runs(runs_data)?;
+        db.reload_runs(&runs_data)?;
     }
 
     db.recalculate_score()?;

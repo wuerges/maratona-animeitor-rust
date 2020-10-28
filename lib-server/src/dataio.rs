@@ -1,36 +1,96 @@
-use std::io::{self, Read};
-use std::fs::File;
+// use std::io::{self, Read};
+use std::io;
+// use std::fs::File;
 use std::collections::BTreeMap;
 
-use crate::data::*;
+use maratona_animeitor_rust::data::*;
 
-impl Team {
-    fn from_contest_string(s : &str) -> Self {
-        let team_line : Vec<_> = s.split("").collect();
-        Team::new(team_line[0], team_line[1], team_line[2])
+type ContestIOResult<T> = Result<T, ContestIOError>;
+
+impl std::error::Error for ContestIOError {}
+
+#[derive(Debug)]
+pub enum ContestIOError {
+    IO(io::Error),
+    InvalidUri(warp::http::uri::InvalidUri),
+    Hyper(hyper::Error),
+    ParseInt(std::num::ParseIntError),
+    Chain(ContestError)
+}
+
+impl std::fmt::Display for ContestIOError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "ContestIOError: {:?}", self)
     }
 }
 
-fn read_to_string(s : &str) -> io::Result<String> {
-    let mut file = File::open(s)?;
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-    Ok(s)
+impl std::convert::From<io::Error> for ContestIOError {
+    fn from(error: io::Error) -> Self {
+        ContestIOError::IO(error)
+    }
 }
 
-impl Answer {
-    fn from_string(t : &str) -> Result<Answer, ContestError> {
+impl std::convert::From<hyper::Error> for ContestIOError {
+    fn from(error: hyper::Error) -> Self {
+        ContestIOError::Hyper(error)
+    }
+
+}
+
+impl std::convert::From<warp::http::uri::InvalidUri> for ContestIOError {
+    fn from(error: warp::http::uri::InvalidUri) -> Self {
+        ContestIOError::InvalidUri(error)
+    }
+}
+
+impl std::convert::From<maratona_animeitor_rust::data::ContestError> for ContestIOError {
+    fn from(error: maratona_animeitor_rust::data::ContestError) -> Self {
+        ContestIOError::Chain(error)
+    }
+}
+
+impl std::convert::From<std::num::ParseIntError> for ContestIOError {
+    fn from(error: std::num::ParseIntError) -> Self {
+        ContestIOError::ParseInt(error)
+    }
+}
+
+trait FromString {
+    fn from_string(s : &str) -> ContestIOResult<Self>
+    where Self: std::marker::Sized;
+}
+
+// trait FromFile {
+//     fn from_file(s :&str) -> ContestResult<Self>;
+// }
+
+impl FromString for Team {
+    fn from_string(s : &str) -> ContestIOResult<Self> {
+        let team_line : Vec<_> = s.split("").collect();
+        Ok(Team::new(team_line[0], team_line[1], team_line[2]))
+    }
+}
+
+// fn read_to_string(s : &str) -> io::Result<String> {
+//     let mut file = File::open(s)?;
+//     let mut s = String::new();
+//     file.read_to_string(&mut s)?;
+//     Ok(s)
+// }
+
+impl FromString for  Answer {
+    fn from_string(t : &str) -> Result<Answer, ContestIOError> {
         match t {
             "Y" => Ok(Self::Yes),
             "N" => Ok(Self::No),
             "?" => Ok(Self::Wait),
-            _ => Err(ContestError::Simple(t.to_string()))
+            _ => Err(ContestIOError::Chain(ContestError::Simple(t.to_string())))
         }        
     }
 }
 
-impl RunTuple {
-    pub fn from_string(line : &str) -> Result<Self, ContestError> {
+impl FromString for RunTuple {
+    fn from_string(line : &str) -> Result<Self, ContestIOError> {
         let v : Vec<&str> = line.split('').collect();
         let id = v[0].parse().map_err(|e| ContestError::Parse(e))?;
         let time = v[1].parse().map_err(|e| ContestError::Parse(e))?;
@@ -46,10 +106,9 @@ impl RunTuple {
     }
 }
 
+impl FromString for ContestFile {
 
-impl ContestFile {
-
-    pub fn from_string(s : String) -> Result<Self, ContestError> {
+    fn from_string(s : &str) -> Result<Self, ContestIOError> {
         let mut lines = s.lines();
 
         let contest_name = lines.next().unwrap();
@@ -65,7 +124,7 @@ impl ContestFile {
         
         let mut teams = Vec::new();
         for _ in 0..number_teams {
-            let t = Team::from_contest_string(lines.next().unwrap());
+            let t = Team::from_string(lines.next().unwrap())?;
             teams.push(t);
         }
 
@@ -79,20 +138,24 @@ impl ContestFile {
             number_problems
         ))
     }
-
-    pub fn from_file(s :&str) -> Result<Self, ContestError> {
-        let s = read_to_string(s)?;
-        Self::from_string(s)
-    }
 }
 
-impl RunsFile {
-    pub fn from_file(s : &str) -> Result<Self, ContestError> {
-        let s = read_to_string(s)?;
-        Self::from_string(s)
-    }
-    
-    pub fn from_string(s: String) -> Result<Self, ContestError> {
+// impl FromFile for ContestFile {
+//     fn from_file(s :&str) -> Result<Self, ContestError> {
+//         let s = read_to_string(s)?;
+//         Self::from_string(s)
+//     }
+// }
+
+// impl FromFile for RunsFile {
+//     fn from_file(s : &str) -> Result<Self, ContestError> {
+//         let s = read_to_string(s)?;
+//         Self::from_string(s)
+//     }
+// }
+
+impl FromString for RunsFile {    
+    fn from_string(s: &str) -> ContestIOResult<Self> {
         let runs = s.lines()
             .map( |line| RunTuple::from_string(line) );
         let runs = runs.collect::<Result<_, _>>()?;
@@ -103,43 +166,43 @@ impl RunsFile {
 
 }
 
-#[cfg(test)]
-mod tests {
+// #[cfg(test)]
+// mod tests {
 
-    use super::*;
+//     use super::*;
 
-    #[test]
-    fn test_from_string() -> Result<(), ContestError> {
-        let x = "375971416299teambrbr3BN";
-        let t = RunTuple::from_string(x)?;
+//     #[test]
+//     fn test_from_string() -> Result<(), ContestError> {
+//         let x = "375971416299teambrbr3BN";
+//         let t = RunTuple::from_string(x)?;
 
-        assert_eq!(t.id, 375971416);
-        assert_eq!(t.time, 299);
-        assert_eq!(t.team_login, "teambrbr3");
-        assert_eq!(t.prob, "B");
-        assert_eq!(t.answer, Answer::No);
-        Ok(())
-    }
+//         assert_eq!(t.id, 375971416);
+//         assert_eq!(t.time, 299);
+//         assert_eq!(t.team_login, "teambrbr3");
+//         assert_eq!(t.prob, "B");
+//         assert_eq!(t.answer, Answer::No);
+//         Ok(())
+//     }
 
-    #[test]
-    fn test_parse_file() -> Result<(), ContestError> {
-        let x = RunsFile::from_file("test/sample/runs")?;
-        assert_eq!(x.runs.len(), 716);
-        Ok(())
-    }
+//     #[test]
+//     fn test_parse_file() -> Result<(), ContestError> {
+//         let x = RunsFile::from_file("test/sample/runs")?;
+//         assert_eq!(x.runs.len(), 716);
+//         Ok(())
+//     }
 
-    #[test]
-    fn test_parse_contest_file() -> Result<(), ContestError> {
-        let x = ContestFile::from_file("test/sample/contest")?;
-        assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
-        assert_eq!(x.maximum_time, 300);
-        assert_eq!(x.current_time, 285);
-        assert_eq!(x.score_freeze_time, 240);
-        assert_eq!(x.penalty_per_wrong_answer, 20);
-        assert_eq!(x.teams.keys().len(), 72);
-        Ok(())
-    }
-}
+//     #[test]
+//     fn test_parse_contest_file() -> Result<(), ContestError> {
+//         let x = ContestFile::from_file("test/sample/contest")?;
+//         assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
+//         assert_eq!(x.maximum_time, 300);
+//         assert_eq!(x.current_time, 285);
+//         assert_eq!(x.score_freeze_time, 240);
+//         assert_eq!(x.penalty_per_wrong_answer, 20);
+//         assert_eq!(x.teams.keys().len(), 72);
+//         Ok(())
+//     }
+// }
 
 
 #[derive(Debug)]
@@ -181,18 +244,18 @@ impl DB {
         (&self.contest_file.score_board, &self.contest_file.teams, self.contest_file.number_problems)
     }
 
-    pub fn reload_runs(&mut self, s: String) -> Result<(), ContestError> {
+    pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
         let runs = RunsFile::from_string(s)?;
         self.run_file = runs;
         Ok(())
     }
 
-    pub fn reload_contest(&mut self, s: String) -> Result<(), ContestError> {
+    pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestIOError> {
         self.contest_file = ContestFile::from_string(s)?;
         Ok(())
     }
 
-    pub fn reload_time(&mut self, s: String) -> Result<(), ContestError> {
+    pub fn reload_time(&mut self, s: String) -> Result<(), ContestIOError> {
         let t = s.parse()?;
         self.time_file = t;
         Ok(())

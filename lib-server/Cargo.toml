@@ -12,6 +12,8 @@ hyper-tls = "0.4.3"
 tokio = { version = "0.2", features = ["full"] }
 zip = "0.5.8"
 warp = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 [dependencies.maratona_animeitor_rust]
 path = ".."
