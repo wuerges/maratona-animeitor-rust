@@ -166,7 +166,7 @@ impl FromString for RunsFile {
 
 #[derive(Debug)]
 pub struct DB {
-    run_file: RunsFile,
+    pub run_file: RunsFile,
     contest_file: ContestFile,
     time_file: i64,
 }

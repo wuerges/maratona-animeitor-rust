@@ -13,8 +13,7 @@ extern crate rand;
 // `init` describes what should happen when your app started.
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     // Model::default()
-
-    vec![0, 1]
+    Model { items: vec![0, 1] }
 }
 
 // ------ ------
@@ -22,10 +21,10 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
 // ------ ------
 
 // `Model` describes our app state.
-type Model = Vec<i64>;
-// struct Model {
-//     items : Vec<i64>
-// }
+// type Model = Vec<i64>;
+struct Model {
+    items : Vec<i64>
+}
 
 // impl Model {
 //     fn append(&mut self) {
@@ -65,14 +64,14 @@ fn shuffle(v: &mut  Vec<i64> ) {
 // `update` describes how to handle each `Msg`.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::Append => model.push(model.len() as i64),
+        Msg::Append => model.items.push(model.items.len() as i64),
         Msg::Shuffle => {
             orders.perform_cmd(cmds::timeout(1000, || Msg::Sort));
-            shuffle(model)
+            shuffle(&mut model.items)
         },
         Msg::Sort => {
             orders.perform_cmd(cmds::timeout(1000, || Msg::SortEnd));
-            model.sort();
+            model.items.sort();
         },
         Msg::SortEnd => {
             log!("sort ended!")
@@ -106,7 +105,7 @@ fn view(model: &Model) -> Node<Msg> {
         button!["+1", ev(Ev::Click, |_| Msg::Append),],
         button!["shuffle", ev(Ev::Click, |_| Msg::Shuffle),],
         button!["sort", ev(Ev::Click, |_| Msg::Sort),],
-        model.iter().enumerate().map( |(i,e)| 
+        model.items.iter().enumerate().map( |(i,e)| 
             div![
                 id![i],
                 make_style(e, 0),

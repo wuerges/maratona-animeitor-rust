@@ -199,7 +199,7 @@ impl ContestFile {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RunTuple {
     pub id : i64,
     pub time : i64,
@@ -208,7 +208,7 @@ pub struct RunTuple {
     pub answer : Answer
 }
 
-#[derive(Debug)] 
+#[derive(Debug, Serialize)] 
 pub struct RunsFile {
     pub runs : Vec<RunTuple>
 }

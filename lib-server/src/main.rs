@@ -55,6 +55,9 @@ async fn main() {
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
+    let all_runs = warp::path("allruns")
+        .and(with_db(shared_db.clone()))
+        .and_then(serve_all_runs);
     let scoreboard = warp::path("score")
         .and(with_db(shared_db))
         .and_then(serve_score);
@@ -62,6 +65,7 @@ async fn main() {
     let routes = static_assets
         .or(seed_assets)
         .or(runs)
+        .or(all_runs)
         .or(scoreboard);
 
     println!("Maratona Streimator rodando!");
@@ -130,6 +134,12 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&*db.latest_n(50)).unwrap();
+    Ok(r)
+}
+
+async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+    let db = runs.lock().await;
+    let r = serde_json::to_string(&db.run_file).unwrap();
     Ok(r)
 }
 
