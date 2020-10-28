@@ -19,7 +19,7 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-cargo run -- 3030 <url_do_placar>
+cargo run -p lib-server  3030 <url_do_placar>
 ```
 
 Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada pelo BOCA.
