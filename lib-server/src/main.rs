@@ -51,6 +51,7 @@ async fn main() {
     }
 
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
+    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
@@ -58,7 +59,10 @@ async fn main() {
         .and(with_db(shared_db))
         .and_then(serve_score);
 
-    let routes = static_assets.or(runs).or(scoreboard);
+    let routes = static_assets
+        .or(seed_assets)
+        .or(runs)
+        .or(scoreboard);
 
     println!("Maratona Streimator rodando!");
     println!(
