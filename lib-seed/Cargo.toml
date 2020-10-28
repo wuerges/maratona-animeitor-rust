@@ -1,0 +1,25 @@
+[package]
+version = "0.1.0"
+name = "lib-seed"
+repository = "https://github.com/seed-rs/seed-quickstart"
+authors = ["Emilio Wuerges <wuerges@gmail.com>"]
+description = "App Description"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.18"
+
+[dependencies]
+seed = "0.8.0"
+rand = "0.7.3"
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Os']
