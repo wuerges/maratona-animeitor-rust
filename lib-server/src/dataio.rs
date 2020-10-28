@@ -1,6 +1,6 @@
-use std::io::{self, Read};
-use std::fs::File;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::{self, Read};
 
 use maratona_animeitor_rust::data::*;
 
@@ -16,7 +16,7 @@ pub enum ContestIOError {
     ParseInt(std::num::ParseIntError),
     InvalidAnswer(String),
     Chain(ContestError),
-    Info(String) 
+    Info(String),
 }
 
 impl std::fmt::Display for ContestIOError {
@@ -35,7 +35,6 @@ impl std::convert::From<hyper::Error> for ContestIOError {
     fn from(error: hyper::Error) -> Self {
         ContestIOError::Hyper(error)
     }
-
 }
 
 impl std::convert::From<warp::http::uri::InvalidUri> for ContestIOError {
@@ -57,73 +56,74 @@ impl std::convert::From<std::num::ParseIntError> for ContestIOError {
 }
 
 trait FromString {
-    fn from_string(s : &str) -> ContestIOResult<Self>
-    where Self: std::marker::Sized;
+    fn from_string(s: &str) -> ContestIOResult<Self>
+    where
+        Self: std::marker::Sized;
 }
 
 trait FromFile {
-    fn from_file(s :&str) -> ContestIOResult<Self>
-    where Self: std::marker::Sized;
+    fn from_file(s: &str) -> ContestIOResult<Self>
+    where
+        Self: std::marker::Sized;
 }
 
 impl FromString for Team {
-    fn from_string(s : &str) -> ContestIOResult<Self> {
-        let team_line : Vec<_> = s.split("").collect();
+    fn from_string(s: &str) -> ContestIOResult<Self> {
+        let team_line: Vec<_> = s.split("").collect();
         Ok(Team::new(team_line[0], team_line[1], team_line[2]))
     }
 }
 
-fn read_to_string(s : &str) -> io::Result<String> {
+fn read_to_string(s: &str) -> io::Result<String> {
     let mut file = File::open(s)?;
     let mut s = String::new();
     file.read_to_string(&mut s)?;
     Ok(s)
 }
 
-impl FromString for  Answer {
-    fn from_string(t : &str) -> Result<Answer, ContestIOError> {
+impl FromString for Answer {
+    fn from_string(t: &str) -> Result<Answer, ContestIOError> {
         match t {
             "Y" => Ok(Self::Yes),
             "N" => Ok(Self::No),
             "?" => Ok(Self::Wait),
-            _ => Err(ContestIOError::InvalidAnswer(t.to_string()))
-        }        
+            _ => Err(ContestIOError::InvalidAnswer(t.to_string())),
+        }
     }
 }
 
 impl FromString for RunTuple {
-    fn from_string(line : &str) -> Result<Self, ContestIOError> {
-        let v : Vec<&str> = line.split('').collect();
+    fn from_string(line: &str) -> Result<Self, ContestIOError> {
+        let v: Vec<&str> = line.split('').collect();
         let id = v[0].parse()?;
         let time = v[1].parse()?;
         let ans = Answer::from_string(v[4])?;
-        
+
         Ok(Self {
-            id   : id,
-            time : time,
-            team_login : v[2].to_string(),
-            prob : v[3].to_string(),
-            answer : ans
+            id: id,
+            time: time,
+            team_login: v[2].to_string(),
+            prob: v[3].to_string(),
+            answer: ans,
         })
     }
 }
 
 impl FromString for ContestFile {
-
-    fn from_string(s : &str) -> Result<Self, ContestIOError> {
+    fn from_string(s: &str) -> Result<Self, ContestIOError> {
         let mut lines = s.lines();
 
         let contest_name = lines.next().unwrap();
-        let contest_params : Vec<&str> = lines.next().unwrap().split("").collect();
+        let contest_params: Vec<&str> = lines.next().unwrap().split("").collect();
         let maximum_time = contest_params[0].parse()?;
         let current_time = contest_params[1].parse()?;
         let score_freeze_time = contest_params[2].parse()?;
         let penalty = contest_params[3].parse()?;
 
-        let team_params : Vec<&str> = lines.next().unwrap().split("").collect();
-        let number_teams : usize = team_params[0].parse()?;
-        let number_problems : usize = team_params[1].parse()?;
-        
+        let team_params: Vec<&str> = lines.next().unwrap().split("").collect();
+        let number_teams: usize = team_params[0].parse()?;
+        let number_problems: usize = team_params[1].parse()?;
+
         let mut teams = Vec::new();
         for _ in 0..number_teams {
             let t = Team::from_string(lines.next().unwrap())?;
@@ -137,75 +137,76 @@ impl FromString for ContestFile {
             maximum_time,
             score_freeze_time,
             penalty,
-            number_problems
+            number_problems,
         ))
     }
 }
 
 impl FromFile for ContestFile {
-    fn from_file(s :&str) -> Result<Self, ContestIOError> {
+    fn from_file(s: &str) -> Result<Self, ContestIOError> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
 impl FromFile for RunsFile {
-    fn from_file(s : &str) -> Result<Self, ContestIOError> {
+    fn from_file(s: &str) -> Result<Self, ContestIOError> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
-impl FromString for RunsFile {    
+impl FromString for RunsFile {
     fn from_string(s: &str) -> ContestIOResult<Self> {
-        let runs = s.lines()
-            .map( |line| RunTuple::from_string(line) );
+        let runs = s.lines().map(|line| RunTuple::from_string(line));
         let runs = runs.collect::<Result<_, _>>()?;
-        Ok(RunsFile {
-            runs
-        })
+        Ok(RunsFile { runs })
     }
-
 }
-
 
 #[derive(Debug)]
 pub struct DB {
-    run_file : RunsFile,
-    contest_file : ContestFile,
-    time_file : i64
+    run_file: RunsFile,
+    contest_file: ContestFile,
+    time_file: i64,
 }
 
 impl DB {
-    pub fn latest_n(&self, n : usize) -> Vec<RunsPanelItem> {
-        self.run_file.latest_n(n).into_iter().map(|r| {
-            let dummy = Team::dummy();
-            let t = self.contest_file.teams.get(&r.team_login)
-                        .unwrap_or(&dummy);
-            RunsPanelItem {
-                id : r.id,
-                placement: t.placement,
-                color : 0,
-                escola : t.escola.clone(),
-                team_name : t.name.clone(),
-                team_login : t.login.clone(),
-                problem : r.prob,
-                result : r.answer
-            }
-        }).collect()
+    pub fn latest_n(&self, n: usize) -> Vec<RunsPanelItem> {
+        self.run_file
+            .latest_n(n)
+            .into_iter()
+            .map(|r| {
+                let dummy = Team::dummy();
+                let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
+                RunsPanelItem {
+                    id: r.id,
+                    placement: t.placement,
+                    color: 0,
+                    escola: t.escola.clone(),
+                    team_name: t.name.clone(),
+                    team_login: t.login.clone(),
+                    problem: r.prob,
+                    result: r.answer,
+                }
+            })
+            .collect()
     }
 
     pub fn empty() -> Self {
         DB {
-            run_file : RunsFile::empty(),
-            contest_file  : ContestFile::dummy(),
-            time_file : 0
-
+            run_file: RunsFile::empty(),
+            contest_file: ContestFile::dummy(),
+            time_file: 0,
         }
     }
 
     pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>, usize) {
-        (&self.contest_file.score_board, &self.contest_file.teams, self.contest_file.number_problems)
+        (
+            &self.contest_file.score_board,
+            &self.contest_file.teams,
+            self.contest_file.number_problems,
+        )
     }
 
     pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
@@ -225,21 +226,21 @@ impl DB {
         Ok(())
     }
 
-    pub fn recalculate_score(&mut self)
-     -> Result<(), ContestError> {
+    pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
         for r in self.run_file.runs.iter().rev() {
             match self.contest_file.teams.get_mut(&r.team_login) {
-                None => return Err(ContestError::UnmatchedTeam("Could not apply run to team".to_string())),
+                None => {
+                    return Err(ContestError::UnmatchedTeam(
+                        "Could not apply run to team".to_string(),
+                    ))
+                }
                 Some(t) => t.apply_run(&r),
             }
-        }        
+        }
         self.contest_file.reload_score()?;
         Ok(())
     }
-
 }
-
-
 
 #[cfg(test)]
 mod tests {
