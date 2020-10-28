@@ -21,7 +21,7 @@ async fn main() {
 
     let args: Vec<String> = env::args().collect();
     if args.len() != 3 {
-        eprintln!("Expected 1 argument: {:?}", args);
+        eprintln!("Expected 2 arguments: {:?}", args);
         return;
     }
     let server_port = match args[1].parse() {
