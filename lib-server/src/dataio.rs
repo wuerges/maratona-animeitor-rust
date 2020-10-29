@@ -232,14 +232,6 @@ impl DB {
         self.contest_file = self.contest_file_begin.clone();
         for r in self.run_file.runs.iter().rev() {
             self.contest_file.apply_run(r)?;
-            // match self.contest_file.teams.get_mut(&r.team_login) {
-            //     None => {
-            //         return Err(ContestError::UnmatchedTeam(
-            //             "Could not apply run to team".to_string(),
-            //         ))
-            //     }
-            //     Some(t) => t.apply_run(&r),
-            // }
         }
         self.contest_file.reload_score()?;
         Ok(())
