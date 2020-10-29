@@ -1,18 +1,14 @@
 use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 use crate::views;
-use crate::requests;
+use crate::requests::*;
 
 extern crate rand;
 
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.skip().perform_cmd({
-        async {
-            let m = requests::fetch_contest().await;
-            Msg::FetchedContest(m)
-        }
-    });
+    // orders.skip().perform_cmd( fetch_all() );
+    orders.send_msg(Msg::Reset);
     Model { 
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
@@ -30,18 +26,54 @@ struct Model {
 
 enum Msg {
     Prox(usize),
-    // Center(String),
-    Recalculate(usize),
-    FetchedRuns(fetch::Result<data::RunsFile>),
-    FetchedContest(fetch::Result<data::ContestFile>),
+    Prox1,
+    Wait,
+    Recalculate,
+    // FetchedRuns(fetch::Result<data::RunsFile>),
+    // FetchedContest(fetch::Result<data::ContestFile>),
+    Reset,
+    Fetched(
+        fetch::Result<data::RunsFile>,
+        fetch::Result<data::ContestFile>),
 }
+
+async fn fetch_all() -> Msg {
+    let r = fetch_allruns().await;
+    let c = fetch_contest().await;
+    Msg::Fetched(r, c)
+}
+
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        // Msg::Center(s) => {
-        //     model.center = Some(s);
-        // },
-        Msg::Recalculate(n) => {
+        Msg::Wait => {
+            if model.current_run < model.runs.runs.len() {
+                let mut run = model.runs.runs[model.current_run].clone();
+                run.answer = data::Answer::Wait;
+                model.contest.apply_run(&run).unwrap();
+            }
+            orders.perform_cmd(cmds::timeout(2000, move || Msg::Recalculate));
+        }
+        Msg::Recalculate => {
+            if model.current_run < model.runs.runs.len() {
+                let run = &model.runs.runs[model.current_run];
+                model.contest.apply_run(run).unwrap();
+                model.current_run += 1;
+            }
+            model.contest.recalculate_placement().unwrap();
+        },
+        Msg::Prox1 => {
+            if model.current_run < model.runs.runs.len() {
+                let run = &model.runs.runs[model.current_run];
+                model.center = Some(run.team_login.clone());
+                orders.perform_cmd(cmds::timeout(1000, move || Msg::Wait));
+            }
+            else {
+                model.center = None;
+            }
+        }
+        Msg::Prox(n) => {
+            model.center = None;
             for _ in 0..n {
                 if model.current_run < model.runs.runs.len() {
                     let run = &model.runs.runs[model.current_run];
@@ -51,34 +83,23 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
             model.contest.recalculate_placement().unwrap();
         },
-        Msg::Prox(n) => {
-            if model.current_run < model.runs.runs.len() {
-                let run = &model.runs.runs[model.current_run];
-                model.center = Some(run.team_login.clone());
-                orders.perform_cmd(cmds::timeout(2000, move || Msg::Recalculate(n)));
-            }
-            else {
-                model.center = None;
-            }
-        },
-        Msg::FetchedRuns(Ok(runs)) => {
+        Msg::Fetched(Ok(runs), Ok(contest)) => {
+            model.current_run = 0;
+            model.center = None;
             model.runs = runs;
             model.runs.runs.reverse();
-        },
-        Msg::FetchedContest(Ok(contest)) => {
             model.contest = contest;
             model.contest.reload_score().unwrap();
-            orders.perform_cmd({
-                async { Msg::FetchedRuns(requests::fetch_allruns().await) }
-            });
         },
-        Msg::FetchedContest(Err(e)) => {
-            log!("fetched contest error!", e)
-        },
-        Msg::FetchedRuns(Err(e)) => {
+        Msg::Fetched(Err(e), _) => {
             log!("fetched runs error!", e)
         },
-
+        Msg::Fetched(_, Err(e)) => {
+            log!("fetched contest error!", e)
+        },
+        Msg::Reset => {
+            orders.skip().perform_cmd( fetch_all() );    
+        }
     }
 }
 
@@ -94,10 +115,11 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         div![
             style!{St::Position => "absolute", St::Top => px(10), St::ZIndex=>123123 },
-            button!["+1", ev(Ev::Click, |_| Msg::Prox(1)),],
+            button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
             button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
             button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
             button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
+            button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
         ],
         views::view_scoreboard(&model.contest, margin_top),

@@ -28,7 +28,11 @@ pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : i64) -> Node<T> {
     div![
         div![
                 C!["run"],
-                style!{ St::Position => "absolute", St::Top => px(margin_top) },
+                style!{ 
+                    St::Top => px(margin_top),
+                    St::Position => "absolute", 
+                    St::Transition => "top 1s ease 0s",
+                },
                 div![C!["cell", "titulo"], "Placar"],
                 all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],

@@ -1,6 +1,7 @@
 use seed::prelude::*;
 use maratona_animeitor_rust::data;
 
+
 pub async fn fetch_allruns() -> fetch::Result<data::RunsFile> {
     Request::new("/allruns")
         .fetch()

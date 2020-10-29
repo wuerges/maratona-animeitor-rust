@@ -19,8 +19,10 @@ body {
     border-style: solid;
     border-width: 1px;
     border-color: white;
+    border-radius: 5px;
     padding: 5px;
 }
+
 
 .titulo {
     width: 445px;
@@ -50,10 +52,24 @@ body {
     background-color: red;
 }
 
-.amarelo {
+/* .amarelo {
     background-color: yellow;
     color: black;
+} */
+
+.amarelo {
+    animation: blinkingBackground 2s;
+    background-color: yellow; 
+    color: black;
 }
+@keyframes blinkingBackground {
+    0%		{ background-color: yellow; color: black; }
+    25%		{ background-color: green;  color: white; }
+    50%		{ background-color: yellow; color: black; }
+    75%	    { background-color: red;    color: white; }
+    100%	{ background-color: yellow; color: black; }
+}
+
 
 .ouro {
     background-color: goldenrod;
