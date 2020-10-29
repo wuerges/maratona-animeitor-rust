@@ -23,11 +23,7 @@ fn get_color(n : usize) -> String {
 pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : usize) -> Node<T> {
     let problem_letters = 
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
-    // let all_problems = vec!["A", "B", "C"];
     let n = contest.number_problems;
-    // log!(contest.number_problems);
-    let s = contest.score_board.len();
-    // let s = (contest.score_board.len()).min(100);
     let all_problems = &problem_letters[..n];
     div![
         div![
@@ -36,11 +32,10 @@ pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : usize) -> Node<T> 
                 div![C!["cell", "titulo"], "Placar"],
                 all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
-        contest.score_board.iter().enumerate().map (|(idx, dev)| {
-            let team = &contest.teams[&dev.clone()];
+        contest.teams.values().map (|team| {
             let (solved, penalty) = team.score();
             div![
-                id![dev],
+                id![&team.login],
                 C!["run"],
                 style!{
                     St::Top => px(margin_top + (team.placement) * 90),

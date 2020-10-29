@@ -2,6 +2,8 @@
 use seed::{prelude::*, *};
 
 mod stepping;
+mod requests;
+mod automatic;
 mod views;
 
 #[wasm_bindgen(start)]
@@ -15,7 +17,8 @@ pub fn start() {
 
 
     match root_element.class_name().as_str() {
-        "stepping" => stepping::stepping_start(),
+        "stepping" => stepping::start(root_element),
+        "automatic" => automatic::start(root_element),
         s => log!("wrong app!:", s)
     }
 
