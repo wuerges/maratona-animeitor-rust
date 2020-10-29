@@ -91,29 +91,29 @@ struct Model {
 // `Msg` describes the different events you can modify state with.
 enum Msg {
     // Append,
-    // Shuffle,
+    Shuffle,
     // Sort,
     // SortEnd,
+    Prox,
     FetchedRuns(fetch::Result<data::RunsFile>),
     FetchedContest(fetch::Result<data::ContestFile>),
 }
 
-// fn shuffle(v: &mut  Vec<i64> ) {
-//     use rand::thread_rng;
-//     use rand::seq::SliceRandom;
+fn shuffle<T>(v: &mut  Vec<T> ) {
+    use rand::thread_rng;
+    use rand::seq::SliceRandom;
 
-//     let mut rng = thread_rng();
-//     v.shuffle(&mut rng);
-// }
+    let mut rng = thread_rng();
+    v.shuffle(&mut rng);
+}
 
 // `update` describes how to handle each `Msg`.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         // Msg::Append => model.items.push(model.items.len() as i64),
-        // Msg::Shuffle => {
-        //     orders.perform_cmd(cmds::timeout(1000, || Msg::Sort));
-        //     shuffle(&mut model.items)
-        // },
+        Msg::Shuffle => {
+            shuffle(&mut model.contest.score_board)
+        },
         // Msg::Sort => {
         //     orders.perform_cmd(cmds::timeout(1000, || Msg::SortEnd));
         //     model.items.sort();
@@ -121,6 +121,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         // Msg::SortEnd => {
         //     log!("sort ended!")
         // },
+        Msg::Prox => {
+
+        },
         Msg::FetchedRuns(Ok(runs)) => {
             log!("fetched runs data!");
             model.runs = runs;
@@ -165,24 +168,46 @@ fn make_style(e : & i64, offset : i64) -> seed::Style {
 // `view` describes what to display.
 
 
+fn get_color(n : usize) -> String {
+    (if n == 0 {
+        "vermelho"
+    }
+    else if n <= 3 {
+        "ouro"
+    }
+    else if n <= 6 {
+        "prata"
+    }
+    else if n <= 10 {
+        "bronze"
+    }
+    else {
+        "semcor"
+    }).to_string()
+}
+
 
 fn view(model: &Model) -> Node<Msg> {
+    let margin_top = 100;
     let problem_letters = 
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
              "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     // let all_problems = vec!["A", "B", "C"];
     let n = model.contest.number_problems;
     log!(model.contest.number_problems);
+    let s = (model.contest.score_board.len()).min(100);
     let all_problems = &problem_letters[..n];
     div![
+        button!["+1", ev(Ev::Click, |_| Msg::Prox),],
+        // button!["shuffle", ev(Ev::Click, |_| Msg::Shuffle),],        
         attrs!{"border" => 1},
         div![
             C!["run"],
-            style!{ St::Position => "absolute", St::Top => px(10) },
+            style!{ St::Position => "absolute", St::Top => px(margin_top) },
             div![C!["cell", "titulo"], "Placar"],
             all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
-        model.contest.score_board.iter().enumerate().map (|(idx, dev)| {
+        model.contest.score_board[..s].iter().enumerate().map (|(idx, dev)| {
             let team = &model.contest.teams[&dev.clone()];
             let (solved, penalty) = team.score();
             div![
@@ -190,10 +215,10 @@ fn view(model: &Model) -> Node<Msg> {
                 attrs!{"key"=>dev},
                 style!{
                     St::Position => "absolute",
-                    St::Top => px(10 + (1+idx) * 90),
+                    St::Top => px(margin_top + (1+idx) * 90),
                     St::Transition => "1s ease top",
                 },
-                div![C!["cell", "colocacao"], team.placement],
+                div![C!["cell", "colocacao", get_color(team.placement)], team.placement],
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],
@@ -228,8 +253,6 @@ fn view(model: &Model) -> Node<Msg> {
                 })
             ]
         })
-        // button!["+1", ev(Ev::Click, |_| Msg::Append),],
-        // button!["shuffle", ev(Ev::Click, |_| Msg::Shuffle),],
         // button!["sort", ev(Ev::Click, |_| Msg::Sort),],
         // model.items.iter().enumerate().map( |(i,e)| 
         //     div![
