@@ -69,32 +69,12 @@ struct Model {
     current_run: usize,
 }
 
-// impl Model {
-//     fn append(&mut self) {
-//         self.items.push(self.items.len() as i64)
-//     }
-// }
-
-// impl Default for Model {
-//     fn default() -> Self {
-//         Self { items : Vec::new() }
-//     }
-
-// }
-
-// ------ ------
-//    Update
-// ------ ------
-
-// (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
-// #[derive(Clone)]
-// `Msg` describes the different events you can modify state with.
 enum Msg {
     // Append,
     Shuffle,
     // Sort,
     // SortEnd,
-    Prox,
+    Prox(usize),
     FetchedRuns(fetch::Result<data::RunsFile>),
     FetchedContest(fetch::Result<data::ContestFile>),
 }
@@ -121,12 +101,21 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         // Msg::SortEnd => {
         //     log!("sort ended!")
         // },
-        Msg::Prox => {
-
+        Msg::Prox(n) => {
+            for _ in 0..n {
+                if model.current_run < model.runs.runs.len() {
+                    let run = &model.runs.runs[model.current_run];
+                    model.contest.apply_run(run).unwrap();
+                    log!("appllied run:", run);
+                    model.current_run += 1;
+                }
+            }
+            model.contest.recalculate_placement().unwrap();
         },
         Msg::FetchedRuns(Ok(runs)) => {
             log!("fetched runs data!");
             model.runs = runs;
+            model.runs.runs.reverse();
         },
         Msg::FetchedContest(Ok(contest)) => {
             log!("fetched contest data!");
@@ -147,15 +136,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 }
 
-fn make_style(e : & i64, offset : i64) -> seed::Style {
+fn make_style(e : & i64) -> seed::Style {
     style!{
         St::Position => "absolute",
-        St::Top => px(100 - offset*50 + e*50),
+        St::Top => px(100 + e*50),
         St::Transition => "1s ease top",
-        St::BorderStyle => "solid",
-        St::BorderWidth => px(1),
-        St::Padding => px(5),
-        St::BorderColor => if *e!=0 { CSSValue::Ignored } else { "red".into() },
     }
 }
 
@@ -190,15 +175,19 @@ fn get_color(n : usize) -> String {
 fn view(model: &Model) -> Node<Msg> {
     let margin_top = 100;
     let problem_letters = 
-        vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
-             "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+        vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     // let all_problems = vec!["A", "B", "C"];
     let n = model.contest.number_problems;
-    log!(model.contest.number_problems);
-    let s = (model.contest.score_board.len()).min(100);
+    // log!(model.contest.number_problems);
+    let s = model.contest.score_board.len();
+    // let s = (model.contest.score_board.len()).min(100);
     let all_problems = &problem_letters[..n];
     div![
-        button!["+1", ev(Ev::Click, |_| Msg::Prox),],
+        button!["+1", ev(Ev::Click, |_| Msg::Prox(1)),],
+        button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
+        button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
+        button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
+        div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
         // button!["shuffle", ev(Ev::Click, |_| Msg::Shuffle),],        
         attrs!{"border" => 1},
         div![
@@ -207,16 +196,16 @@ fn view(model: &Model) -> Node<Msg> {
             div![C!["cell", "titulo"], "Placar"],
             all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
-        model.contest.score_board[..s].iter().enumerate().map (|(idx, dev)| {
+        model.contest.score_board.iter().enumerate().map (|(idx, dev)| {
             let team = &model.contest.teams[&dev.clone()];
             let (solved, penalty) = team.score();
             div![
+                id![dev],
                 C!["run"],
-                attrs!{"key"=>dev},
                 style!{
+                    St::Top => px(margin_top + (team.placement) * 90),
                     St::Position => "absolute",
-                    St::Top => px(margin_top + (1+idx) * 90),
-                    St::Transition => "1s ease top",
+                    St::Transition => "top 1s ease 0s",
                 },
                 div![C!["cell", "colocacao", get_color(team.placement)], team.placement],
                 div![
@@ -252,7 +241,9 @@ fn view(model: &Model) -> Node<Msg> {
                     }
                 })
             ]
-        })
+        }),
+    ]
+}
         // button!["sort", ev(Ev::Click, |_| Msg::Sort),],
         // model.items.iter().enumerate().map( |(i,e)| 
         //     div![
@@ -268,15 +259,7 @@ fn view(model: &Model) -> Node<Msg> {
         //     "Up",
         //     make_style(model),
         // ],
-        // div![
-        //     id![2],
-        //     "Down",
-        //     make_style(&(model+1)),
-        // ],
-        // <div id=1 style=updown_style(self.value%2) >{ "Up" }</div>
-        // <div id=2 style=updown_style((1+self.value)%2) >{ "Down" }</div>
-    ]
-}
+        // div![                // make_style(&(idx as i64)),
 
 // ------ ------
 //     Start

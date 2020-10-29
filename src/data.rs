@@ -165,6 +165,30 @@ impl ContestFile {
         }
     }
 
+    pub fn recalculate_placement(&mut self) -> Result<(), ContestError> {
+        let mut score_board = Vec::new();
+        for (key, _) in self.teams.iter() {
+            score_board.push(key.clone());
+        }
+        score_board.sort_by(|a,b| {
+            let (solved_a, penalty_a) = self.teams.get(a).unwrap().score();
+            let (solved_b, penalty_b) = self.teams.get(b).unwrap().score();
+
+            if solved_a == solved_b {
+                return penalty_a.cmp(&penalty_b);
+            }
+            return solved_b.cmp(&solved_a);
+        });
+        
+        for (i, v) in score_board.iter().enumerate() {
+            match self.teams.get_mut(v) {
+                None => return Err(ContestError::UnmatchedTeam(v.clone())),
+                Some(t) => t.placement = i+1
+            }
+        }
+
+        Ok(())
+    }
 
     pub fn reload_score(&mut self) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
