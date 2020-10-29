@@ -5,7 +5,6 @@
 
 use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
-use crate::views;
 
 extern crate rand;
 
@@ -156,40 +155,44 @@ fn make_style(e : & i64) -> seed::Style {
 // `view` describes what to display.
 
 
+fn get_color(n : usize) -> String {
+    (if n == 0 {
+        "vermelho"
+    }
+    else if n <= 3 {
+        "ouro"
+    }
+    else if n <= 6 {
+        "prata"
+    }
+    else if n <= 10 {
+        "bronze"
+    }
+    else {
+        "semcor"
+    }).to_string()
+}
 
 
 fn view(model: &Model) -> Node<Msg> {
     let margin_top = 100;
+    let problem_letters = 
+        vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+    // let all_problems = vec!["A", "B", "C"];
+    let n = model.contest.number_problems;
+    // log!(model.contest.number_problems);
+    let s = model.contest.score_board.len();
+    // let s = (model.contest.score_board.len()).min(100);
+    let all_problems = &problem_letters[..n];
     div![
         button!["+1", ev(Ev::Click, |_| Msg::Prox(1)),],
         button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
         button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
         button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
-        div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
-        // button!["shuffle", ev(Ev::Click, |_| Msg::Shuffle),],
-        views::view_scoreboard(&model.contest, margin_top),
+        div!["Runs: ", model.current_run, "/", model.runs.runs.len()],      
+        
     ]
 }
-        // button!["sort", ev(Ev::Click, |_| Msg::Sort),],
-        // model.items.iter().enumerate().map( |(i,e)| 
-        //     div![
-        //         id![i],
-        //         make_style(e, 0),
-        //         i,
-        //         "->",
-        //         e
-        //     ]
-        // ),
-        // div![
-        //     id![1],
-        //     "Up",
-        //     make_style(model),
-        // ],
-        // div![                // make_style(&(idx as i64)),
-
-// ------ ------
-//     Start
-// ------ ------
 
 // (This function is invoked by `init` function in `index.html`.)
 // #[wasm_bindgen(start)]

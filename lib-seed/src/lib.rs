@@ -2,6 +2,7 @@
 use seed::{prelude::*, *};
 
 mod stepping;
+mod views;
 
 #[wasm_bindgen(start)]
 pub fn start() {
