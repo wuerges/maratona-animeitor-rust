@@ -1,12 +1,11 @@
 
 use std::fmt;
 use std::collections::BTreeMap;
-use serde::Serialize;
-// use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 // use serde_json;
 
 
-#[derive(Debug, PartialEq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Answer {
     Yes,
     No,
@@ -50,7 +49,7 @@ impl fmt::Display for Answer {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Problem {
     solved : bool,
     wait : bool,
@@ -85,7 +84,7 @@ impl Problem {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Team {
     pub login : String,
     pub escola : String,
@@ -129,7 +128,7 @@ impl Team {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ContestFile {
     pub contest_name : String,
     pub teams : BTreeMap<String, Team>,
@@ -199,7 +198,7 @@ impl ContestFile {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunTuple {
     pub id : i64,
     pub time : i64,
@@ -208,7 +207,7 @@ pub struct RunTuple {
     pub answer : Answer
 }
 
-#[derive(Debug, Serialize)] 
+#[derive(Debug, Clone, Serialize, Deserialize)] 
 pub struct RunsFile {
     pub runs : Vec<RunTuple>
 }

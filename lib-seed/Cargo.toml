@@ -23,3 +23,6 @@ codegen-units = 1
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-Os']
+
+[dependencies.maratona_animeitor_rust]
+path = ".."

@@ -167,6 +167,7 @@ impl FromString for RunsFile {
 #[derive(Debug)]
 pub struct DB {
     pub run_file: RunsFile,
+    pub contest_file_begin: ContestFile,
     contest_file: ContestFile,
     time_file: i64,
 }
@@ -196,6 +197,7 @@ impl DB {
     pub fn empty() -> Self {
         DB {
             run_file: RunsFile::empty(),
+            contest_file_begin: ContestFile::dummy(),
             contest_file: ContestFile::dummy(),
             time_file: 0,
         }
@@ -216,7 +218,7 @@ impl DB {
     }
 
     pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestIOError> {
-        self.contest_file = ContestFile::from_string(s)?;
+        self.contest_file_begin = ContestFile::from_string(s)?;
         Ok(())
     }
 
@@ -227,6 +229,7 @@ impl DB {
     }
 
     pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
+        self.contest_file = self.contest_file_begin.clone();
         for r in self.run_file.runs.iter().rev() {
             match self.contest_file.teams.get_mut(&r.team_login) {
                 None => {

@@ -3,6 +3,7 @@
 // but some rules are too "annoying" or are not applicable for your case.)
 //#![allow(clippy::wildcard_imports)]
 
+use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 extern crate rand;
 
@@ -11,8 +12,34 @@ extern crate rand;
 // ------ ------
 
 // `init` describes what should happen when your app started.
-fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+
+
+// Request::new(get_request_url())
+//         .method(Method::Post)
+//         .json(&shared::SendMessageRequestBody { text: new_message })?
+//         .fetch()
+//         .await?
+//         .check_status()?
+//         .json()
+//         .await
+
+async fn fech_allruns() -> fetch::Result<data::RunsFile> {
+    Request::new("/allruns")
+        .fetch()
+        .await?
+        .check_status()?
+        .json()
+        .await
+}
+fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     // Model::default()
+
+    orders.perform_cmd({
+        async {
+            let m = fech_allruns().await;
+            Msg::FechedData(m)
+        }
+    });
     Model { items: vec![0, 1] }
 }
 
@@ -44,13 +71,14 @@ struct Model {
 // ------ ------
 
 // (Remove the line below once any of your `Msg` variants doesn't implement `Copy`.)
-#[derive(Copy, Clone)]
+// #[derive(Clone)]
 // `Msg` describes the different events you can modify state with.
 enum Msg {
     Append,
     Shuffle,
     Sort,
-    SortEnd
+    SortEnd,
+    FechedData(fetch::Result<data::RunsFile>),
 }
 
 fn shuffle(v: &mut  Vec<i64> ) {
@@ -75,6 +103,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::SortEnd => {
             log!("sort ended!")
+        },
+        Msg::FechedData(Ok(runs)) => {
+            log!("fetched data!", runs)
+        },
+        Msg::FechedData(Err(e)) => {
+            log!("fetched error!", e)
         }
     }
 }
