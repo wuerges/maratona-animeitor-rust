@@ -23,7 +23,7 @@ extern crate rand;
 //         .json()
 //         .await
 
-async fn fech_allruns() -> fetch::Result<data::RunsFile> {
+async fn fetch_allruns() -> fetch::Result<data::RunsFile> {
     Request::new("/allruns")
         .fetch()
         .await?
@@ -31,13 +31,23 @@ async fn fech_allruns() -> fetch::Result<data::RunsFile> {
         .json()
         .await
 }
+
+async fn fetch_contest() -> fetch::Result<data::ContestFile> {
+    Request::new("/contest")
+        .fetch()
+        .await?
+        .check_status()?
+        .json()
+        .await
+}
+
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     // Model::default()
 
     orders.perform_cmd({
         async {
-            let m = fech_allruns().await;
-            Msg::FechedData(m)
+            let m = fetch_contest().await;
+            Msg::FetchedContest(m)
         }
     });
     Model { items: vec![0, 1] }
@@ -50,7 +60,10 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 // `Model` describes our app state.
 // type Model = Vec<i64>;
 struct Model {
-    items : Vec<i64>
+    items : Vec<i64>,
+    contest : data::ContestFile,
+    
+
 }
 
 // impl Model {
@@ -78,7 +91,8 @@ enum Msg {
     Shuffle,
     Sort,
     SortEnd,
-    FechedData(fetch::Result<data::RunsFile>),
+    FetchedRuns(fetch::Result<data::RunsFile>),
+    FetchedContest(fetch::Result<data::ContestFile>),
 }
 
 fn shuffle(v: &mut  Vec<i64> ) {
@@ -104,12 +118,19 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::SortEnd => {
             log!("sort ended!")
         },
-        Msg::FechedData(Ok(runs)) => {
+        Msg::FetchedRuns(Ok(runs)) => {
             log!("fetched data!", runs)
         },
-        Msg::FechedData(Err(e)) => {
-            log!("fetched error!", e)
-        }
+        Msg::FetchedContest(Ok(contest)) => {
+
+        },
+        Msg::FetchedContest(Err(e)) => {
+            log!("fetched contest error!", e)
+        },
+        Msg::FetchedRuns(Err(e)) => {
+            log!("fetched runs error!", e)
+        },
+
     }
 }
 
