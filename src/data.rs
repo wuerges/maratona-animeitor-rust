@@ -49,7 +49,7 @@ impl fmt::Display for Answer {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Problem {
     solved : bool,
     wait : bool,
@@ -84,7 +84,7 @@ impl Problem {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Team {
     pub login : String,
     pub escola : String,
@@ -128,7 +128,7 @@ impl Team {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContestFile {
     pub contest_name : String,
     pub teams : BTreeMap<String, Team>,
