@@ -51,10 +51,10 @@ impl fmt::Display for Answer {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Problem {
-    solved : bool,
-    wait : bool,
-    submissions : i64,
-    penalty: i64
+    pub solved : bool,
+    pub wait : bool,
+    pub submissions : i64,
+    pub penalty: i64
 }
 
 impl Problem {
@@ -115,7 +115,7 @@ impl Team {
             .add_run_problem(run.time, run.answer.clone());
     }
 
-    fn score(&self) -> (i64, i64) {
+    pub fn score(&self) -> (i64, i64) {
         let mut solved = 0;
         let mut penalty = 0;
         for (_, value) in self.problems.iter() {
@@ -194,7 +194,7 @@ impl ContestFile {
 
 
     pub fn dummy() -> Self {
-        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 50)
+        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
     pub fn apply_run(&mut self, r : &RunTuple) -> Result<(), ContestError> {
