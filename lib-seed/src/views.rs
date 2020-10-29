@@ -20,7 +20,7 @@ fn get_color(n : usize) -> String {
     }).to_string()
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : usize) -> Node<T> {
+pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : i64) -> Node<T> {
     let problem_letters = 
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
@@ -38,7 +38,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : usize) -> Node<T> 
                 id![&team.login],
                 C!["run"],
                 style!{
-                    St::Top => px(margin_top + (team.placement) * 90),
+                    St::Top => px(margin_top + (team.placement as i64) * 90),
                     St::Position => "absolute",
                     St::Transition => "top 1s ease 0s",
                 },
