@@ -20,7 +20,31 @@ fn get_color(n : usize) -> String {
     }).to_string()
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : i64) -> Node<T> {
+pub fn cell_top(i : usize, center: &Option<usize>) -> String {
+    let i = i as i64;
+    match center {
+        None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
+        Some(p) => {
+            let p = *p as i64;
+            // let h = window().inner_height().unwrap().as_f64().unwrap() as i64 / 2;
+            // let p = contest.teams[s].placement as i64;
+            format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
+        }
+    }
+}
+
+pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Node<T> {
+    // let margin_top = match center {
+    //     None => 100,
+    //     Some(s) => {
+    //         let h = window().inner_height().unwrap().as_f64().unwrap() as i64 / 2;
+    //         let p = contest.teams[s].placement as i64;
+    //         h + -p * 90
+    //     },
+    // };
+
+    let p_center = center.as_ref().map(|s| contest.teams[s].placement);
+
     let problem_letters = 
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
@@ -29,9 +53,10 @@ pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : i64) -> Node<T> {
         div![
                 C!["run"],
                 style!{ 
-                    St::Top => px(margin_top),
-                    St::Position => "absolute", 
-                    St::Transition => "top 1s ease 0s",
+                    St::Top => cell_top(0, &p_center),
+                    // St::Top => px(margin_top),
+                    // St::Position => "absolute", 
+                    // St::Transition => "top 1s ease 0s",
                 },
                 div![C!["cell", "titulo"], "Placar"],
                 all_problems.iter().map( |p| div![C!["cell", "problema"], p])
@@ -42,9 +67,10 @@ pub fn view_scoreboard<T>(contest: &ContestFile, margin_top : i64) -> Node<T> {
                 id![&team.login],
                 C!["run"],
                 style!{
-                    St::Top => px(margin_top + (team.placement as i64) * 90),
-                    St::Position => "absolute",
-                    St::Transition => "top 1s ease 0s",
+                    // St::Top => px(margin_top + (team.placement as i64) * 90),
+                    St::Top => cell_top(team.placement, &p_center),
+                    // St::Position => "absolute",
+                    // St::Transition => "top 1s ease 0s",
                 },
                 div![C!["cell", "colocacao", get_color(team.placement)], team.placement],
                 div![

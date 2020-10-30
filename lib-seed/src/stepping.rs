@@ -104,14 +104,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    let margin_top = match &model.center {
-        None => 100,
-        Some(s) => {
-            let h = window().inner_height().unwrap().as_f64().unwrap() as i64 / 2;
-            let p = model.contest.teams[s].placement as i64;
-            h + -p * 90
-        },
-    };
     div![
         div![
             style!{St::Position => "absolute", St::Top => px(10), St::ZIndex=>123123 },
@@ -122,7 +114,7 @@ fn view(model: &Model) -> Node<Msg> {
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
         ],
-        views::view_scoreboard(&model.contest, margin_top),
+        views::view_scoreboard(&model.contest, &model.center),
     ]
 }
 

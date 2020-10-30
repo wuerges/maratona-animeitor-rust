@@ -63,7 +63,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    views::view_scoreboard(&model.contest, 100)
+    views::view_scoreboard(&model.contest, &None)
 }
 
 pub fn start(e : impl GetElement) {
