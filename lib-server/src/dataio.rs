@@ -175,14 +175,13 @@ pub struct DB {
 impl DB {
     pub fn latest_n(&self, n: usize) -> Vec<RunsPanelItem> {
         self.run_file
-            .latest_n(n)
+            .sorted()
             .into_iter()
+            .filter( |r| r.time < self.contest_file.score_freeze_time)
+            .take(n)
             .map(|r| {
                 let dummy = Team::dummy();
                 let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
-                let result = if r.time <= self.contest_file.score_freeze_time { 
-                    r.answer 
-                } else { Answer::Wait };
                 RunsPanelItem {
                     id: r.id,
                     placement: t.placement,
@@ -191,7 +190,7 @@ impl DB {
                     team_name: t.name.clone(),
                     team_login: t.login.clone(),
                     problem: r.prob,
-                    result,
+                    result: r.answer,
                 }
             })
             .collect()

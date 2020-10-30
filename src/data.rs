@@ -224,12 +224,14 @@ impl ContestFile {
     pub fn apply_run(&mut self, r : &RunTuple) -> Result<(), ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
-                    "Could not apply run to team".to_string(),
+                "Could not apply run to team".to_string(),
             )),
             Some(t) => {
-                t.apply_run(&r);
+                if r.time < self.score_freeze_time {
+                    t.apply_run(&r);
+                }
                 Ok(())
-            },
+            }
         }
     }
 }
@@ -267,13 +269,12 @@ impl RunsFile {
         }
     }
 
-    pub fn latest_n(&self, n : usize) -> Vec<RunTuple> {
+    pub fn sorted(&self) -> Vec<RunTuple> {
         let mut ret = self.runs.clone();
         ret.sort_by(|a, b| 
             b.time.cmp(&a.time)
             // a.time.cmp(&b.time)
         );
-        ret.truncate(n);
         ret
     }
 
