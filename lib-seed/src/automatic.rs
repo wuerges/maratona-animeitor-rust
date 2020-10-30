@@ -7,7 +7,7 @@ use crate::views;
 extern crate rand;
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.skip().perform_cmd(fetch_all());
+    orders.stream(streams::interval(1000, || Msg::Reload));
     Model { 
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
@@ -35,7 +35,7 @@ async fn fetch_all() -> Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Reload => {
-            orders.perform_cmd(fetch_all());
+            orders.skip().perform_cmd(fetch_all());
         }
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             model.runs = runs;
@@ -46,17 +46,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 model.contest.apply_run(r).unwrap();
             }
             model.contest.recalculate_placement().unwrap();
-            log!("fetched runs and contest!", model.contest);
-
-            orders.perform_cmd(cmds::timeout(1000, || Msg::Reload)); 
+            // log!("fetched runs and contest!", model.contest);
         },
         Msg::Fetched(Err(e), Ok(_)) => {
             log!("failed fetching runs: ", e);
-            orders.perform_cmd(cmds::timeout(1000, || Msg::Reload)); 
         },
         Msg::Fetched(_, Err(e)) => {
             log!("failed fetching contest: ", e);
-            orders.perform_cmd(cmds::timeout(1000, || Msg::Reload)); 
         },
 
     }
