@@ -227,9 +227,7 @@ impl ContestFile {
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
-                // if r.time < self.score_freeze_time {
                 t.apply_run(&r);
-                // }
                 Ok(())
             }
         }
