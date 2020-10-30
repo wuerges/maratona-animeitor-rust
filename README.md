@@ -19,8 +19,16 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-cargo run -p lib-server  3030 <url_do_placar>
+cargo run --release -p lib-server  3030 <url_do_placar>
 ```
+
+O repositório contém um exemplo, que pode ser usado para testes:
+
+```
+python -mhttp.server --directory lib-server/test/
+cargo run --release -p lib-server  3030 http://0.0.0.0:8000/webcast_1573336220.zip
+```
+
 
 Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada pelo BOCA.
 

@@ -81,7 +81,7 @@ async fn main() {
         "-> Runs em http://localhost:{}/static/scoreboard.html",
         server_port
     );
-    warp::serve(routes).run(([127, 0, 0, 1], server_port)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
 }
 
 async fn read_bytes_from_url(uri: String) -> Result<Vec<u8>, ContestIOError> {
