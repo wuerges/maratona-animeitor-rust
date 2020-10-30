@@ -7,7 +7,8 @@ use crate::views;
 extern crate rand;
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.stream(streams::interval(1000, || Msg::Reload));
+    orders.skip().send_msg(Msg::Reload);
+    orders.skip().stream(streams::interval(5000, || Msg::Reload));
     Model { 
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
@@ -43,7 +44,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.contest = contest;
 
             for r in model.runs.runs.iter() {
-                model.contest.apply_run(r).unwrap();
+                if r.time <= model.contest.score_freeze_time {
+                    // log!("run time:", r.time);
+                    // log!("freeze: ", model.contest.score_freeze_time);
+                    model.contest.apply_run(r).unwrap();
+                }
             }
             model.contest.recalculate_placement().unwrap();
             // log!("fetched runs and contest!", model.contest);
