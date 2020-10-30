@@ -105,7 +105,10 @@ fn read_from_zip(
 ) -> Result<String, ContestIOError> {
     let mut runs_zip = zip
         .by_name(name)
-        .map_err(|_| ContestIOError::Info("Could not unpack".to_string()))?;
+        .map_err(|e| {
+            eprintln!("Could not unpack file: {} {:?}", name, e);
+            ContestIOError::Info("Could not unpack".to_string())
+        })?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
     let runs_data = String::from_utf8(buffer)
