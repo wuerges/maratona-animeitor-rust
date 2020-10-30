@@ -1,6 +1,8 @@
 body {
     background-color: black;
     color: white;
+    font-family: sans-serif;
+    /* font-weight: bold; */
 }
 
 .logoimg {
@@ -12,43 +14,57 @@ body {
     width: 75px;
 }
 
-
 :root {
-    --row-height: 90px;
-    --root-top: 100px;
+    --row-height: 60px;
+    --root-top: 80px;
     --root-top-center: calc(100vh / 2);
 }
 
-.cell {
-    height: 55px;
-    float: left;
-    margin: 5px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: white;
-    border-radius: 5px;
-    padding: 5px;
+.run {
+    /* height: 55px; */
+    /* border-style: solid; */
+    /* border-width: 1px; */
+    position: absolute;
+    transition: top 1s ease 0s;
 }
 
+.cell {
+    height: 50px;
+    float: left;
+    margin: 1px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: gray;
+    border-radius: 5px;
+    padding: 1px;
+}
 
 .titulo {
-    width: 445px;
+    width: 420px;
 }
 
 .nomeEscola {
-    font-size: 20px;
+    font-size: 5px;
+    display: none;
 }
 
 .time {
     text-align: right;
-    width: 250px;
+    font-size: 15px;
+    width: 270px;
 }
 
-.problema, .colocacao {
+.problema {
     text-align: center;
-    width: 75px;
-    line-height: 55px;
+    width: 60px;
     font-size: 40px;
+    line-height: 50px;
+}
+.colocacao {
+    text-align: center;
+    width: 80px;
+    font-size: 40px;
+    line-height: 50px;
 }
 
 .verde {
@@ -103,12 +119,4 @@ body {
 
 .login {
     width: 150px;
-}
-
-.run {
-    height: 80px;
-    border-style: solid;
-    border-width: 1px;
-    position: absolute;
-    transition: top 1s ease 0s;
 }
