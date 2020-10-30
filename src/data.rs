@@ -109,7 +109,7 @@ impl Team {
     }
 
 
-    pub fn apply_run(&mut self, run : &RunTuple) {
+    fn apply_run(&mut self, run : &RunTuple) {
         self.problems.entry(run.prob.clone())
             .or_insert(Problem::empty())
             .add_run_problem(run.time, run.answer.clone());

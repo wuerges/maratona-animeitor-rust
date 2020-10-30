@@ -81,8 +81,12 @@ body {
 .answerwait {
     content:url(/static/assets/question.png);
 }
-
-
+/* .answerfrozen {
+    content:url(/static/assets/gear.svg); */
+    /* content:url(/static/assets/yes.png); */
+    /* content:url(/static/assets/no.png); */
+    /* content:url(/static/assets/gear.svg); */
+/* } */
 
 .verde {
     background-color: green;

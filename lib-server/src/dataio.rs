@@ -180,6 +180,9 @@ impl DB {
             .map(|r| {
                 let dummy = Team::dummy();
                 let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
+                let result = if r.time <= self.contest_file.score_freeze_time { 
+                    r.answer 
+                } else { Answer::Wait };
                 RunsPanelItem {
                     id: r.id,
                     placement: t.placement,
@@ -188,7 +191,7 @@ impl DB {
                     team_name: t.name.clone(),
                     team_login: t.login.clone(),
                     problem: r.prob,
-                    result: r.answer,
+                    result,
                 }
             })
             .collect()
