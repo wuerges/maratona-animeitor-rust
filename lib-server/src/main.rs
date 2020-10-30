@@ -74,11 +74,15 @@ async fn main() {
 
     println!("Maratona Streimator rodando!");
     println!(
-        "-> Placar em http://localhost:{}/static/runPanel.html",
+        "-> Placar em http://localhost:{}/seed/runspanel.html",
         server_port
     );
     println!(
-        "-> Runs em http://localhost:{}/static/scoreboard.html",
+        "-> Placar em http://localhost:{}/seed/automatic.html",
+        server_port
+    );
+    println!(
+        "-> Runs em http://localhost:{}/seed/stepping.html",
         server_port
     );
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
