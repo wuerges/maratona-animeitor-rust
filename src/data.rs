@@ -248,7 +248,7 @@ pub struct RunsFile {
     pub runs : Vec<RunTuple>
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
     pub id : i64,
     pub placement : usize,

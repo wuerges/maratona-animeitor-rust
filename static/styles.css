@@ -60,12 +60,29 @@ body {
     font-size: 40px;
     line-height: 50px;
 }
+
 .colocacao {
     text-align: center;
     width: 80px;
     font-size: 40px;
     line-height: 50px;
 }
+
+.resposta {
+        
+}
+
+.answeryes {
+    content:url(/static/assets/yes.png);
+}
+.answerno {
+    content:url(/static/assets/no.png);
+}
+.answerwait {
+    content:url(/static/assets/question.png);
+}
+
+
 
 .verde {
     background-color: green;

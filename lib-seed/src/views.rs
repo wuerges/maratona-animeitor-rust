@@ -2,7 +2,7 @@
 use maratona_animeitor_rust::data::ContestFile;
 use seed::{prelude::*, *};
 
-fn get_color(n : usize) -> String {
+pub fn get_color(n : usize) -> String {
     (if n == 0 {
         "vermelho"
     }
