@@ -99,21 +99,31 @@ async fn read_bytes_from_url(uri: String) -> Result<Vec<u8>, ContestIOError> {
     Ok(bytes.to_vec())
 }
 
-fn read_from_zip(
+fn try_read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
 ) -> Result<String, ContestIOError> {
     let mut runs_zip = zip
         .by_name(name)
         .map_err(|e| {
-            eprintln!("Could not unpack file: {} {:?}", name, e);
-            ContestIOError::Info("Could not unpack".to_string())
+            ContestIOError::Info(format!("Could not unpack file: {} {:?}", name, e))
         })?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
     let runs_data = String::from_utf8(buffer)
         .map_err(|_| ContestIOError::Info("Could not parse to UTF8".to_string()))?;
     Ok(runs_data)
+}
+
+fn read_from_zip(
+    zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
+    name: &str,
+) -> Result<String, ContestIOError> {
+
+    try_read_from_zip(zip, name)
+        .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
+        
+        // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
 async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIOError> {
@@ -125,15 +135,15 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
 
     let mut db = runs.lock().await;
     {
-        let time_data = read_from_zip(&mut zip, "./time")?;
+        let time_data = read_from_zip(&mut zip, "time")?;
         db.reload_time(time_data)?;
     }
     {
-        let contest_data = read_from_zip(&mut zip, "./contest")?;
+        let contest_data = read_from_zip(&mut zip, "contest")?;
         db.reload_contest(&contest_data)?;
     }
     {
-        let runs_data = read_from_zip(&mut zip, "./runs")?;
+        let runs_data = read_from_zip(&mut zip, "runs")?;
         db.reload_runs(&runs_data)?;
     }
 
