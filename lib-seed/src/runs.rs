@@ -25,6 +25,7 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Fetched(Ok(runs)) => {
+            // log!("fetched runs!", runs);
             model.runs = runs;
         },
         Msg::Fetched(Err(e)) => {
