@@ -26,22 +26,12 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
         None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
         Some(p) => {
             let p = *p as i64;
-            // let h = window().inner_height().unwrap().as_f64().unwrap() as i64 / 2;
-            // let p = contest.teams[s].placement as i64;
             format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
         }
     }
 }
 
 pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Node<T> {
-    // let margin_top = match center {
-    //     None => 100,
-    //     Some(s) => {
-    //         let h = window().inner_height().unwrap().as_f64().unwrap() as i64 / 2;
-    //         let p = contest.teams[s].placement as i64;
-    //         h + -p * 90
-    //     },
-    // };
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
 
