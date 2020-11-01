@@ -6,6 +6,7 @@ mod requests;
 mod automatic;
 mod views;
 mod runs;
+mod timer;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -18,6 +19,7 @@ pub fn start() {
         "stepping" => stepping::start(root_element),
         "automatic" => automatic::start(root_element),
         "runspanel" => runs::start(root_element),
+        "timer" => timer::start(root_element),
         s => log!("wrong app!:", s)
     }
 

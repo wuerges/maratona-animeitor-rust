@@ -141,3 +141,24 @@ body {
 .login {
     width: 150px;
 }
+
+.timer {
+    font-size: 100px;
+    color: gray;
+}
+
+.changed {
+    animation: clockUpdate 1s infinite;       
+}
+@keyframes clockUpdate {
+    0%		{ color: white; }
+    /* 25%		{ color: green;  }
+    50%		{ color: yellow; }
+    75%	    { color: red;    } */
+    100%	{ color: gray; }
+}
+
+
+.hora .minuto .segundo {
+    float: left;
+}

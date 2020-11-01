@@ -99,3 +99,36 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Nod
         }),
     ]
 }
+
+fn f(n : i64) -> String {
+    format!("{:0>2}", n)
+}
+
+fn seg(n : i64) -> i64 {
+    n % 60
+
+}
+fn min(n : i64) -> i64 {
+    (n / 60) % 60
+}
+fn hor(n : i64) -> i64 {
+    n / 60 / 60
+}
+fn changed(a : i64, b: i64) -> &'static str {
+    if a == b {
+        "same"
+    }
+    else {
+        "changed"
+    }
+}
+
+pub fn view_clock<T>(time: i64, ptime : i64) -> T {
+    div![C!["timer"], 
+        span![C!["hora", changed(hor(time), hor(ptime))], hor(time)], 
+        span![C!["sep"], ":"],
+        span![C!["minuto", changed(min(time), min(ptime))], f(min(time))], 
+        span![C!["sep"], ":"],
+        span![C!["segundo", changed(seg(time), seg(ptime))], f(seg(time))], 
+    ]
+}

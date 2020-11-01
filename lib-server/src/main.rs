@@ -55,12 +55,19 @@ async fn main() {
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
+
     let all_runs = warp::path("allruns")
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs);
+
+    let timer = warp::path("timer")
+        .and(with_db(shared_db.clone()))
+        .and_then(serve_timer);
+
     let contest_file = warp::path("contest")
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
+
     let scoreboard = warp::path("score")
         .and(with_db(shared_db))
         .and_then(serve_score);
@@ -69,6 +76,7 @@ async fn main() {
         .or(seed_assets)
         .or(runs)
         .or(all_runs)
+        .or(timer)
         .or(contest_file)
         .or(scoreboard);
 
@@ -155,6 +163,12 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&*db.latest_n(50)).unwrap();
+    Ok(r)
+}
+
+async fn serve_timer(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+    let db = runs.lock().await;
+    let r = serde_json::to_string(&db.time_file).unwrap();
     Ok(r)
 }
 

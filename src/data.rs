@@ -49,6 +49,8 @@ impl fmt::Display for Answer {
     }
 }
 
+pub type TimeFile = i64;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Problem {
     pub solved : bool,

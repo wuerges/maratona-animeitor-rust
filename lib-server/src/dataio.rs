@@ -169,7 +169,7 @@ pub struct DB {
     pub run_file: RunsFile,
     pub contest_file_begin: ContestFile,
     contest_file: ContestFile,
-    time_file: i64,
+    pub time_file: TimeFile,
 }
 
 impl DB {

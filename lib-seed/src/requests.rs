@@ -28,3 +28,13 @@ pub async fn fetch_runspanel() -> fetch::Result<Vec<data::RunsPanelItem>> {
         .json()
         .await
 }
+
+
+pub async fn fetch_time_file() -> fetch::Result<data::TimeFile> {
+    Request::new("/timer")
+        .fetch()
+        .await?
+        .check_status()?
+        .json()
+        .await
+}
