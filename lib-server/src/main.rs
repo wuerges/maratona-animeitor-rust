@@ -93,6 +93,11 @@ async fn main() {
         "-> Runs em http://localhost:{}/seed/stepping.html",
         server_port
     );
+    println!(
+        "-> Timer em http://localhost:{}/seed/timer.html",
+        server_port
+    );
+    
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
 }
 
