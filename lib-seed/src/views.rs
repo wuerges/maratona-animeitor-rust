@@ -123,7 +123,7 @@ fn changed(a : i64, b: i64) -> &'static str {
     }
 }
 
-pub fn view_clock<T>(time: i64, ptime : i64) -> T {
+pub fn view_clock<T>(time: i64, ptime : i64) -> Node<T> {
     div![C!["timer"], 
         span![C!["hora", changed(hor(time), hor(ptime))], hor(time)], 
         span![C!["sep"], ":"],

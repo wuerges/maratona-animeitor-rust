@@ -7,7 +7,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1000, || Msg::Reset));
     Model { 
         p_time_file: 0,
-        time_file: 123123,
+        time_file: 86399,
         // time_file: 0,
     }
 }
@@ -27,8 +27,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(Ok(runs)) => {
             // log!("fetched runs!", runs);
             model.p_time_file = model.time_file;
-            // model.time_file = runs; // TODO
-            model.time_file += 1;
+            model.time_file = runs;
         },
         Msg::Fetched(Err(e)) => {
             log!("fetched runs error!", e)
@@ -40,7 +39,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    view_clock(model.time_file, model.p_time_file)
+    views::view_clock(model.time_file, model.p_time_file)
 }
 
 pub fn start(e : impl GetElement) {
