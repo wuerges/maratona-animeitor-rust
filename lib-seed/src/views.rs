@@ -1,5 +1,5 @@
 
-use maratona_animeitor_rust::data::ContestFile;
+use maratona_animeitor_rust::data::{ContestFile, Team};
 use seed::{prelude::*, *};
 
 pub fn get_color(n : usize) -> String {
@@ -31,7 +31,29 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     }
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Node<T> {
+fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
+    match url_filter {
+        None => true,
+        Some(f) => t.login.find(f).is_some(),
+    }
+}
+
+use std::collections::BTreeMap;
+fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize> 
+where I : Iterator<Item= &'a usize>
+    {
+    let mut v :Vec<_>= plac.collect();
+    v.sort_unstable();
+
+    let mut ret = BTreeMap::new();
+
+    for (i, e) in v.iter().enumerate() {
+        *ret.entry(**e).or_default() = i;
+    }
+    ret
+}
+
+pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<String>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
 
@@ -39,6 +61,9 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Nod
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
     let all_problems = &problem_letters[..n];
+    let compressed = compress_placement(contest.teams.values()
+                        .filter( |t| check_filter(url_filter, t))
+                        .map(|t| &t.placement));
     div![
         div![
                 C!["run"],
@@ -51,14 +76,17 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>) -> Nod
                 div![C!["cell", "titulo"], "Placar"],
                 all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
-        contest.teams.values().map (|team| {
+        contest.teams.values().filter( |t| check_filter(url_filter, t))
+                .map (|team| {
             let (solved, penalty) = team.score();
+            let p2 = compressed.get(&team.placement).unwrap_or(&0);
             div![
                 id![&team.login],
                 C!["run"],
                 style!{
                     // St::Top => px(margin_top + (team.placement as i64) * 90),
-                    St::Top => cell_top(team.placement, &p_center),
+                    St::Top => cell_top(*p2+1, &p_center),
+                    // St::Top => cell_top(team.placement, &p_center),
                     // St::Position => "absolute",
                     // St::Transition => "top 1s ease 0s",
                 },

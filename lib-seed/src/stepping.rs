@@ -6,10 +6,11 @@ use crate::requests::*;
 extern crate rand;
 
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     // orders.skip().perform_cmd( fetch_all() );
     orders.send_msg(Msg::Reset);
     Model { 
+        url_filter : url.hash().map( |s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
         current_run: 0,
@@ -19,6 +20,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
+    url_filter : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
     current_run: usize,
@@ -134,7 +136,7 @@ fn view(model: &Model) -> Node<Msg> {
             button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
         ],
-        views::view_scoreboard(&model.contest, &model.center),
+        views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
     ]
 }
 

@@ -6,16 +6,18 @@ use crate::views;
 
 extern crate rand;
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reload);
     orders.skip().stream(streams::interval(5000, || Msg::Reload));
-    Model { 
+    Model {
+        url_filter: url.hash().map(|s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
     }
 }
 
 struct Model {
+    url_filter: Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
 }
@@ -62,7 +64,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    views::view_scoreboard(&model.contest, &None)
+    views::view_scoreboard(&model.contest, &None, &model.url_filter)
 }
 
 pub fn start(e : impl GetElement) {
