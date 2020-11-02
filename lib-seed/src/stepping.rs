@@ -95,7 +95,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 if model.current_run < model.runs.runs.len() {
                     let run = &model.runs.runs[model.current_run];
                     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
-                        log!("run time? ", run.time, " -> ", model.contest.score_freeze_time);
+                        // log!("run time? ", run.time, " -> ", model.contest.score_freeze_time);
                         model.contest.apply_run(run).unwrap();
                         model.current_run += 1;
                     }
