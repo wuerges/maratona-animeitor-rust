@@ -16,8 +16,12 @@ body {
 
 :root {
     --row-height: 60px;
-    --root-top: 80px;
+    --root-top: 0px;
     --root-top-center: calc(100vh / 2);
+}
+
+.runstable {
+    position: relative;
 }
 
 .run {
@@ -77,6 +81,10 @@ body {
 }
 .baixo {
     font-size: 35%;
+}
+
+.commandpanel {
+    position: relative;
 }
 
 .resposta {

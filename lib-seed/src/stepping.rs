@@ -127,7 +127,7 @@ fn view(model: &Model) -> Node<Msg> {
     let frozen = if model.lock_frozen {"Frozen Locked"} else { "Frozen Unlocked"};
     div![
         div![
-            style!{St::Position => "absolute", St::Top => px(10), St::ZIndex=>123123 },
+            C!["ccommandpanel"],
             button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
             button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
             button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],

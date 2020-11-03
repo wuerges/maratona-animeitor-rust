@@ -65,6 +65,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                         .filter( |t| check_filter(url_filter, t))
                         .map(|t| &t.placement));
     div![
+        C!["runstable"],
         div![
                 C!["run"],
                 style!{ 

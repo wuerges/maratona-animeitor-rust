@@ -2,6 +2,13 @@
 description = "Watch files and recompile the project on change"
 run_task = []
 
+[tasks.watch_server]
+description = "Watch files and recompile the project on change"
+run_task = [
+    { name = "build" },
+]
+watch = true
+
 [tasks.build_release]
 description = "Dummy task"
 run_task = []
