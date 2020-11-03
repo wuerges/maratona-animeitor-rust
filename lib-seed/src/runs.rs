@@ -6,14 +6,17 @@ use crate::requests::*;
 extern crate rand;
 
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.stream(streams::interval(1000, || Msg::Reset));
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    orders.skip().send_msg(Msg::Reset);
+    orders.stream(streams::interval(10_000, || Msg::Reset));
     Model { 
+        url_filter : url.hash().map( |s| s.clone()),
         runs: Vec::new(),
     }
 }
 
 struct Model {
+    url_filter : Option<String>,
     runs: Vec<data::RunsPanelItem>,
 }
 
@@ -26,7 +29,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Fetched(Ok(runs)) => {
             // log!("fetched runs!", runs);
-            model.runs = runs;
+            model.runs = match &model.url_filter {
+                None => runs,
+                Some(f) => runs.into_iter().filter( |r| r.team_login.find(f).is_some() ).collect()
+            }
         },
         Msg::Fetched(Err(e)) => {
             log!("fetched runs error!", e)

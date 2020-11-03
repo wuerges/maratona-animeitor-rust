@@ -8,7 +8,7 @@ extern crate rand;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reload);
-    orders.skip().stream(streams::interval(5000, || Msg::Reload));
+    orders.skip().stream(streams::interval(10_000, || Msg::Reload));
     Model {
         url_filter: url.hash().map(|s| s.clone()),
         contest: data::ContestFile::dummy(),
