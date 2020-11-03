@@ -47,7 +47,9 @@ fn get_answer(t : &data::Answer) -> &str {
 }  
 
 fn view(model: &Model) -> Node<Msg> {
-    div![model.runs.iter().enumerate().map({ |(i,r) |
+    div![
+        C!["runstable"],
+        model.runs.iter().enumerate().map({ |(i,r) |
         div![
             C!["run"],
             style!{ 
