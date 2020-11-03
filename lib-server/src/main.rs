@@ -171,7 +171,7 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
 
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
-    let r = serde_json::to_string(&*db.latest_n(50)).unwrap();
+    let r = serde_json::to_string(&*db.latest()).unwrap();
     Ok(r)
 }
 

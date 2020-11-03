@@ -173,12 +173,12 @@ pub struct DB {
 }
 
 impl DB {
-    pub fn latest_n(&self, n: usize) -> Vec<RunsPanelItem> {
+    pub fn latest(&self) -> Vec<RunsPanelItem> {
         self.run_file
             .sorted()
             .into_iter()
             .filter( |r| r.time < self.contest_file.score_freeze_time)
-            .take(n)
+            // .take(n)
             .map(|r| {
                 let dummy = Team::dummy();
                 let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
