@@ -1,5 +1,6 @@
 use std::fmt;
 use std::collections::{BTreeMap, BinaryHeap};
+use std::cmp::Reverse;
 use serde::{Serialize, Deserialize};
 // use serde_json;
 
@@ -307,8 +308,8 @@ impl RunsFile {
 }
 
 pub struct RunsQueue {
-    queue : BinaryHeap<((i64, i64), String)>,
-    runs  : BTreeMap<String, Vec<RunTuple>>,
+    pub queue : BinaryHeap<Reverse<((i64, i64), String)>>,
+    pub runs  : BTreeMap<String, Vec<RunTuple>>,
 }
 
 impl RunsQueue {
@@ -329,27 +330,29 @@ impl RunsQueue {
 
     pub fn setup_teams(&mut self, contest: &ContestFile) {
         for team in contest.teams.values() {
-            self.queue.push((team.score(), team.login.clone()));
+            self.queue.push(Reverse((team.score(), team.login.clone())));
         }
     }
 
-    pub fn pop_run(&mut self, contest: &mut ContestFile) {
+    pub fn pop_run(&mut self, contest: &mut ContestFile) -> Option<RunTuple> {
 
         let entry = self.queue.pop();
         match entry {
-            None => (),
-            Some((_, team_login)) => {
+            None => None,
+            Some(Reverse((_, team_login))) => {
                 match self.runs.get_mut(&team_login) {
-                    None => (),
+                    None => None,
                     Some(runs) => {
                         let r = runs.pop().unwrap();
                         let score = contest.apply_run(&r).unwrap();
                         if runs.len() > 0 {
-                            self.queue.push((score, team_login));
+                            self.queue.push(Reverse((score, team_login)));
                         }
+                        Some(r)
                     }
                 }
             }
         }
     }
+
 }

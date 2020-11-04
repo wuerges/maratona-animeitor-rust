@@ -76,25 +76,28 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
         }
     }
     model.runs_queue.setup_teams(&model.contest);
+    // log!("after applying runs:", model.runs_queue.queue);
     model.contest.recalculate_placement().unwrap();
 }
 
-fn apply_one_run_from_queue(runs_queue: &mut Vec<data::RunTuple> , contest  : &mut data::ContestFile) {
+fn apply_one_run_from_queue(runs_queue: &mut data::RunsQueue, contest  : &mut data::ContestFile) {
 
-    runs_queue.sort_by(|a, b| {
-        let team_a = contest.teams.get(&a.team_login).unwrap();
-        let team_b = contest.teams.get(&b.team_login).unwrap();
+    let r = runs_queue.pop_run(contest);
+    log!("popped run:", r);
 
-        team_a.placement.cmp(&team_b.placement)
-    });
+    // runs_queue.sort_by(|a, b| {
+    //     let team_a = contest.teams.get(&a.team_login).unwrap();
+    //     let team_b = contest.teams.get(&b.team_login).unwrap();
 
-    match runs_queue.pop() {
-        None => (),
-        Some(current_run) => {
-            contest.apply_run(&current_run).unwrap();
-        }
-    }
-    contest.recalculate_placement().unwrap();
+    //     team_a.placement.cmp(&team_b.placement)
+    // });
+
+    // match runs_queue.pop() {
+    //     None => (),
+    //     Some(current_run) => {
+    //         contest.apply_run(&current_run).unwrap();
+    //     }
+    // }
 
     
 }
@@ -122,7 +125,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
-            // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            model.contest.recalculate_placement().unwrap();
+
             // if model.current_run < model.runs.runs.len() {
             //     let run = &model.runs.runs[model.current_run];
             //     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
@@ -134,13 +139,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             //     model.center = None;
             // }
 
-            log!("applied one run!");
+            // log!("applied one run!", model.runs_queue.queue);
         },
         Msg::Prox(n) => {
             // model.center = None;
-            // for _ in 0..n {
-            //     apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-            // }
+            for _ in 0..n {
+                apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            }
+            model.contest.recalculate_placement().unwrap();
+
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             // model.current_run = 0;
