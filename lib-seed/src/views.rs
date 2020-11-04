@@ -31,7 +31,7 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     }
 }
 
-pub fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
+fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
     match url_filter {
         None => true,
         Some(f) => t.login.find(f).is_some(),

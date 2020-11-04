@@ -31,7 +31,7 @@ struct Model {
 }
 
 enum Msg {
-    // Prox(usize),
+    Prox(usize),
     Prox1,
     // Wait,
     // Recalculate,
@@ -78,6 +78,24 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
     model.contest.recalculate_placement().unwrap();
 }
 
+fn apply_one_run_from_queue(runs_queue: &mut Vec<data::RunTuple> , contest  : &mut data::ContestFile) {
+
+    runs_queue.sort_by(|a, b| {
+        let team_a = contest.teams.get(&a.team_login).unwrap();
+        let team_b = contest.teams.get(&b.team_login).unwrap();
+
+        team_a.placement.cmp(&team_b.placement)
+    });
+
+    match runs_queue.pop() {
+        None => (),
+        Some(current_run) => {
+            contest.apply_run(&current_run).unwrap();
+        }
+    }
+    contest.recalculate_placement().unwrap();
+}
+
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
@@ -101,6 +119,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
+            apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             // if model.current_run < model.runs.runs.len() {
             //     let run = &model.runs.runs[model.current_run];
             //     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
@@ -111,21 +130,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // else {
             //     model.center = None;
             // }
-        }
-        // Msg::Prox(n) => {
-        //     model.center = None;
-        //     for _ in 0..n {
-        //         if model.current_run < model.runs.runs.len() {
-        //             let run = &model.runs.runs[model.current_run];
-        //             if run.time < model.contest.score_freeze_time || !model.lock_frozen {
-        //                 // log!("run time? ", run.time, " -> ", model.contest.score_freeze_time);
-        //                 model.contest.apply_run(run).unwrap();
-        //                 model.current_run += 1;
-        //             }
-        //         }
-        //     }
-        //     model.contest.recalculate_placement().unwrap();
-        // },
+
+            log!("applied one run!");
+        },
+        Msg::Prox(n) => {
+            // model.center = None;
+            for _ in 0..n {
+                apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            }
+        },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             // model.current_run = 0;
             model.center = None;
@@ -134,7 +147,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.contest = contest;
             apply_all_runs_before_frozen(model);
             model.contest.reload_score().unwrap();
-            log!("run queue: ", model.runs_queue);
+            // log!("run queue: ", model.runs_queue);
         },
         Msg::Fetched(Err(e), _) => {
             log!("fetched runs error!", e)
@@ -154,12 +167,12 @@ fn view(model: &Model) -> Node<Msg> {
         div![
             C!["ccommandpanel"],
             button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
-            // button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
-            // button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
-            // button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
+            button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
+            button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
+            button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
-            // div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
+            div!["Missing runs: ", model.runs_queue.len()],
         ],
         views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
     ]

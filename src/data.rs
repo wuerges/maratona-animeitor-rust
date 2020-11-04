@@ -64,6 +64,9 @@ impl Problem {
         Problem { solved : false, wait : false, submissions : 0, penalty : 0 }
     }
     fn add_run_problem(&mut self, tim : i64, answer: Answer) {
+        if self.solved {
+            return;
+        }
         match answer {
             Answer::Yes => {
                 self.solved = true;
