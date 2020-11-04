@@ -213,6 +213,14 @@ impl Team {
         }
         Score { solved, penalty, team_login: self.login.clone() }
     }
+
+    fn mark_all_wrong(&mut self) {
+        for p in self.problems.values_mut() {
+            if p.wait {
+                p.wait = false;
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -334,6 +342,13 @@ impl ContestFile {
             }
         }
     }
+
+    pub fn mark_all_wrong(&mut self, team_name : &String) {
+        match self.teams.get_mut(team_name) {
+            None => (),
+            Some(t) => t.mark_all_wrong(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -423,6 +438,9 @@ impl RunsQueue {
                         let score = contest.apply_run_maybe(&r).unwrap();
                         if runs.len() > 0 {
                             self.queue.push(score);
+                        }
+                        else {
+                            contest.mark_all_wrong(&score.team_login);
                         }
                         Some(r)
                     }
