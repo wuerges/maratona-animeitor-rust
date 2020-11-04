@@ -169,6 +169,10 @@ impl Team {
             .add_run_problem(run.time, run.answer.clone());
     }
 
+    fn useful_run(&self, run : &RunTuple) -> bool {
+        self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
+    }
+
     pub fn score(&self) -> Score {
         let mut solved = 0;
         let mut penalty = 0;
@@ -265,6 +269,17 @@ impl ContestFile {
 
     pub fn dummy() -> Self {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
+    }
+
+    pub fn useful_run(&self, r : &RunTuple) -> Result<bool, ContestError> {
+        match self.teams.get(&r.team_login) {
+            None => Err(ContestError::UnmatchedTeam(
+                "Could not check useful run to team".to_string(),
+            )),
+            Some(t) => {                
+                Ok(t.useful_run(r))
+            }
+        }   
     }
 
     pub fn apply_run(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
