@@ -94,6 +94,8 @@ fn apply_one_run_from_queue(runs_queue: &mut Vec<data::RunTuple> , contest  : &m
         }
     }
     contest.recalculate_placement().unwrap();
+
+    
 }
 
 

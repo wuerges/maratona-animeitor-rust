@@ -98,6 +98,27 @@ pub struct Team {
     pub problems : BTreeMap<String, Problem>,
 }
 
+use std::cmp::{PartialOrd, PartialEq, Ordering};
+
+impl PartialEq for Team {
+    fn eq(&self, other: &Self) -> bool {
+        self.login == other.login
+    }
+}
+
+impl PartialOrd for Team {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+
+        let (solved_a, penalty_a) = self.score();
+        let (solved_b, penalty_b) = other.score();
+
+        if solved_a == solved_b {
+            return Some(penalty_a.cmp(&penalty_b));
+        }
+        Some(solved_b.cmp(&solved_a))
+    }
+}
+
 impl Team {
     pub fn new(login : &str, escola : &str, name : &str) -> Self {
         Self {
