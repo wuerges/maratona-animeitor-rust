@@ -328,7 +328,7 @@ impl RunsFile {
 }
 
 pub struct RunsQueue {
-    pub queue : BinaryHeap<Reverse<Score>>,
+    pub queue : BinaryHeap<Score>,
     pub runs  : BTreeMap<String, Vec<RunTuple>>,
 }
 
@@ -349,8 +349,8 @@ impl RunsQueue {
     }
 
     pub fn setup_teams(&mut self, contest: &ContestFile) {
-        for team in contest.teams.values() {
-            self.queue.push(Reverse(team.score()));
+        for key in self.runs.keys() {
+            self.queue.push(contest.teams.get(key).unwrap().score())
         }
     }
 
@@ -359,14 +359,14 @@ impl RunsQueue {
         let entry = self.queue.pop();
         match entry {
             None => None,
-            Some(Reverse(score)) => {
+            Some(score) => {
                 match self.runs.get_mut(&score.team_login) {
                     None => None,
                     Some(runs) => {
                         let r = runs.pop().unwrap();
                         let score = contest.apply_run(&r).unwrap();
                         if runs.len() > 0 {
-                            self.queue.push(Reverse(score));
+                            self.queue.push(score);
                         }
                         Some(r)
                     }
