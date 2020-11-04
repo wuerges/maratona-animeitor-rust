@@ -26,7 +26,12 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
         None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
         Some(p) => {
             let p = *p as i64;
-            format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
+            if p < 9 {
+                format!("calc(var(--row-height) * {} + var(--root-top))", i)
+            }
+            else {
+                format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
+            }
         }
     }
 }
