@@ -7,6 +7,7 @@ mod automatic;
 mod views;
 mod runs;
 mod timer;
+mod reveleitor;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -24,6 +25,7 @@ pub fn start() {
             Some(root_element) => {
                     match root_element.class_name().as_str() {
                         "stepping" => stepping::start(root_element),
+                        "reveleitor" => reveleitor::start(root_element),
                         "automatic" => automatic::start(root_element),
                         "runspanel" => runs::start(root_element),
                         "timer" => timer::start(root_element),
