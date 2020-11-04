@@ -135,13 +135,21 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
-            model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );
-            orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll1));
+            let next_center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );            
+            if next_center == model.center {
+                orders.send_msg(Msg::Scroll1);
+            }
+            else {
+                model.center = next_center;
+                orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll1));
+            }
             // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             // model.contest.recalculate_placement().unwrap();
         },
         Msg::Scroll1 => {
             apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );    
+
             model.contest.recalculate_placement().unwrap();
         },
         Msg::Prox(n) => {
