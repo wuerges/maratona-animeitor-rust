@@ -34,6 +34,7 @@ enum Msg {
     Prox(usize),
     Scroll(usize),
     Prox1,
+    Scroll1,
     // Wait,
     // Recalculate,
     // ToggleFrozen,
@@ -134,6 +135,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
+            model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );
+            orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll1));
+            // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            // model.contest.recalculate_placement().unwrap();
+        },
+        Msg::Scroll1 => {
             apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             model.contest.recalculate_placement().unwrap();
         },
@@ -178,7 +185,7 @@ fn view(model: &Model) -> Node<Msg> {
     // let frozen = if model.lock_frozen {"Frozen Locked"} else { "Frozen Unlocked"};
     div![
         div![
-            C!["ccommandpanel"],
+            C!["commandpanel"],
             button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
             button!["Top 10", ev(Ev::Click, |_| Msg::Prox(10)),],
             button!["Top 30", ev(Ev::Click, |_| Msg::Prox(30)),],

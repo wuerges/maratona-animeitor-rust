@@ -83,7 +83,7 @@ body {
 }
 
 .commandpanel {
-    position: relative;
+    position: fixed;
     z-index: 1000;
 }
 
