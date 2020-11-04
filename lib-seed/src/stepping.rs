@@ -31,6 +31,7 @@ struct Model {
 enum Msg {
     Prox(usize),
     Prox1,
+    Recenter,
     Wait,
     Recalculate,
     ToggleFrozen,
@@ -91,6 +92,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Prox(n) => {
             model.center = None;
+
+            
             for _ in 0..n {
                 if model.current_run < model.runs.runs.len() {
                     let run = &model.runs.runs[model.current_run];
@@ -101,7 +104,25 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     }
                 }
             }
+            
+            log!("center", model.center);
+            
+            let old_contest = model.contest.clone();
             model.contest.recalculate_placement().unwrap();
+
+            for (t1, t2) in model.contest.teams.values().zip(old_contest.teams.values()) {
+                log!("zipping", t1.placement, t2.placement);
+                
+                if t1.placement < t2.placement {
+                    log!("changed center to t1", t1);
+                    model.center = Some(t1.login.clone());
+                    break;
+                }
+            }
+            orders.perform_cmd(cmds::timeout(10_000, move || Msg::Recenter));
+        },
+        Msg::Recenter => {
+            model.center = None;
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             model.current_run = 0;
