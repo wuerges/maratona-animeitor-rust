@@ -1,8 +1,8 @@
 body {
-    background-color: black;
+    background-color: #000000aa;
     color: white;
-    font-family: "Lato", sans-serif;
-    /* font-weight: 150%; */
+    font-family: Lato, sans-serif;
+    font-weight: bold;
 }
 
 /* .logoimg {
@@ -16,12 +16,8 @@ body {
 
 :root {
     --row-height: 60px;
-    --root-top: 0px;
+    --root-top: 80px;
     --root-top-center: calc(100vh / 2);
-}
-
-.runstable {
-    position: relative;
 }
 
 .run {
@@ -46,15 +42,18 @@ body {
 }
 
 .titulo {
+    content:url(/static/assets/titulo-1stPhase.svg);
     width: 420px;
+    font-size: 40px;
 }
 
 .nomeEscola {
     display: none;
 }
 
-/* .nomeTime {
-} */
+.nomeTime {
+    font-size: 20px;
+}
 
 .time {
     text-align: right;
@@ -153,8 +152,10 @@ body {
 }
 
 .timer {
-    font-size: 100px;
-    color: gray;
+    font-size: 60px;
+    font-family: "Ubuntu Mono", monospace;
+    text-align: right;
+    color: white;
 }
 
 .changed {
