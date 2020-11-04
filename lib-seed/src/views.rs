@@ -79,7 +79,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
         ],
         contest.teams.values().filter( |t| check_filter(url_filter, t))
                 .map (|team| {
-            let (solved, penalty) = team.score();
+            let score = team.score();
             let p2 = compressed.get(&team.placement).unwrap_or(&0);
             div![
                 id![&team.login],
@@ -99,8 +99,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                 ],
                 div![
                     C!["cell", "problema"],
-                    div![C!["cima"], solved],
-                    div![C!["baixo"], penalty],
+                    div![C!["cima"], score.solved],
+                    div![C!["baixo"], score.penalty],
                 ],
                 all_problems.iter().map( |prob| {
                     match team.problems.get(*prob) {

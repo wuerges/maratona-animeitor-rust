@@ -55,15 +55,15 @@ pub type TimeFile = i64;
 pub struct Problem {
     pub solved : bool,
     pub wait : bool,
-    pub submissions : i64,
-    pub penalty: i64
+    pub submissions : usize,
+    pub penalty: usize
 }
 
 impl Problem {
     fn empty() -> Self {
         Problem { solved : false, wait : false, submissions : 0, penalty : 0 }
     }
-    fn add_run_problem(&mut self, tim : i64, answer: Answer) {
+    fn add_run_problem(&mut self, tim : usize, answer: Answer) {
         if self.solved {
             return;
         }
@@ -98,26 +98,54 @@ pub struct Team {
     pub problems : BTreeMap<String, Problem>,
 }
 
-use std::cmp::{PartialOrd, PartialEq, Ordering};
+use std::cmp::{Ord, Eq, Ordering};
 
-impl PartialEq for Team {
-    fn eq(&self, other: &Self) -> bool {
-        self.login == other.login
-    }
+#[derive(PartialEq, Eq)]
+pub struct Score {
+    pub solved: usize,
+    pub penalty: usize,
+    pub team_login: String,    
 }
 
-impl PartialOrd for Team {
+impl PartialOrd for Score {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-
-        let (solved_a, penalty_a) = self.score();
-        let (solved_b, penalty_b) = other.score();
-
-        if solved_a == solved_b {
-            return Some(penalty_a.cmp(&penalty_b));
+        Some(if self.solved != other.solved {
+            other.solved.cmp(&self.solved)
         }
-        Some(solved_b.cmp(&solved_a))
+        else if self.penalty != other.penalty {
+            self.penalty.cmp(&other.penalty)
+        }
+        else {
+            self.team_login.cmp(&other.team_login)
+        })
+    }    
+
+}
+
+impl Ord for Score {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
+
+// impl PartialEq for Team {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.login == other.login
+//     }
+// }
+
+// impl PartialOrd for Team {
+//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+
+//         let (solved_a, penalty_a) = self.score();
+//         let (solved_b, penalty_b) = other.score();
+
+//         if solved_a == solved_b {
+//             return Some(penalty_a.cmp(&penalty_b));
+//         }
+//         Some(solved_b.cmp(&solved_a))
+//     }
+// }
 
 impl Team {
     pub fn new(login : &str, escola : &str, name : &str) -> Self {
@@ -141,7 +169,7 @@ impl Team {
             .add_run_problem(run.time, run.answer.clone());
     }
 
-    pub fn score(&self) -> (i64, i64) {
+    pub fn score(&self) -> Score {
         let mut solved = 0;
         let mut penalty = 0;
         for (_, value) in self.problems.iter() {
@@ -150,7 +178,7 @@ impl Team {
                 penalty += value.penalty;
             }
         }
-        (solved, penalty)
+        Score { solved, penalty, team_login: self.login.clone() }
     }
 }
 
@@ -158,10 +186,10 @@ impl Team {
 pub struct ContestFile {
     pub contest_name : String,
     pub teams : BTreeMap<String, Team>,
-    pub current_time : i64,
-    pub maximum_time : i64,
-    pub score_freeze_time : i64,
-    pub penalty_per_wrong_answer : i64,
+    pub current_time : usize,
+    pub maximum_time : usize,
+    pub score_freeze_time : usize,
+    pub penalty_per_wrong_answer : usize,
     pub score_board : Vec<String>,
     pub number_problems : usize
 }
@@ -169,10 +197,10 @@ pub struct ContestFile {
 impl ContestFile {
     pub fn new(contest_name : String
         , teams : Vec<Team>
-        , current_time : i64
-        , maximum_time : i64
-        , score_freeze_time : i64
-        , penalty : i64
+        , current_time : usize
+        , maximum_time : usize
+        , score_freeze_time : usize
+        , penalty : usize
         , number_problems : usize) -> Self {
 
         let mut m = BTreeMap::new();
@@ -197,13 +225,9 @@ impl ContestFile {
             score_board.push(key.clone());
         }
         score_board.sort_by(|a,b| {
-            let (solved_a, penalty_a) = self.teams.get(a).unwrap().score();
-            let (solved_b, penalty_b) = self.teams.get(b).unwrap().score();
-
-            if solved_a == solved_b {
-                return penalty_a.cmp(&penalty_b);
-            }
-            return solved_b.cmp(&solved_a);
+            let score_a = self.teams.get(a).unwrap().score();
+            let score_b = self.teams.get(b).unwrap().score();
+            score_a.cmp(&score_b)
         });
         
         for (i, v) in score_board.iter().enumerate() {
@@ -222,13 +246,9 @@ impl ContestFile {
             score_board.push(key.clone());
         }
         score_board.sort_by(|a,b| {
-            let (solved_a, penalty_a) = self.teams.get(a).unwrap().score();
-            let (solved_b, penalty_b) = self.teams.get(b).unwrap().score();
-
-            if solved_a == solved_b {
-                return penalty_a.cmp(&penalty_b);
-            }
-            return solved_b.cmp(&solved_a);
+            let score_a = self.teams.get(a).unwrap().score();
+            let score_b = self.teams.get(b).unwrap().score();
+            score_a.cmp(&score_b)
         });
         
         for (i, v) in score_board.iter().enumerate() {
@@ -247,7 +267,7 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn apply_run(&mut self, r : &RunTuple) -> Result<(i64, i64), ContestError> {
+    pub fn apply_run(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
@@ -263,7 +283,7 @@ impl ContestFile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunTuple {
     pub id : i64,
-    pub time : i64,
+    pub time : usize,
     pub team_login : String,
     pub prob : String,
     pub answer : Answer
@@ -308,7 +328,7 @@ impl RunsFile {
 }
 
 pub struct RunsQueue {
-    pub queue : BinaryHeap<Reverse<((i64, i64), String)>>,
+    pub queue : BinaryHeap<Reverse<Score>>,
     pub runs  : BTreeMap<String, Vec<RunTuple>>,
 }
 
@@ -330,7 +350,7 @@ impl RunsQueue {
 
     pub fn setup_teams(&mut self, contest: &ContestFile) {
         for team in contest.teams.values() {
-            self.queue.push(Reverse((team.score(), team.login.clone())));
+            self.queue.push(Reverse(team.score()));
         }
     }
 
@@ -339,14 +359,14 @@ impl RunsQueue {
         let entry = self.queue.pop();
         match entry {
             None => None,
-            Some(Reverse((_, team_login))) => {
-                match self.runs.get_mut(&team_login) {
+            Some(Reverse(score)) => {
+                match self.runs.get_mut(&score.team_login) {
                     None => None,
                     Some(runs) => {
                         let r = runs.pop().unwrap();
                         let score = contest.apply_run(&r).unwrap();
                         if runs.len() > 0 {
-                            self.queue.push(Reverse((score, team_login)));
+                            self.queue.push(Reverse(score));
                         }
                         Some(r)
                     }
