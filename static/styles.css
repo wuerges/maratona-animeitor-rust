@@ -1,7 +1,7 @@
 body {
     background-color: #000000aa;
     color: white;
-    font-family: Lato, sans-serif;
+    font-family: Lato, Ubuntu, Calibri, Roboto, Arial, sans-serif;
     font-weight: bold;
 }
 
@@ -16,7 +16,7 @@ body {
 
 :root {
     --row-height: 60px;
-    --root-top: 80px;
+    --root-top: 0px;
     --root-top-center: calc(100vh / 2);
 }
 
@@ -91,13 +91,13 @@ body {
 }
 
 .answeryes {
-    content:url(/static/assets/yes.png);
+    content:url(/static/assets/yes.svg);
 }
 .answerno {
-    content:url(/static/assets/no.png);
+    content:url(/static/assets/no.svg);
 }
 .answerwait {
-    content:url(/static/assets/question.png);
+    content:url(/static/assets/question.svg);
 }
 /* .answerfrozen {
     content:url(/static/assets/gear.svg); */
@@ -125,11 +125,11 @@ body {
     color: black;
 }
 @keyframes blinkingBackground {
-    0%		{ background-color: yellow; color: black; }
-    25%		{ background-color: green;  color: white; }
-    50%		{ background-color: yellow; color: black; }
-    75%	    { background-color: red;    color: white; }
-    100%	{ background-color: yellow; color: black; }
+    0%      { background-color: yellow; color: black; }
+    25%     { background-color: green;  color: white; }
+    50%     { background-color: yellow; color: black; }
+    75%     { background-color: red;    color: white; }
+    100%    { background-color: yellow; color: black; }
 }
 
 
