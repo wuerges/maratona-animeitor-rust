@@ -101,6 +101,10 @@ async fn main() {
         "-> Timer em http://localhost:{}/seed/everything.html",
         server_port
     );
+    println!(
+        "-> Timer em http://localhost:{}/seed/reveleitor.html",
+        server_port
+    );
     
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
 }

@@ -58,6 +58,13 @@ where I : Iterator<Item= &'a usize>
     ret
 }
 
+fn center_class(p: usize, center : &Option<usize>) -> std::option::Option<seed::Attrs> {
+    match center {
+        None => None,
+        Some(c) => if *c == p { Some(C!["center"]) } else { None }
+    }
+}
+
 pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<String>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
@@ -89,6 +96,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
             div![
                 id![&team.login],
                 C!["run"],
+                center_class(team.placement, &p_center),
                 style!{
                     // St::Top => px(margin_top + (team.placement as i64) * 90),
                     St::Top => cell_top(*p2+1, &p_center),

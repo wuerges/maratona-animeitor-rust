@@ -94,8 +94,8 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
 
 fn apply_one_run_from_queue(runs_queue: &mut data::RunsQueue, contest  : &mut data::ContestFile) {
 
-    let r = runs_queue.pop_run(contest);
-    log!("popped run:", r);
+    let _ = runs_queue.pop_run(contest);
+    // log!("popped run:", r);
 
     // runs_queue.sort_by(|a, b| {
     //     let team_a = contest.teams.get(&a.team_login).unwrap();
