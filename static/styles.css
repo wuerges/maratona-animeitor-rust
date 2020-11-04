@@ -158,15 +158,25 @@ body {
     color: white;
 }
 
+.center {
+    animation: borderUpdate 5s infinite;
+}
+
+@keyframes borderUpdate {
+    0% { background-color: #8888; }
+    100% {  }
+}
+
 .changed {
     animation: clockUpdate 1s infinite;       
 }
 @keyframes clockUpdate {
-    0%		{ color: white; }
+    0% { color: white; }
     /* 25%		{ color: green;  }
     50%		{ color: yellow; }
     75%	    { color: red;    } */
-    100%	{ color: gray; }
+    50%	{ color: gray; }
+    100% { color: white; }
 }
 
 /* 
