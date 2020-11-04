@@ -1,6 +1,5 @@
 use std::fmt;
 use std::collections::{BTreeMap, BinaryHeap};
-use std::cmp::Reverse;
 use serde::{Serialize, Deserialize};
 // use serde_json;
 
@@ -78,6 +77,31 @@ impl Problem {
                 self.submissions += 1;
                 self.penalty += 20;
                 self.wait = false;
+            },
+            Answer::Wait => {
+                self.wait = true;                
+            },
+            _ => {
+
+            }
+        }
+    }
+
+    fn add_run_maybe_problem(&mut self, tim : usize, answer: Answer) {
+        if self.solved {
+            return;
+        }
+        match answer {
+            Answer::Yes => {
+                self.solved = true;
+                self.submissions += 1;
+                self.penalty += tim;
+            },
+            Answer::No => {
+                // TODO many corner cases!
+                self.submissions += 1;
+                self.penalty += 20;
+                self.wait = true;
             },
             Answer::Wait => {
                 self.wait = true;                
@@ -168,7 +192,12 @@ impl Team {
             .or_insert(Problem::empty())
             .add_run_problem(run.time, run.answer.clone());
     }
-
+    fn apply_run_maybe(&mut self, run : &RunTuple) {
+        self.problems.entry(run.prob.clone())
+            .or_insert(Problem::empty())
+            .add_run_maybe_problem(run.time, run.answer.clone());
+    }
+    
     fn useful_run(&self, run : &RunTuple) -> bool {
         self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
     }
@@ -293,6 +322,18 @@ impl ContestFile {
             }
         }
     }
+
+    pub fn apply_run_maybe(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
+        match self.teams.get_mut(&r.team_login) {
+            None => Err(ContestError::UnmatchedTeam(
+                "Could not apply run to team".to_string(),
+            )),
+            Some(t) => {
+                t.apply_run_maybe(&r);
+                Ok(t.score())
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -379,7 +420,7 @@ impl RunsQueue {
                     None => None,
                     Some(runs) => {
                         let r = runs.pop().unwrap();
-                        let score = contest.apply_run(&r).unwrap();
+                        let score = contest.apply_run_maybe(&r).unwrap();
                         if runs.len() > 0 {
                             self.queue.push(score);
                         }
