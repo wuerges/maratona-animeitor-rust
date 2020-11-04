@@ -10,6 +10,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     // orders.skip().perform_cmd( fetch_all() );
     orders.send_msg(Msg::Reset);
     Model { 
+        button_disabled : false,
         url_filter : url.hash().map( |s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
@@ -21,6 +22,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
+    button_disabled : bool,
     url_filter : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
@@ -135,6 +137,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
+            model.button_disabled = true;
             let next_center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );            
             if next_center == model.center {
                 orders.send_msg(Msg::Scroll1);
@@ -151,8 +154,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );    
 
             model.contest.recalculate_placement().unwrap();
+            model.button_disabled = false;
+
         },
         Msg::Prox(n) => {
+            model.button_disabled = true;
             model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll(n)));
         },
@@ -165,6 +171,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // for _ in 0..n {
             // }
             model.contest.recalculate_placement().unwrap();
+            model.button_disabled = false;
 
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
@@ -176,6 +183,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             apply_all_runs_before_frozen(model);
             model.contest.reload_score().unwrap();
             // log!("run queue: ", model.runs_queue);
+            model.button_disabled = false;
         },
         Msg::Fetched(Err(e), _) => {
             log!("fetched runs error!", e)
@@ -184,22 +192,25 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched contest error!", e)
         },
         Msg::Reset => {
+            model.button_disabled = true;
             orders.skip().perform_cmd( fetch_all() );    
         }
     }
 }
 
 fn view(model: &Model) -> Node<Msg> {
+
+    let button_disabled = if model.button_disabled { attrs!{At::Disabled => true} } else { attrs!{} };
     // let frozen = if model.lock_frozen {"Frozen Locked"} else { "Frozen Unlocked"};
     div![
         div![
             C!["commandpanel"],
-            button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
-            button!["Top 10", ev(Ev::Click, |_| Msg::Prox(10)),],
-            button!["Top 30", ev(Ev::Click, |_| Msg::Prox(30)),],
-            button!["Top 50", ev(Ev::Click, |_| Msg::Prox(50)),],
-            button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),],
-            button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
+            button!["+1", ev(Ev::Click, |_| Msg::Prox1),button_disabled.clone()],
+            button!["Top 10", ev(Ev::Click, |_| Msg::Prox(10)),button_disabled.clone()],
+            button!["Top 30", ev(Ev::Click, |_| Msg::Prox(30)),button_disabled.clone()],
+            button!["Top 50", ev(Ev::Click, |_| Msg::Prox(50)),button_disabled.clone()],
+            button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),button_disabled.clone()],
+            button!["Reset", ev(Ev::Click, |_| Msg::Reset),button_disabled],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Missing teams: ", model.runs_queue.len()],
         ],
