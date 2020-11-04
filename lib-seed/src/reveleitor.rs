@@ -74,7 +74,7 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
             fake_run.answer = data::Answer::Wait;
             model.contest.apply_run(&fake_run).unwrap();
 
-            let mut real_run = run.clone();
+            let real_run = run.clone();
             // real_run.answer = data::Answer::Yes; // TODO fix this!
             // real_run.answer = data::Answer::No; // TODO fix this!
 
