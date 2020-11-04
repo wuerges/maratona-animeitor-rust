@@ -8,8 +8,9 @@ extern crate rand;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reload);
-    orders.skip().stream(streams::interval(10_000, || Msg::Reload));
+    orders.skip().stream(streams::interval(30_000, || Msg::Reload));
     Model {
+        center : None,
         url_filter: url.hash().map(|s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
@@ -17,6 +18,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
+    center : Option<String>,
     url_filter: Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
@@ -24,6 +26,7 @@ struct Model {
 
 enum Msg {
     Reload,
+    Recenter,
     Fetched(
         fetch::Result<data::RunsFile>,
         fetch::Result<data::ContestFile>),
@@ -37,20 +40,36 @@ async fn fetch_all() -> Msg {
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
+        Msg::Recenter => {
+            model.center = None;
+        },
         Msg::Reload => {
             orders.skip().perform_cmd(fetch_all());
-        }
+        },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
+            let old_contest = model.contest.clone();
+
             model.runs = runs;
             model.runs.runs.reverse();
             model.contest = contest;
-
+            
             for r in model.runs.runs.iter() {
                 if r.time < model.contest.score_freeze_time {
                     model.contest.apply_run(r).unwrap();
                 }
             }
+
+            for (t1, t2) in model.contest.teams.values().zip(old_contest.teams.values()) {
+                if model.center.is_none() {
+                    if t1.placement < t2.placement {
+                        model.center = Some(t1.login.clone());
+                        break;
+                    }
+                }
+            }            
             model.contest.recalculate_placement().unwrap();
+
+            orders.perform_cmd(cmds::timeout(5_000, move|| Msg::Recenter));
             // log!("fetched runs and contest!", model.contest);
         },
         Msg::Fetched(Err(e), Ok(_)) => {
@@ -64,7 +83,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    views::view_scoreboard(&model.contest, &None, &model.url_filter)
+    views::view_scoreboard(&model.contest, &model.center, &model.url_filter)
 }
 
 pub fn start(e : impl GetElement) {

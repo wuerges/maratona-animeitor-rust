@@ -8,7 +8,7 @@ extern crate rand;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reset);
-    orders.stream(streams::interval(10_000, || Msg::Reset));
+    orders.stream(streams::interval(30_000, || Msg::Reset));
     Model { 
         url_filter : url.hash().map( |s| s.clone()),
         runs: Vec::new(),
