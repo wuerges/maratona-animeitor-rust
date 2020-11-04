@@ -25,7 +25,7 @@ body {
     position: absolute;
     align-items: center;
     display: flex;
-    transition: top 1s ease 0s;
+    transition: top 5s ease 0s;
 }
 
 .cell {

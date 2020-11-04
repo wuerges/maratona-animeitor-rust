@@ -32,6 +32,7 @@ struct Model {
 
 enum Msg {
     Prox(usize),
+    Scroll(usize),
     Prox1,
     // Wait,
     // Recalculate,
@@ -127,25 +128,19 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Prox1 => {
             apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             model.contest.recalculate_placement().unwrap();
-
-            // if model.current_run < model.runs.runs.len() {
-            //     let run = &model.runs.runs[model.current_run];
-            //     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
-            //         model.center = Some(run.team_login.clone());
-            //         orders.perform_cmd(cmds::timeout(1000, move || Msg::Wait));
-            //     }
-            // }
-            // else {
-            //     model.center = None;
-            // }
-
-            // log!("applied one run!", model.runs_queue.queue);
         },
         Msg::Prox(n) => {
-            // model.center = None;
-            for _ in 0..n {
+            model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );
+            orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll(n)));
+        },
+        Msg::Scroll(n) => {
+            model.center = None;
+
+            while model.runs_queue.queue.len() > n {
                 apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             }
+            // for _ in 0..n {
+            // }
             model.contest.recalculate_placement().unwrap();
 
         },
@@ -177,9 +172,10 @@ fn view(model: &Model) -> Node<Msg> {
         div![
             C!["ccommandpanel"],
             button!["+1", ev(Ev::Click, |_| Msg::Prox1),],
-            button!["+10", ev(Ev::Click, |_| Msg::Prox(10)),],
-            button!["+100", ev(Ev::Click, |_| Msg::Prox(100)),],
-            button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
+            button!["Top 10", ev(Ev::Click, |_| Msg::Prox(10)),],
+            button!["Top 30", ev(Ev::Click, |_| Msg::Prox(30)),],
+            button!["Top 50", ev(Ev::Click, |_| Msg::Prox(50)),],
+            button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Missing teams: ", model.runs_queue.len()],

@@ -82,7 +82,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 let run = &model.runs.runs[model.current_run];
                 if run.time < model.contest.score_freeze_time || !model.lock_frozen {
                     model.center = Some(run.team_login.clone());
-                    orders.perform_cmd(cmds::timeout(1000, move || Msg::Wait));
+                    orders.perform_cmd(cmds::timeout(5000, move || Msg::Wait));
                 }
             }
             else {
