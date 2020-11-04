@@ -1,6 +1,5 @@
-
 use std::fmt;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BinaryHeap};
 use serde::{Serialize, Deserialize};
 // use serde_json;
 
@@ -247,14 +246,14 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn apply_run(&mut self, r : &RunTuple) -> Result<(), ContestError> {
+    pub fn apply_run(&mut self, r : &RunTuple) -> Result<(i64, i64), ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
                 t.apply_run(&r);
-                Ok(())
+                Ok(t.score())
             }
         }
     }
@@ -307,4 +306,50 @@ impl RunsFile {
     }
 }
 
+pub struct RunsQueue {
+    queue : BinaryHeap<((i64, i64), String)>,
+    runs  : BTreeMap<String, Vec<RunTuple>>,
+}
 
+impl RunsQueue {
+    pub fn empty() -> Self {
+        Self {
+            queue : BinaryHeap::new(),
+            runs : BTreeMap::new(),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.queue.len()
+    }
+
+    pub fn load_run(&mut self, rt :RunTuple) {
+        self.runs.entry(rt.team_login.clone()).or_default().push(rt);
+    }
+
+    pub fn setup_teams(&mut self, contest: &ContestFile) {
+        for team in contest.teams.values() {
+            self.queue.push((team.score(), team.login.clone()));
+        }
+    }
+
+    pub fn pop_run(&mut self, contest: &mut ContestFile) {
+
+        let entry = self.queue.pop();
+        match entry {
+            None => (),
+            Some((_, team_login)) => {
+                match self.runs.get_mut(&team_login) {
+                    None => (),
+                    Some(runs) => {
+                        let r = runs.pop().unwrap();
+                        let score = contest.apply_run(&r).unwrap();
+                        if runs.len() > 0 {
+                            self.queue.push((score, team_login));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

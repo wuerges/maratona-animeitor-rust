@@ -13,7 +13,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         url_filter : url.hash().map( |s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
-        runs_queue : Vec::new(),
+        runs_queue : data::RunsQueue::empty(),
         // current_run: 0,
         center: None,
         // lock_frozen : true,
@@ -24,7 +24,7 @@ struct Model {
     url_filter : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
-    runs_queue : Vec<data::RunTuple>,
+    runs_queue : data::RunsQueue,
     // current_run: usize,
     center : Option<String>,
     // lock_frozen : bool,
@@ -71,10 +71,11 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
 
             let mut real_run = run.clone();
             real_run.answer = data::Answer::Yes; // TODO fix this!
-            model.runs_queue.push(real_run);
+
+            model.runs_queue.load_run(real_run);
         }
     }
-
+    model.runs_queue.setup_teams(&model.contest);
     model.contest.recalculate_placement().unwrap();
 }
 
@@ -121,7 +122,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         //     model.contest.recalculate_placement().unwrap();
         // },
         Msg::Prox1 => {
-            apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             // if model.current_run < model.runs.runs.len() {
             //     let run = &model.runs.runs[model.current_run];
             //     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
@@ -137,9 +138,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::Prox(n) => {
             // model.center = None;
-            for _ in 0..n {
-                apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-            }
+            // for _ in 0..n {
+            //     apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            // }
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             // model.current_run = 0;
@@ -174,7 +175,7 @@ fn view(model: &Model) -> Node<Msg> {
             button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
-            div!["Missing runs: ", model.runs_queue.len()],
+            div!["Missing teams: ", model.runs_queue.len()],
         ],
         views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
     ]
