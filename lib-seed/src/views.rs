@@ -48,7 +48,7 @@ fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize>
 where I : Iterator<Item= &'a usize>
     {
     let mut v :Vec<_>= plac.collect();
-    v.sort_unstable();
+    v.sort();
 
     let mut ret = BTreeMap::new();
 
