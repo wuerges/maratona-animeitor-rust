@@ -143,6 +143,8 @@ fn read_from_zip(
 
     try_read_from_zip(zip, name)
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
+        .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
+        .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
         
         // .or_else(|t| try_read_from_zip(zip, name))?
 }
