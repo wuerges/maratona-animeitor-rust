@@ -34,17 +34,26 @@ python -mhttp.server --directory lib-server/test/
 cargo make build_release && cargo run --release -p lib-server 3030 http://0.0.0.0:8000/webcast_1573336220.zip
 ```
 
-
 Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada pelo BOCA.
+
+O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
+
+```
+cargo make build_release && cargo run --release -p lib-server 3030 lib-server/test/webcast_jones.zip
+```
 
 ## Configurando o OBS e customizando o placar
 
 A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o programa mostrar:
 
 ```
-Maratona Rustrimeitor rodando!
--> Placar em http://localhost:3032/static/runPanel.html
--> Runs em http://localhost:3032/static/scoreboard.html
+Maratona Streimator rodando!
+-> Placar em http://localhost:3030/seed/runspanel.html
+-> Placar em http://localhost:3030/seed/automatic.html
+-> Runs em http://localhost:3030/seed/stepping.html
+-> Timer em http://localhost:3030/seed/timer.html
+-> Timer em http://localhost:3030/seed/everything.html
+-> Timer em http://localhost:3030/seed/reveleitor.html
 ```
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
