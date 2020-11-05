@@ -109,7 +109,16 @@ async fn main() {
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
 }
 
-async fn read_bytes_from_url(uri: String) -> Result<Vec<u8>, ContestIOError> {
+async fn read_bytes_from_path(path: &String ) -> Result<Vec<u8>, ContestIOError> {
+    read_bytes_from_url(path).await
+    .or_else(|_| read_bytes_from_file(path) )
+}
+
+fn read_bytes_from_file(path: &String ) -> Result<Vec<u8>, ContestIOError> {
+    std::fs::read(&path).map_err(|e| ContestIOError::IO(e))
+}
+
+async fn read_bytes_from_url(uri: &String) -> Result<Vec<u8>, ContestIOError> {
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
@@ -150,7 +159,8 @@ fn read_from_zip(
 }
 
 async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIOError> {
-    let zip_data = read_bytes_from_url(uri.clone()).await?;
+    // let zip_data = read_bytes_from_url(uri).await?;
+    let zip_data = read_bytes_from_path(uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)
