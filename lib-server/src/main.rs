@@ -98,11 +98,11 @@ async fn main() {
         server_port
     );
     println!(
-        "-> Timer em http://localhost:{}/seed/everything.html",
+        "-> Painel geral em http://localhost:{}/seed/everything.html",
         server_port
     );
     println!(
-        "-> Timer em http://localhost:{}/seed/reveleitor.html",
+        "-> Reveleitor em http://localhost:{}/seed/reveleitor.html",
         server_port
     );
     
