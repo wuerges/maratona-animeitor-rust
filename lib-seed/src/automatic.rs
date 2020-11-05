@@ -47,8 +47,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             orders.skip().perform_cmd(fetch_all());
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
-            let old_contest = model.contest.clone();
-
+            
             model.runs = runs;
             model.runs.runs.reverse();
             model.contest = contest;
@@ -58,18 +57,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     model.contest.apply_run(r).unwrap();
                 }
             }
-
+            
+            let old_contest = model.contest.clone();
+            model.contest.recalculate_placement().unwrap();
             for (t1, t2) in model.contest.teams.values().zip(old_contest.teams.values()) {
-                if model.center.is_none() {
-                    if t1.placement < t2.placement {
-                        model.center = Some(t1.login.clone());
-                        break;
-                    }
+                if t1.placement < t2.placement {
+                    model.center = Some(t1.login.clone());
+                    break;
                 }
             }            
-            model.contest.recalculate_placement().unwrap();
-
-            orders.perform_cmd(cmds::timeout(5_000, move|| Msg::Recenter));
+            
+            orders.perform_cmd(cmds::timeout(10_000, move|| Msg::Recenter));
             // log!("fetched runs and contest!", model.contest);
         },
         Msg::Fetched(Err(e), Ok(_)) => {
