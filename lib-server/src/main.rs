@@ -80,7 +80,7 @@ async fn main() {
         .or(contest_file)
         .or(scoreboard);
 
-    println!("Maratona Streimator rodando!");
+    println!("Maratona Rustreimator rodando!");
     println!(
         "-> Placar em http://localhost:{}/seed/runspanel.html",
         server_port

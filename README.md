@@ -47,13 +47,13 @@ cargo make build_release && cargo run --release -p lib-server 3030 lib-server/te
 A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o programa mostrar:
 
 ```
-Maratona Streimator rodando!
+Maratona Rustreimator rodando!
 -> Placar em http://localhost:3030/seed/runspanel.html
 -> Placar em http://localhost:3030/seed/automatic.html
 -> Runs em http://localhost:3030/seed/stepping.html
 -> Timer em http://localhost:3030/seed/timer.html
--> Timer em http://localhost:3030/seed/everything.html
--> Timer em http://localhost:3030/seed/reveleitor.html
+-> Painel geral em http://localhost:3030/seed/everything.html
+-> Reveleitor em http://localhost:3030/seed/reveleitor.html
 ```
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
