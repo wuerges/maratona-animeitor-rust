@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap');
 
 body {
     color: white;
@@ -116,11 +116,13 @@ body {
 /* } */
 
 .verde {
-    background-color: green;
+    /* background-color: green; */
+    background-color: #00ab5e;
 }
 
 .vermelho {
-    background-color: red;
+    background-color: #ae2538;
+    /* background-color: red; */
 }
 
 /* .amarelo {
@@ -130,15 +132,15 @@ body {
 
 .amarelo {
     animation: blinkingBackground 2s;
-    background-color: yellow; 
+    background-color: #F4D03F; 
     color: black;
 }
 @keyframes blinkingBackground {
-    0%      { background-color: yellow; color: black; }
-    25%     { background-color: green;  color: white; }
-    50%     { background-color: yellow; color: black; }
-    75%     { background-color: red;    color: white; }
-    100%    { background-color: yellow; color: black; }
+    0%      { background-color: #F4D03F; color: black; }
+    25%     { background-color: #00ab5e;  color: white; }
+    50%     { background-color: #F4D03F; color: black; }
+    75%     { background-color: #ae2538;    color: white; }
+    100%    { background-color: #F4D03F; color: black; }
 }
 
 
@@ -161,8 +163,8 @@ body {
 }
 
 .timer {
-    font-size: 100px;
-    font-family: "Ubuntu Mono", monospace;
+    font-size: 80px;
+    font-family: "Inconsolata", "Ubuntu Mono", monospace;
     text-align: center;
     color: white;
 }
