@@ -153,9 +153,10 @@ impl Team {
     }
 
     fn wait(&self) -> bool {
+        // false
         self.problems.values()
         .map(|p| p.wait())
-        .fold(true, |t,e| t && e)
+        .fold(false, |t,e| t || e)
     }
 
     fn reveal_run_frozen(&mut self) {
