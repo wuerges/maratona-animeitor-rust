@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+
 body {
     background-color: #000000aa;
     color: white;
-    font-family: Lato, Ubuntu, Calibri, Roboto, Arial, sans-serif;
+    font-family: Lato, Ubuntu, sans-serif;
     font-weight: bold;
 }
 
