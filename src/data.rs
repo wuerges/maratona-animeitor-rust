@@ -79,9 +79,8 @@ impl Problem {
 
     fn reveal_run_frozen(&mut self) {
         if self.answers.len() > 0 {
-            let a = self.answers[0];
+            let a = self.answers.remove(0);
             self.add_run_problem(a);
-            self.answers.remove(0);
         }
     }
 }
@@ -158,6 +157,16 @@ impl Team {
         .map(|p| p.wait())
         .fold(true, |t,e| t && e)
     }
+
+    fn reveal_run_frozen(&mut self) {
+        for p in self.problems.values_mut() {
+            if p.wait() {
+                p.reveal_run_frozen();
+                return;
+            }
+        }
+    }
+
 
     // fn useful_run(&self, run : &RunTuple) -> bool {
     //     self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
@@ -272,36 +281,36 @@ impl ContestFile {
     //     }   
     // }
 
-    pub fn apply_run(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
+    pub fn apply_run(&mut self, r : &RunTuple) -> Result<(), ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
                 t.apply_run(&r);
-                Ok(t.score())
+                Ok(())
             }
         }
     }
 
-    pub fn apply_run_maybe(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
+    pub fn apply_run_frozen(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
-                t.apply_run_maybe(&r);
+                t.apply_run_frozen(&r);
                 Ok(t.score())
             }
         }
     }
 
-    pub fn mark_all_wrong(&mut self, team_name : &String) {
-        match self.teams.get_mut(team_name) {
-            None => (),
-            Some(t) => t.mark_all_wrong(),
-        }
-    }
+    // pub fn mark_all_wrong(&mut self, team_name : &String) {
+    //     match self.teams.get_mut(team_name) {
+    //         None => (),
+    //         Some(t) => t.mark_all_wrong(),
+    //     }
+    // }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -353,14 +362,12 @@ impl RunsFile {
 
 pub struct RunsQueue {
     pub queue : BinaryHeap<Score>,
-    pub runs  : BTreeMap<String, Vec<RunTuple>>,
 }
 
 impl RunsQueue {
     pub fn empty() -> Self {
         Self {
             queue : BinaryHeap::new(),
-            runs : BTreeMap::new(),
         }
     }
 
@@ -368,34 +375,27 @@ impl RunsQueue {
         self.queue.len()
     }
 
-    pub fn load_run(&mut self, rt :RunTuple) {
-        self.runs.entry(rt.team_login.clone()).or_default().push(rt);
-    }
-
     pub fn setup_teams(&mut self, contest: &ContestFile) {
-        for key in self.runs.keys() {
-            self.queue.push(contest.teams.get(key).unwrap().score())
+        for team in contest.teams.values() {
+            if team.wait() {
+                self.queue.push(team.score())
+            }
         }
     }
 
-    pub fn pop_run(&mut self, contest: &mut ContestFile) -> Option<RunTuple> {
+    pub fn pop_run(&mut self, contest: &mut ContestFile) {
 
         let entry = self.queue.pop();
         match entry {
-            None => None,
+            None => (),
             Some(score) => {
-                match self.runs.get_mut(&score.team_login) {
-                    None => None,
-                    Some(runs) => {
-                        let r = runs.pop().unwrap();
-                        let score = contest.apply_run_maybe(&r).unwrap();
-                        if runs.len() > 0 {
-                            self.queue.push(score);
+                match contest.teams.get_mut(&score.team_login) {
+                    None => (),
+                    Some(team) => {
+                        team.reveal_run_frozen();
+                        if team.wait() {
+                            self.queue.push(team.score());
                         }
-                        else {
-                            contest.mark_all_wrong(&score.team_login);
-                        }
-                        Some(r)
                     }
                 }
             }
