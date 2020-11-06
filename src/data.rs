@@ -69,7 +69,7 @@ impl Problem {
         }
     }
 
-    fn wait(&self) -> bool {
+    pub fn wait(&self) -> bool {
         self.answers.len() > 0
     }
 

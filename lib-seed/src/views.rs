@@ -127,7 +127,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                                 ]
                             }
                             else {
-                                let color = if prob_v.wait {"amarelo"} else {"vermelho"};
+                                let color = if prob_v.wait() {"amarelo"} else {"vermelho"};
                                 div![
                                     C!["cell", "problema", color],
                                     div![C!["cima"], "X"],

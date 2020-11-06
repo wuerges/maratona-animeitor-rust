@@ -47,7 +47,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
 fn get_answer(t : &data::Answer) -> &str {
     match t {
-        data::Answer::Yes  => "answeryes",
+        data::Answer::Yes(_)  => "answeryes",
         data::Answer::No   => "answerno",
         data::Answer::Wait => "answerwait",
         _                  => "answererror"

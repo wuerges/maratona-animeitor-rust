@@ -64,26 +64,27 @@ async fn fetch_all() -> Msg {
 
 fn apply_all_runs_before_frozen(model: &mut Model) {
 
-    let mut mock_contest = model.contest.clone();
+    // let mut mock_contest = model.contest.clone();
 
     for run in &model.runs.runs {
         if run.time < model.contest.score_freeze_time {
             model.contest.apply_run(run).unwrap();
-            mock_contest.apply_run(run).unwrap();
+            // mock_contest.apply_run(run).unwrap();
         }
         else {
-            let mut fake_run = run.clone();
-            fake_run.answer = data::Answer::Wait;
-            model.contest.apply_run(&fake_run).unwrap();
+            model.contest.apply_run_frozen(run).unwrap();
+            // let mut fake_run = run.clone();
+            // fake_run.answer = data::Answer::Wait;
+            // model.contest.apply_run(&fake_run).unwrap();
 
-            let real_run = run.clone();
+            // let real_run = run.clone();
             // real_run.answer = data::Answer::Yes; // TODO fix this!
             // real_run.answer = data::Answer::No; // TODO fix this!
 
-            if mock_contest.useful_run(&real_run).unwrap() {
-                mock_contest.apply_run(&real_run).unwrap();
-                model.runs_queue.load_run(real_run);
-            }
+            // if mock_contest.useful_run(&real_run).unwrap() {
+            //     mock_contest.apply_run(&real_run).unwrap();
+            //     model.runs_queue.load_run(real_run);
+            // }
 
         }
     }

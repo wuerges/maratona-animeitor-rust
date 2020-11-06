@@ -81,14 +81,12 @@ fn read_to_string(s: &str) -> io::Result<String> {
     Ok(s)
 }
 
-impl FromString for Answer {
-    fn from_string(t: &str) -> Result<Answer, ContestIOError> {
-        match t {
-            "Y" => Ok(Self::Yes),
-            "N" => Ok(Self::No),
-            "?" => Ok(Self::Wait),
-            _ => Err(ContestIOError::InvalidAnswer(t.to_string())),
-        }
+fn from_string_answer(t: &str, tim: usize) -> Result<Answer, ContestIOError> {
+    match t {
+        "Y" => Ok(Answer::Yes(tim)),
+        "N" => Ok(Answer::No),
+        "?" => Ok(Answer::Wait),
+        _ => Err(ContestIOError::InvalidAnswer(t.to_string())),
     }
 }
 
@@ -97,7 +95,7 @@ impl FromString for RunTuple {
         let v: Vec<&str> = line.split('').collect();
         let id = v[0].parse()?;
         let time = v[1].parse()?;
-        let ans = Answer::from_string(v[4])?;
+        let ans = from_string_answer(v[4], time)?;
 
         Ok(Self {
             id: id,
