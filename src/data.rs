@@ -261,16 +261,16 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn useful_run(&self, r : &RunTuple) -> Result<bool, ContestError> {
-        match self.teams.get(&r.team_login) {
-            None => Err(ContestError::UnmatchedTeam(
-                "Could not check useful run to team".to_string(),
-            )),
-            Some(t) => {                
-                Ok(t.useful_run(r))
-            }
-        }   
-    }
+    // pub fn useful_run(&self, r : &RunTuple) -> Result<bool, ContestError> {
+    //     match self.teams.get(&r.team_login) {
+    //         None => Err(ContestError::UnmatchedTeam(
+    //             "Could not check useful run to team".to_string(),
+    //         )),
+    //         Some(t) => {                
+    //             Ok(t.useful_run(r))
+    //         }
+    //     }   
+    // }
 
     pub fn apply_run(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
         match self.teams.get_mut(&r.team_login) {
