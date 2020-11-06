@@ -1,12 +1,10 @@
 use std::fmt;
 use std::collections::{BTreeMap, BinaryHeap};
 use serde::{Serialize, Deserialize};
-// use serde_json;
-
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Answer {
-    Yes,
+    Yes(usize),
     No,
     Wait,
     Unk
@@ -14,21 +12,10 @@ pub enum Answer {
 
 #[derive(Debug)]
 pub enum ContestError {
-    // IO(Error),
-    // Parse(std::num::ParseIntError),
-    // InvalidUri(String),
-    // Hyper(String),
-    // Simple(String),
     UnmatchedTeam(String)
 }
 
 impl std::error::Error for ContestError {}
-
-// impl std::convert::From<std::num::ParseIntError> for ContestError {
-//     fn from(error: std::num::ParseIntError) -> Self {
-//         ContestError::Parse(error)
-//     }
-// }
 
 impl fmt::Display for ContestError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -39,12 +26,7 @@ impl fmt::Display for ContestError {
 
 impl fmt::Display for Answer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", match self {
-            Answer::Yes => "Accepted",
-            Answer::No => "Wrong Answer",
-            Answer::Wait => "Judging...",
-            _ => "Error!"
-        })
+        write!(f, "{:?}", self)
     }
 }
 
@@ -53,33 +35,33 @@ pub type TimeFile = i64;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Problem {
     pub solved : bool,
-    pub wait : bool,
     pub submissions : usize,
-    pub penalty: usize
+    pub penalty: usize,
+    pub answers: Vec<Answer>,
 }
 
 impl Problem {
     fn empty() -> Self {
-        Problem { solved : false, wait : false, submissions : 0, penalty : 0 }
+        Problem { solved : false, submissions : 0, penalty : 0, answers: Vec::new() }
     }
-    fn add_run_problem(&mut self, tim : usize, answer: Answer) {
+    fn add_run_problem(&mut self, answer: Answer) {
         if self.solved {
             return;
         }
         match answer {
-            Answer::Yes => {
+            Answer::Yes(tim) => {
                 self.solved = true;
                 self.submissions += 1;
                 self.penalty += tim;
+                self.answers.clear();
             },
             Answer::No => {
-                // TODO many corner cases!
                 self.submissions += 1;
                 self.penalty += 20;
-                self.wait = false;
+                self.answers.clear();
             },
             Answer::Wait => {
-                self.wait = true;                
+                self.answers.push(Answer::No) // failsafe
             },
             _ => {
 
@@ -87,28 +69,19 @@ impl Problem {
         }
     }
 
-    fn add_run_maybe_problem(&mut self, tim : usize, answer: Answer) {
-        if self.solved {
-            return;
-        }
-        match answer {
-            Answer::Yes => {
-                self.solved = true;
-                self.submissions += 1;
-                self.penalty += tim;
-            },
-            Answer::No => {
-                // TODO many corner cases!
-                self.submissions += 1;
-                self.penalty += 20;
-                self.wait = true;
-            },
-            Answer::Wait => {
-                self.wait = true;                
-            },
-            _ => {
+    fn wait(&self) -> bool {
+        self.answers.len() > 0
+    }
 
-            }
+    fn add_run_frozen(&mut self, answer: Answer) {
+        self.answers.push(answer)
+    }
+
+    fn reveal_run_frozen(&mut self) {
+        if self.answers.len() > 0 {
+            let a = self.answers[0];
+            self.add_run_problem(a);
+            self.answers.remove(0);
         }
     }
 }
@@ -152,25 +125,6 @@ impl Ord for Score {
     }
 }
 
-// impl PartialEq for Team {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.login == other.login
-//     }
-// }
-
-// impl PartialOrd for Team {
-//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-
-//         let (solved_a, penalty_a) = self.score();
-//         let (solved_b, penalty_b) = other.score();
-
-//         if solved_a == solved_b {
-//             return Some(penalty_a.cmp(&penalty_b));
-//         }
-//         Some(solved_b.cmp(&solved_a))
-//     }
-// }
-
 impl Team {
     pub fn new(login : &str, escola : &str, name : &str) -> Self {
         Self {
@@ -190,17 +144,24 @@ impl Team {
     fn apply_run(&mut self, run : &RunTuple) {
         self.problems.entry(run.prob.clone())
             .or_insert(Problem::empty())
-            .add_run_problem(run.time, run.answer.clone());
+            .add_run_problem(run.answer.clone());
     }
-    fn apply_run_maybe(&mut self, run : &RunTuple) {
+
+    fn apply_run_frozen(&mut self, run : &RunTuple) {
         self.problems.entry(run.prob.clone())
             .or_insert(Problem::empty())
-            .add_run_maybe_problem(run.time, run.answer.clone());
+            .add_run_frozen(run.answer.clone());
     }
-    
-    fn useful_run(&self, run : &RunTuple) -> bool {
-        self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
+
+    fn wait(&self) -> bool {
+        self.problems.values()
+        .map(|p| p.wait())
+        .fold(true, |t,e| t && e)
     }
+
+    // fn useful_run(&self, run : &RunTuple) -> bool {
+    //     self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
+    // }
 
     pub fn score(&self) -> Score {
         let mut solved = 0;
@@ -212,14 +173,6 @@ impl Team {
             }
         }
         Score { solved, penalty, team_login: self.login.clone() }
-    }
-
-    fn mark_all_wrong(&mut self) {
-        for p in self.problems.values_mut() {
-            if p.wait {
-                p.wait = false;
-            }
-        }
     }
 }
 
