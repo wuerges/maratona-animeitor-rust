@@ -144,8 +144,25 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 orders.send_msg(Msg::Scroll1);
             }
             else {
+                let delay = match (&model.center, &next_center) {
+                    (Some(c1), Some(c2)) => {
+                        let p1 = model.contest.placement(c1).unwrap() as i64;
+                        let p2 = model.contest.placement(c2).unwrap() as i64;
+
+                        if (p1 - p2).abs() < 5 {
+                            1000
+                        }
+                        else {
+                            5000
+                        }                       
+                    },
+                    _ => 5000,
+                };
+                // let delay = 1000;
                 model.center = next_center;
-                orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll1));
+
+                // let delay = 5000;
+                orders.perform_cmd(cmds::timeout(delay, move || Msg::Scroll1));
             }
             // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             // model.contest.recalculate_placement().unwrap();

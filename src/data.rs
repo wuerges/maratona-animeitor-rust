@@ -223,6 +223,10 @@ impl ContestFile {
         }
     }
 
+    pub fn placement(&self, team_login: &String) -> Option<usize> {
+        self.teams.get(team_login).map(|t| t.placement)
+    }
+
     pub fn recalculate_placement(&mut self) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
         for (key, _) in self.teams.iter() {
