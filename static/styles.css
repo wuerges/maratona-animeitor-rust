@@ -1,10 +1,16 @@
 /* @import url('https://fonts.googleapis.com/css?family=Lato&display=swap'); */
 
 body {
-    background-color: #000000aa;
     color: white;
     font-family: Lato, Ubuntu, sans-serif;
     font-weight: bold;
+    
+    /* background-color: #000000aa; */
+    background-color: #333;
+    background-repeat: repeat;
+    background-image: url('/static/assets/maratona-logo-wallpaper.png') ;
+    background-blend-mode:multiply;
+
 }
 
 /* .logoimg {
