@@ -82,15 +82,15 @@ async fn main() {
 
     println!("Maratona Rustreimator rodando!");
     println!(
-        "-> Placar em http://localhost:{}/seed/runspanel.html",
+        "-> Runs em http://localhost:{}/seed/runspanel.html",
         server_port
     );
     println!(
-        "-> Placar em http://localhost:{}/seed/automatic.html",
+        "-> Placar automatizado em http://localhost:{}/seed/automatic.html",
         server_port
     );
     println!(
-        "-> Runs em http://localhost:{}/seed/stepping.html",
+        "-> Placar interativo em http://localhost:{}/seed/stepping.html",
         server_port
     );
     println!(

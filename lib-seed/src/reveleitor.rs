@@ -230,9 +230,12 @@ fn view(model: &Model) -> Node<Msg> {
             button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),button_disabled.clone()],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),button_disabled],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
-            div!["Missing teams: ", model.runs_queue.len()],
+            div!["Times com runs pendentes: ", model.runs_queue.len()],
         ],
-        views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
+        div![
+            style!{St::Position => "relative", St::Top => px(60)},
+            views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
+        ]
     ]
 }
 

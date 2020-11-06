@@ -157,7 +157,10 @@ fn view(model: &Model) -> Node<Msg> {
             button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
         ],
-        views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
+        div![
+            style!{St::Position => "relative", St::Top => px(60) },
+            views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
+        ]
     ]
 }
 
