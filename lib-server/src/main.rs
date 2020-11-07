@@ -12,6 +12,7 @@ use hyper::body;
 use std::io::prelude::*;
 use zip;
 
+
 // use dataio::*;
 
 #[tokio::main]
@@ -43,14 +44,19 @@ async fn main() {
         }
     });
 
+    
     type Shared = Arc<Mutex<DB>>;
     fn with_db(
         db: Shared,
     ) -> impl Filter<Extract = (Shared,), Error = std::convert::Infallible> + Clone {
         warp::any().map(move || db.clone())
     }
-
+    
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
+    let secret = random_path_part();
+
+    let secret_assets = warp::path(format!("secret_{}", secret)).and(warp::fs::dir("secret"));
+
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
@@ -73,6 +79,7 @@ async fn main() {
         .and_then(serve_score);
 
     let routes = static_assets
+        .or(secret_assets)
         .or(seed_assets)
         .or(runs)
         .or(all_runs)
@@ -102,8 +109,8 @@ async fn main() {
         server_port
     );
     println!(
-        "-> Reveleitor em http://localhost:{}/seed/reveleitor.html",
-        server_port
+        "-> Reveleitor em http://localhost:{}/secret_{}/reveleitor.html",
+        server_port, secret
     );
     
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
@@ -213,4 +220,21 @@ async fn serve_score(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rej
     let db = runs.lock().await;
     let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
     Ok(r)
+}
+
+
+fn random_path_part() -> String {
+    use rand::Rng;
+    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                            abcdefghijklmnopqrstuvwxyz\
+                            0123456789";
+    const PASSWORD_LEN: usize = 6;
+    let mut rng = rand::thread_rng();
+    
+    (0..PASSWORD_LEN)
+        .map(|_| {
+            let idx = rng.gen_range(0, CHARSET.len());
+            CHARSET[idx] as char
+        })
+        .collect()
 }
