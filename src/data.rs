@@ -371,6 +371,10 @@ impl RunsFile {
     pub fn add_run(&mut self, t : &RunTuple) {
         self.runs.push(t.clone())
     }
+
+    pub fn filter_frozen(&self, frozen_time : usize) -> Self {
+        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }
+    }
 }
 
 pub struct RunsQueue {

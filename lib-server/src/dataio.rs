@@ -215,7 +215,8 @@ impl DB {
 
     pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
         let runs = RunsFile::from_string(s)?;
-        self.run_file = runs;
+        self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+        self.run_file_secret = runs;
         Ok(())
     }
 
