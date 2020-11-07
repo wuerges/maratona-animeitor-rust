@@ -37,12 +37,13 @@ pub struct Problem {
     pub solved : bool,
     pub submissions : usize,
     pub penalty: usize,
+    pub time_solved : usize,
     pub answers: Vec<Answer>,
 }
 
 impl Problem {
     fn empty() -> Self {
-        Problem { solved : false, submissions : 0, penalty : 0, answers: Vec::new() }
+        Problem { solved : false, submissions : 0, time_solved: 0, penalty : 0, answers: Vec::new() }
     }
     fn add_run_problem(&mut self, answer: Answer) {
         if self.solved {
@@ -53,6 +54,7 @@ impl Problem {
                 self.solved = true;
                 self.submissions += 1;
                 self.penalty += tim;
+                self.time_solved = tim;
                 self.answers.clear();
             },
             Answer::No => {
@@ -100,6 +102,7 @@ use std::cmp::{Ord, Eq, Ordering};
 pub struct Score {
     pub solved: usize,
     pub penalty: usize,
+    pub max_solution_time: usize,
     pub team_login: String,    
 }
 
@@ -110,6 +113,9 @@ impl PartialOrd for Score {
         }
         else if self.penalty != other.penalty {
             self.penalty.cmp(&other.penalty)
+        }
+        else if self.max_solution_time != other.max_solution_time {
+            self.max_solution_time.cmp(&other.max_solution_time)
         }
         else {
             self.team_login.cmp(&other.team_login)
@@ -176,13 +182,15 @@ impl Team {
     pub fn score(&self) -> Score {
         let mut solved = 0;
         let mut penalty = 0;
+        let mut max_solution_time = 0;
         for (_, value) in self.problems.iter() {
             if value.solved {
                 solved += 1;
                 penalty += value.penalty;
+                max_solution_time = max_solution_time.max(value.time_solved);
             }
         }
-        Score { solved, penalty, team_login: self.login.clone() }
+        Score { solved, penalty, max_solution_time, team_login: self.login.clone() }
     }
 }
 
