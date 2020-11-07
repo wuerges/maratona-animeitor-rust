@@ -39,7 +39,14 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
 fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
     match url_filter {
         None => true,
-        Some(f) => t.login.find(f).is_some(),
+        Some(tot) => {
+            for f in tot.split('_') {
+                if t.login.find(f).is_some() {
+                    return true
+                }
+            }
+            return false
+        },
     }
 }
 
