@@ -76,6 +76,10 @@ fn center_class(p: usize, center : &Option<usize>) -> std::option::Option<seed::
     }
 }
 
+fn number_submissions(s : usize) -> Option<usize> {
+    if s == 1 { None } else { Some(s - 1) }
+}
+
 pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<String>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
@@ -133,8 +137,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                             if prob_v.solved {
                                 div![
                                     C!["cell", "problema", "verde"],
-                                    div![C!["cima"], "+", prob_v.submissions],
-                                    div![C!["baixo"], prob_v.penalty],
+                                    div![C!["cima"], "+", number_submissions(prob_v.submissions)],
+                                    div![C!["baixo"], prob_v.time_solved],
                                 ]
                             }
                             else {
