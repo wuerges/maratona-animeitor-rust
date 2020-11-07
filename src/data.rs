@@ -70,7 +70,7 @@ impl Problem {
     }
 
     pub fn wait(&self) -> bool {
-        self.answers.len() > 0
+        !self.solved && self.answers.len() > 0
     }
 
     fn add_run_frozen(&mut self, answer: Answer) {

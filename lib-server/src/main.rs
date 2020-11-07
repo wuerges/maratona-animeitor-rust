@@ -164,7 +164,7 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|_| ContestIOError::Info("Could not open zipfile".to_string()))?;
+        .map_err(|e| ContestIOError::Info(format!("Could not open zipfile: {:?}", e)))?;
 
     let mut db = runs.lock().await;
     {
