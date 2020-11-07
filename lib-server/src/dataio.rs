@@ -165,6 +165,7 @@ impl FromString for RunsFile {
 #[derive(Debug)]
 pub struct DB {
     pub run_file: RunsFile,
+    pub run_file_secret: RunsFile,
     pub contest_file_begin: ContestFile,
     contest_file: ContestFile,
     pub time_file: TimeFile,
@@ -197,6 +198,7 @@ impl DB {
     pub fn empty() -> Self {
         DB {
             run_file: RunsFile::empty(),
+            run_file_secret: RunsFile::empty(),
             contest_file_begin: ContestFile::dummy(),
             contest_file: ContestFile::dummy(),
             time_file: 0,

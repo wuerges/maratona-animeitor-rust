@@ -55,8 +55,6 @@ async fn main() {
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let secret = random_path_part();
 
-    let secret_assets = warp::path(format!("secret_{}", secret)).and(warp::fs::dir("secret"));
-
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
@@ -65,6 +63,10 @@ async fn main() {
     let all_runs = warp::path("allruns")
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs);
+
+    let all_runs_secret = warp::path(format!("allruns_{}", secret))
+        .and(with_db(shared_db.clone()))
+        .and_then(serve_all_runs_secret);
 
     let timer = warp::path("timer")
         .and(with_db(shared_db.clone()))
@@ -79,10 +81,10 @@ async fn main() {
         .and_then(serve_score);
 
     let routes = static_assets
-        .or(secret_assets)
         .or(seed_assets)
         .or(runs)
         .or(all_runs)
+        .or(all_runs_secret)
         .or(timer)
         .or(contest_file)
         .or(scoreboard);
@@ -109,7 +111,7 @@ async fn main() {
         server_port
     );
     println!(
-        "-> Reveleitor em http://localhost:{}/secret_{}/reveleitor.html",
+        "-> Reveleitor em http://localhost:{}/seed/reveleitor.html#{}",
         server_port, secret
     );
     
@@ -209,6 +211,13 @@ async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::
     let r = serde_json::to_string(&db.run_file).unwrap();
     Ok(r)
 }
+
+async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+    let db = runs.lock().await;
+    let r = serde_json::to_string(&db.run_file_secret).unwrap();
+    Ok(r)
+}
+
 
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;

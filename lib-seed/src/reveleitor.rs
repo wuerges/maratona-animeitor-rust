@@ -11,7 +11,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.send_msg(Msg::Reset);
     Model { 
         button_disabled : false,
-        url_filter : url.hash().map( |s| s.clone()),
+        secret : url.hash().map( |s| s.clone()),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
         runs_queue : data::RunsQueue::empty(),
@@ -23,7 +23,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     button_disabled : bool,
-    url_filter : Option<String>,
+    secret : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
     runs_queue : data::RunsQueue,
@@ -48,8 +48,8 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all() -> Msg {
-    let r = fetch_allruns().await;
+async fn fetch_all(secret : String) -> Msg {
+    let r = fetch_allruns_secret(&secret).await;
     let c = fetch_contest().await;
     Msg::Fetched(r, c)
 }
@@ -211,7 +211,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::Reset => {
             model.button_disabled = true;
-            orders.skip().perform_cmd( fetch_all() );    
+            match &model.secret {
+                None => (),
+                Some(secret) => {
+                    orders.skip().perform_cmd( fetch_all(secret.clone()) );
+                },
+            }
         }
     }
 }
@@ -234,7 +239,7 @@ fn view(model: &Model) -> Node<Msg> {
         ],
         div![
             style!{St::Position => "relative", St::Top => px(60)},
-            views::view_scoreboard(&model.contest, &model.center, &model.url_filter),
+            views::view_scoreboard(&model.contest, &model.center, &None),
         ]
     ]
 }

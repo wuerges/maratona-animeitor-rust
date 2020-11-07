@@ -11,6 +11,18 @@ pub async fn fetch_allruns() -> fetch::Result<data::RunsFile> {
         .await
 }
 
+pub async fn fetch_allruns_secret(secret : &String) -> fetch::Result<data::RunsFile> {
+    // Request::new(format!("/allruns_{}", secret))
+    Request::new("/allruns")
+    // Request::new(format!("/allruns_{}", secret))
+        .fetch()
+        .await?
+        .check_status()?
+        .json()
+        .await
+}
+
+
 pub async fn fetch_contest() -> fetch::Result<data::ContestFile> {
     Request::new("/contest")
         .fetch()
