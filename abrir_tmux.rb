@@ -1,6 +1,7 @@
 #!/bin/ruby
 
-sedes = %w{FGHsalIJKBrasil
+sedes = %w{FGHsalIJKGlobal
+FGHsalIJKBrasil
 FGHsalIJKac
 FGHsalIJKal
 FGHsalIJKam
@@ -37,7 +38,7 @@ system("cargo make build_release")
 
 sedes.each_with_index do |sede,i|
 
-    port = 3030+i
+    port = 3029+i
 
     url = "https://global.naquadah.com.br/bocasecret/admin/report/webcast.php?webcastcode=#{sede}"
 
