@@ -36,18 +36,22 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     }
 }
 
-fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
+pub fn check_filter_login(url_filter: &Option<String>, t : &String) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
             for f in tot.split('_') {
-                if t.login.find(f).is_some() {
+                if t.find(f).is_some() {
                     return true
                 }
             }
             return false
         },
     }
+}
+
+fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
+    check_filter_login(url_filter, &t.login)
 }
 
 use std::collections::BTreeMap;
