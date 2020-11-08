@@ -9,7 +9,7 @@ use seed::{prelude::*, *};
 
 extern crate rand;
 
-fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     // orders.subscribe(Msg::UrlChanged);
     orders.subscribe(Msg::UrlChanged);
 
@@ -25,12 +25,10 @@ enum Msg {
     UrlChanged(subs::UrlChanged)
 }
 
-fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
+fn update(msg: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            // log!("url requested!");
             url.go_and_load();
-            // orders.skip().request_url(url);
         }
     }
 }
@@ -48,19 +46,12 @@ fn build_url(base_url: &str, sede : &configdata::Sede) -> String {
     format!("{}/seed/everything.html?source={}", base_url, sede.source)
 }
 
-fn link(target: &str, locat: &str) -> String {
-    format!("<a href=\"{}\" target=\"{}\"> aoeuaoe </a>", locat, target)
-}
-
-fn view(model: &Model) -> Node<Msg> {
+fn view(_: &Model) -> Node<Msg> {
     let base_url = config::contest().host;
     table![
         config::contest().sedes.iter().map( |sede| {
             tr![
                 td![&sede.name],
-                // td![&sede.source],
-                // td![&sede.codes],
-                // onclick="window.open('../html-link.htm','name','width=600,height=400')">
                 td![a![attrs!{At::Href=>build_url(&base_url, &sede), At::Target=>"principal"}, "Renumerado"]],
                 td![a![attrs!{At::Href=>build_url_filter(&base_url, &sede), At::Target=>"principal"}, "Filtrado"]],
             ]
