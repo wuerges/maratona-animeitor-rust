@@ -1,11 +1,7 @@
 use std::env;
 use tokio;
 
-use maratona_animeitor_rust::configdata;
-
 use lib_server::*;
-
-
 
 #[tokio::main]
 async fn main() {
@@ -22,14 +18,39 @@ async fn main() {
 
     let secret = random_path_part();
 
-    let contest = configdata::Contest::new(
-        "", // localhost is not needed
-        vec![configdata::Sede::new("", "", "", "")]
-    );
-    let routes = serve_contest(url_base, &contest, "", &secret);
+    let routes = serve_simple_contest(url_base, &secret);
  
-    println!("Reveleitor secret: {}", secret);
+    println!("Maratona Rustreimator rodando!");
+    println!(
+        "-> Runs em http://localhost:{}/seed/runspanel.html",
+        server_port
+    );
+    println!(
+        "-> Placar automatizado em http://localhost:{}/seed/automatic.html",
+        server_port
+    );
+    println!(
+        "-> Placar interativo em http://localhost:{}/seed/stepping.html",
+        server_port
+    );
+    println!(
+        "-> Timer em http://localhost:{}/seed/timer.html",
+        server_port
+    );
+    println!(
+        "-> Painel geral em http://localhost:{}/seed/everything.html",
+        server_port
+    );
+    println!(
+        "-> Reveleitor em http://localhost:{}/seed/reveleitor.html?secret={}",
+        server_port, secret
+    );
+
+
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;    
+
+
+
 }
 
 

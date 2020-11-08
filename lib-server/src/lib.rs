@@ -18,7 +18,7 @@ use tokio::{spawn, sync::Mutex};
 use warp::Filter;
 use crate::itertools::Itertools;
 
-pub fn serve_urlbase(url_base : String, data_url : String, source: &Option<String>, secret : &String)
+pub fn serve_urlbase(data_url : String, source: &Option<String>, secret : &String)
  -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
 
@@ -233,18 +233,18 @@ pub fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &st
     .unique()
     .map( |source| {
             let data_url = format!("{}{}{}", url_base, salt, source);
-            serve_urlbase(url_base.clone(), data_url, &Some(source.clone()), secret)
+            serve_urlbase(data_url, &Some(source.clone()), secret)
         })
         .fold1(|routes, r| r.or(routes).unify().boxed()).unwrap();
 
     static_assets.or(seed_assets).or(s)
 }
 
-// pub fn serve_simple_contest(url_base : String, secret : &String)
-//  -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
+pub fn serve_simple_contest(url_base : String, secret : &String)
+ -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
 
-//     let static_assets = warp::path("static").and(warp::fs::dir("static"));
-//     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
+    let static_assets = warp::path("static").and(warp::fs::dir("static"));
+    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
 
-//     static_assets.or(seed_assets).or(serve_urlbase(url_base.clone(), None, None, secret))
-// }
+    static_assets.or(seed_assets).or(serve_urlbase(url_base.clone(), &None, secret))
+}
