@@ -70,3 +70,20 @@ Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do b
 
 O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](lib-server/static/styles.css). 
 
+
+
+
+
+### Uso avançado
+
+O rustreimeitor foi desenvolvido para apoiar a Maratona de Programação da SBC, 
+e contém um arquivo de configuração específico para a maratona: `src/config.rs`.
+
+Neste arquivo é possível declarar as sedes da prova.
+
+Para rodar o rustreimeitor no modo maratona, execute ele desta maneira:
+
+```
+cargo make build_release 
+cargo run --release --bin maratona -p lib-server 3030 <Url do Boca> <Sal Secreto do Boca>
+```
