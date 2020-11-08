@@ -2,6 +2,7 @@ use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
+use crate::helpers::*;
 
 extern crate rand;
 
@@ -9,20 +10,27 @@ extern crate rand;
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reset);
     orders.stream(streams::interval(30_000, || Msg::Reset));
-    Model { 
-        url_filter : url.hash().map( |s| s.clone()),
+    Model {
+        source : get_source(&url),
+        url_filter : get_url_filter(&url),
         runs: Vec::new(),
     }
 }
 
 struct Model {
-    url_filter : Option<String>,
+    url_filter : Option<Vec<String>>,
+    source : String,
     runs: Vec<data::RunsPanelItem>,
 }
 
 enum Msg {
     Reset,
     Fetched(fetch::Result<Vec<data::RunsPanelItem>>),
+}
+
+async fn fetch_all(source :String) -> Msg {
+    let f= fetch_runspanel(&source).await;
+    Msg::Fetched(f)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -42,7 +50,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched runs error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( async { Msg::Fetched(fetch_runspanel().await) } );    
+            orders.skip().perform_cmd( fetch_all(model.source.clone()) );
         }
     }
 }

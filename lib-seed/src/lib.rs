@@ -5,6 +5,7 @@ mod stepping;
 mod requests;
 mod automatic;
 mod views;
+mod helpers;
 mod runs;
 mod timer;
 mod reveleitor;

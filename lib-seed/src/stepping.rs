@@ -2,6 +2,7 @@ use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
+use crate::helpers::*;
 
 extern crate rand;
 
@@ -10,7 +11,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     // orders.skip().perform_cmd( fetch_all() );
     orders.send_msg(Msg::Reset);
     Model { 
-        url_filter : url.hash().map( |s| s.clone()),
+        url_filter : get_url_filter(&url),
+        source : get_source(&url),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
         current_run: 0,
@@ -20,7 +22,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
-    url_filter : Option<String>,
+    url_filter : Option<Vec<String>>,
+    source : String,
     contest : data::ContestFile,
     runs: data::RunsFile,
     current_run: usize,
@@ -43,9 +46,9 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all() -> Msg {
-    let r = fetch_allruns().await;
-    let c = fetch_contest().await;
+async fn fetch_all(source : String) -> Msg {
+    let r = fetch_allruns(&source).await;
+    let c = fetch_contest(&source).await;
     Msg::Fetched(r, c)
 }
 
@@ -139,7 +142,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched contest error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( fetch_all() );    
+            orders.skip().perform_cmd( fetch_all(model.source.clone()) );    
         }
     }
 }

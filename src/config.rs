@@ -14,7 +14,7 @@ pub fn contest() -> Contest {
             "es", "go", "ma", "mg", "ms", "mt", "pa", "pb", "pe", "pi", 
             "pr", "rj","rn", "ro", "rr", "rs", "sc", "se", "sp", "to"]
             .iter()
-            .map(|s| Sede::new(s, BR, format!("teambr{}", s)))
+            .map(|s| Sede::new(s, BR, format!("teambr{}", s).as_str()))
             .collect();
 
     sedes.push(Sede::supersede("Scentrooeste", BR, vec!["teambrmt", "teambrms"]));
@@ -31,6 +31,5 @@ pub fn contest() -> Contest {
 
     Contest::new(
         "localhost", 
-        "123abc", 
         sedes)
 }

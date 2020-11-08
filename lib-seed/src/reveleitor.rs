@@ -2,6 +2,7 @@ use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
+use crate::helpers::*;
 
 extern crate rand;
 
@@ -11,7 +12,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.send_msg(Msg::Reset);
     Model { 
         button_disabled : false,
-        secret : url.hash().map( |s| s.clone()),
+        source : get_source(&url),
+        secret : get_secret(&url),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
         runs_queue : data::RunsQueue::empty(),
@@ -23,7 +25,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     button_disabled : bool,
-    secret : Option<String>,
+    source : String,
+    secret : String,
     contest : data::ContestFile,
     runs: data::RunsFile,
     runs_queue : data::RunsQueue,
@@ -48,9 +51,9 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all(secret : String) -> Msg {
-    let r = fetch_allruns_secret(&secret).await;
-    let c = fetch_contest().await;
+async fn fetch_all(source :String, secret : String) -> Msg {
+    let r = fetch_allruns_secret(&source, &secret).await;
+    let c = fetch_contest(&source).await;
     Msg::Fetched(r, c)
 }
 
@@ -211,12 +214,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::Reset => {
             model.button_disabled = true;
-            match &model.secret {
-                None => (),
-                Some(secret) => {
-                    orders.skip().perform_cmd( fetch_all(secret.clone()) );
-                },
-            }
+            orders.skip().perform_cmd( fetch_all(model.source.clone(), model.secret.clone()) );
         }
     }
 }

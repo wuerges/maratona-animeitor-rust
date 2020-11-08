@@ -36,11 +36,11 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     }
 }
 
-pub fn check_filter_login(url_filter: &Option<String>, t : &String) -> bool {
+pub fn check_filter_login(url_filter: &Option<Vec<String>>, t : &String) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
-            for f in tot.split('_') {
+            for f in tot {
                 if t.find(f).is_some() {
                     return true
                 }
@@ -50,7 +50,7 @@ pub fn check_filter_login(url_filter: &Option<String>, t : &String) -> bool {
     }
 }
 
-fn check_filter(url_filter: &Option<String>, t : &Team) -> bool {
+fn check_filter(url_filter: &Option<Vec<String>>, t : &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }
 
@@ -80,7 +80,7 @@ fn number_submissions(s : usize) -> Option<usize> {
     if s == 1 { None } else { Some(s - 1) }
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<String>) -> Node<T> {
+pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<Vec<String>>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
 

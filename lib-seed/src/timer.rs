@@ -2,10 +2,12 @@ use maratona_animeitor_rust::data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
+use crate::helpers::*;
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1000, || Msg::Reset));
     Model { 
+        source : get_source(&url),
         p_time_file: 0,
         time_file: 86399,
         // time_file: 0,
@@ -13,6 +15,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
+    source : String,
     p_time_file: data::TimeFile,
     time_file: data::TimeFile,
 }
@@ -20,6 +23,11 @@ struct Model {
 enum Msg {
     Reset,
     Fetched(fetch::Result<data::TimeFile>),
+}
+
+async fn fetch_all(source : String) -> Msg {
+    let f = fetch_time_file(&source).await;
+    Msg::Fetched(f)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -33,7 +41,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched runs error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( async { Msg::Fetched(fetch_time_file().await) } );    
+            orders.skip().perform_cmd( fetch_all(model.source.clone()) );    
         }
     }
 }
