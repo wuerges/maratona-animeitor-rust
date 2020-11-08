@@ -24,14 +24,17 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-cargo make build_release && cargo run --release -p lib-server <porta_tcp> <url_do_placar>
+cargo make build_release
+cargo run --release --bin simples -p lib-server <porta_tcp> <url_do_placar>
 ```
 
 O repositório contém um exemplo, que pode ser usado para testes:
 
 ```
 python -mhttp.server --directory lib-server/test/
-cargo make build_release && cargo run --release -p lib-server 3030 http://0.0.0.0:8000/webcast_1573336220.zip
+cargo make build_release
+cargo run --release --bin simples -p lib-server 3030 http://0.0.0.0:8000/webcast_1573336220.zip
+
 ```
 
 Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada pelo BOCA.
@@ -39,7 +42,8 @@ Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada
 O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
 
 ```
-cargo make build_release && cargo run --release -p lib-server 3030 lib-server/test/webcast_jones.zip
+cargo make build_release 
+cargo run --release --bin simples -p lib-server 3030 lib-server/test/webcast_jones.zip
 ```
 
 ## Configurando o OBS e customizando o placar
@@ -48,12 +52,12 @@ A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o 
 
 ```
 Maratona Rustreimator rodando!
--> Placar em http://localhost:3030/seed/runspanel.html
--> Placar em http://localhost:3030/seed/automatic.html
--> Runs em http://localhost:3030/seed/stepping.html
+-> Runs em http://localhost:3030/seed/runspanel.html
+-> Placar automatizado em http://localhost:3030/seed/automatic.html
+-> Placar interativo em http://localhost:3030/seed/stepping.html
 -> Timer em http://localhost:3030/seed/timer.html
 -> Painel geral em http://localhost:3030/seed/everything.html
--> Reveleitor em http://localhost:3030/seed/reveleitor.html
+-> Reveleitor em http://localhost:3030/seed/reveleitor.html?secret=vYZgSm
 ```
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
