@@ -3,6 +3,7 @@ extern crate rand;
 extern crate itertools;
 
 use crate::dataio::*;
+use maratona_animeitor_rust::configdata;
 
 use hyper::Client;
 use hyper_tls::HttpsConnector;
@@ -13,15 +14,16 @@ use zip;
 use std::sync::Arc;
 use tokio;
 use tokio::{spawn, sync::Mutex};
-use warp::Filter;
 
-pub fn serve_urlbase(url_base : String, source: &String, salt: &str, secret : &String)
+use warp::Filter;
+use crate::itertools::Itertools;
+
+pub fn serve_urlbase(url_base : String, data_url : String, source: &Option<String>, secret : &String)
  -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
 
     let shared = Arc::clone(&shared_db);
 
-    let data_url = format!("{}{}{}", url_base, salt, source);
 
     spawn(async move {
         let dur = tokio::time::Duration::new(30, 0);
@@ -43,48 +45,51 @@ pub fn serve_urlbase(url_base : String, source: &String, salt: &str, secret : &S
         warp::any().map(move || db.clone())
     }
     
+
+    // warp::path(source.clone())
     let runs = 
-        warp::path(source.clone())
-        .and(warp::path("runs"))
+        warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
-    
+
     let all_runs = 
-        warp::path(source.clone())
-        .and(warp::path("allruns"))
+        warp::path("allruns")
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs);
-    
+
+
     let all_runs_secret = 
-        warp::path(source.clone())
-        .and(warp::path(format!("allruns_{}", secret)))
+        warp::path(format!("allruns_{}", secret))
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs_secret);
+    
 
     let timer = 
-        warp::path(source.clone())
-        .and(warp::path("timer"))
+        warp::path("timer")
         .and(with_db(shared_db.clone()))
         .and_then(serve_timer);
 
     let contest_file = 
-        warp::path(source.clone())
-        .and(warp::path("contest"))
+        warp::path("contest")
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
     let scoreboard = 
-        warp::path(source.clone())
-        .and(warp::path("score"))
+        warp::path("score")
         .and(with_db(shared_db))
         .and_then(serve_score);
 
-    runs
+    let routes = runs
         .or(all_runs)
         .or(all_runs_secret)
         .or(timer)
         .or(contest_file)
-        .or(scoreboard).boxed()
+        .or(scoreboard);
+
+    match source {
+        None => routes.boxed(),
+        Some(source) => warp::path(source.clone()).and(routes).boxed()
+    }
 }
 
 
@@ -216,3 +221,30 @@ pub fn random_path_part() -> String {
         })
         .collect()
 }
+
+pub fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &str, secret : &String)
+ -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
+
+    let static_assets = warp::path("static").and(warp::fs::dir("static"));
+    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
+
+    let s = contest.sedes.iter()
+    .map( |sede| &sede.source)
+    .unique()
+    .map( |source| {
+            let data_url = format!("{}{}{}", url_base, salt, source);
+            serve_urlbase(url_base.clone(), data_url, &Some(source.clone()), secret)
+        })
+        .fold1(|routes, r| r.or(routes).unify().boxed()).unwrap();
+
+    static_assets.or(seed_assets).or(s)
+}
+
+// pub fn serve_simple_contest(url_base : String, secret : &String)
+//  -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
+
+//     let static_assets = warp::path("static").and(warp::fs::dir("static"));
+//     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
+
+//     static_assets.or(seed_assets).or(serve_urlbase(url_base.clone(), None, None, secret))
+// }

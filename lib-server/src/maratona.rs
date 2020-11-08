@@ -1,27 +1,9 @@
 use std::env;
 use tokio;
-use warp::Filter;
 
-use itertools::Itertools;
-
-use maratona_animeitor_rust::{config, configdata};
+use maratona_animeitor_rust::config;
 
 use lib_server::*;
-
-fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &str, secret : &String)
- -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
-
-    let static_assets = warp::path("static").and(warp::fs::dir("static"));
-    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
-
-    let s = contest.sedes.iter()
-        .map( |sede| &sede.source)
-        .unique()
-        .map( |source|  serve_urlbase(url_base.clone(), source, salt, secret))
-        .fold1(|routes, r| r.or(routes).unify().boxed()).unwrap();
-
-    static_assets.or(seed_assets).or(s)
-}
 
 
 
