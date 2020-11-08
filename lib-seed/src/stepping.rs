@@ -23,7 +23,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     url_filter : Option<Vec<String>>,
-    source : String,
+    source : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
     current_run: usize,
@@ -46,7 +46,7 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all(source : String) -> Msg {
+async fn fetch_all(source : Option<String>) -> Msg {
     let r = fetch_allruns(&source).await;
     let c = fetch_contest(&source).await;
     Msg::Fetched(r, c)

@@ -1,9 +1,13 @@
 use seed::prelude::*;
 use maratona_animeitor_rust::data;
 
+fn prepend(url : &str, source:&Option<String>) -> String {
+    source.clone().map( |s| format!("/{}{}", s, url) ).unwrap_or(url.to_string())
+}
 
-pub async fn fetch_allruns(source :&String) -> fetch::Result<data::RunsFile> {
-    Request::new(format!("/{}/allruns", source))
+
+pub async fn fetch_allruns(source :&Option<String>) -> fetch::Result<data::RunsFile> {
+    Request::new(prepend("/allruns", source))
         .fetch()
         .await?
         .check_status()?
@@ -11,9 +15,9 @@ pub async fn fetch_allruns(source :&String) -> fetch::Result<data::RunsFile> {
         .await
 }
 
-pub async fn fetch_allruns_secret(source :&String, secret : &String) -> fetch::Result<data::RunsFile> {
+pub async fn fetch_allruns_secret(source :&Option<String>, secret : &String) -> fetch::Result<data::RunsFile> {
     // Request::new("/allruns")
-    Request::new(format!("/{}/allruns_{}", source, secret))
+    Request::new(prepend(format!("/allruns_{}", secret).as_str(), source))
         .fetch()
         .await?
         .check_status()?
@@ -22,8 +26,8 @@ pub async fn fetch_allruns_secret(source :&String, secret : &String) -> fetch::R
 }
 
 
-pub async fn fetch_contest(source :&String) -> fetch::Result<data::ContestFile> {
-    Request::new(format!("/{}/contest", source))
+pub async fn fetch_contest(source :&Option<String>) -> fetch::Result<data::ContestFile> {
+    Request::new(prepend("/contest", source))
         .fetch()
         .await?
         .check_status()?
@@ -31,8 +35,8 @@ pub async fn fetch_contest(source :&String) -> fetch::Result<data::ContestFile> 
         .await
 }
 
-pub async fn fetch_runspanel(source :&String) -> fetch::Result<Vec<data::RunsPanelItem>> {
-    Request::new(format!("/{}/runs", source))
+pub async fn fetch_runspanel(source :&Option<String>) -> fetch::Result<Vec<data::RunsPanelItem>> {
+    Request::new(prepend("/runs", source))
         .fetch()
         .await?
         .check_status()?
@@ -41,8 +45,8 @@ pub async fn fetch_runspanel(source :&String) -> fetch::Result<Vec<data::RunsPan
 }
 
 
-pub async fn fetch_time_file(source :&String) -> fetch::Result<data::TimeFile> {
-    Request::new(format!("/{}/timer", source))
+pub async fn fetch_time_file(source :&Option<String>) -> fetch::Result<data::TimeFile> {
+    Request::new(prepend("/timer", source))
         .fetch()
         .await?
         .check_status()?

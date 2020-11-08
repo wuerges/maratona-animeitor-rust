@@ -19,7 +19,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     url_filter : Option<Vec<String>>,
-    source : String,
+    source : Option<String>,
     runs: Vec<data::RunsPanelItem>,
 }
 
@@ -28,7 +28,7 @@ enum Msg {
     Fetched(fetch::Result<Vec<data::RunsPanelItem>>),
 }
 
-async fn fetch_all(source :String) -> Msg {
+async fn fetch_all(source :Option<String>) -> Msg {
     let f= fetch_runspanel(&source).await;
     Msg::Fetched(f)
 }

@@ -15,7 +15,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
-    source : String,
+    source : Option<String>,
     p_time_file: data::TimeFile,
     time_file: data::TimeFile,
 }
@@ -25,7 +25,7 @@ enum Msg {
     Fetched(fetch::Result<data::TimeFile>),
 }
 
-async fn fetch_all(source : String) -> Msg {
+async fn fetch_all(source : Option<String>) -> Msg {
     let f = fetch_time_file(&source).await;
     Msg::Fetched(f)
 }

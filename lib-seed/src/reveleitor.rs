@@ -25,7 +25,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     button_disabled : bool,
-    source : String,
+    source : Option<String>,
     secret : String,
     contest : data::ContestFile,
     runs: data::RunsFile,
@@ -51,7 +51,7 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all(source :String, secret : String) -> Msg {
+async fn fetch_all(source :Option<String>, secret : String) -> Msg {
     let r = fetch_allruns_secret(&source, &secret).await;
     let c = fetch_contest(&source).await;
     Msg::Fetched(r, c)
