@@ -14,20 +14,20 @@ pub fn contest() -> Contest {
             "es", "go", "ma", "mg", "ms", "mt", "pa", "pb", "pe", "pi", 
             "pr", "rj","rn", "ro", "rr", "rs", "sc", "se", "sp", "to"]
             .iter()
-            .map(|s| Sede::new(s, BR, format!("teambr{}", s).as_str()))
+            .map(|s| Sede::new(s, s, BR, format!("teambr{}", s).as_str()))
             .collect();
 
-    sedes.push(Sede::supersede("Scentrooeste", BR, vec!["teambrmt", "teambrms"]));
+    sedes.push(Sede::supersede("Scentrooeste", "Scentrooeste", BR, vec!["teambrmt", "teambrms"]));
     
-    sedes.push(Sede::supersede("nordeste", BR, 
+    sedes.push(Sede::supersede("Snordeste", "Snordeste", BR, 
         vec!["teambral", "teambrma", "teambrpe", "teambrrn", "teambrse"]));
     
-    sedes.push(Sede::supersede("norte", BR, 
-        vec!["teambrac", "teambrap", "teambrpa", "teambrpa", "teambrro", "teambrrr", "teambrto"]));
+    sedes.push(Sede::supersede("Snorte", "Snorte", BR, 
+        vec!["teambrac", "teambrap", "teambrpa", "teambrro", "teambrrr", "teambrto"]));
 
-    sedes.push(Sede::new("BR", "Global", "teambr"));
+    sedes.push(Sede::new(BR, BR, "Global", "teambr"));
 
-    sedes.push(Sede::new("Global", "Global", ""));
+    sedes.push(Sede::new("Global", "Global", "Global", ""));
 
     Contest::new(
         "localhost", 
