@@ -163,10 +163,7 @@ body {
 }
 
 .timer {
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 5px;
-
+    
     font-size: 80px;
     font-family: "Inconsolata", "Ubuntu Mono", monospace;
     text-align: center;
@@ -174,6 +171,9 @@ body {
 }
 
 .frozen {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
     border-color: #33A3E6;
     color: #33A3E6;    
 }
