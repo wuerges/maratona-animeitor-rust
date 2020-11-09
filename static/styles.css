@@ -169,6 +169,18 @@ body {
     color: white;
 }
 
+.frozen {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    border-color: #33A3E6;
+    color: #33A3E6;    
+}
+
+.frozen::before {
+    content: "❄ ";
+}
+
 .center {
     animation: borderUpdate 5s infinite;
 }

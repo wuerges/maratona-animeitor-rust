@@ -31,7 +31,7 @@ pub fn start() {
                         "reveleitor" => reveleitor::start(root_element),
                         "automatic" => automatic::start(root_element),
                         "runspanel" => runs::start(root_element),
-                        "timer" => timer::start(root_element),
+                        "timerpanel" => timer::start(root_element),
                         s => log!("wrong app!:", s)
                     };
             }
