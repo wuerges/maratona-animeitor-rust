@@ -239,6 +239,10 @@ impl DB {
         self.contest_file.reload_score()?;
         Ok(())
     }
+
+    pub fn timer_data(&self) -> TimerData {
+        TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
+    }
 }
 
 #[cfg(test)]

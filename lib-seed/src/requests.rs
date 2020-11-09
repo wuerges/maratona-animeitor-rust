@@ -45,7 +45,7 @@ pub async fn fetch_runspanel(source :&Option<String>) -> fetch::Result<Vec<data:
 }
 
 
-pub async fn fetch_time_file(source :&Option<String>) -> fetch::Result<data::TimeFile> {
+pub async fn fetch_time_file(source :&Option<String>) -> fetch::Result<data::TimerData> {
     Request::new(prepend("/timer", source))
         .fetch()
         .await?

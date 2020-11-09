@@ -1,5 +1,5 @@
 
-use maratona_animeitor_rust::data::{ContestFile, Team};
+use maratona_animeitor_rust::data::{ContestFile, Team, TimerData};
 use seed::{prelude::*, *};
 
 pub fn get_color(n : usize) -> String {
@@ -180,8 +180,14 @@ fn changed(a : i64, b: i64) -> &'static str {
     }
 }
 
-pub fn view_clock<T>(time: i64, ptime : i64) -> Node<T> {
-    div![C!["timer"], 
+pub fn view_clock<T>(time_data: TimerData, ptime_data : TimerData) -> Node<T> {
+
+    let time = time_data.current_time;
+    let ptime = ptime_data.current_time;
+
+    let frozen = if time_data.is_frozen() { Some(C!["frozen"]) } else { None };
+
+    div![C!["timer"], frozen,
         span![C!["hora", changed(hor(time), hor(ptime))], hor(time)], 
         span![C!["sep"], ":"],
         span![C!["minuto", changed(min(time), min(ptime))], f(min(time))], 

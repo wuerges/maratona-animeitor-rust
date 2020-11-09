@@ -8,21 +8,21 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1000, || Msg::Reset));
     Model { 
         source : get_source(&url),
-        p_time_file: 0,
-        time_file: 86399,
-        // time_file: 0,
+        p_timer_data: data::TimerData::new(0, 1),
+        timer_data: data::TimerData::new(86399, 86399+1),
+        // timer_data: 0,
     }
 }
 
 struct Model {
     source : Option<String>,
-    p_time_file: data::TimeFile,
-    time_file: data::TimeFile,
+    p_timer_data: data::TimerData,
+    timer_data: data::TimerData,
 }
 
 enum Msg {
     Reset,
-    Fetched(fetch::Result<data::TimeFile>),
+    Fetched(fetch::Result<data::TimerData>),
 }
 
 async fn fetch_all(source : Option<String>) -> Msg {
@@ -34,8 +34,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Fetched(Ok(runs)) => {
             // log!("fetched runs!", runs);
-            model.p_time_file = model.time_file;
-            model.time_file = runs;
+            model.p_timer_data = model.timer_data;
+            model.timer_data = runs;
         },
         Msg::Fetched(Err(e)) => {
             log!("fetched runs error!", e)
@@ -47,7 +47,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    views::view_clock(model.time_file, model.p_time_file)
+    views::view_clock(model.timer_data, model.p_timer_data)
 }
 
 pub fn start(e : impl GetElement) {

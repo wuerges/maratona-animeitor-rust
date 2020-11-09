@@ -41,6 +41,25 @@ pub struct Problem {
     pub answers: Vec<Answer>,
 }
 
+#[derive(Copy, Debug, Clone, Serialize, Deserialize)]
+pub struct TimerData {
+    pub current_time : TimeFile,
+    pub score_freeze_time : usize,
+}
+
+impl TimerData {
+    pub fn new(current_time : TimeFile, score_freeze_time : usize) -> Self {
+        Self {
+            current_time,
+            score_freeze_time
+        }
+    }
+
+    pub fn is_frozen(&self) -> bool {
+        self.current_time >= self.score_freeze_time as i64
+    }
+}
+
 impl Problem {
     fn empty() -> Self {
         Problem { solved : false, submissions : 0, time_solved: 0, penalty : 0, answers: Vec::new() }
