@@ -7,10 +7,10 @@ Este placar foi feito para as etapas regional e nacional da Maratona de Programa
 
 Pré-requisitos:
 
-- Se você está no Ubuntu 20.04, deve instalar as libs do openssl:
+- Se você está no Ubuntu 20.04, deve instalar o build-essential, as libs do openssl e o pkg-config:
 
 ```
-sudo apt-get install libssl-dev
+sudo apt-get install build-essential libssl-dev pkg-config
 ```
 
 - Instale o [Rust](https://www.rust-lang.org/pt-BR/tools/install)
