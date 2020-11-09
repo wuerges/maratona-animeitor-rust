@@ -9,13 +9,15 @@
 </head>
 
 <body>
-    <div style="flexbox">
-        <maratona class="timerpanel"></maratona>
-        <maratona class="sedepanel"></maratona>
-        <maratona class="runspanel"></maratona>
+    <div style="display: flex; ">
+        <div style="display: flex; flex-direction: column; width: 28vw;">
+            <maratona class="timerpanel" style="width: 26vw;"></maratona>
+            <maratona class="sedepanel"></maratona>
+            <span> Submissões mais recentes: </span>
+            <maratona class="runspanel"></maratona>
+        </div>
+        <maratona class="automatic"></maratona>
     </div>
-    <p style="position: absolute; top: 6vw; font-size: 1vw;"> Submissões mais recentes: </p>
-    <maratona class="automatic" style="position: absolute; left: 27vw;"></maratona>
     <script type="module">
         import init from './pkg/package.js';
         init('./pkg/package_bg.wasm');

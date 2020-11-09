@@ -29,6 +29,17 @@ body {
     --root-top-center: calc(100vh / 2);
 }
 
+.runstable {
+    position: relative;
+}
+
+.runspanel {
+    position: relative;
+    display: block;
+    height: 90vw;
+    width: 2vw;
+}
+
 .run {
     height: 2.6vw;
     position: absolute;
