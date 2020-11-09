@@ -33,17 +33,18 @@ fn update(msg: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
     }
 }
 
-fn build_url_filter(base_url: &str, sede : &configdata::Sede) -> String {
-    let mut s = format!("{}/seed/everything.html?source={}", base_url, sede.parent_source);
-    
-    for flt in &sede.codes {
-        s.push_str(format!("&filter={}", flt).as_str());
-    }
-    s
+fn build_url_filter(sede : &configdata::Sede) -> String {
+    Url::new()
+    .add_path_part("seed")
+    .add_path_part("everything.html")
+    .set_search(UrlSearch::new(vec![
+        ("source", vec![&sede.parent_source]),
+        ("sede", vec![&sede.name]),
+        ("filter", sede.codes.iter().map(|s| s).collect()),
+    ])).to_string()
 }
 
-fn build_url(base_url: &str, sede : &configdata::Sede) -> String {
-
+fn build_url(sede : &configdata::Sede) -> String {
     Url::new()
     .add_path_part("seed")
     .add_path_part("everything.html")
@@ -51,19 +52,15 @@ fn build_url(base_url: &str, sede : &configdata::Sede) -> String {
         ("source", vec![&sede.source]),
         ("sede", vec![&sede.name]),
     ])).to_string()
-
-
-    // format!("{}/seed/everything.html?source={}&sede={}", base_url, sede.source, sede.name)
 }
 
 fn view(_: &Model) -> Node<Msg> {
-    let base_url = config::contest().host;
     table![
         config::contest().sedes.iter().map( |sede| {
             tr![
                 td![&sede.name],
-                td![a![attrs!{At::Href=>build_url(&base_url, &sede), At::Target=>"principal"}, "Renumerado"]],
-                td![a![attrs!{At::Href=>build_url_filter(&base_url, &sede), At::Target=>"principal"}, "Filtrado"]],
+                td![a![attrs!{At::Href=>build_url(&sede), At::Target=>"principal"}, "Renumerado"]],
+                td![a![attrs!{At::Href=>build_url_filter(&sede), At::Target=>"principal"}, "Filtrado"]],
             ]
         })
     ]

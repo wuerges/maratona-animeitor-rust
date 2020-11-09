@@ -20,13 +20,12 @@ impl Sede {
 }
 
 pub struct Contest {
-    pub host : String,
     pub sedes : Vec<Sede>,
 }
 
 impl Contest {
-    pub fn new(host:&str, sedes:Vec<Sede>) -> Self {
-        Self { host: host.to_string(), sedes }
+    pub fn new(sedes:Vec<Sede>) -> Self {
+        Self { sedes }
     }
 }
 
