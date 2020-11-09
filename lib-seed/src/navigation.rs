@@ -35,7 +35,7 @@ fn update(msg: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
 
 fn build_url_filter(base_url: &str, sede : &configdata::Sede) -> String {
     let mut s = format!("{}/seed/everything.html?source={}", base_url, sede.parent_source);
-
+    
     for flt in &sede.codes {
         s.push_str(format!("&filter={}", flt).as_str());
     }
@@ -43,7 +43,17 @@ fn build_url_filter(base_url: &str, sede : &configdata::Sede) -> String {
 }
 
 fn build_url(base_url: &str, sede : &configdata::Sede) -> String {
-    format!("{}/seed/everything.html?source={}", base_url, sede.source)
+
+    Url::new()
+    .add_path_part("seed")
+    .add_path_part("everything.html")
+    .set_search(UrlSearch::new(vec![
+        ("source", vec![&sede.source]),
+        ("sede", vec![&sede.name]),
+    ])).to_string()
+
+
+    // format!("{}/seed/everything.html?source={}&sede={}", base_url, sede.source, sede.name)
 }
 
 fn view(_: &Model) -> Node<Msg> {
