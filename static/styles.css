@@ -24,13 +24,13 @@ body {
 } */
 
 :root {
-    --row-height: 60px;
+    --row-height: 3vw;
     --root-top: 0px;
     --root-top-center: calc(100vh / 2);
 }
 
 .run {
-    height: 54px;
+    height: 2.6vw;
     position: absolute;
     align-items: center;
     display: flex;
@@ -52,8 +52,8 @@ body {
 
 .titulo {
     content:url(/static/assets/titulo-1stPhase.svg);
-    width: 420px;
-    font-size: 40px;
+    width: calc(22vw + 12px);
+    font-size: 2vw;
 }
 
 .nomeEscola {
@@ -61,12 +61,12 @@ body {
 }
 
 .nomeTime {
-    font-size: 20px;
+    font-size: 1vw;
 }
 
 .time {
     text-align: right;
-    width: 270px;
+    width: 15vw;
     overflow: hidden;
     text-overflow: ellipsis;
     word-wrap: break-word;
@@ -74,21 +74,21 @@ body {
 
 .problema {
     text-align: center;
-    width: 60px;
-    font-size: 50px;
+    width: 3vw;
+    font-size: 2.5vw;
 }
 
 .colocacao {
     text-align: center;
-    width: 80px;
-    font-size: 40px;
+    width: 4vw;
+    font-size: 2vw;
 }
 
 .cima {
-    font-size: 55%;
+    font-size: 1.2vw;
 }
 .baixo {
-    font-size: 35%;
+    font-size: 0.8vw;
 }
 
 .commandpanel {
@@ -159,12 +159,12 @@ body {
 }
 
 .login {
-    width: 150px;
+    width: 7vw;
 }
 
 .timer {
     
-    font-size: 80px;
+    font-size: 4vw;
     font-family: "Inconsolata", "Ubuntu Mono", monospace;
     text-align: center;
     color: white;
@@ -180,11 +180,11 @@ body {
 
 .frozen::before {
     content: "❄ ";
-    font-size: 70px;
+    font-size: 3vw;
 }
 
 .sedepanel {
-    font-size: 5vh;
+    font-size: 2vw;
 }
 
 .center {
