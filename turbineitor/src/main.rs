@@ -29,4 +29,5 @@ fn main() {
 
 
     println!("All Runs -> {:?}", helpers::get_all_runs(&connection));
+    println!("Contest Data -> {:?}", helpers::get_contest_file(&connection));
 }
