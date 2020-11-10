@@ -91,6 +91,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
     let compressed = compress_placement(contest.teams.values()
                         .filter( |t| check_filter(url_filter, t))
                         .map(|t| &t.placement));
+
+    let is_compressed = compressed.len() < contest.teams.len();
     div![
         C!["runstable"],
         div![
@@ -101,7 +103,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                     // St::Position => "absolute", 
                     // St::Transition => "top 1s ease 0s",
                 },
-                div![C!["cell", "titulo"], "Placar"],
+                div![C!["cell", "titulo", if is_compressed {"duplaColocacao"} else {"unicaColocacao"}], "Placar"],
                 all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
         contest.teams.values().filter( |t| check_filter(url_filter, t))
@@ -119,7 +121,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                     // St::Position => "absolute",
                     // St::Transition => "top 1s ease 0s",
                 },
-                div![C!["cell", "colocacao", get_color(team.placement)], team.placement],
+                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement)], team.placement]),
+                div![C!["cell", "colocacao", get_color(*p2+1)], *p2+1],
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],

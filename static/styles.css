@@ -63,8 +63,14 @@ body {
 
 .titulo {
     content:url(/static/assets/titulo-1stPhase.svg);
-    width: calc(22vw + 12px);
     font-size: 2vw;
+}
+
+.unicaColocacao {
+    width: calc(22vw + 12px);
+}
+.duplaColocacao {
+    width: calc(26vw + 18px);
 }
 
 .nomeEscola {

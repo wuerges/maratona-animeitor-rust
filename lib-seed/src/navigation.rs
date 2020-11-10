@@ -38,28 +38,28 @@ fn build_url_filter(sede : &configdata::Sede) -> String {
     .add_path_part("seed")
     .add_path_part("everything.html")
     .set_search(UrlSearch::new(vec![
-        ("source", vec![&sede.parent_source]),
+        // ("source", vec![&sede.parent_source]),
         ("sede", vec![&sede.name]),
         ("filter", sede.codes.iter().map(|s| s).collect()),
     ])).to_string()
 }
 
-fn build_url(sede : &configdata::Sede) -> String {
-    Url::new()
-    .add_path_part("seed")
-    .add_path_part("everything.html")
-    .set_search(UrlSearch::new(vec![
-        ("source", vec![&sede.source]),
-        ("sede", vec![&sede.name]),
-    ])).to_string()
-}
+// fn build_url(sede : &configdata::Sede) -> String {
+//     Url::new()
+//     .add_path_part("seed")
+//     .add_path_part("everything.html")
+//     .set_search(UrlSearch::new(vec![
+//         // ("source", vec![&sede.source]),
+//         ("sede", vec![&sede.name]),
+//     ])).to_string()
+// }
 
 fn view(_: &Model) -> Node<Msg> {
     table![
         config::contest().sedes.iter().map( |sede| {
             tr![
                 td![&sede.name],
-                td![a![attrs!{At::Href=>build_url(&sede), At::Target=>"principal"}, "Renumerado"]],
+                // td![a![attrs!{At::Href=>build_url(&sede), At::Target=>"principal"}, "Renumerado"]],
                 td![a![attrs!{At::Href=>build_url_filter(&sede), At::Target=>"principal"}, "Filtrado"]],
             ]
         })

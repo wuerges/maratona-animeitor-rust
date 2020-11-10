@@ -51,7 +51,7 @@ pub fn contest() -> Contest {
 
     sedes.push(Sede::new(BR, BR, "Global", "teambr"));
 
-    sedes.push(Sede::new("Global", "Global", "Global", ""));
+    // sedes.push(Sede::new("Global", "Global", "Global", ""));
 
     Contest::new(sedes)
 }
