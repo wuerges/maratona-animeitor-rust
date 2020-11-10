@@ -18,14 +18,16 @@ pub fn answer_from_code(c:i32, time:usize) -> data::Answer {
     }
 }
 
-pub fn to_run_tuple(r : &Runtable, letters :&BTreeMap<i32, String>) -> data::RunTuple {
+pub fn to_run_tuple(r : &Runtable
+    , letters :&BTreeMap<i32, String>
+    , teams:&BTreeMap<i32, data::Team>) -> data::RunTuple {
     
     
     let time = r.rundatediff as usize;
     data::RunTuple {
         id : r.runnumber as i64,
         time,
-        team_login : "".to_string(),
+        team_login : teams.get(&r.usernumber).unwrap().login.clone(),
         prob : letters.get(&r.runproblem).unwrap().clone(),
         answer : answer_from_code(r.runanswer, time),
     }
@@ -65,12 +67,13 @@ pub fn get_all_teams(connection: &PgConnection) -> BTreeMap<i32, data::Team> {
 pub fn get_all_runs(connection: &PgConnection) -> Vec<data::RunTuple> {
     use runtable::dsl;
     let letters = get_problem_letters(connection);
+    let teams = get_all_teams(connection);
 
     dsl::runtable
         .load::<Runtable>(connection)
         .expect("Error loading runs")
         .iter()
-        .map(|r| to_run_tuple(r, &letters))
+        .map(|r| to_run_tuple(r, &letters, &teams))
         .collect()
 }
 

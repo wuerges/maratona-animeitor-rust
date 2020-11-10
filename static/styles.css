@@ -11,7 +11,7 @@ body {
     background-image: url('/static/assets/maratona-logo-wallpaper.png') ;
     background-blend-mode:multiply;
 
-    /* overflow: hidden; */
+    overflow-y: scroll;
 }
 
 /* .logoimg {

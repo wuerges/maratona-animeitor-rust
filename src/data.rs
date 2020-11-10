@@ -378,7 +378,7 @@ impl RunsFile {
         }
     }
 
-    pub fn sorted(&self) -> Vec<RunTuple> {
+    pub fn sorted_rev(&self) -> Vec<RunTuple> {
         let mut ret = self.runs.clone();
         ret.sort_by(|a, b| 
             b.time.cmp(&a.time)
@@ -391,8 +391,15 @@ impl RunsFile {
         self.runs.push(t.clone())
     }
 
+    pub fn sort(mut self) -> Self {
+        self.runs.sort_by(|a, b| 
+            a.time.cmp(&b.time)
+        );
+        self
+    }
+
     pub fn filter_frozen(&self, frozen_time : usize) -> Self {
-        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }
+        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }.sort()
     }
 }
 

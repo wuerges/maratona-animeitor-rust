@@ -174,7 +174,7 @@ pub struct DB {
 impl DB {
     pub fn latest(&self) -> Vec<RunsPanelItem> {
         self.run_file
-            .sorted()
+            .sorted_rev()
             .into_iter()
             .filter( |r| r.time < self.contest_file.score_freeze_time)
             // .take(n)
