@@ -26,4 +26,7 @@ fn main() {
         println!("----------\n");
         println!("{}", run.runproblem);
     }
+
+
+    println!("All Runs -> {:?}", helpers::get_all_runs(&connection));
 }

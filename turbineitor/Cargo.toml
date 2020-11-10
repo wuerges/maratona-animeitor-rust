@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 diesel = { version = "1.4.4", features = ["postgres"] }
 dotenv = "0.15.0"
+
+[dependencies.maratona_animeitor_rust]
+path = ".."
