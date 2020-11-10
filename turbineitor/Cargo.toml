@@ -1,5 +1,5 @@
 [package]
-name = "turbinator"
+name = "turbineitor"
 version = "0.1.0"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 edition = "2018"

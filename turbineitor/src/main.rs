@@ -2,10 +2,9 @@ extern crate diesel;
 
 use self::diesel::prelude::*;
 
-use turbinator::models::*;
-use turbinator::schema::*;
-use turbinator::*;
-// use turbinator::models::*;
+use turbineitor::models::*;
+use turbineitor::schema::*;
+use turbineitor::*;
 
 fn main() {
 
