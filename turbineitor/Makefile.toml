@@ -8,3 +8,6 @@ run_task = []
 
 [tasks.build_release]
 disabled = true
+
+[tasks.build_turbinator]
+disable = true

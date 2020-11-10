@@ -12,3 +12,7 @@ watch = true
 [tasks.build_release]
 description = "Dummy task"
 run_task = []
+
+[tasks.build_turbinator]
+command = "cargo"
+args = ["build", "--features", "use_local_boca"]
