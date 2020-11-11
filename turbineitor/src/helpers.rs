@@ -113,9 +113,7 @@ pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFil
         // .iter()
         // .flat_map(|r| to_run_tuple(r, &letters, &teams));
 
-    data::RunsFile {
-        runs : runs.collect(),
-    }
+    data::RunsFile::new(runs.collect())
 
     // data::RunsFile {
     //     runs : runtable
