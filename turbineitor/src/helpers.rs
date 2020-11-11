@@ -11,6 +11,34 @@ use crate::Params;
 use std::collections::BTreeMap;
 use std::time::SystemTime;
 
+use sha2::{Sha256, Digest};
+
+
+pub fn check_password(username_p: &str
+, password_p :&str
+, connection: &PgConnection
+, params : &Params) -> bool {
+    use self::usertable::dsl::*;
+
+    let digest = format!("{:x}", Sha256::digest(password_p.as_bytes()));
+
+    let user = usertable
+    .filter(contestnumber.eq(params.contest_number))
+    .filter(usersitenumber.eq(params.site_number))
+    .filter(username.eq(username_p))
+    // .filter(userpassword.eq(password_p))
+    .load::<Usertable>(connection)
+    .expect("User not found")
+    .first()
+    .map(|u| u.userpassword == Some(digest))
+    .unwrap_or(false);
+
+
+
+    println!("USER= {:?}", user);
+    user
+}
+
 
 pub fn answer_from_code(c:i32, time:i64) -> data::Answer {
     match c {
