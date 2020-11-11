@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Painel completo</title>        
+    <link rel="stylesheet" href="/static/styles.css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body>
+    <div style="display: flex; ">
+        <maratona class="navigation"></maratona>
+        <div style="display: flex; flex-direction: column; width: calc( 28vw + 12px );">
+            <maratona class="sedepanel"></maratona>
+            <maratona class="timerpanel" style="width: 26vw;"></maratona>
+            <span class="recentes"> Submissões mais recentes: </span>
+            <maratona class="runspanel"></maratona>
+        </div>
+        <maratona class="automatic"></maratona>
+    </div>
+    <script type="module">
+        import init from './pkg/package.js';
+        init('./pkg/package_bg.wasm');
+    </script>
+</body>
+
+</html>

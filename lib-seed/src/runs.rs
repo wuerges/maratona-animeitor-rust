@@ -8,6 +8,7 @@ extern crate rand;
 
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    orders.subscribe(Msg::UrlChanged);
     orders.skip().send_msg(Msg::Reset);
     orders.stream(streams::interval(30_000, || Msg::Reset));
     Model {
@@ -25,6 +26,7 @@ struct Model {
 
 enum Msg {
     Reset,
+    UrlChanged(subs::UrlChanged),
     Fetched(fetch::Result<Vec<data::RunsPanelItem>>),
 }
 
@@ -35,6 +37,12 @@ async fn fetch_all(source :Option<String>) -> Msg {
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
+        Msg::UrlChanged(subs::UrlChanged(url)) => {
+            model.source = get_source(&url);
+            model.url_filter = get_url_filter(&url);
+            // orders.skip().send_msg(Msg::Reset);
+            // url.go_and_load();
+        },
         Msg::Fetched(Ok(runs)) => {
             // log!("fetched runs!", runs);
 

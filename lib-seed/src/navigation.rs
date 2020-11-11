@@ -9,11 +9,7 @@ use seed::{prelude::*, *};
 
 extern crate rand;
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    // orders.subscribe(Msg::UrlChanged);
-    orders.subscribe(Msg::UrlChanged);
-
-
+fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     Model {
     }
 }
@@ -22,21 +18,22 @@ struct Model {
 }
 
 enum Msg {
-    UrlChanged(subs::UrlChanged)
+    // UrlChanged(subs::UrlChanged)
 }
 
-fn update(msg: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
-    match msg {
-        Msg::UrlChanged(subs::UrlChanged(url)) => {
-            url.go_and_load();
-        }
-    }
+fn update(_: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
+    // match msg {
+        // Msg::UrlChanged(subs::UrlChanged(url)) => {
+            // url.go_and_load();
+        // }
+    // }
 }
 
 fn build_url_filter(sede : &configdata::Sede) -> String {
-    Url::new()
-    .add_path_part("seed")
-    .add_path_part("everything.html")
+    // Url::new()
+    // .add_path_part("seed")
+    // .add_path_part("everything.html")
+    Url::current()
     .set_search(UrlSearch::new(vec![
         // ("source", vec![&sede.parent_source]),
         ("sede", vec![&sede.name]),
@@ -44,25 +41,14 @@ fn build_url_filter(sede : &configdata::Sede) -> String {
     ])).to_string()
 }
 
-// fn build_url(sede : &configdata::Sede) -> String {
-//     Url::new()
-//     .add_path_part("seed")
-//     .add_path_part("everything.html")
-//     .set_search(UrlSearch::new(vec![
-//         // ("source", vec![&sede.source]),
-//         ("sede", vec![&sede.name]),
-//     ])).to_string()
-// }
-
 fn view(_: &Model) -> Node<Msg> {
-    table![
+    div![C!["sedesnavigation"],
         config::contest().sedes.iter().map( |sede| {
-            tr![
-                td![&sede.name],
-                // td![a![attrs!{At::Href=>build_url(&sede), At::Target=>"principal"}, "Renumerado"]],
-                td![a![attrs!{At::Href=>build_url_filter(&sede), At::Target=>"principal"}, "Filtrado"]],
+            span![
+                C!["sedeslink"],
+                a![attrs!{At::Href=>build_url_filter(&sede), At::Target=>"principal"}, &sede.name],
             ]
-        })
+        }),
     ]
 }
 

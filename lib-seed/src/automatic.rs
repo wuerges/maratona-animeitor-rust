@@ -47,7 +47,10 @@ async fn fetch_all(source : Option<String>) -> Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            url.go_and_load();
+            model.source = get_source(&url);
+            model.url_filter = get_url_filter(&url);
+            // orders.skip().send_msg(Msg::Reload);
+            // url.go_and_load();
         },
         Msg::Recenter => {
             model.center = None;
