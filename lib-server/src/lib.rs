@@ -228,7 +228,7 @@ pub async fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, server_port: u16, 
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
     
     let root = warp::path::end().map( || {
-        warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
+        warp::redirect(warp::http::Uri::from_static("/seed/everything2.html"))
     });
     
     let routes = root.or(static_assets).or(seed_assets).or(serve_urlbase(db, &None, secret));

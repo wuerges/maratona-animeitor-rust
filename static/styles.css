@@ -246,10 +246,12 @@ a {
 
 .sedeslink {
     width: 12vw;
-    font-size: 1.2vw;
+    font-size: 1vw;
     font-family: "Lato";
+    padding: 2px;
 }
 
 .sedesnavigation {
-    margin-top: 3px;
+    margin: 3px;
+    margin-bottom: 10px;
 }
