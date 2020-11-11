@@ -171,6 +171,15 @@ pub struct DB {
     pub time_file: TimeFile,
 }
 
+pub fn read_contest(s: &String) -> ContestIOResult<ContestFile> {
+    ContestFile::from_string(s)
+}
+
+pub fn read_runs(s: &String) -> ContestIOResult<RunsFile> {
+    RunsFile::from_string(s)
+}
+
+
 impl DB {
     pub fn latest(&self) -> Vec<RunsPanelItem> {
         self.run_file
@@ -213,31 +222,39 @@ impl DB {
         )
     }
 
-    pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
-        let runs = RunsFile::from_string(s)?;
-        self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
-        self.run_file_secret = runs;
-        Ok(())
-    }
+    // pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
+    //     let runs = RunsFile::from_string(s)?;
+    //     self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+    //     self.run_file_secret = runs;
+    //     Ok(())
+    // }
 
-    pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestIOError> {
-        self.contest_file_begin = ContestFile::from_string(s)?;
-        Ok(())
-    }
+    // pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestIOError> {
+    //     self.contest_file_begin = ContestFile::from_string(s)?;
+    //     Ok(())
+    // }
 
-    pub fn reload_time(&mut self, s: String) -> Result<(), ContestIOError> {
-        let t = s.parse()?;
-        self.time_file = t;
-        Ok(())
-    }
+    // pub fn reload_time(&mut self, s: String) -> Result<(), ContestIOError> {
+    //     let t = s.parse()?;
+    //     self.time_file = t;
+    //     Ok(())
+    // }
 
     pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
         self.contest_file = self.contest_file_begin.clone();
         for r in self.run_file.runs.iter().rev() {
             self.contest_file.apply_run(r)?;
         }
-        self.contest_file.reload_score()?;
-        Ok(())
+        self.contest_file.reload_score()
+    }
+
+    pub fn refresh_db(&mut self, time: i64, contest: ContestFile, runs: RunsFile) -> Result<(), ContestError> {
+        self.time_file = time;
+        self.contest_file_begin = contest;
+        self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+        self.run_file_secret = runs;
+
+        self.recalculate_score()
     }
 
     pub fn timer_data(&self) -> TimerData {

@@ -149,22 +149,17 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIO
     let mut zip = zip::ZipArchive::new(reader)
         .map_err(|e| ContestIOError::Info(format!("Could not open zipfile: {:?}", e)))?;
 
+    let time_data : i64 = read_from_zip(&mut zip, "time")?.parse()?;
+
+    let contest_data = read_from_zip(&mut zip, "contest")?;
+    let contest_data = read_contest(&contest_data)?;
+
+
+    let runs_data = read_from_zip(&mut zip, "runs")?;
+    let runs_data = read_runs(&runs_data)?;
+
     let mut db = runs.lock().await;
-    {
-        let time_data = read_from_zip(&mut zip, "time")?;
-        db.reload_time(time_data)?;
-    }
-    {
-        let contest_data = read_from_zip(&mut zip, "contest")?;
-        db.reload_contest(&contest_data)?;
-    }
-    {
-        let runs_data = read_from_zip(&mut zip, "runs")?;
-        db.reload_runs(&runs_data)?;
-    }
-
-    db.recalculate_score()?;
-
+    db.refresh_db(time_data, contest_data, runs_data)?;
     Ok(())
 }
 
