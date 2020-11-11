@@ -1,6 +1,7 @@
 use std::fmt;
 use std::collections::{BTreeMap, BinaryHeap};
 use serde::{Serialize, Deserialize};
+// use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Answer {
@@ -356,7 +357,7 @@ pub struct RunTuple {
 
 #[derive(Debug, Clone, Serialize, Deserialize)] 
 pub struct RunsFile {
-    pub runs : Vec<RunTuple>
+    runs : Vec<RunTuple>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -378,28 +379,28 @@ impl RunsFile {
         }
     }
 
-    pub fn sorted_rev(&self) -> Vec<RunTuple> {
-        let mut ret = self.runs.clone();
-        ret.sort_by(|a, b| 
-            b.time.cmp(&a.time)
-            // a.time.cmp(&b.time)
-        );
-        ret
+    pub fn new(mut runs: Vec<RunTuple>) -> Self {
+        runs.sort_by(|a, b| a.time.cmp(&b.time));
+        Self { 
+            runs
+        }
     }
 
-    pub fn add_run(&mut self, t : &RunTuple) {
-        self.runs.push(t.clone())
+    pub fn len(&self) -> usize {
+        self.runs.len()
     }
 
-    pub fn sort(mut self) -> Self {
-        self.runs.sort_by(|a, b| 
-            a.time.cmp(&b.time)
-        );
-        self
+    pub fn sorted(&self) -> &Vec<RunTuple> {
+        &self.runs
+        // self.runs.iter().collect()
+    }
+
+    pub fn as_vec(&self) -> &Vec<RunTuple> {
+        &self.runs
     }
 
     pub fn filter_frozen(&self, frozen_time : i64) -> Self {
-        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }.sort()
+        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }
     }
 }
 

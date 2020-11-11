@@ -58,10 +58,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             
             model.runs = runs;
-            model.runs.runs.reverse();
             model.contest = contest;
             
-            for r in model.runs.runs.iter() {
+            for r in model.runs.sorted() {
                 if r.time < model.contest.score_freeze_time {
                     model.contest.apply_run(r).unwrap();
                 }

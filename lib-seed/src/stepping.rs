@@ -66,24 +66,24 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.lock_frozen = !model.lock_frozen;
         },
         Msg::Wait => {
-            if model.current_run < model.runs.runs.len() {
-                let mut run = model.runs.runs[model.current_run].clone();
+            if model.current_run < model.runs.len() {
+                let mut run = model.runs.as_vec()[model.current_run].clone();
                 run.answer = data::Answer::Wait;
                 model.contest.apply_run(&run).unwrap();
             }
             orders.perform_cmd(cmds::timeout(2000, move || Msg::Recalculate));
         }
         Msg::Recalculate => {
-            if model.current_run < model.runs.runs.len() {
-                let run = &model.runs.runs[model.current_run];
+            if model.current_run < model.runs.len() {
+                let run = &model.runs.as_vec()[model.current_run];
                 model.contest.apply_run(run).unwrap();
                 model.current_run += 1;
             }
             model.contest.recalculate_placement().unwrap();
         },
         Msg::Prox1 => {
-            if model.current_run < model.runs.runs.len() {
-                let run = &model.runs.runs[model.current_run];
+            if model.current_run < model.runs.len() {
+                let run = &model.runs.as_vec()[model.current_run];
                 if run.time < model.contest.score_freeze_time || !model.lock_frozen {
                     model.center = Some(run.team_login.clone());
                     orders.perform_cmd(cmds::timeout(5000, move || Msg::Wait));
@@ -95,11 +95,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Prox(n) => {
             model.center = None;
-
             
             for _ in 0..n {
-                if model.current_run < model.runs.runs.len() {
-                    let run = &model.runs.runs[model.current_run];
+                if model.current_run < model.runs.len() {
+                    let run = &model.runs.as_vec()[model.current_run];
                     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
                         // log!("run time? ", run.time, " -> ", model.contest.score_freeze_time);
                         model.contest.apply_run(run).unwrap();
@@ -131,7 +130,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.current_run = 0;
             model.center = None;
             model.runs = runs;
-            model.runs.runs.reverse();
             model.contest = contest;
             model.contest.reload_score().unwrap();
         },
@@ -158,7 +156,7 @@ fn view(model: &Model) -> Node<Msg> {
             button!["+1000", ev(Ev::Click, |_| Msg::Prox(1000)),],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),],
             button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
-            div!["Runs: ", model.current_run, "/", model.runs.runs.len()],
+            div!["Runs: ", model.current_run, "/", model.runs.len()],
         ],
         div![
             style!{St::Position => "relative", St::Top => px(60) },

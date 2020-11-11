@@ -57,89 +57,30 @@ async fn fetch_all(source :Option<String>, secret : String) -> Msg {
     Msg::Fetched(r, c)
 }
 
-// fn apply_run_model(model: &mut Model) {
-//     if model.current_run < model.runs.runs.len() {
-//         let mut run = model.runs.runs[model.current_run].clone();
-//         run.answer = data::Answer::Wait;
-//         model.contest.apply_run(&run).unwrap();
-//     }
-// }
-
 fn apply_all_runs_before_frozen(model: &mut Model) {
 
-    // let mut mock_contest = model.contest.clone();
-
-    for run in &model.runs.runs {
+    for run in model.runs.sorted() {
         if run.time < model.contest.score_freeze_time {
             model.contest.apply_run(run).unwrap();
-            // mock_contest.apply_run(run).unwrap();
         }
         else {
             model.contest.apply_run_frozen(run).unwrap();
-            // let mut fake_run = run.clone();
-            // fake_run.answer = data::Answer::Wait;
-            // model.contest.apply_run(&fake_run).unwrap();
-
-            // let real_run = run.clone();
-            // real_run.answer = data::Answer::Yes; // TODO fix this!
-            // real_run.answer = data::Answer::No; // TODO fix this!
-
-            // if mock_contest.useful_run(&real_run).unwrap() {
-            //     mock_contest.apply_run(&real_run).unwrap();
-            //     model.runs_queue.load_run(real_run);
-            // }
 
         }
     }
     model.runs_queue.setup_teams(&model.contest);
-    // log!("after applying runs:", model.runs_queue.queue);
     model.contest.recalculate_placement().unwrap();
 }
 
 fn apply_one_run_from_queue(runs_queue: &mut data::RunsQueue, contest  : &mut data::ContestFile) {
 
     let _ = runs_queue.pop_run(contest);
-    // log!("popped run:", r);
-
-    // runs_queue.sort_by(|a, b| {
-    //     let team_a = contest.teams.get(&a.team_login).unwrap();
-    //     let team_b = contest.teams.get(&b.team_login).unwrap();
-
-    //     team_a.placement.cmp(&team_b.placement)
-    // });
-
-    // match runs_queue.pop() {
-    //     None => (),
-    //     Some(current_run) => {
-    //         contest.apply_run(&current_run).unwrap();
-    //     }
-    // }
-
     
 }
 
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        // Msg::ToggleFrozen => {
-        //     model.lock_frozen = !model.lock_frozen;
-        // },
-        // Msg::Wait => {
-        //     if model.current_run < model.runs.runs.len() {
-        //         let mut run = model.runs.runs[model.current_run].clone();
-        //         run.answer = data::Answer::Wait;
-        //         model.contest.apply_run(&run).unwrap();
-        //     }
-        //     orders.perform_cmd(cmds::timeout(2000, move || Msg::Recalculate));
-        // }
-        // Msg::Recalculate => {
-        //     if model.current_run < model.runs.runs.len() {
-        //         let run = &model.runs.runs[model.current_run];
-        //         model.contest.apply_run(run).unwrap();
-        //         model.current_run += 1;
-        //     }
-        //     model.contest.recalculate_placement().unwrap();
-        // },
         Msg::Prox1 => {
             model.button_disabled = true;
             let next_center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );            
@@ -167,12 +108,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 // let delay = 5000;
                 orders.perform_cmd(cmds::timeout(delay, move || Msg::Scroll1));
             }
-            // apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-            // model.contest.recalculate_placement().unwrap();
         },
         Msg::Scroll1 => {
             apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-            // model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );    
 
             model.contest.recalculate_placement().unwrap();
             model.button_disabled = false;
@@ -189,8 +127,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             while model.runs_queue.queue.len() > n {
                 apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
             }
-            // for _ in 0..n {
-            // }
             model.contest.recalculate_placement().unwrap();
             model.button_disabled = false;
 
@@ -199,7 +135,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // model.current_run = 0;
             model.center = None;
             model.runs = runs;
-            model.runs.runs.reverse();
             model.contest = contest;
             apply_all_runs_before_frozen(model);
             model.contest.reload_score().unwrap();

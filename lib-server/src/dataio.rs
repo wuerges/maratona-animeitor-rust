@@ -158,7 +158,7 @@ impl FromString for RunsFile {
     fn from_string(s: &str) -> ContestIOResult<Self> {
         let runs = s.lines().map(|line| RunTuple::from_string(line));
         let runs = runs.collect::<Result<_, _>>()?;
-        Ok(RunsFile { runs })
+        Ok(RunsFile::new(runs))
     }
 }
 
@@ -183,7 +183,7 @@ pub fn read_runs(s: &String) -> ContestIOResult<RunsFile> {
 impl DB {
     pub fn latest(&self) -> Vec<RunsPanelItem> {
         self.run_file
-            .sorted_rev()
+            .sorted()
             .into_iter()
             .filter( |r| r.time < self.contest_file.score_freeze_time)
             // .take(n)
@@ -197,8 +197,8 @@ impl DB {
                     escola: t.escola.clone(),
                     team_name: t.name.clone(),
                     team_login: t.login.clone(),
-                    problem: r.prob,
-                    result: r.answer,
+                    problem: r.prob.clone(),
+                    result: r.answer.clone(),
                 }
             })
             .collect()
@@ -242,7 +242,7 @@ impl DB {
 
     pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
         self.contest_file = self.contest_file_begin.clone();
-        for r in self.run_file.runs.iter().rev() {
+        for r in self.run_file.sorted() {
             self.contest_file.apply_run(r)?;
         }
         self.contest_file.reload_score()

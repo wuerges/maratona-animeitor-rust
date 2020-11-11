@@ -38,7 +38,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(Ok(runs)) => {
             // log!("fetched runs!", runs);
 
-            model.runs = runs.into_iter().filter( |r| views::check_filter_login(&model.url_filter, &r.team_login)).collect();
+            model.runs = runs.into_iter()
+                .filter( |r| views::check_filter_login(&model.url_filter, &r.team_login))
+                .rev()
+                .collect();
             
             // match &model.url_filter {
             //     None => runs,
