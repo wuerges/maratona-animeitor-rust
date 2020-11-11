@@ -81,7 +81,7 @@ fn read_to_string(s: &str) -> io::Result<String> {
     Ok(s)
 }
 
-fn from_string_answer(t: &str, tim: usize) -> Result<Answer, ContestIOError> {
+fn from_string_answer(t: &str, tim: i64) -> Result<Answer, ContestIOError> {
     match t {
         "Y" => Ok(Answer::Yes(tim)),
         "N" => Ok(Answer::No),

@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Answer {
-    Yes(usize),
+    Yes(i64),
     No,
     Wait,
     Unk
@@ -36,19 +36,19 @@ pub type TimeFile = i64;
 pub struct Problem {
     pub solved : bool,
     pub submissions : usize,
-    pub penalty: usize,
-    pub time_solved : usize,
+    pub penalty: i64,
+    pub time_solved : i64,
     pub answers: Vec<Answer>,
 }
 
 #[derive(Copy, Debug, Clone, Serialize, Deserialize)]
 pub struct TimerData {
     pub current_time : TimeFile,
-    pub score_freeze_time : usize,
+    pub score_freeze_time : i64,
 }
 
 impl TimerData {
-    pub fn new(current_time : TimeFile, score_freeze_time : usize) -> Self {
+    pub fn new(current_time : TimeFile, score_freeze_time : i64) -> Self {
         Self {
             current_time,
             score_freeze_time
@@ -56,7 +56,7 @@ impl TimerData {
     }
 
     pub fn is_frozen(&self) -> bool {
-        self.current_time >= self.score_freeze_time as i64
+        self.current_time >= self.score_freeze_time
     }
 }
 
@@ -120,8 +120,8 @@ use std::cmp::{Ord, Eq, Ordering};
 #[derive(PartialEq, Eq)]
 pub struct Score {
     pub solved: usize,
-    pub penalty: usize,
-    pub max_solution_time: usize,
+    pub penalty: i64,
+    pub max_solution_time: i64,
     pub team_login: String,    
 }
 
@@ -217,10 +217,10 @@ impl Team {
 pub struct ContestFile {
     pub contest_name : String,
     pub teams : BTreeMap<String, Team>,
-    pub current_time : usize,
-    pub maximum_time : usize,
-    pub score_freeze_time : usize,
-    pub penalty_per_wrong_answer : usize,
+    pub current_time : i64,
+    pub maximum_time : i64,
+    pub score_freeze_time : i64,
+    pub penalty_per_wrong_answer : i64,
     pub score_board : Vec<String>,
     pub number_problems : usize
 }
@@ -228,10 +228,10 @@ pub struct ContestFile {
 impl ContestFile {
     pub fn new(contest_name : String
         , teams : Vec<Team>
-        , current_time : usize
-        , maximum_time : usize
-        , score_freeze_time : usize
-        , penalty : usize
+        , current_time : i64
+        , maximum_time : i64
+        , score_freeze_time : i64
+        , penalty : i64
         , number_problems : usize) -> Self {
 
         let mut m = BTreeMap::new();
@@ -239,11 +239,11 @@ impl ContestFile {
             m.insert(t.login.clone(), t);
         }
         Self {
-            contest_name : contest_name,
+            contest_name,
             teams : m,
-            current_time : current_time,
-            maximum_time : maximum_time,
-            score_freeze_time : score_freeze_time,
+            current_time,
+            maximum_time,
+            score_freeze_time,
             penalty_per_wrong_answer : penalty,
             score_board : Vec::new(),
             number_problems : number_problems
@@ -348,7 +348,7 @@ impl ContestFile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunTuple {
     pub id : i64,
-    pub time : usize,
+    pub time : i64,
     pub team_login : String,
     pub prob : String,
     pub answer : Answer
@@ -398,7 +398,7 @@ impl RunsFile {
         self
     }
 
-    pub fn filter_frozen(&self, frozen_time : usize) -> Self {
+    pub fn filter_frozen(&self, frozen_time : i64) -> Self {
         RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }.sort()
     }
 }

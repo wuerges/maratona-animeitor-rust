@@ -6,11 +6,13 @@ use diesel::pg::PgConnection;
 
 use crate::models::*;
 use crate::schema::*;
+use crate::Params;
 
 use std::collections::BTreeMap;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
-pub fn answer_from_code(c:i32, time:usize) -> data::Answer {
+
+pub fn answer_from_code(c:i32, time:i64) -> data::Answer {
     match c {
         0 => data::Answer::Wait,
         1 => data::Answer::Yes(time),
@@ -20,24 +22,28 @@ pub fn answer_from_code(c:i32, time:usize) -> data::Answer {
 
 pub fn to_run_tuple(r : &Runtable
     , letters :&BTreeMap<i32, String>
-    , teams:&BTreeMap<i32, data::Team>) -> data::RunTuple {
+    , teams:&BTreeMap<i32, data::Team>) -> Option<data::RunTuple> {
     
     
-    let time = r.rundatediff as usize;
-    data::RunTuple {
-        id : r.runnumber as i64,
-        time,
-        team_login : teams.get(&r.usernumber).unwrap().login.clone(),
-        prob : letters.get(&r.runproblem).unwrap().clone(),
-        answer : answer_from_code(r.runanswer, time),
-    }
+    let time = r.rundatediff as i64 / 60;
+
+    teams.get(&r.usernumber).map(|t|
+        data::RunTuple {
+            id : r.runnumber as i64,
+            time,
+            team_login : t.login.clone(),
+            prob : letters.get(&r.runproblem).unwrap().clone(),
+            answer : answer_from_code(r.runanswer, time),
+        }
+    )
 }
 
-pub fn get_problem_letters(connection: &PgConnection) -> BTreeMap<i32, String> {
-    use problemtable::dsl;
+pub fn get_problem_letters(params: &Params, connection: &PgConnection) -> BTreeMap<i32, String> {
+    use self::problemtable::dsl::*;
     
     let mut t = BTreeMap::new();
-    for p in dsl::problemtable
+    for p in problemtable
+    .filter(contestnumber.eq(params.contest_number))
     .load::<Problemtable>(connection)
     .expect("Error loading problem letters") {
         t.insert(p.problemnumber, p.problemname);
@@ -46,12 +52,15 @@ pub fn get_problem_letters(connection: &PgConnection) -> BTreeMap<i32, String> {
     t
 }
 
-pub fn get_all_teams(connection: &PgConnection) -> BTreeMap<i32, data::Team> {
-    use usertable::dsl;
+pub fn get_all_teams(params: &Params, connection: &PgConnection) -> BTreeMap<i32, data::Team> {
+    use self::usertable::dsl::*;
 
     let mut t = BTreeMap::new();
 
-    for u in dsl::usertable
+    for u in usertable
+    .filter(contestnumber.eq(params.contest_number))
+    .filter(usersitenumber.eq(params.site_number))
+    .filter(usertype.eq("team"))
     .load::<Usertable>(connection)
     .expect("Error loading users") {
         t.insert(u.usernumber, data::Team::new(
@@ -64,44 +73,59 @@ pub fn get_all_teams(connection: &PgConnection) -> BTreeMap<i32, data::Team> {
     t
 }
 
-pub fn get_all_runs(connection: &PgConnection) -> Vec<data::RunTuple> {
-    use runtable::dsl;
-    let letters = get_problem_letters(connection);
-    let teams = get_all_teams(connection);
+pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFile {
+    use self::runtable::dsl::*;
+    let letters = get_problem_letters(params, connection);
+    let teams = get_all_teams(params, connection);
 
-    dsl::runtable
+    data::RunsFile {
+        runs : runtable
+        .filter(contestnumber.eq(params.contest_number))
+        .filter(runsitenumber.eq(params.site_number))
         .load::<Runtable>(connection)
         .expect("Error loading runs")
         .iter()
-        .map(|r| to_run_tuple(r, &letters, &teams))
+        .flat_map(|r| to_run_tuple(r, &letters, &teams))
         .collect()
+    }
 }
 
-pub fn get_contest_file(connection: & PgConnection) -> data::ContestFile {
-    use contesttable::dsl;
+pub fn get_contest_file(params: & Params, connection: &PgConnection) -> data::ContestFile {
+    use self::contesttable::dsl::*;
 
-    let contest_opt = dsl::contesttable
+    let contest_opt = contesttable
+        .find(params.contest_number)
         .load::<Contesttable>(connection)
         .expect("Error loading contest");
     let contest = contest_opt.first().unwrap();
 
-    let number_problems = get_problem_letters(connection).len();
+    let number_problems = get_problem_letters(params, connection).len();
 
-    let teams = get_all_teams(connection);
+    let teams = get_all_teams(params, connection);
 
-    let current_time = SystemTime::now()
+    let current_time_now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap()
-        .as_secs() as usize;
+        .as_secs() as i64;
+
+    let contest_start_date = contest.conteststartdate as i64;
+    let elapsed = current_time_now - contest_start_date;
+
+
+    let contest_duration = contest.contestduration as i64;
+    let current_time = contest_duration.min(elapsed);
+
+    // println!("crazy times: {:?}", (current_time_now, contest_start_date, elapsed, contest_duration, current_time));
 
     let score_freeze_time = contest.contestlastmilescore.unwrap_or(contest.contestduration);
+    // let score_freeze_time = contest.contestduration;
     data::ContestFile::new(
         contest.contestname.clone(),
         teams.values().cloned().collect(),
-        current_time,
-        contest.contestduration as usize,
-        score_freeze_time as usize,
-        contest.contestpenalty as usize,
+        current_time / 60,
+        contest.contestduration as i64 / 60,
+        score_freeze_time as i64 / 60,
+        contest.contestpenalty as i64 / 60,
         number_problems,
     )
 }

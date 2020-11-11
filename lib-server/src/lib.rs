@@ -219,19 +219,18 @@ pub fn random_path_part() -> String {
 pub async fn serve_simple_contest(url_base : String, server_port : u16, secret : &String) {
 
     let shared_db = spawn_db_update(url_base);
-    let routes = serve_simple_contest_assets(shared_db, secret);
-    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
+    serve_simple_contest_assets(shared_db, server_port, secret).await
 }
 
-pub fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, secret : &String)
- -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
-
+pub async fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, server_port: u16, secret : &String) {
+    
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
-
+    
     let root = warp::path::end().map( || {
         warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
     });
     
-    root.or(static_assets).or(seed_assets).or(serve_urlbase(db, &None, secret))
+    let routes = root.or(static_assets).or(seed_assets).or(serve_urlbase(db, &None, secret));
+    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }

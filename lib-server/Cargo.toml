@@ -6,7 +6,6 @@ edition = "2018"
 
 [features]
 default = []
-use_local_boca = ["turbineitor"] 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -27,7 +26,3 @@ path = "src/simples.rs"
 
 [dependencies.maratona_animeitor_rust]
 path = ".."
-
-[dependencies.turbineitor]
-path = "../turbineitor"
-optional = true
