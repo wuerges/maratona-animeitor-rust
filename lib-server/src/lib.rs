@@ -227,6 +227,10 @@ pub fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &st
 
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
+    let root = warp::path::end().map( || {  "Hello !"
+        // println!("Redirecting...");
+        // warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
+    });
 
     let s = contest.sedes.iter()
     .map( |sede| &sede.source)
@@ -237,7 +241,7 @@ pub fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &st
         })
         .fold1(|routes, r| r.or(routes).unify().boxed()).unwrap();
 
-    static_assets.or(seed_assets).or(s)
+    root.or(static_assets).or(seed_assets).or(s)
 }
 
 pub fn serve_simple_contest(url_base : String, secret : &String)
@@ -246,5 +250,9 @@ pub fn serve_simple_contest(url_base : String, secret : &String)
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
 
-    static_assets.or(seed_assets).or(serve_urlbase(url_base.clone(), &None, secret))
+    let root = warp::path::end().map( || {
+        warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
+    });
+    
+    root.or(static_assets).or(seed_assets).or(serve_urlbase(url_base.clone(), &None, secret))
 }
