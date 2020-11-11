@@ -81,9 +81,38 @@ e contém um arquivo de configuração específico para a maratona: `src/config.
 
 Neste arquivo é possível declarar as sedes da prova.
 
-Para rodar o rustreimeitor no modo maratona, execute ele desta maneira:
+
+### Uso acessando o database do boca
+
+Se o Rustreimeitor está usando na mesma máquina do banco de dados do BOCA,
+ele é capaz de acessar os dados do contest direto do banco (postgresql).
+
+Para isso, é necessário:
+
+1. Configurar a string de acesso do banco, que está no arquivo `.env`
+
+O arquivo vem configurado com o banco, senha e usuários padrão do BOCA:
 
 ```
-cargo make build_release 
-cargo run --release --bin maratona -p lib-server 3030 <Url do Boca> <Sal Secreto do Boca>
+DATABASE_URL=postgres://bocauser:boca@localhost/bocadb
+```
+
+2. Descobrir os IDs do contest e do site do contest a mostrar o placar.
+
+Na maioria dos casos, estes valores são 1 e 1.
+
+3. Compilar e rodar o turbineitor:
+
+O formato de execução é
+
+```
+cargo make build_release
+cargo run -p turbineitor <porta http> <contest id> <site id>
+```
+
+Na maioria dos casos o comando executado é este abaixo:
+
+```
+cargo make build_release
+cargo run -p turbineitor 3030 1 1
 ```
