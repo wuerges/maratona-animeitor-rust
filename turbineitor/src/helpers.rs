@@ -78,16 +78,55 @@ pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFil
     let letters = get_problem_letters(params, connection);
     let teams = get_all_teams(params, connection);
 
-    data::RunsFile {
-        runs : runtable
+
+    // teams.get(&r.usernumber).map(|t|
+    //     data::RunTuple {
+    //         id : r.runnumber as i64,
+    //         time,
+    //         team_login : t.login.clone(),
+    //         prob : letters.get(&r.runproblem).unwrap().clone(),
+    //         answer : answer_from_code(r.runanswer, time),
+    //     }
+    // )
+
+    let res : Vec<(i32, i32, i32, i32, i32)> = runtable
         .filter(contestnumber.eq(params.contest_number))
         .filter(runsitenumber.eq(params.site_number))
-        .load::<Runtable>(connection)
-        .expect("Error loading runs")
-        .iter()
-        .flat_map(|r| to_run_tuple(r, &letters, &teams))
-        .collect()
+        .select((runnumber, rundatediff, usernumber, runproblem, runanswer))
+        .load(connection)
+        .expect("Error loading runs");
+    
+    let runs = res.iter()
+            .flat_map( |(id, time_large, team_id, prob_id, ans_id)| 
+            teams.get(&team_id).map (|t| {
+                let time = *time_large as i64 / 60;
+                data::RunTuple {
+                    id: *id as i64,
+                    time,
+                    team_login: t.login.clone(),
+                    prob: letters.get(&prob_id).unwrap().clone(),
+                    answer: answer_from_code(*ans_id, time)
+                }
+            })
+        );
+        // .load::<Runtable>(connection)
+        // .iter()
+        // .flat_map(|r| to_run_tuple(r, &letters, &teams));
+
+    data::RunsFile {
+        runs : runs.collect(),
     }
+
+    // data::RunsFile {
+    //     runs : runtable
+    //     .filter(contestnumber.eq(params.contest_number))
+    //     .filter(runsitenumber.eq(params.site_number))
+    //     .load::<Runtable>(connection)
+    //     .expect("Error loading runs")
+    //     .iter()
+    //     .flat_map(|r| to_run_tuple(r, &letters, &teams))
+    //     .collect()
+    // }
 }
 
 pub fn get_contest_file(params: & Params, connection: &PgConnection) -> data::ContestFile {
