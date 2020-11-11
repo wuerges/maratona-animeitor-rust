@@ -3,7 +3,6 @@ extern crate rand;
 extern crate itertools;
 
 use crate::dataio::*;
-use maratona_animeitor_rust::configdata;
 
 use hyper::Client;
 use hyper_tls::HttpsConnector;
@@ -16,27 +15,27 @@ use tokio;
 use tokio::{spawn, sync::Mutex};
 
 use warp::Filter;
-use crate::itertools::Itertools;
 
-pub fn serve_urlbase(data_url : String, source: &Option<String>, secret : &String)
- -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
+pub fn spawn_db_update(data_url : String) -> Arc<Mutex<DB>> {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
-
-    let shared = Arc::clone(&shared_db);
-
-
+    let cloned_db = shared_db.clone();
     spawn(async move {
         let dur = tokio::time::Duration::new(30, 0);
         let mut interval = tokio::time::interval(dur);
         loop {
             interval.tick().await;
-            let r = update_runs(&data_url, shared.clone()).await;
+            let r = update_runs(&data_url, cloned_db.clone()).await;
             match r {
                 Ok(_) => (),
                 Err(e) => eprintln!("Error updating run: {}", e),
             }
         }
     });
+    shared_db
+}
+
+pub fn serve_urlbase(shared_db: Arc<Mutex<DB>>, source: &Option<String>, secret : &String)
+ -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     
     type Shared = Arc<Mutex<DB>>;
     fn with_db(
@@ -222,29 +221,14 @@ pub fn random_path_part() -> String {
         .collect()
 }
 
-pub fn serve_contest(url_base : String, contest: &configdata::Contest, salt: &str, secret : &String)
- -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
+pub async fn serve_simple_contest(url_base : String, server_port : u16, secret : &String) {
 
-    let static_assets = warp::path("static").and(warp::fs::dir("static"));
-    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
-    let root = warp::path::end().map( || {  "Hello !"
-        // println!("Redirecting...");
-        // warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
-    });
-
-    let s = contest.sedes.iter()
-    .map( |sede| &sede.source)
-    .unique()
-    .map( |source| {
-            let data_url = format!("{}{}{}", url_base, salt, source);
-            serve_urlbase(data_url, &Some(source.clone()), secret)
-        })
-        .fold1(|routes, r| r.or(routes).unify().boxed()).unwrap();
-
-    root.or(static_assets).or(seed_assets).or(s)
+    let shared_db = spawn_db_update(url_base);
+    let routes = serve_simple_contest_assets(shared_db, secret);
+    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
 }
 
-pub fn serve_simple_contest(url_base : String, secret : &String)
+pub fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, secret : &String)
  -> impl Filter<Extract=impl warp::Reply, Error=warp::Rejection> + Clone {
 
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
@@ -254,5 +238,5 @@ pub fn serve_simple_contest(url_base : String, secret : &String)
         warp::redirect(warp::http::Uri::from_static("/seed/navigation.html"))
     });
     
-    root.or(static_assets).or(seed_assets).or(serve_urlbase(url_base.clone(), &None, secret))
+    root.or(static_assets).or(seed_assets).or(serve_urlbase(db, &None, secret))
 }

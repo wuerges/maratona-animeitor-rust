@@ -18,8 +18,7 @@ async fn main() {
 
     let secret = random_path_part();
 
-    let routes = serve_simple_contest(url_base, &secret);
- 
+    
     println!("Maratona Rustreimator rodando!");
     println!(
         "-> Runs em http://localhost:{}/seed/runspanel.html",
@@ -45,11 +44,9 @@ async fn main() {
         "-> Reveleitor em http://localhost:{}/seed/reveleitor.html?secret={}",
         server_port, secret
     );
-
-
-    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;    
-
-
+    
+    
+    serve_simple_contest(url_base, server_port, &secret).await;
 
 }
 
