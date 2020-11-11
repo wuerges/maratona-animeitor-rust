@@ -73,3 +73,4 @@ pub async fn serve_simple_contest(server_port : u16, secret : &String, params: P
     let shared_db = spawn_db_update(params);
     lib_server::serve_simple_contest_assets(shared_db, server_port, secret).await
 }
+

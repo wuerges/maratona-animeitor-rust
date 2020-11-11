@@ -22,7 +22,7 @@ pub fn check_password(username_p: &str
 
     let digest = format!("{:x}", Sha256::digest(password_p.as_bytes()));
 
-    let user = usertable
+    usertable
     .filter(contestnumber.eq(params.contest_number))
     .filter(usersitenumber.eq(params.site_number))
     .filter(username.eq(username_p))
@@ -31,12 +31,7 @@ pub fn check_password(username_p: &str
     .expect("User not found")
     .first()
     .map(|u| u.userpassword == Some(digest))
-    .unwrap_or(false);
-
-
-
-    println!("USER= {:?}", user);
-    user
+    .unwrap_or(false)
 }
 
 
@@ -193,4 +188,20 @@ pub fn get_contest_file(params: & Params, connection: &PgConnection) -> data::Co
         contest.contestpenalty as i64 / 60,
         number_problems,
     )
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use crate::*;
+
+    #[test]
+    fn test_login() {
+        let params = Params { contest_number : 1, site_number: 1 };
+    
+        let c = establish_connection();
+        println!("testing: {:?}", super::check_password("admin", "boca", &c, &params));
+     
+    }
 }
