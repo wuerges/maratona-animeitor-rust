@@ -89,7 +89,13 @@ ele é capaz de acessar os dados do contest direto do banco (postgresql).
 
 Para isso, é necessário:
 
-1. Configurar a string de acesso do banco, que está no arquivo `.env`
+1. Se você está no Ubuntu, instalar as libs do postgresql:
+
+```
+sudo apt-get install libpq-dev
+```
+
+2. Configurar a string de acesso do banco, que está no arquivo `.env`
 
 O arquivo vem configurado com o banco, senha e usuários padrão do BOCA:
 
@@ -97,11 +103,11 @@ O arquivo vem configurado com o banco, senha e usuários padrão do BOCA:
 DATABASE_URL=postgres://bocauser:boca@localhost/bocadb
 ```
 
-2. Descobrir os IDs do contest e do site do contest a mostrar o placar.
+3. Descobrir os IDs do contest e do site do contest a mostrar o placar.
 
 Na maioria dos casos, estes valores são 1 e 1.
 
-3. Compilar e rodar o turbineitor:
+4. Compilar e rodar o turbineitor:
 
 O formato de execução é
 
