@@ -13,4 +13,5 @@ members = [
     "lib-server",
     "lib-seed",
     "turbineitor",
+    "turbineitor/ui",
 ]

@@ -45,7 +45,10 @@ pub async fn serve_everything() {
         .and(warp::body::form())
         .and_then(move |m| auth_and_serve(m, params_runs.clone(), get_all_runs));
 
-    let all_routes = sign_route.or(runs_route);
+
+    let ui_route = warp::get().and(warp::fs::dir("turbineitor/ui"));
+
+    let all_routes = ui_route.or(sign_route).or(runs_route);
 
     let server_port: u16 = 3033;
     warp::serve(all_routes)
