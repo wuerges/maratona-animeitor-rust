@@ -12,6 +12,9 @@ pub enum Error {
     #[error("Wrog site number: (exected: {0}, found: {1})")]
     WrongSiteNumber(i32, i32),
 
+    #[error("Wrong password.")]
+    WrongPassword,
+
     #[error("Expected Some({0}), got None.")]
     Empty(String),
 

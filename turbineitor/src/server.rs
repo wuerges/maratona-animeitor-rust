@@ -61,18 +61,10 @@ async fn serve_sign(data : HashMap<String, String>, params : Params) -> Result<i
     let login = data.get("login").ok_or(warp::reject::custom(Error::empty("login")))?;
     let pass = data.get("password").ok_or(warp::reject::custom(Error::empty("password")))?;
 
-    let result = check_password(&login, &pass, &connection, &params);
+    let u = check_password(&login, &pass, &connection, &params)
+        .ok_or(warp::reject::custom(Error::WrongPassword))?;
 
-    // println!("checked login and password: {:?}", result);
-
-    let result = result.and_then(|u| auth::sign_user_key(u, params.secret.as_ref()).ok() );
-
-    // println!("served a signature: {:?}", result);
-
-    match result { 
-        None => Err(warp::reject::not_found()),
-        Some(r) => Ok(r),
-    }
+    auth::sign_user_key(u, params.secret.as_ref()).map_err(warp::reject::custom)
 }
 
 // async fn serve_runs(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
