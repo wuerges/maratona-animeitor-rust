@@ -96,15 +96,16 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
     div![
         C!["runstable"],
         div![
-                C!["run"],
-                style!{ 
-                    St::Top => cell_top(0, &p_center),
-                    // St::Top => px(margin_top),
-                    // St::Position => "absolute", 
-                    // St::Transition => "top 1s ease 0s",
-                },
-                div![C!["cell", "titulo", if is_compressed {"duplaColocacao"} else {"unicaColocacao"}], "Placar"],
-                all_problems.iter().map( |p| div![C!["cell", "problema"], p])
+            id!["runheader"],
+            C!["run"],
+            style!{ 
+                St::Top => cell_top(0, &p_center),
+                // St::Top => px(margin_top),
+                // St::Position => "absolute", 
+                // St::Transition => "top 1s ease 0s",
+            },
+            div![C!["cell", "titulo", if is_compressed {"duplaColocacao"} else {"unicaColocacao"}], "Placar"],
+            all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
         contest.teams.values().filter( |t| check_filter(url_filter, t))
                 .map (|team| {

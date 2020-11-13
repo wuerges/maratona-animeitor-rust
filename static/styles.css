@@ -200,9 +200,8 @@ body {
     font-size: 3vw;
 }
 
-.sedepanel {
-    font-size: 2vw;
-}
+/* .sedepanel {
+} */
 
 .center {
     animation: borderUpdate 5s infinite;
@@ -229,3 +228,30 @@ body {
 .hora .minuto .segundo {
     float: left;
 } */
+
+
+a {
+    color: #336;
+}
+
+.nomesede {
+    padding: 3px;
+    font-size: 1.5vw;
+}
+
+.recentes {
+    font-size: 1vw;
+    padding: 3px;
+}
+
+.sedeslink {
+    width: 12vw;
+    font-size: 1vw;
+    font-family: "Lato";
+    padding: 2px;
+}
+
+.sedesnavigation {
+    margin: 3px;
+    margin-bottom: 10px;
+}

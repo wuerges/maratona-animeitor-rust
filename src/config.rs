@@ -47,7 +47,7 @@ pub fn contest() -> Contest {
         vec!["teambral", "teambrma", "teambrpe", "teambrrn", "teambrse"]));
     
     sedes.push(Sede::supersede("Supersede Norte", "Snorte", BR, 
-        vec!["teambrac", "teambrap", "teambrpa", "teambrro", "teambrrr", "teambrto"]));
+        vec!["teambrac", "teambrpa", "teambrro", "teambrrr", "teambrto"]));
 
     sedes.push(Sede::new(BR, BR, "Global", "teambr"));
 
