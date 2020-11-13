@@ -13,9 +13,11 @@ pub fn sign_user_key(user_key : UserKey, secret : &str) -> Result<String, Error>
 }
 
 pub fn verify_user_key(token : &String, params: &Params) -> Result<UserKey, Error> {
+
+    let validation = Validation { validate_exp: false, ..Default::default()};
     let user_key = decode::<UserKey>(token, 
         &DecodingKey::from_secret(params.secret.as_ref()),        
-        &Validation::default())?;
+        &validation)?;
 
     let claims = user_key.claims;
 
