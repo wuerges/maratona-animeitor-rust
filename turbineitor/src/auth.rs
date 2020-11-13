@@ -12,9 +12,9 @@ pub fn sign_user_key(user_key : UserKey, secret : &str) -> Result<String, Error>
         &EncodingKey::from_secret(secret.as_ref()))?)
 }
 
-pub fn verify_user_key(token : &String, secret : &str, params: &Params) -> Result<UserKey, Error> {
+pub fn verify_user_key(token : &String, params: &Params) -> Result<UserKey, Error> {
     let user_key = decode::<UserKey>(token, 
-        &DecodingKey::from_secret(secret.as_ref()),        
+        &DecodingKey::from_secret(params.secret.as_ref()),        
         &Validation::default())?;
 
     let claims = user_key.claims;

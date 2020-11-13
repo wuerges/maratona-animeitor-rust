@@ -28,13 +28,14 @@ pub async fn serve_everything() {
     let params = Params {
         contest_number : 1,
         site_number : 1,
+        secret,
     };
     
     let sign_route = warp::post()
     .and(warp::path("sign"))
     // .and(warp::body::content_length_limit(1024 * 32))
     .and(warp::body::form())
-    .and_then(move |m| serve_sign(m, secret.clone(), params.clone()));
+    .and_then(move |m| serve_sign(m, params.clone()));
     //     spawn(move |data: HashMap<String, String>| {
     //         let connection = establish_connection();
     //         check_password(&data["login"], &data["password"], &connection, &params)
@@ -47,13 +48,13 @@ pub async fn serve_everything() {
 }
 
 
-async fn serve_sign(data : HashMap<String, String>, secret : String, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_sign(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
     let connection = establish_connection();
     let result = check_password(&data["login"], &data["password"], &connection, &params);
 
     println!("checked login and password: {:?}", result);
 
-    let result = result.and_then(|u| auth::sign_user_key(u, &secret).ok() );
+    let result = result.and_then(|u| auth::sign_user_key(u, params.secret.as_ref()).ok() );
 
     println!("served a signature: {:?}", result);
 
