@@ -3,7 +3,8 @@ use crate::Params;
 use crate::errors::Error;
 
 //use serde::{Serialize, Deserialize};
-use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+// use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
 
 pub fn sign_user_key(user_key : UserKey, secret : &str) -> Result<String, Error> {
     Ok(encode(

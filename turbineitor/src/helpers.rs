@@ -1,6 +1,5 @@
 use maratona_animeitor_rust::{auth::UserKey, data};
 
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 
 use crate::errors::Error;
