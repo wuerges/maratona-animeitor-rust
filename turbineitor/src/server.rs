@@ -16,6 +16,7 @@ use std::collections::HashMap;
 
 use crate::*;
 use crate::helpers::*;
+use crate::errors::Error;
 
 // pub fn check_password(username_p: &str
 //     , password_p :&str
@@ -31,20 +32,26 @@ pub async fn serve_everything() {
         secret,
     };
     
+    let params_sign = params.clone();
     let sign_route = warp::post()
     .and(warp::path("sign"))
-    // .and(warp::body::content_length_limit(1024 * 32))
+    .and(warp::body::content_length_limit(1024 * 32))
     .and(warp::body::form())
-    .and_then(move |m| serve_sign(m, params.clone()));
-    //     spawn(move |data: HashMap<String, String>| {
-    //         let connection = establish_connection();
-    //         check_password(&data["login"], &data["password"], &connection, &params)
-    //         .and_then(|u| sign_user_key(u, &secret_sign).ok() )
-    //     )
-    // });
+    .and_then(move |m| serve_sign(m, params_sign.clone()));
+
+    let params_runs = params.clone();
+    let runs_route = warp::path("runs")
+    .and(warp::body::content_length_limit(1024 * 32))
+    .and(warp::body::form())
+    // .and(warp::Filter::with(params.clone()))
+    .and_then(move |m| {
+        serve_runs(m, params_runs.clone())
+    });
+
+    let all_routes = sign_route.or(runs_route);
 
     let server_port : u16 = 3033;
-    warp::serve(sign_route).run(([0, 0, 0, 0], server_port)).await;
+    warp::serve(all_routes).run(([0, 0, 0, 0], server_port)).await;
 }
 
 
@@ -62,6 +69,31 @@ async fn serve_sign(data : HashMap<String, String>, params : Params) -> Result<i
         None => Err(warp::reject::not_found()),
         Some(r) => Ok(r),
     }
+}
+
+async fn serve_runs(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
+    let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
+    auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
+
+    let connection = establish_connection();
+    let result = get_all_runs(&params, &connection);
+    
+    serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
+}
+
+
+
+async fn auth_and_serve<F>(data : HashMap<String, String>, params : Params, serve_stuff: F) 
+-> Result<impl warp::Reply, warp::Rejection>
+where F: Fn(&Params, &PgConnection)
+{
+    let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
+    auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
+
+    let connection = establish_connection();
+    let result = serve_stuff(&params, &connection);
+    
+    serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
 }
 
 // pub async fn server_everything() {

@@ -1,4 +1,5 @@
 use thiserror::Error;
+use serde_json;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -10,4 +11,14 @@ pub enum Error {
 
     #[error("Wrog site number: (exected: {0}, found: {1})")]
     WrongSiteNumber(i32, i32),
+
+    #[error("Expected Some(token), got None.")]
+    EmptyToken,
+
+    #[error(transparent)]
+    JsonEncode(#[from] serde_json::Error),
 }
+
+use warp::reject::Reject;
+
+impl Reject for Error {}
