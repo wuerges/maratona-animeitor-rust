@@ -7,6 +7,7 @@ use diesel::pg::PgConnection;
 use crate::models::*;
 use crate::schema::*;
 use crate::Params;
+use crate::errors::Error;
 
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -105,7 +106,7 @@ pub fn get_all_teams(params: &Params, connection: &PgConnection) -> BTreeMap<i32
     t
 }
 
-pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFile {
+pub fn get_all_runs(params: &Params, connection: &PgConnection) -> Result<data::RunsFile, Error> {
     use self::runtable::dsl::*;
     let letters = get_problem_letters(params, connection);
     let teams = get_all_teams(params, connection);
@@ -125,8 +126,8 @@ pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFil
         .filter(contestnumber.eq(params.contest_number))
         .filter(runsitenumber.eq(params.site_number))
         .select((runnumber, rundatediff, usernumber, runproblem, runanswer))
-        .load(connection)
-        .expect("Error loading runs");
+        .load(connection)?;
+        // .expect("Error loading runs");
     
     let runs = res.iter()
             .flat_map( |(id, time_large, team_id, prob_id, ans_id)| 
@@ -145,7 +146,7 @@ pub fn get_all_runs(params: &Params, connection: &PgConnection) -> data::RunsFil
         // .iter()
         // .flat_map(|r| to_run_tuple(r, &letters, &teams));
 
-    data::RunsFile::new(runs.collect())
+    Ok(data::RunsFile::new(runs.collect()))
 
     // data::RunsFile {
     //     runs : runtable

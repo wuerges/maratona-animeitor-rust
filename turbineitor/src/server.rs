@@ -10,6 +10,8 @@ use std::sync::Arc;
 use tokio;
 use tokio::{spawn, sync::Mutex};
 
+use serde::{Serialize, Deserialize};
+
 use warp::Filter;
 
 use std::collections::HashMap;
@@ -44,9 +46,8 @@ pub async fn serve_everything() {
     .and(warp::body::content_length_limit(1024 * 32))
     .and(warp::body::form())
     // .and(warp::Filter::with(params.clone()))
-    .and_then(move |m| {
-        serve_runs(m, params_runs.clone())
-    });
+    // .and_then(move |m| serve_runs(m, params_runs.clone()) );
+    .and_then(move |m| auth_and_serve(m, params_runs.clone(), get_all_runs) );
 
     let all_routes = sign_route.or(runs_route);
 
@@ -76,22 +77,22 @@ async fn serve_runs(data : HashMap<String, String>, params : Params) -> Result<i
     auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
 
     let connection = establish_connection();
-    let result = get_all_runs(&params, &connection);
+    let result = get_all_runs(&params, &connection).map_err(warp::reject::custom)?;
     
     serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
 }
 
 
 
-async fn auth_and_serve<F>(data : HashMap<String, String>, params : Params, serve_stuff: F) 
+async fn auth_and_serve<F, R : Serialize>(data : HashMap<String, String>, params : Params, serve_stuff: F) 
 -> Result<impl warp::Reply, warp::Rejection>
-where F: Fn(&Params, &PgConnection)
+where F: Fn(&Params, &PgConnection) -> Result<R, Error>
 {
     let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
     auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
 
     let connection = establish_connection();
-    let result = serve_stuff(&params, &connection);
+    let result = serve_stuff(&params, &connection).map_err(warp::reject::custom)?;
     
     serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
 }

@@ -20,6 +20,8 @@ pub mod auth;
 
 use lib_server::dataio::*;
 
+use crate::errors::Error;
+
 #[derive(Clone, Debug)]
 pub struct Params {
     pub contest_number: i32,
@@ -36,18 +38,17 @@ pub fn establish_connection() -> PgConnection {
         .expect(&format!("Error connecting to {}", database_url))
 }
 
-async fn update_runs(runs: Arc<Mutex<DB>>, params: &Params) -> Result<(), ContestIOError> {
+async fn update_runs(runs: Arc<Mutex<DB>>, params: &Params) -> Result<(), Error> {
 
     let connection = establish_connection();
 
     let contest_data = helpers::get_contest_file(&params, &connection);
-    let runs_data = helpers::get_all_runs(&params, &connection);
+    let runs_data = helpers::get_all_runs(&params, &connection)?;
 
     let time_data = contest_data.current_time;
 
     let mut db = runs.lock().await;
     db.refresh_db(time_data, contest_data, runs_data)?;
-
     Ok(())
 }
 

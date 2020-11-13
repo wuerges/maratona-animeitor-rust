@@ -3,7 +3,7 @@ use serde_json;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("error with the jwt token")]
+    #[error(transparent)]
     JWTError(#[from] jsonwebtoken::errors::Error),
 
     #[error("Wrog contest number: (exected: {0}, found: {1})")]
@@ -17,6 +17,12 @@ pub enum Error {
 
     #[error(transparent)]
     JsonEncode(#[from] serde_json::Error),
+
+    #[error(transparent)]
+    DieselError(#[from] diesel::result::Error),
+
+    #[error(transparent)]
+    ContestError(#[from] maratona_animeitor_rust::data::ContestError),
 }
 
 use warp::reject::Reject;
