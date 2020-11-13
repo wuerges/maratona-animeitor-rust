@@ -53,7 +53,7 @@ async fn serve_sign(data : HashMap<String, String>, secret : String, params : Pa
 
     println!("checked login and password: {:?}", result);
 
-    let result = result.and_then(|u| sign_user_key(u, &secret).ok() );
+    let result = result.and_then(|u| auth::sign_user_key(u, &secret).ok() );
 
     println!("served a signature: {:?}", result);
 

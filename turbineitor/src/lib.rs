@@ -16,6 +16,7 @@ pub mod schema;
 pub mod helpers;
 pub mod errors;
 pub mod server;
+pub mod auth;
 
 use lib_server::dataio::*;
 
