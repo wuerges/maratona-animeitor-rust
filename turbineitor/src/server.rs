@@ -58,13 +58,16 @@ pub async fn serve_everything() {
 
 async fn serve_sign(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
     let connection = establish_connection();
-    let result = check_password(&data["login"], &data["password"], &connection, &params);
+    let login = data.get("login").ok_or(warp::reject::custom(Error::empty("login")))?;
+    let pass = data.get("password").ok_or(warp::reject::custom(Error::empty("password")))?;
 
-    println!("checked login and password: {:?}", result);
+    let result = check_password(&login, &pass, &connection, &params);
+
+    // println!("checked login and password: {:?}", result);
 
     let result = result.and_then(|u| auth::sign_user_key(u, params.secret.as_ref()).ok() );
 
-    println!("served a signature: {:?}", result);
+    // println!("served a signature: {:?}", result);
 
     match result { 
         None => Err(warp::reject::not_found()),
@@ -72,15 +75,15 @@ async fn serve_sign(data : HashMap<String, String>, params : Params) -> Result<i
     }
 }
 
-async fn serve_runs(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
-    let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
-    auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
+// async fn serve_runs(data : HashMap<String, String>, params : Params) -> Result<impl warp::Reply, warp::Rejection> {
+//     let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
+//     auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
 
-    let connection = establish_connection();
-    let result = get_all_runs(&params, &connection).map_err(warp::reject::custom)?;
+//     let connection = establish_connection();
+//     let result = get_all_runs(&params, &connection).map_err(warp::reject::custom)?;
     
-    serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
-}
+//     serde_json::to_string(&result).map_err(Error::JsonEncode).map_err(warp::reject::custom)
+// }
 
 
 
@@ -88,7 +91,7 @@ async fn auth_and_serve<F, R : Serialize>(data : HashMap<String, String>, params
 -> Result<impl warp::Reply, warp::Rejection>
 where F: Fn(&Params, &PgConnection) -> Result<R, Error>
 {
-    let token = data.get("token").ok_or(warp::reject::custom(Error::EmptyToken))?;
+    let token = data.get("token").ok_or(warp::reject::custom(Error::empty("token")))?;
     auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
 
     let connection = establish_connection();

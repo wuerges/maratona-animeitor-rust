@@ -12,8 +12,8 @@ pub enum Error {
     #[error("Wrog site number: (exected: {0}, found: {1})")]
     WrongSiteNumber(i32, i32),
 
-    #[error("Expected Some(token), got None.")]
-    EmptyToken,
+    #[error("Expected Some({0}), got None.")]
+    Empty(String),
 
     #[error(transparent)]
     JsonEncode(#[from] serde_json::Error),
@@ -23,6 +23,12 @@ pub enum Error {
 
     #[error(transparent)]
     ContestError(#[from] maratona_animeitor_rust::data::ContestError),
+}
+
+impl Error {
+    pub fn empty(t: &str) -> Self {
+        Error::Empty(t.to_string())
+    }
 }
 
 use warp::reject::Reject;
