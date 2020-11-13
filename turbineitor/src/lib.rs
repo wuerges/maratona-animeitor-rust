@@ -42,7 +42,7 @@ async fn update_runs(runs: Arc<Mutex<DB>>, params: &Params) -> Result<(), Error>
 
     let connection = establish_connection();
 
-    let contest_data = helpers::get_contest_file(&params, &connection);
+    let contest_data = helpers::get_contest_file(&params, &connection)?;
     let runs_data = helpers::get_all_runs(&params, &connection)?;
 
     let time_data = contest_data.current_time;
