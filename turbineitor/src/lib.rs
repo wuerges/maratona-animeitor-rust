@@ -14,7 +14,7 @@ use tokio::{spawn, sync::Mutex};
 pub mod models; 
 pub mod schema;
 pub mod helpers;
-
+pub mod errors;
 
 use lib_server::dataio::*;
 

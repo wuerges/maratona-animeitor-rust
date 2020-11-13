@@ -7,31 +7,65 @@ use diesel::pg::PgConnection;
 use crate::models::*;
 use crate::schema::*;
 use crate::Params;
+use crate::errors::Error;
 
 use std::collections::BTreeMap;
 use std::time::SystemTime;
 
 use sha2::{Sha256, Digest};
 
+use serde::{Serialize, Deserialize};
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+
+/// Our claims struct, it needs to derive `Serialize` and/or `Deserialize`
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserKey {
+    pub contest_number : i32,
+    pub site_number : i32,
+    pub user_number : i32,
+}
+
+pub fn sign_user_key(user_key : UserKey, secret : &str) -> Result<String, Error> {
+    Ok(encode(
+        &Header::default(), 
+        &user_key, 
+        &EncodingKey::from_secret(secret.as_ref()))?)
+}
+
+pub fn verify_user_key(token : &String, secret : &str) -> Result<UserKey, Error> {
+    let user_key = decode::<UserKey>(token, 
+        &DecodingKey::from_secret(secret.as_ref()), 
+        &Validation::default())?;
+    Ok(user_key.claims)
+}
 
 pub fn check_password(username_p: &str
 , password_p :&str
 , connection: &PgConnection
-, params : &Params) -> bool {
+, params : &Params) -> Option<UserKey> {
     use self::usertable::dsl::*;
 
     let digest = format!("{:x}", Sha256::digest(password_p.as_bytes()));
 
     usertable
-    .filter(contestnumber.eq(params.contest_number))
-    .filter(usersitenumber.eq(params.site_number))
-    .filter(username.eq(username_p))
-    // .filter(userpassword.eq(password_p))
-    .load::<Usertable>(connection)
-    .expect("User not found")
-    .first()
-    .map(|u| u.userpassword == Some(digest))
-    .unwrap_or(false)
+        .filter(contestnumber.eq(params.contest_number))
+        .filter(usersitenumber.eq(params.site_number))
+        .filter(username.eq(username_p))
+        .load::<Usertable>(connection)
+        .expect("User not found")
+        .first()
+        .map( |u| {
+            if u.userpassword == Some(digest) {
+                Some(UserKey { 
+                    contest_number : u.contestnumber, 
+                    site_number : u.usersitenumber,
+                    user_number : u.usernumber
+                })
+            }
+            else {
+                None
+            }
+        }).flatten()
 }
 
 

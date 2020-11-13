@@ -11,6 +11,10 @@ diesel = { version = "1.4.4", features = ["postgres"] }
 dotenv = "0.15.0"
 tokio = { version = "0.2", features = ["full"] }
 sha2 = "0.9.2"
+hmac = "0.10.1"
+jsonwebtoken = "7"
+serde = {version = "1.0", features = ["derive"] }
+thiserror = "1.0.22"
 
 [dependencies.maratona_animeitor_rust]
 path = ".."
