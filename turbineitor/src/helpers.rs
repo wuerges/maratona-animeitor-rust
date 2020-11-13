@@ -16,32 +16,29 @@ use sha2::{Digest, Sha256};
 pub fn check_password(
     username_p: &str,
     password_p: &str,
-    connection: &PgConnection,
     params: &Params,
-) -> Option<UserKey> {
+) -> Result<UserKey, Error> {
     use self::usertable::dsl::*;
 
     let digest = format!("{:x}", Sha256::digest(password_p.as_bytes()));
+    let connection = params.pool.get()?;
 
-    usertable
+    let user = usertable
         .filter(contestnumber.eq(params.contest_number))
         .filter(usersitenumber.eq(params.site_number))
         .filter(username.eq(username_p))
-        .load::<Usertable>(connection)
-        .expect("User not found")
-        .first()
-        .map(|u| {
-            if u.userpassword == Some(digest) {
-                Some(UserKey {
-                    contest_number: u.contestnumber,
-                    site_number: u.usersitenumber,
-                    user_number: u.usernumber,
-                })
-            } else {
-                None
-            }
+        .load::<Usertable>(&connection)?;
+
+    let u = user.first().ok_or(Error::UserNotFound(username_p.to_string()))?;
+    if u.userpassword == Some(digest) {
+        Ok(UserKey {
+            contest_number: u.contestnumber,
+            site_number: u.usersitenumber,
+            user_number: u.usernumber,
         })
-        .flatten()
+    } else {
+        Err(Error::WrongPassword)
+    }
 }
 
 pub fn answer_from_code(c: i32, time: i64) -> data::Answer {
@@ -68,20 +65,20 @@ pub fn to_run_tuple(
     })
 }
 
-pub fn get_problem_letters(params: &Params, connection: &PgConnection) -> BTreeMap<i32, String> {
+pub fn get_problem_letters(params: &Params) -> Result<BTreeMap<i32, String>, Error> {
     use self::problemtable::dsl::*;
     let mut t = BTreeMap::new();
+    let connection = params.pool.get()?;
     for p in problemtable
         .filter(contestnumber.eq(params.contest_number))
-        .load::<Problemtable>(connection)
-        .expect("Error loading problem letters")
+        .load::<Problemtable>(&connection)?
     {
         t.insert(p.problemnumber, p.problemname);
     }
-    t
+    Ok(t)
 }
 
-pub fn get_all_teams(params: &Params, connection: &PgConnection) -> Result<BTreeMap<i32, data::Team>, Error> {
+pub fn get_all_teams(params: &Params) -> Result<BTreeMap<i32, data::Team>, Error> {
     use self::usertable::dsl::*;
 
     let mut t = BTreeMap::new();
@@ -90,7 +87,7 @@ pub fn get_all_teams(params: &Params, connection: &PgConnection) -> Result<BTree
         .filter(contestnumber.eq(params.contest_number))
         .filter(usersitenumber.eq(params.site_number))
         .filter(usertype.eq("team"))
-        .load::<Usertable>(connection)?
+        .load::<Usertable>(&params.pool.get()?)?
     {
         t.insert(
             u.usernumber,
@@ -101,16 +98,20 @@ pub fn get_all_teams(params: &Params, connection: &PgConnection) -> Result<BTree
     Ok(t)
 }
 
-pub fn get_all_runs(params: &Params, connection: &PgConnection) -> Result<data::RunsFile, Error> {
+pub fn get_all_runs(params: &Params) -> Result<data::RunsFile, Error> {
     use self::runtable::dsl::*;
-    let letters = get_problem_letters(params, connection);
-    let teams = get_all_teams(params, connection)?;
 
-    let res: Vec<(i32, i32, i32, i32, i32)> = runtable
+    
+    let letters = get_problem_letters(params)?;
+    let teams = get_all_teams(params)?;
+    
+    let res: Vec<(i32, i32, i32, i32, i32)> = {
+        let connection = params.pool.get()?;
+        runtable
         .filter(contestnumber.eq(params.contest_number))
         .filter(runsitenumber.eq(params.site_number))
         .select((runnumber, rundatediff, usernumber, runproblem, runanswer))
-        .load(connection)?;
+        .load(&connection)?};
 
     let runs = res
         .iter()
@@ -130,17 +131,23 @@ pub fn get_all_runs(params: &Params, connection: &PgConnection) -> Result<data::
     Ok(data::RunsFile::new(runs.collect()))
 }
 
-pub fn get_contest_file(params: &Params, connection: &PgConnection) -> Result<data::ContestFile, Error> {
+pub fn get_contest_file(params: &Params) -> Result<data::ContestFile, Error> {
     use self::contesttable::dsl::*;
 
-    let contest_opt = contesttable
+    
+    let contest_opt = {
+        let connection = params.pool.get()?;
+
+        contesttable
         .find(params.contest_number)
-        .load::<Contesttable>(connection)?;
+        .load::<Contesttable>(&connection)?
+    };
+        
     let contest = contest_opt.first().ok_or(Error::WrongContestNumber(params.contest_number, -1))?;
 
-    let number_problems = get_problem_letters(params, connection).len();
+    let number_problems = get_problem_letters(params)?.len();
 
-    let teams = get_all_teams(params, connection)?;
+    let teams = get_all_teams(params)?;
 
     let current_time_now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -181,11 +188,11 @@ mod tests {
             contest_number: 1,
             site_number: 1,
             secret: "".to_string(),
+            pool: establish_pool(),
         };
-        let c = establish_connection();
         println!(
             "testing: {:?}",
-            super::check_password("admin", "boca", &c, &params)
+            super::check_password("admin", "boca", &params)
         );
     }
 }

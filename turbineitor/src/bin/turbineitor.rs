@@ -53,7 +53,7 @@ async fn main() {
         server_port, secret
     );
     
-    let params = Params { contest_number, site_number, secret };
+    let params = Params::new(contest_number, site_number, secret);
     
     turbineitor::serve_simple_contest(server_port, params).await;
 

@@ -12,6 +12,9 @@ pub enum Error {
     #[error("Wrog site number: (exected: {0}, found: {1})")]
     WrongSiteNumber(i32, i32),
 
+    #[error("User not found {0}")]
+    UserNotFound(String),
+
     #[error("Wrong password.")]
     WrongPassword,
 
@@ -26,6 +29,9 @@ pub enum Error {
 
     #[error(transparent)]
     ContestError(#[from] maratona_animeitor_rust::data::ContestError),
+
+    #[error(transparent)]
+    PoolError(#[from] r2d2::Error)
 }
 
 impl Error {

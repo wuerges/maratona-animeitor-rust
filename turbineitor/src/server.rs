@@ -20,6 +20,8 @@ use crate::errors::Error;
 use crate::helpers::*;
 use crate::*;
 
+use warp::reject::custom;
+
 pub async fn serve_everything() {
     let secret = random_path_part();
 
@@ -27,6 +29,7 @@ pub async fn serve_everything() {
         contest_number: 1,
         site_number: 1,
         secret,
+        pool : establish_pool(),
     };
     let params_sign = params.clone();
     let sign_route = warp::post()
@@ -53,7 +56,6 @@ async fn serve_sign(
     data: HashMap<String, String>,
     params: Params,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let connection = establish_connection();
     let login = data
         .get("login")
         .ok_or(warp::reject::custom(Error::empty("login")))?;
@@ -61,10 +63,10 @@ async fn serve_sign(
         .get("password")
         .ok_or(warp::reject::custom(Error::empty("password")))?;
 
-    let u = check_password(&login, &pass, &connection, &params)
-        .ok_or(warp::reject::custom(Error::WrongPassword))?;
+    let u = check_password(&login, &pass, &params).map_err(custom)?;
+        // .ok_or(warp::reject::custom(Error::WrongPassword))?;
 
-    auth::sign_user_key(u, params.secret.as_ref()).map_err(warp::reject::custom)
+    auth::sign_user_key(u, params.secret.as_ref()).map_err(custom)
 }
 
 async fn auth_and_serve<F, R: Serialize>(
@@ -73,15 +75,14 @@ async fn auth_and_serve<F, R: Serialize>(
     serve_stuff: F,
 ) -> Result<impl warp::Reply, warp::Rejection>
 where
-    F: Fn(&Params, &PgConnection) -> Result<R, Error>,
+    F: Fn(&Params) -> Result<R, Error>,
 {
     let token = data
         .get("token")
         .ok_or(warp::reject::custom(Error::empty("token")))?;
     auth::verify_user_key(&token, &params).map_err(warp::reject::custom)?;
 
-    let connection = establish_connection();
-    let result = serve_stuff(&params, &connection).map_err(warp::reject::custom)?;
+    let result = serve_stuff(&params).map_err(warp::reject::custom)?;
 
     serde_json::to_string(&result)
         .map_err(Error::JsonEncode)
