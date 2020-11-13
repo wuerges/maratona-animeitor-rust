@@ -45,8 +45,6 @@ pub async fn serve_everything() {
     let runs_route = warp::path("runs")
     .and(warp::body::content_length_limit(1024 * 32))
     .and(warp::body::form())
-    // .and(warp::Filter::with(params.clone()))
-    // .and_then(move |m| serve_runs(m, params_runs.clone()) );
     .and_then(move |m| auth_and_serve(m, params_runs.clone(), get_all_runs) );
 
     let all_routes = sign_route.or(runs_route);
