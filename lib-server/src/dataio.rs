@@ -283,7 +283,7 @@ mod tests {
     #[test]
     fn test_parse_file() -> Result<(), ContestIOError> {
         let x = RunsFile::from_file("test/sample/runs")?;
-        assert_eq!(x.runs.len(), 716);
+        assert_eq!(x.len(), 716);
         Ok(())
     }
 
