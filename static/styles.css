@@ -8,7 +8,8 @@ body {
     /* background-color: #000000aa; */
     background-color: #131313;
     background-repeat: repeat;
-    background-image: url('/static/assets/maratona-logo-wallpaper.png') ;
+    /* background-image: url('/static/assets/maratona-logo-wallpaper.png') ; */
+    background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ;
     background-blend-mode:multiply;
 
     overflow-y: scroll;
