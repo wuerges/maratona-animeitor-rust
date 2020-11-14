@@ -22,9 +22,10 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     //     },
     // }
     Model {
-        page: Page::Problems {
+        page: Page::Logged {
             login: "kappa".to_string(),
             token: "aoeuaoeuaoeuoeau".to_string(),
+            page : Internal::Problems,
         },
     }
 }
@@ -44,7 +45,15 @@ type Input = ElRef<web_sys::HtmlInputElement>;
 #[derive(Debug)]
 enum Page {
     Login { login: Input, password: Input },
-    Problems { login: String, token: String },
+    Logged { login: String, token: String, page: Internal },
+}
+
+#[derive(Debug)]
+pub enum Internal {
+    Basic,
+    Problems,
+    Clarifications,
+    Scoreboard,
 }
 
 impl Page {
@@ -52,6 +61,14 @@ impl Page {
         Page::Login {
             login: ElRef::new(),
             password: ElRef::new(),
+        }
+    }
+    fn goto(&mut self, intern: Internal) {
+        match self {
+            Page::Logged {page, ..}=> { 
+                *page = intern;
+            },
+            _ => (),
         }
     }
 }
@@ -66,6 +83,7 @@ impl Page {
 pub enum Msg {
     Login(Input, Input),
     Logout,
+    Goto(Internal),
     Token(fetch::Result<String>, String),
 }
 
@@ -82,8 +100,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Logout => {
             model.page = Page::login();
         },
+        Msg::Goto(intern) => {
+            model.page.goto(intern);
+        },
         Msg::Token(Ok(token), login) => {
-            model.page = Page::Problems { token, login };
+            model.page = Page::Logged { login, token, page : Internal::Problems };
         },
         Msg::Token(Err(e), _) => {
             log!("error on login:", e);
@@ -103,7 +124,11 @@ fn view(model: &Model) -> Node<Msg> {
         Page::Login { login, password } => {
             views::view_login_screen(login.clone(), password.clone())
         }
-        Page::Problems { login, token } => views::view_problem_screen(&login),
+        Page::Logged { login, page, .. } => {
+            div![
+                views::navbar(&login, &page),
+            ]
+        },
     }
 }
 

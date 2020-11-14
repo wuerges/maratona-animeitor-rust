@@ -57,7 +57,7 @@ pub fn view_login_screen(
     ]
 }
 
-pub fn view_problem_screen(login: &String) -> Node<Msg> {
+pub fn navbar(login: &String, page: &Internal) -> Node<Msg> {
     nav![
         C!["navbar", "is-dark"],
         attrs! {"role"=>"navigation", At::AriaLabel=>"main navigation"},
@@ -84,10 +84,38 @@ pub fn view_problem_screen(login: &String) -> Node<Msg> {
             C!["navbar-menu"],
             div![
                 C!["navbar-start"],
-                a![C!["navbar-item"], "Informações Base"],
-                a![C!["navbar-item", "is-active"], "Problemas"],
-                a![C!["navbar-item"], "Clarifications"],
-                a![C!["navbar-item"], "Placar"],
+                a![
+                    C![
+                        "navbar-item",
+                        IF!(matches!(page, Internal::Basic) => "is-active")
+                    ],
+                    "Informações Base",
+                    ev(Ev::Click, |_| Msg::Goto(Internal::Basic))
+                ],
+                a![
+                    C![
+                        "navbar-item",
+                        IF!(matches!(page, Internal::Problems) => "is-active")
+                    ],
+                    "Problemas",
+                    ev(Ev::Click, |_| Msg::Goto(Internal::Problems))
+                ],
+                a![
+                    C![
+                        "navbar-item",
+                        IF!(matches!(page, Internal::Clarifications) => "is-active")
+                    ],
+                    "Clarifications",
+                    ev(Ev::Click, |_| Msg::Goto(Internal::Clarifications))
+                ],
+                a![
+                    C![
+                        "navbar-item",
+                        IF!(matches!(page, Internal::Scoreboard) => "is-active")
+                    ],
+                    "Placar",
+                    ev(Ev::Click, |_| Msg::Goto(Internal::Scoreboard))
+                ],
             ],
             div![
                 C!["navbar-end"],
@@ -96,27 +124,14 @@ pub fn view_problem_screen(login: &String) -> Node<Msg> {
                     div![
                         C!["buttons"],
                         a![C!["button", "is-static"], strong![login]],
-                        a![C!["button", "is-danger"], "Log out", ev(Ev::Click, |_| Msg::Logout)],
+                        a![
+                            C!["button", "is-danger"],
+                            "Log out",
+                            ev(Ev::Click, |_| Msg::Logout)
+                        ],
                     ]
                 ],
             ]
         ]
     ]
-    // <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
-
-    //     <div id="navbarBasicExample" class="navbar-menu">
-    //         <div class="navbar-end">
-    //             <div class="navbar-item">
-    //                 <div class="buttons">
-    //                     <a class="button is-static">
-    //                         <strong>Time BR 001</strong>
-    //                     </a>
-    //                     <a class="button is-danger">
-    //                         Log out
-    //                     </a>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     </div>
-    // </nav>
 }
