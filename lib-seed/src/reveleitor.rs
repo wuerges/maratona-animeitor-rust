@@ -65,7 +65,6 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
         }
         else {
             model.contest.apply_run_frozen(run).unwrap();
-
         }
     }
     model.runs_queue.setup_teams(&model.contest);
@@ -136,6 +135,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.center = None;
             model.runs = runs;
             model.contest = contest;
+
+            // log!("runs received in reveleitor:", model.runs.len());
             apply_all_runs_before_frozen(model);
             model.contest.reload_score().unwrap();
             // log!("run queue: ", model.runs_queue);
