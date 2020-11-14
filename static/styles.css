@@ -67,10 +67,10 @@ body {
 }
 
 .unicaColocacao {
-    width: calc(22vw + 12px);
+    width: calc(20.8vw + 12px);
 }
 .duplaColocacao {
-    width: calc(26vw + 18px);
+    width: calc(23.8vw + 18px);
 }
 
 .nomeEscola {
@@ -91,14 +91,14 @@ body {
 
 .problema {
     text-align: center;
-    width: 3vw;
+    width: 2.8vw;
     font-size: 2.5vw;
 }
 
 .colocacao {
     text-align: center;
-    width: 4vw;
-    font-size: 2vw;
+    width: 3vw;
+    font-size: 1.5vw;
 }
 
 .cima {
