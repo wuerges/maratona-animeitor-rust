@@ -3,7 +3,10 @@ use seed::{prelude::*, *};
 
 use crate::*;
 
-pub fn view_login_screen() -> Node<Msg> {
+pub fn view_login_screen(
+    login: ElRef<web_sys::HtmlInputElement>,
+    password: ElRef<web_sys::HtmlInputElement>,
+) -> Node<Msg> {
     div![
         C!["modal", "is-active"],
         div![C!["modal-background"]],
@@ -22,7 +25,8 @@ pub fn view_login_screen() -> Node<Msg> {
                         C!["control", "has-icons-left"],
                         input![
                             C!["input"],
-                            attrs! {At::Type=>"login", At::Placeholder=>"Login"}
+                            el_ref(&login),
+                            attrs! {At::Type=>"login", At::Placeholder=>"Login"},
                         ],
                         span![C!["icon", "is-small", "is-left"], "👤"],
                     ]
@@ -34,6 +38,7 @@ pub fn view_login_screen() -> Node<Msg> {
                         C!["control", "has-icons-left"],
                         input![
                             C!["input"],
+                            el_ref(&password),
                             attrs! {At::Type=>"password", At::Placeholder=>"Senha"}
                         ],
                         span![C!["icon", "is-small", "is-left"], "🔒"],
@@ -42,7 +47,11 @@ pub fn view_login_screen() -> Node<Msg> {
             ],
             footer![
                 C!["modal-card-foot"],
-                button![C!["button", "is-success"], "Login"]
+                button![
+                    C!["button", "is-success"],
+                    "Login",
+                    ev(Ev::Click, move |_| Msg::Login(login, password))
+                ],
             ]
         ]
     ]
