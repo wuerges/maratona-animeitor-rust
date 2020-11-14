@@ -36,13 +36,13 @@ pub async fn serve_everything() {
     let sign_route = warp::post()
         .and(warp::path("sign"))
         .and(warp::body::content_length_limit(1024 * 32))
-        .and(warp::body::form())
+        .and(warp::body::json())
         .and_then(move |m| serve_sign(m, params_sign.clone()));
 
     let params_runs = params.clone();
     let runs_route = warp::path("runs")
         .and(warp::body::content_length_limit(1024 * 32))
-        .and(warp::body::form())
+        .and(warp::body::json())
         .and_then(move |m| auth_and_serve(m, params_runs.clone(), get_all_runs));
 
 

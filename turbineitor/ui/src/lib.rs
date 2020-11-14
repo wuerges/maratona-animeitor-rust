@@ -3,8 +3,8 @@
 // but some rules are too "annoying" or are not applicable for your case.)
 #![allow(clippy::wildcard_imports)]
 
-pub mod views;
 pub mod requests;
+pub mod views;
 
 // use maratona_animeitor_rust::auth::UserKey;
 use seed::{prelude::*, *};
@@ -15,11 +15,16 @@ use seed::{prelude::*, *};
 
 // `init` describes what should happen when your app started.
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+    // Model {
+    //     page: Page::Login {
+    //         login: ElRef::new(),
+    //         password: ElRef::new(),
+    //     },
+    // }
     Model {
-        user_key: None,
-        page: Page::Login {
-            login: ElRef::new(),
-            password: ElRef::new(),
+        page: Page::Problems {
+            login: "kappa".to_string(),
+            token: "aoeuaoeuaoeuoeau".to_string(),
         },
     }
 }
@@ -31,7 +36,6 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
 // `Model` describes our app state.
 #[derive(Debug)]
 struct Model {
-    user_key: Option<String>,
     page: Page,
 }
 
@@ -39,10 +43,17 @@ type Input = ElRef<web_sys::HtmlInputElement>;
 
 #[derive(Debug)]
 enum Page {
-    Login {
-        login: Input,
-        password: Input,
-    },
+    Login { login: Input, password: Input },
+    Problems { login: String, token: String },
+}
+
+impl Page {
+    fn login() -> Self {
+        Page::Login {
+            login: ElRef::new(),
+            password: ElRef::new(),
+        }
+    }
 }
 
 // ------ ------
@@ -54,7 +65,8 @@ enum Page {
 // `Msg` describes the different events you can modify state with.
 pub enum Msg {
     Login(Input, Input),
-    Token(fetch::Result<String>),
+    Logout,
+    Token(fetch::Result<String>, String),
 }
 
 // `update` describes how to handle each `Msg`.
@@ -67,13 +79,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             orders.perform_cmd(requests::make_login(login, password));
         },
-        Msg::Token(Ok(token)) => {
-            log!("login ok, here is token:", token);
+        Msg::Logout => {
+            model.page = Page::login();
         },
-        Msg::Token(Err(e)) => {
+        Msg::Token(Ok(token), login) => {
+            model.page = Page::Problems { token, login };
+        },
+        Msg::Token(Err(e), _) => {
             log!("error on login:", e);
-        }
-        // Msg::Increment => *model += 1,
+        } // Msg::Increment => *model += 1,
     }
 }
 
@@ -86,7 +100,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 // `view` describes what to display.
 fn view(model: &Model) -> Node<Msg> {
     match &model.page {
-        Page::Login { login, password } => views::view_login_screen(login.clone(), password.clone()),
+        Page::Login { login, password } => {
+            views::view_login_screen(login.clone(), password.clone())
+        }
+        Page::Problems { login, token } => views::view_problem_screen(&login),
     }
 }
 

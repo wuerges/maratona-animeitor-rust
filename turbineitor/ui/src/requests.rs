@@ -9,10 +9,10 @@ pub async fn fetch_login(login: String, password: String) -> fetch::Result<Strin
         .fetch()
         .await?
         .check_status()?
-        .json()
+        .text()
         .await
 }
 
 pub async fn make_login(login: String, password: String) -> Msg {
-    Msg::Token(fetch_login(login, password).await)
+    Msg::Token(fetch_login(login.clone(), password).await, login)
 }
