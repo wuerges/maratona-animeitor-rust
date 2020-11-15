@@ -9,8 +9,9 @@ pub struct Revelation {
     runs_queue: RunsQueue,
 }
 
+#[derive(Debug)]
 pub enum Event {
-    Dud,
+    Dud(String),
     Winner {
         team_login: String,
         nome_sede: String,
@@ -60,15 +61,64 @@ impl RevelationDriver {
         }
     }
 
-    pub fn reveal_step(&mut self) -> Option<Event> {
+    fn reveal_step_base(&mut self) -> Option<Event> {
         let team = self.revelation.apply_one_run_from_queue();
         let winners = &self.winners;
         team.map(|team| {
             match winners.get(&team.login) {
-                None => Event::Dud,
-                Some(sede) => Event::Winner { team_login : team.login.clone(), nome_sede : sede.clone() },
+                None => Event::Dud(team.login.clone()),
+                Some(sede) => {
+                    if team.wait() {
+                        Event::Dud(team.login.clone())
+                    }
+                    else {
+                        Event::Winner { team_login : team.login.clone(), nome_sede : sede.clone() }
+                    }
+                }
             }
         })
+    }
+
+    pub fn reveal_step(&mut self) -> Option<Event> {
+        let event = self.reveal_step_base();
+        self.revelation.contest.recalculate_placement().unwrap();
+        event
+    }
+
+    pub fn reveal_all(&mut self) {
+        self.revelation.apply_all_runs_from_queue();
+    }
+
+    fn reveal_top_n_base(&mut self, n :usize) -> Option<Event> 
+    {
+        while self.len() > n {
+            let event = self.reveal_step_base();
+            match event {
+                None => return None,
+                Some(Event::Dud(_)) => {
+                },
+                Some(o) => return Some(o),
+            }
+        }
+        None
+    }
+    pub fn reveal_top_n(&mut self, n :usize) -> Option<Event> 
+    {
+        let event = self.reveal_top_n_base(n);
+        self.revelation.contest.recalculate_placement().unwrap();
+        event
+    }
+
+    pub fn peek(&self) -> Option<String> {
+        self.revelation.runs_queue.queue.peek().map(|s| s.team_login.clone() )
+    }
+
+    pub fn contest(&self) -> &ContestFile {
+        &self.revelation.contest
+    }
+
+    pub fn len(&self) -> usize {
+        self.revelation.runs_queue.len()
     }
 }
 

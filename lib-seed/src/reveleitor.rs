@@ -1,4 +1,5 @@
-use maratona_animeitor_rust::data;
+use maratona_animeitor_rust::{data, config};
+use maratona_animeitor_rust::revelation::{RevelationDriver, Event};
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
@@ -8,18 +9,13 @@ extern crate rand;
 
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    // orders.skip().perform_cmd( fetch_all() );
     orders.send_msg(Msg::Reset);
     Model { 
         button_disabled : false,
         source : get_source(&url),
         secret : get_secret(&url),
-        contest: data::ContestFile::dummy(),
-        runs: data::RunsFile::empty(),
-        runs_queue : data::RunsQueue::empty(),
-        // current_run: 0,
+        revelation : None,
         center: None,
-        // lock_frozen : true,
     }
 }
 
@@ -27,12 +23,15 @@ struct Model {
     button_disabled : bool,
     source : Option<String>,
     secret : String,
-    contest : data::ContestFile,
-    runs: data::RunsFile,
-    runs_queue : data::RunsQueue,
-    // current_run: usize,
     center : Option<String>,
-    // lock_frozen : bool,
+    revelation : Option<RevelationDriver>,
+}
+
+impl Model {
+
+    fn remaining(&self) -> usize {
+        self.revelation.as_ref().map( |r| r.len()).unwrap_or(0)
+    }
 }
 
 enum Msg {
@@ -40,11 +39,6 @@ enum Msg {
     Scroll(usize),
     Prox1,
     Scroll1,
-    // Wait,
-    // Recalculate,
-    // ToggleFrozen,
-    // FetchedRuns(fetch::Result<data::RunsFile>),
-    // FetchedContest(fetch::Result<data::ContestFile>),
     Reset,
     Fetched(
         fetch::Result<data::RunsFile>,
@@ -57,60 +51,33 @@ async fn fetch_all(source :Option<String>, secret : String) -> Msg {
     Msg::Fetched(r, c)
 }
 
-fn apply_all_runs_before_frozen(model: &mut Model) {
-
-    for run in model.runs.sorted() {
-        if run.time < model.contest.score_freeze_time {
-            model.contest.apply_run(run).unwrap();
-        }
-        else {
-            model.contest.apply_run_frozen(run).unwrap();
-        }
-    }
-    model.runs_queue.setup_teams(&model.contest);
-    model.contest.recalculate_placement().unwrap();
-}
-
-fn apply_all_runs_after_frozen(model: &mut Model) {
-
-
-    while model.runs_queue.queue.len() > 0 {
-        apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-    }
-    model.contest.recalculate_placement().unwrap();
-}
-
-fn apply_one_run_from_queue(runs_queue: &mut data::RunsQueue, contest  : &mut data::ContestFile) {
-
-    let _ = runs_queue.pop_run(contest);
-    
-}
-
-
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Prox1 => {
             model.button_disabled = true;
-            let next_center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );            
+            // let next_center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );            
+            let next_center = model.revelation.as_mut().map( |r| r.peek()).flatten();
             if next_center == model.center {
                 orders.send_msg(Msg::Scroll1);
             }
             else {
-                let delay = match (&model.center, &next_center) {
-                    (Some(c1), Some(c2)) => {
-                        let p1 = model.contest.placement(c1).unwrap() as i64;
-                        let p2 = model.contest.placement(c2).unwrap() as i64;
+                // let delay = match (&model.center, &next_center) {
+                //     (Some(c1), Some(c2)) => {
+                //         let p1 = model.revelation.revelation.contest.placement(c1).unwrap() as i64;
+                //         let p2 = model.revelation.revelation.contest.placement(c2).unwrap() as i64;
 
-                        if (p1 - p2).abs() < 5 {
-                            1000
-                        }
-                        else {
-                            5000
-                        }                       
-                    },
-                    _ => 5000,
-                };
-                // let delay = 1000;
+                //         if (p1 - p2).abs() < 5 {
+                //             1000
+                //         }
+                //         else {
+                //             5000
+                //         }                       
+                //     },
+                //     _ => 5000,
+                // };
+                let delay = 3000;
+
+
                 model.center = next_center;
 
                 // let delay = 5000;
@@ -118,40 +85,38 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         },
         Msg::Scroll1 => {
-            apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
-
-            model.contest.recalculate_placement().unwrap();
+            model.revelation.as_mut().map( |r| r.reveal_step() );
             model.button_disabled = false;
-
         },
         Msg::Prox(n) => {
             model.button_disabled = true;
-            model.center = model.runs_queue.queue.peek().map(|s| s.team_login.clone() );
+            model.center = model.revelation.as_mut().map( |r| r.peek() ).flatten();
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll(n)));
         },
         Msg::Scroll(n) => {
             model.center = None;
 
-            while model.runs_queue.queue.len() > n {
-                apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+            log!("going to reveal top: ", n);
+            let event = model.revelation.as_mut().map( |r| r.reveal_top_n(n) ).flatten();
+            log!("event: ", event);
+            match event {
+                None => (),
+                Some(e) => {
+                    match &e {
+                        Event::Dud(_) => (),
+                        Event::Winner { team_login, nome_sede } => {
+                            model.center = Some(team_login.clone());
+                            log!("Time ", team_login, "vencedor da sede", &nome_sede);
+                        }
+                    }
+                }
             }
-            model.contest.recalculate_placement().unwrap();
             model.button_disabled = false;
-
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
-            // model.current_run = 0;
+            model.revelation = Some(RevelationDriver::new(contest, runs, config::contest()));
+            // model.revelation.as_mut().map(|r| r.reveal_all() );
             model.center = None;
-            model.runs = runs;
-            model.contest = contest;
-
-            // log!("runs received in reveleitor:", model.runs.len());
-            apply_all_runs_before_frozen(model);
-
-            // apply_all_runs_after_frozen(model);
-
-            model.contest.reload_score().unwrap();
-            // log!("run queue: ", model.runs_queue);
             model.button_disabled = false;
         },
         Msg::Fetched(Err(e), _) => {
@@ -182,11 +147,11 @@ fn view(model: &Model) -> Node<Msg> {
             button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),button_disabled.clone()],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),button_disabled],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
-            div!["Times com runs pendentes: ", model.runs_queue.len()],
+            div!["Times: ", model.remaining()],
         ],
         div![
             style!{St::Position => "relative", St::Top => px(60)},
-            views::view_scoreboard(&model.contest, &model.center, &None),
+            model.revelation.as_ref().map( |r| views::view_scoreboard(r.contest(), &model.center, &None)),
         ]
     ]
 }
