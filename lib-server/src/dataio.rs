@@ -287,8 +287,37 @@ mod tests {
         let mut db = DB::empty();
         db.refresh_db(0, contest, runs)?;
 
-        assert_eq!(db.run_file.len(), 6285);
+        assert_eq!(db.run_file.len(), 4927);
+        assert_eq!(db.run_file_secret.len(), 6285);
 
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_revelation_1a_fase_2020() -> Result<(), ContestIOError> {
+        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+        
+        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        assert_eq!(runs.len(), 6285);
+
+        let mut r1 = Revelation::new(contest.clone(), runs.clone());
+        let mut r2 = Revelation::new(contest, runs);
+
+        r1.apply_all_runs();
+
+        r2.apply_all_runs_on_frozen();
+        r2.apply_all_runs_from_queue();
+
+        for t in r1.contest.teams.values() {
+            let t2_p = r2.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t2_p);
+        }
+
+        for t in r2.contest.teams.values() {
+            let t1_p = r1.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t1_p);
+        }
 
         Ok(())
     }

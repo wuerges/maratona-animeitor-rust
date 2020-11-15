@@ -71,6 +71,15 @@ fn apply_all_runs_before_frozen(model: &mut Model) {
     model.contest.recalculate_placement().unwrap();
 }
 
+fn apply_all_runs_after_frozen(model: &mut Model) {
+
+
+    while model.runs_queue.queue.len() > 0 {
+        apply_one_run_from_queue(&mut model.runs_queue, &mut model.contest);
+    }
+    model.contest.recalculate_placement().unwrap();
+}
+
 fn apply_one_run_from_queue(runs_queue: &mut data::RunsQueue, contest  : &mut data::ContestFile) {
 
     let _ = runs_queue.pop_run(contest);
@@ -138,6 +147,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             // log!("runs received in reveleitor:", model.runs.len());
             apply_all_runs_before_frozen(model);
+
+            apply_all_runs_after_frozen(model);
+
             model.contest.reload_score().unwrap();
             // log!("run queue: ", model.runs_queue);
             model.button_disabled = false;
