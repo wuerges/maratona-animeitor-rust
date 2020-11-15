@@ -178,14 +178,14 @@ impl Team {
             .add_run_frozen(run.answer.clone());
     }
 
-    fn wait(&self) -> bool {
+    pub fn wait(&self) -> bool {
         // false
         self.problems.values()
         .map(|p| p.wait())
         .fold(false, |t,e| t || e)
     }
 
-    fn reveal_run_frozen(&mut self) {
+    pub fn reveal_run_frozen(&mut self) {
         for p in self.problems.values_mut() {
             if p.wait() {
                 p.reveal_run_frozen();
