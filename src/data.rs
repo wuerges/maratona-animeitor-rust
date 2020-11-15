@@ -1,19 +1,19 @@
-use std::fmt;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BinaryHeap};
-use serde::{Serialize, Deserialize};
+use std::fmt;
 // use itertools::Itertools;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum Answer {
     Yes(i64),
     No,
     Wait,
-    Unk
+    Unk,
 }
 
 #[derive(Debug)]
 pub enum ContestError {
-    UnmatchedTeam(String)
+    UnmatchedTeam(String),
 }
 
 impl std::error::Error for ContestError {}
@@ -24,7 +24,6 @@ impl fmt::Display for ContestError {
     }
 }
 
-
 impl fmt::Display for Answer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -33,26 +32,26 @@ impl fmt::Display for Answer {
 
 pub type TimeFile = i64;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Problem {
-    pub solved : bool,
-    pub submissions : usize,
+    pub solved: bool,
+    pub submissions: usize,
     pub penalty: i64,
-    pub time_solved : i64,
+    pub time_solved: i64,
     pub answers: Vec<Answer>,
 }
 
 #[derive(Copy, Debug, Clone, Serialize, Deserialize)]
 pub struct TimerData {
-    pub current_time : TimeFile,
-    pub score_freeze_time : i64,
+    pub current_time: TimeFile,
+    pub score_freeze_time: i64,
 }
 
 impl TimerData {
-    pub fn new(current_time : TimeFile, score_freeze_time : i64) -> Self {
+    pub fn new(current_time: TimeFile, score_freeze_time: i64) -> Self {
         Self {
             current_time,
-            score_freeze_time
+            score_freeze_time,
         }
     }
 
@@ -63,7 +62,13 @@ impl TimerData {
 
 impl Problem {
     fn empty() -> Self {
-        Problem { solved : false, submissions : 0, time_solved: 0, penalty : 0, answers: Vec::new() }
+        Problem {
+            solved: false,
+            submissions: 0,
+            time_solved: 0,
+            penalty: 0,
+            answers: Vec::new(),
+        }
     }
     fn add_run_problem(&mut self, answer: Answer) {
         if self.solved {
@@ -76,18 +81,16 @@ impl Problem {
                 self.penalty += tim;
                 self.time_solved = tim;
                 self.answers.clear();
-            },
+            }
             Answer::No => {
                 self.submissions += 1;
                 self.penalty += 20;
-                self.answers.clear();
-            },
-            Answer::Wait => {
-                self.answers.push(Answer::No) // failsafe
-            },
-            _ => {
-
+                // self.answers.clear();
             }
+            Answer::Wait => {
+                // self.answers.push(Answer::No) // failsafe
+            }
+            _ => {}
         }
     }
 
@@ -96,11 +99,13 @@ impl Problem {
     }
 
     fn add_run_frozen(&mut self, answer: Answer) {
-        self.answers.push(answer)
+        if answer != Answer::Wait {
+            self.answers.push(answer)
+        }
     }
 
     fn reveal_run_frozen(&mut self) {
-        if self.answers.len() > 0 {
+        if self.wait() {
             let a = self.answers.remove(0);
             self.add_run_problem(a);
         }
@@ -109,39 +114,35 @@ impl Problem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Team {
-    pub login : String,
-    pub escola : String,
-    pub name : String,
-    pub placement : usize,
-    pub problems : BTreeMap<String, Problem>,
+    pub login: String,
+    pub escola: String,
+    pub name: String,
+    pub placement: usize,
+    pub problems: BTreeMap<String, Problem>,
 }
 
-use std::cmp::{Ord, Eq, Ordering};
+use std::cmp::{Eq, Ord, Ordering};
 
 #[derive(PartialEq, Eq)]
 pub struct Score {
     pub solved: usize,
     pub penalty: i64,
     pub max_solution_time: i64,
-    pub team_login: String,    
+    pub team_login: String,
 }
 
 impl PartialOrd for Score {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(if self.solved != other.solved {
             other.solved.cmp(&self.solved)
-        }
-        else if self.penalty != other.penalty {
+        } else if self.penalty != other.penalty {
             self.penalty.cmp(&other.penalty)
-        }
-        else if self.max_solution_time != other.max_solution_time {
+        } else if self.max_solution_time != other.max_solution_time {
             self.max_solution_time.cmp(&other.max_solution_time)
-        }
-        else {
+        } else {
             self.team_login.cmp(&other.team_login)
         })
-    }    
-
+    }
 }
 
 impl Ord for Score {
@@ -151,13 +152,13 @@ impl Ord for Score {
 }
 
 impl Team {
-    pub fn new(login : &str, escola : &str, name : &str) -> Self {
+    pub fn new(login: &str, escola: &str, name: &str) -> Self {
         Self {
-            login : login.to_string(),
-            escola : escola.to_string(),
-            name : name.to_string(),
-            placement : 0,
-            problems : BTreeMap::new()
+            login: login.to_string(),
+            escola: escola.to_string(),
+            name: name.to_string(),
+            placement: 0,
+            problems: BTreeMap::new(),
         }
     }
 
@@ -165,24 +166,26 @@ impl Team {
         Self::new("<login>", "<escola>", "<nome>")
     }
 
-
-    fn apply_run(&mut self, run : &RunTuple) {
-        self.problems.entry(run.prob.clone())
+    fn apply_run(&mut self, run: &RunTuple) {
+        self.problems
+            .entry(run.prob.clone())
             .or_insert(Problem::empty())
             .add_run_problem(run.answer.clone());
     }
 
-    fn apply_run_frozen(&mut self, run : &RunTuple) {
-        self.problems.entry(run.prob.clone())
+    fn apply_run_frozen(&mut self, run: &RunTuple) {
+        self.problems
+            .entry(run.prob.clone())
             .or_insert(Problem::empty())
             .add_run_frozen(run.answer.clone());
     }
 
     pub fn wait(&self) -> bool {
         // false
-        self.problems.values()
-        .map(|p| p.wait())
-        .fold(false, |t,e| t || e)
+        self.problems
+            .values()
+            .map(|p| p.wait())
+            .fold(false, |t, e| t || e)
     }
 
     pub fn reveal_run_frozen(&mut self) {
@@ -193,7 +196,6 @@ impl Team {
             }
         }
     }
-
 
     // fn useful_run(&self, run : &RunTuple) -> bool {
     //     self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
@@ -210,44 +212,50 @@ impl Team {
                 max_solution_time = max_solution_time.max(value.time_solved);
             }
         }
-        Score { solved, penalty, max_solution_time, team_login: self.login.clone() }
+        Score {
+            solved,
+            penalty,
+            max_solution_time,
+            team_login: self.login.clone(),
+        }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContestFile {
-    pub contest_name : String,
-    pub teams : BTreeMap<String, Team>,
-    pub current_time : i64,
-    pub maximum_time : i64,
-    pub score_freeze_time : i64,
-    pub penalty_per_wrong_answer : i64,
-    pub score_board : Vec<String>,
-    pub number_problems : usize
+    pub contest_name: String,
+    pub teams: BTreeMap<String, Team>,
+    pub current_time: i64,
+    pub maximum_time: i64,
+    pub score_freeze_time: i64,
+    pub penalty_per_wrong_answer: i64,
+    pub score_board: Vec<String>,
+    pub number_problems: usize,
 }
 
 impl ContestFile {
-    pub fn new(contest_name : String
-        , teams : Vec<Team>
-        , current_time : i64
-        , maximum_time : i64
-        , score_freeze_time : i64
-        , penalty : i64
-        , number_problems : usize) -> Self {
-
+    pub fn new(
+        contest_name: String,
+        teams: Vec<Team>,
+        current_time: i64,
+        maximum_time: i64,
+        score_freeze_time: i64,
+        penalty: i64,
+        number_problems: usize,
+    ) -> Self {
         let mut m = BTreeMap::new();
         for t in teams {
             m.insert(t.login.clone(), t);
         }
         Self {
             contest_name,
-            teams : m,
+            teams: m,
             current_time,
             maximum_time,
             score_freeze_time,
-            penalty_per_wrong_answer : penalty,
-            score_board : Vec::new(),
-            number_problems : number_problems
+            penalty_per_wrong_answer: penalty,
+            score_board: Vec::new(),
+            number_problems: number_problems,
         }
     }
 
@@ -260,16 +268,15 @@ impl ContestFile {
         for (key, _) in self.teams.iter() {
             score_board.push(key.clone());
         }
-        score_board.sort_by(|a,b| {
+        score_board.sort_by(|a, b| {
             let score_a = self.teams.get(a).unwrap().score();
             let score_b = self.teams.get(b).unwrap().score();
             score_a.cmp(&score_b)
         });
-        
         for (i, v) in score_board.iter().enumerate() {
             match self.teams.get_mut(v) {
                 None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => t.placement = i+1
+                Some(t) => t.placement = i + 1,
             }
         }
 
@@ -281,23 +288,21 @@ impl ContestFile {
         for (key, _) in self.teams.iter() {
             score_board.push(key.clone());
         }
-        score_board.sort_by(|a,b| {
+        score_board.sort_by(|a, b| {
             let score_a = self.teams.get(a).unwrap().score();
             let score_b = self.teams.get(b).unwrap().score();
             score_a.cmp(&score_b)
         });
-        
         for (i, v) in score_board.iter().enumerate() {
             match self.teams.get_mut(v) {
                 None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => t.placement = i+1
+                Some(t) => t.placement = i + 1,
             }
         }
 
         self.score_board = score_board;
         Ok(())
     }
-
 
     pub fn dummy() -> Self {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
@@ -308,13 +313,13 @@ impl ContestFile {
     //         None => Err(ContestError::UnmatchedTeam(
     //             "Could not check useful run to team".to_string(),
     //         )),
-    //         Some(t) => {                
+    //         Some(t) => {
     //             Ok(t.useful_run(r))
     //         }
-    //     }   
+    //     }
     // }
 
-    pub fn apply_run(&mut self, r : &RunTuple) -> Result<(), ContestError> {
+    pub fn apply_run(&mut self, r: &RunTuple) -> Result<(), ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
@@ -326,7 +331,7 @@ impl ContestFile {
         }
     }
 
-    pub fn apply_run_frozen(&mut self, r : &RunTuple) -> Result<Score, ContestError> {
+    pub fn apply_run_frozen(&mut self, r: &RunTuple) -> Result<Score, ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
                 "Could not apply run to team".to_string(),
@@ -337,7 +342,6 @@ impl ContestFile {
             }
         }
     }
-   
     // pub fn mark_all_wrong(&mut self, team_name : &String) {
     //     match self.teams.get_mut(team_name) {
     //         None => (),
@@ -347,27 +351,25 @@ impl ContestFile {
 }
 
 pub struct Revelation {
-    pub contest : ContestFile,
-    runs : RunsFile,
-    runs_queue : RunsQueue,
+    pub contest: ContestFile,
+    runs: RunsFile,
+    runs_queue: RunsQueue,
 }
 
 impl Revelation {
-    pub fn new(contest : ContestFile, runs : RunsFile) -> Self {
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
         Self {
             contest,
             runs,
-            runs_queue : RunsQueue::empty(),
+            runs_queue: RunsQueue::empty(),
         }
     }
-    
-    pub fn apply_all_runs_before_frozen(&mut self) {
 
+    pub fn apply_all_runs_before_frozen(&mut self) {
         for run in self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
                 self.contest.apply_run(run).unwrap();
-            }
-            else {
+            } else {
                 self.contest.apply_run_frozen(run).unwrap();
             }
         }
@@ -376,7 +378,6 @@ impl Revelation {
     }
 
     pub fn apply_all_runs_on_frozen(&mut self) {
-
         for run in self.runs.sorted() {
             self.contest.apply_run_frozen(run).unwrap();
         }
@@ -405,42 +406,38 @@ impl Revelation {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunTuple {
-    pub id : i64,
-    pub time : i64,
-    pub team_login : String,
-    pub prob : String,
-    pub answer : Answer
+    pub id: i64,
+    pub time: i64,
+    pub team_login: String,
+    pub prob: String,
+    pub answer: Answer,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)] 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunsFile {
-    runs : Vec<RunTuple>
+    runs: Vec<RunTuple>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
-    pub id : i64,
-    pub placement : usize,
-    pub color : i64,
-    pub escola : String,
-    pub team_name : String,
-    pub team_login : String,
-    pub problem : String,
-    pub result : Answer
+    pub id: i64,
+    pub placement: usize,
+    pub color: i64,
+    pub escola: String,
+    pub team_name: String,
+    pub team_login: String,
+    pub problem: String,
+    pub result: Answer,
 }
 
 impl RunsFile {
     pub fn empty() -> Self {
-        RunsFile {
-            runs : Vec::new()
-        }
+        RunsFile { runs: Vec::new() }
     }
 
     pub fn new(mut runs: Vec<RunTuple>) -> Self {
         runs.sort_by(|a, b| a.time.cmp(&b.time));
-        Self { 
-            runs
-        }
+        Self { runs }
     }
 
     pub fn len(&self) -> usize {
@@ -456,19 +453,26 @@ impl RunsFile {
         &self.runs
     }
 
-    pub fn filter_frozen(&self, frozen_time : i64) -> Self {
-        RunsFile { runs : self.runs.iter().cloned().filter( |r| r.time < frozen_time).collect() }
+    pub fn filter_frozen(&self, frozen_time: i64) -> Self {
+        RunsFile {
+            runs: self
+                .runs
+                .iter()
+                .cloned()
+                .filter(|r| r.time < frozen_time)
+                .collect(),
+        }
     }
 }
 
 pub struct RunsQueue {
-    pub queue : BinaryHeap<Score>,
+    pub queue: BinaryHeap<Score>,
 }
 
 impl RunsQueue {
     pub fn empty() -> Self {
         Self {
-            queue : BinaryHeap::new(),
+            queue: BinaryHeap::new(),
         }
     }
 
@@ -485,22 +489,67 @@ impl RunsQueue {
     }
 
     pub fn pop_run(&mut self, contest: &mut ContestFile) {
-
         let entry = self.queue.pop();
         match entry {
             None => (),
-            Some(score) => {
-                match contest.teams.get_mut(&score.team_login) {
-                    None => (),
-                    Some(team) => {
-                        team.reveal_run_frozen();
-                        if team.wait() {
-                            self.queue.push(team.score());
-                        }
+            Some(score) => match contest.teams.get_mut(&score.team_login) {
+                None => (),
+                Some(team) => {
+                    team.reveal_run_frozen();
+                    if team.wait() {
+                        self.queue.push(team.score());
                     }
                 }
+            },
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quickcheck::*;
+
+    impl Arbitrary for Answer {
+        fn arbitrary<G: Gen>(g: &mut G) -> Self {
+            let r = g.next_u32() % 3;
+
+            if r == 0 {
+                Answer::Yes(g.next_u64() as i64)
+            }
+            // else if r == 1{
+            //     Answer::Wait
+            // }
+            else {
+                Answer::No
             }
         }
     }
 
+    quickcheck! {
+        fn problem_with_runs_is_the_same_as_revealed(answers : Vec<Answer>) -> bool {
+            let mut p1 = Problem::empty();
+            let mut p2 = Problem::empty();
+            
+            println!("------------------------------");
+            println!("answers={:?}", answers);
+            for a in &answers {
+                p1.add_run_problem(a.clone());
+                p2.add_run_frozen(a.clone());
+            }
+            println!("p1={:?}", p1);
+            while p2.wait() {
+                p2.reveal_run_frozen();
+
+            }
+            println!("p2={:?}", p2);
+
+            // p2.answers.clear();
+
+            println!("p2={:?}", p2);
+            println!("p1==p2= {}", p1==p2);
+
+            p1 == p2
+        }
+    }
 }
