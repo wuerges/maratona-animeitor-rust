@@ -1,4 +1,5 @@
 pub mod data;
+pub mod revelation;
 pub mod config;
 pub mod configdata;
 
