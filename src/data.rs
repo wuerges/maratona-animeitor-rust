@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BinaryHeap};
+use std::collections::BTreeMap;
 use std::fmt;
 // use itertools::Itertools;
 
@@ -119,6 +119,25 @@ pub struct Team {
     pub name: String,
     pub placement: usize,
     pub problems: BTreeMap<String, Problem>,
+}
+
+impl Eq for Team {}
+impl PartialEq for Team {
+    fn eq(&self, other: &Self) -> bool {
+        self.score() == other.score()
+    }
+}
+
+impl PartialOrd for Team {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.score().cmp(&other.score()))
+    }
+}
+
+impl Ord for Team {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.score().cmp(&other.score())
+    }
 }
 
 use std::cmp::{Eq, Ord, Ordering};
@@ -412,45 +431,6 @@ impl RunsFile {
     }
 }
 
-pub struct RunsQueue {
-    pub queue: BinaryHeap<Score>,
-}
-
-impl RunsQueue {
-    pub fn empty() -> Self {
-        Self {
-            queue: BinaryHeap::new(),
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.queue.len()
-    }
-
-    pub fn setup_teams(&mut self, contest: &ContestFile) {
-        for team in contest.teams.values() {
-            if team.wait() {
-                self.queue.push(team.score())
-            }
-        }
-    }
-
-    pub fn pop_run(&mut self, contest: &mut ContestFile) {
-        let entry = self.queue.pop();
-        match entry {
-            None => (),
-            Some(score) => match contest.teams.get_mut(&score.team_login) {
-                None => (),
-                Some(team) => {
-                    team.reveal_run_frozen();
-                    if team.wait() {
-                        self.queue.push(team.score());
-                    }
-                }
-            },
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {

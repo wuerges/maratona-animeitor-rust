@@ -8,7 +8,7 @@ use crate::configdata::*;
 
 const BR : &str = "Brasil";
 
-pub fn contest() -> Contest {
+pub fn contest() -> ConfigContest {
     let mut sedes : Vec<Sede> = 
         vec![("Acre", "ac"), 
              ("Alagoas", "al"), 
@@ -53,5 +53,5 @@ pub fn contest() -> Contest {
 
     // sedes.push(Sede::new("Global", "Global", "Global", ""));
 
-    Contest::new(sedes)
+    ConfigContest::new(sedes)
 }
