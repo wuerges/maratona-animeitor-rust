@@ -148,7 +148,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // log!("runs received in reveleitor:", model.runs.len());
             apply_all_runs_before_frozen(model);
 
-            apply_all_runs_after_frozen(model);
+            // apply_all_runs_after_frozen(model);
 
             model.contest.reload_score().unwrap();
             // log!("run queue: ", model.runs_queue);
@@ -175,6 +175,7 @@ fn view(model: &Model) -> Node<Msg> {
         div![
             C!["commandpanel"],
             button!["+1", ev(Ev::Click, |_| Msg::Prox1),button_disabled.clone()],
+            button!["All", ev(Ev::Click, |_| Msg::Prox(0)),button_disabled.clone()],
             button!["Top 10", ev(Ev::Click, |_| Msg::Prox(10)),button_disabled.clone()],
             button!["Top 30", ev(Ev::Click, |_| Msg::Prox(30)),button_disabled.clone()],
             button!["Top 50", ev(Ev::Click, |_| Msg::Prox(50)),button_disabled.clone()],

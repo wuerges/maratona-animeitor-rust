@@ -88,7 +88,7 @@ impl Problem {
                 // self.answers.clear();
             }
             Answer::Wait => {
-                // self.answers.push(Answer::No) // failsafe
+                self.answers.push(Answer::No) // failsafe
             }
             _ => {}
         }
