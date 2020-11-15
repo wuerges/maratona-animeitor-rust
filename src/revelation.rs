@@ -1,7 +1,6 @@
 use crate::configdata::*;
 use crate::data::*;
 
-use std::collections::btree_map;
 use std::collections::{BTreeMap, BinaryHeap};
 
 pub struct Revelation {
