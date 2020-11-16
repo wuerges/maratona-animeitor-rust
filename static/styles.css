@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
 
 body {
     color: white;
@@ -9,7 +9,7 @@ body {
     background-color: #131313;
     background-repeat: repeat;
     /* background-image: url('/static/assets/maratona-logo-wallpaper.png') ; */
-    background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ;
+    /* background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ; */
     background-blend-mode:multiply;
 
     overflow-y: scroll;

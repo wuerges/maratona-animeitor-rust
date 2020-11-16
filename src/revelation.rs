@@ -10,12 +10,9 @@ pub struct Revelation {
 }
 
 #[derive(Debug, Clone)]
-pub enum Event<'a> {
-    Dud(&'a String),
-    Winner {
-        team_login: &'a  String,
-        nome_sede: &'a String,
-    },
+pub struct Winner {
+    pub team_login: String,
+    pub nome_sede: String,
 }
 
 pub struct RevelationDriver {
@@ -63,61 +60,55 @@ impl RevelationDriver {
         }
     }
 
-    pub fn check_winner(&self) -> Option<Event> {
-        let winners = &self.winners;
-        let score = self.revelation.runs_queue.peek();
+    // fn pop_winner(&mut self, team_login: &String) -> Option<String> {
+    //     self.winners.remove(team_login)
+    // }
 
-        match score {
-            None => None,
-            Some(score) => {
-                match winners.get(&score.team_login) {
-                    None => Some(Event::Dud(&score.team_login)),
-                    Some(sede) => Some(Event::Winner {
-                        team_login: &score.team_login,
-                        nome_sede: &sede,
-                    })
-                }
+    pub fn reveal_step(&mut self) {
+        self.revelation.apply_one_run_from_queue();
+        self.revelation.contest.recalculate_placement().unwrap();
+    }
+
+    // pub fn check_winner(&self, login :&String) -> Option<&String> {
+    //     let team = self.revelation.contest.teams.get(login);
+    //     let winner = self.winners.get(login);
+    //     match (winner, team) {
+    //         (Some(winner), Some(team)) => {
+    //             if team.wait() { None } else { Some(winner) }
+    //         },
+    //         _ => None,
+    //     }
+    // }
+
+    pub fn peek(&self) -> Option<&String> {
+        self.revelation.runs_queue.peek()
+    }
+
+    pub fn search_for_events(&mut self) -> Option<Winner>{
+        // panic!("board = {:?}, winners = {:?}", board, self.winners);
+
+        let mut teams : Vec<&Team> = self.revelation.contest.teams.values().collect();
+        teams.sort();
+
+        for t in teams.iter().rev() {
+            if t.wait() {
+                break;
+            }
+            match self.winners.remove(&t.login) {
+                None => (),
+                Some(sede) => return Some(Winner { team_login : t.login.clone(), nome_sede : sede }),
             }
         }
-    }
-
-    fn reveal_step_base(&mut self) {
-        self.revelation.apply_one_run_from_queue();
-    }
-
-    pub fn reveal_step(&mut self) -> Option<Event> {
-        self.reveal_step_base();
-        self.revelation.contest.recalculate_placement().unwrap();
-        self.check_winner()
+        None
     }
 
     pub fn reveal_all(&mut self) {
         self.revelation.apply_all_runs_from_queue();
     }
 
-    fn reveal_top_n_base(&mut self, n: usize) {
-        while self.len() > n {
-            self.reveal_step_base(); 
-                match self.check_winner() {
-                    Some(Event::Winner {..}) => {
-                        break;
-                    },
-                    _ => ()
-                }
-        }
-    }
-    pub fn reveal_top_n(&mut self, n: usize) -> Option<Event> {
-        self.reveal_top_n_base(n);
-        self.revelation.contest.recalculate_placement().unwrap();
-        self.check_winner()
-    }
-
-    pub fn peek(&self) -> Option<String> {
-        self.revelation
-            .runs_queue
-            .queue
-            .peek()
-            .map(|s| s.team_login.clone())
+    pub fn reveal_top_n(&mut self, n: usize) -> Option<Winner> {
+        self.revelation.apply_runs_from_queue_n(n);
+        self.search_for_events()
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -158,12 +149,20 @@ impl Revelation {
         self.contest.recalculate_placement().unwrap();
     }
 
-    pub fn apply_one_run_from_queue(&mut self) -> Option<&Team> {
-        self.runs_queue.pop_run(&mut self.contest)
+    pub fn apply_one_run_from_queue(&mut self) {
+        self.runs_queue.pop_run(&mut self.contest);
+        // self.contest.recalculate_placement().unwrap();
     }
 
     pub fn apply_all_runs_from_queue(&mut self) {
         while self.runs_queue.queue.len() > 0 {
+            self.apply_one_run_from_queue();
+        }
+        self.contest.recalculate_placement().unwrap();
+    }
+
+    pub fn apply_runs_from_queue_n(&mut self, n : usize) {
+        while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
         self.contest.recalculate_placement().unwrap();
@@ -192,6 +191,10 @@ impl RunsQueue {
         self.queue.len()
     }
 
+    fn peek(&self) -> Option<&String> {
+        self.queue.peek().map(|s| &s.team_login )
+    }
+
     pub fn setup_queue(contest: &ContestFile) -> Self {
         let mut q = Self::empty();
         for team in contest.teams.values() {
@@ -200,14 +203,10 @@ impl RunsQueue {
         q
     }
 
-    pub fn peek(&self) -> Option<&Score> {
-        self.queue.peek()
-    }
-
-    pub fn pop_run<'a>(&mut self, contest: &'a mut ContestFile) -> Option<&'a Team> {
+    pub fn pop_run<'a>(&mut self, contest: &'a mut ContestFile) {
         let entry = self.queue.pop();
         match entry {
-            None => None,
+            None => (),
             Some(score) => match contest.teams.get_mut(&score.team_login) {
                 None => panic!("invalid team!"),
                 Some(team) => {
@@ -216,7 +215,6 @@ impl RunsQueue {
                     if team.wait() {
                         self.queue.push(team.score());
                     }
-                    Some(team)
                 }
             },
         }
