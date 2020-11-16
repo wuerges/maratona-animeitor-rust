@@ -3,18 +3,36 @@ pub struct Sede {
     pub source: String,
     pub parent_source: String,
     pub codes: Vec<String>,
+    pub premiacao: bool,
+    pub vagas: usize,
 }
 
 impl Sede {
-    pub fn new(name: &str, source: &str, parent_source: &str, code: &str) -> Self {
-        Self::supersede(name, source, parent_source, vec![code])
+    pub fn new(
+        name: &str,
+        source: &str,
+        parent_source: &str,
+        code: &str,
+        premiacao: bool,
+        vagas: usize,
+    ) -> Self {
+        Self::supersede(name, source, parent_source, vec![code], premiacao, vagas)
     }
-    pub fn supersede(name: &str, source: &str, parent_source: &str, codes: Vec<&str>) -> Self {
+    pub fn supersede(
+        name: &str,
+        source: &str,
+        parent_source: &str,
+        codes: Vec<&str>,
+        premiacao: bool,
+        vagas: usize,
+    ) -> Self {
         Self {
             name: name.to_string(),
             source: source.to_string(),
             parent_source: parent_source.to_string(),
             codes: codes.iter().map(|c| c.to_string()).collect(),
+            premiacao,
+            vagas,
         }
     }
 
@@ -51,10 +69,10 @@ impl ConfigContest {
         Self { sedes }
     }
 
-    pub fn get_sede(&self, team: &String) -> Option<String> {
+    pub fn get_sede(&self, team: &String) -> Option<&Sede> {
         for sede in &self.sedes {
             if sede.check_login(team) {
-                return Some(sede.name.clone());
+                return Some(&sede);
             }
         }
         None

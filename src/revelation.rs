@@ -9,12 +9,12 @@ pub struct Revelation {
     runs_queue: RunsQueue,
 }
 
-#[derive(Debug)]
-pub enum Event {
-    Dud(String),
+#[derive(Debug, Clone)]
+pub enum Event<'a> {
+    Dud(&'a String),
     Winner {
-        team_login: String,
-        nome_sede: String,
+        team_login: &'a  String,
+        nome_sede: &'a String,
     },
 }
 
@@ -38,7 +38,9 @@ impl RevelationDriver {
         let mut winners = BTreeMap::new();
         for t in teams {
             let sede = sedes.get_sede(&t.login).unwrap();
-            winners.entry(sede).or_insert(t.login.clone());
+            if sede.premiacao {
+                winners.entry(sede.name.clone()).or_insert(t.login.clone());
+            }
         }
 
         let mut rev_winners = BTreeMap::new();
@@ -61,56 +63,61 @@ impl RevelationDriver {
         }
     }
 
-    fn reveal_step_base(&mut self) -> Option<Event> {
-        let team = self.revelation.apply_one_run_from_queue();
+    pub fn check_winner(&self) -> Option<Event> {
         let winners = &self.winners;
-        team.map(|team| {
-            match winners.get(&team.login) {
-                None => Event::Dud(team.login.clone()),
-                Some(sede) => {
-                    if team.wait() {
-                        Event::Dud(team.login.clone())
-                    }
-                    else {
-                        Event::Winner { team_login : team.login.clone(), nome_sede : sede.clone() }
-                    }
+        let score = self.revelation.runs_queue.peek();
+
+        match score {
+            None => None,
+            Some(score) => {
+                match winners.get(&score.team_login) {
+                    None => Some(Event::Dud(&score.team_login)),
+                    Some(sede) => Some(Event::Winner {
+                        team_login: &score.team_login,
+                        nome_sede: &sede,
+                    })
                 }
             }
-        })
+        }
+    }
+
+    fn reveal_step_base(&mut self) {
+        self.revelation.apply_one_run_from_queue();
     }
 
     pub fn reveal_step(&mut self) -> Option<Event> {
-        let event = self.reveal_step_base();
+        self.reveal_step_base();
         self.revelation.contest.recalculate_placement().unwrap();
-        event
+        self.check_winner()
     }
 
     pub fn reveal_all(&mut self) {
         self.revelation.apply_all_runs_from_queue();
     }
 
-    fn reveal_top_n_base(&mut self, n :usize) -> Option<Event> 
-    {
+    fn reveal_top_n_base(&mut self, n: usize) {
         while self.len() > n {
-            let event = self.reveal_step_base();
-            match event {
-                None => return None,
-                Some(Event::Dud(_)) => {
-                },
-                Some(o) => return Some(o),
-            }
+            self.reveal_step_base(); 
+                match self.check_winner() {
+                    Some(Event::Winner {..}) => {
+                        break;
+                    },
+                    _ => ()
+                }
         }
-        None
     }
-    pub fn reveal_top_n(&mut self, n :usize) -> Option<Event> 
-    {
-        let event = self.reveal_top_n_base(n);
+    pub fn reveal_top_n(&mut self, n: usize) -> Option<Event> {
+        self.reveal_top_n_base(n);
         self.revelation.contest.recalculate_placement().unwrap();
-        event
+        self.check_winner()
     }
 
     pub fn peek(&self) -> Option<String> {
-        self.revelation.runs_queue.queue.peek().map(|s| s.team_login.clone() )
+        self.revelation
+            .runs_queue
+            .queue
+            .peek()
+            .map(|s| s.team_login.clone())
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -193,6 +200,10 @@ impl RunsQueue {
         q
     }
 
+    pub fn peek(&self) -> Option<&Score> {
+        self.queue.peek()
+    }
+
     pub fn pop_run<'a>(&mut self, contest: &'a mut ContestFile) -> Option<&'a Team> {
         let entry = self.queue.pop();
         match entry {
@@ -201,10 +212,11 @@ impl RunsQueue {
                 None => panic!("invalid team!"),
                 Some(team) => {
                     team.reveal_run_frozen();
+
                     if team.wait() {
                         self.queue.push(team.score());
                     }
-                    return Some(team);
+                    Some(team)
                 }
             },
         }

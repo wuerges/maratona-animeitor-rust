@@ -16,6 +16,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         secret : get_secret(&url),
         revelation : None,
         center: None,
+        vencedor : Some("Sede fake".to_string()),
     }
 }
 
@@ -25,6 +26,7 @@ struct Model {
     secret : String,
     center : Option<String>,
     revelation : Option<RevelationDriver>,
+    vencedor : Option<String>,
 }
 
 impl Model {
@@ -75,7 +77,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 //     },
                 //     _ => 5000,
                 // };
-                let delay = 3000;
+                let delay = 1000;
 
 
                 model.center = next_center;
@@ -91,7 +93,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Prox(n) => {
             model.button_disabled = true;
             model.center = model.revelation.as_mut().map( |r| r.peek() ).flatten();
-            orders.perform_cmd(cmds::timeout(5000, move || Msg::Scroll(n)));
+            orders.perform_cmd(cmds::timeout(1000, move || Msg::Scroll(n)));
         },
         Msg::Scroll(n) => {
             model.center = None;
@@ -105,7 +107,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     match &e {
                         Event::Dud(_) => (),
                         Event::Winner { team_login, nome_sede } => {
-                            model.center = Some(team_login.clone());
+                            model.center = Some(team_login.to_string());
+                            model.vencedor = Some(nome_sede.to_string());
                             log!("Time ", team_login, "vencedor da sede", &nome_sede);
                         }
                     }
@@ -146,13 +149,17 @@ fn view(model: &Model) -> Node<Msg> {
             button!["Top 50", ev(Ev::Click, |_| Msg::Prox(50)),button_disabled.clone()],
             button!["Top 100", ev(Ev::Click, |_| Msg::Prox(100)),button_disabled.clone()],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset),button_disabled],
+            div![C!["vencedor"],
+                model.vencedor.as_ref().map(|v| format!("Vencedor da sede: {}", v)),
+            ],
             // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Times: ", model.remaining()],
         ],
         div![
             style!{St::Position => "relative", St::Top => px(60)},
             model.revelation.as_ref().map( |r| views::view_scoreboard(r.contest(), &model.center, &None)),
-        ]
+        ],
+
     ]
 }
 
