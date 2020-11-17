@@ -15,7 +15,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         secret: get_secret(&url),
         revelation: None,
         center: None,
-        vencedor: Some("Sede fake".to_string()),
+        vencedor: None,
     }
 }
 
