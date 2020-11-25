@@ -229,7 +229,7 @@ pub async fn serve_simple_contest(url_base : String, server_port : u16, secret :
 pub async fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, server_port: u16, secret : &String) {
     
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
-    let seed_assets = warp::path("seed").and(warp::fs::dir("lib-seed"));
+    let seed_assets = warp::path("seed").and(warp::fs::dir("client"));
     
     let root = warp::path::end().map( || {
         warp::redirect(warp::http::Uri::from_static("/seed/everything2.html"))

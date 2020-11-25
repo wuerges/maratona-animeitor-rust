@@ -1,6 +1,6 @@
 [package]
 version = "0.1.0"
-name = "lib-seed"
+name = "client"
 repository = "https://github.com/seed-rs/seed-quickstart"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 description = "App Description"
