@@ -1,4 +1,4 @@
-use maratona_animeitor_rust::{auth::UserKey, data};
+use data::{auth::UserKey};
 
 use diesel::prelude::*;
 

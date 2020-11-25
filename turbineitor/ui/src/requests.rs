@@ -1,4 +1,4 @@
-use maratona_animeitor_rust::auth::*;
+use data::auth::*;
 use seed::{prelude::*, *};
 use crate::*;
 

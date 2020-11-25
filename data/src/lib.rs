@@ -1,6 +1,7 @@
 pub mod revelation;
 pub mod config;
 pub mod configdata;
+pub mod auth;
 
 #[cfg(test)]
 extern crate quickcheck;

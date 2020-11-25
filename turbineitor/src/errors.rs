@@ -28,7 +28,7 @@ pub enum Error {
     DieselError(#[from] diesel::result::Error),
 
     #[error(transparent)]
-    ContestError(#[from] maratona_animeitor_rust::data::ContestError),
+    ContestError(#[from] data::ContestError),
 
     #[error(transparent)]
     PoolError(#[from] r2d2::Error)

@@ -1,4 +1,4 @@
-use maratona_animeitor_rust::auth::UserKey;
+use data::auth::UserKey;
 use crate::Params;
 use crate::errors::Error;
 

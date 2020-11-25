@@ -20,7 +20,7 @@ pub mod models;
 pub mod schema;
 pub mod server;
 
-use lib_server::dataio::*;
+use ::server::dataio::*;
 
 use crate::errors::Error;
 
@@ -107,5 +107,5 @@ pub fn spawn_db_update(params: &Params) -> Arc<Mutex<DB>> {
 
 pub async fn serve_simple_contest(server_port: u16, params: Params) {
     let shared_db = spawn_db_update(&params);
-    lib_server::serve_simple_contest_assets(shared_db, server_port, &params.secret).await
+    ::server::serve_simple_contest_assets(shared_db, server_port, &params.secret).await
 }

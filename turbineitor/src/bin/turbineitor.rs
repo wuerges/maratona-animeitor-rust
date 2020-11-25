@@ -1,7 +1,7 @@
 use std::env;
 use tokio;
 
-use lib_server::*;
+use ::server::*;
 use turbineitor::Params;
 
 #[tokio::main]

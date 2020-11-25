@@ -18,8 +18,8 @@ wasm-bindgen-test = "0.3.18"
 [dependencies]
 seed = "0.8.0"
 
-[dependencies.maratona_animeitor_rust]
-path = "../.."
+[dependencies.data]
+path = "../../data"
 
 [profile.release]
 lto = true
