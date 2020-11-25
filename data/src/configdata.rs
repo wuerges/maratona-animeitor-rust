@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize)]
 pub struct Sede {
     pub name: String,
-    pub source: String,
-    pub parent_source: String,
     pub codes: Vec<String>,
     pub premiacao: bool,
     pub vagas: usize,
@@ -32,8 +30,6 @@ impl Sede {
     ) -> Self {
         Self {
             name: name.to_string(),
-            source: source.to_string(),
-            parent_source: parent_source.to_string(),
             codes: codes.iter().map(|c| c.to_string()).collect(),
             premiacao,
             vagas,

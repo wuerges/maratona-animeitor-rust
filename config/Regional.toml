@@ -2,236 +2,236 @@ titulo = "Maratona de Programação da SBC - 1ª fase"
 
 
 [[sedes]]
-nome="Acre"
-codigo="teambrac"
+name="Acre"
+codes=["teambrac"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Alagoas"
-codigo="teambral"
+name="Alagoas"
+codes=["teambral"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Amazonas"
-codigo="teambram"
+name="Amazonas"
+codes=["teambram"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Amapá"
-codigo="teambrap"
+name="Amapá"
+codes=["teambrap"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Bahia"
-codigo="teambrba"
+name="Bahia"
+codes=["teambrba"]
 premiacao=true
 vagas=2
 
 
 
 [[sedes]]
-nome="Ceará"
-codigo="teambrce"
+name="Ceará"
+codes=["teambrce"]
 premiacao=true
 vagas=3
 
 
 
 [[sedes]]
-nome="Distrito Federal"
-codigo="teambrdf"
+name="Distrito Federal"
+codes=["teambrdf"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Espírito Santo"
-codigo="teambres"
+name="Espírito Santo"
+codes=["teambres"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Goiás"
-codigo="teambrgo"
+name="Goiás"
+codes=["teambrgo"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Maranhão"
-codigo="teambrma"
+name="Maranhão"
+codes=["teambrma"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Minas Gerais"
-codigo="teambrmg"
+name="Minas Gerais"
+codes=["teambrmg"]
 premiacao=true
 vagas=6
 
 
 
 [[sedes]]
-nome="Mato Grosso do Sul"
-codigo="teambrms"
+name="Mato Grosso do Sul"
+codes=["teambrms"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Mato Grosso"
-codigo="teambrmt"
+name="Mato Grosso"
+codes=["teambrmt"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Pará"
-codigo="teambrpa"
+name="Pará"
+codes=["teambrpa"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Paraíba"
-codigo="teambrpb"
+name="Paraíba"
+codes=["teambrpb"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Pernambuco"
-codigo="teambrpe"
+name="Pernambuco"
+codes=["teambrpe"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Piauí"
-codigo="teambrpi"
+name="Piauí"
+codes=["teambrpi"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Paraná"
-codigo="teambrpr"
+name="Paraná"
+codes=["teambrpr"]
 premiacao=true
 vagas=2
 
 
 
 [[sedes]]
-nome="Rio de Janeiro"
-codigo="teambrrj"
+name="Rio de Janeiro"
+codes=["teambrrj"]
 premiacao=true
 vagas=2
 
 
 
 [[sedes]]
-nome="Rio Grande do Norte"
-codigo="teambrrn"
+name="Rio Grande do Norte"
+codes=["teambrrn"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Rondônia"
-codigo="teambrro"
+name="Rondônia"
+codes=["teambrro"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Roraima"
-codigo="teambrrr"
+name="Roraima"
+codes=["teambrrr"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Rio Grande do Sul"
-codigo="teambrrs"
+name="Rio Grande do Sul"
+codes=["teambrrs"]
 premiacao=true
 vagas=1
 
 
 
 [[sedes]]
-nome="Santa Catarina"
-codigo="teambrsc"
+name="Santa Catarina"
+codes=["teambrsc"]
 premiacao=true
 vagas=3
 
 
 
 [[sedes]]
-nome="Sergipe"
-codigo="teambrse"
+name="Sergipe"
+codes=["teambrse"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="São Paulo"
-codigo="teambrsp"
+name="São Paulo"
+codes=["teambrsp"]
 premiacao=true
 vagas=8
 
 
 
 [[sedes]]
-nome="Tocantins"
-codigo="teambrto"
+name="Tocantins"
+codes=["teambrto"]
 premiacao=false
 vagas=0
 
 
 
 [[sedes]]
-nome="Supersede Centro-Oeste"
+name="Supersede Centro-Oeste"
 premiacao=true
 vagas=1
-codigo=[
+codes=[
   "teambrmt",
   "teambrms",
 ]
 
 
 [[sedes]]
-nome="Supersede Nordeste"
+name="Supersede Nordeste"
 premiacao=true
 vagas=2
-codigo=[
+codes=[
   "teambral",
   "teambrma",
   "teambrpe",
@@ -241,10 +241,10 @@ codigo=[
 
 
 [[sedes]]
-nome="Supersede Norte"
+name="Supersede Norte"
 premiacao=true
 vagas=2
-codigo=[
+codes=[
   "teambrac",
   "teambrpa",
   "teambrro",
@@ -254,8 +254,8 @@ codigo=[
 
 
 [[sedes]]
-nome="Brasil"
-codigo="teambr"
+name="Brasil"
+codes=["teambr"]
 premiacao=false
 vagas=0
 
