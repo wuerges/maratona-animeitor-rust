@@ -12,8 +12,8 @@ dotenv = "0.15.0"
 tokio = { version = "0.2", features = ["full"] }
 
 
-[dependencies.maratona_animeitor_rust]
+[dependencies.rustrimeitor]
 path = ".."
 
-[dependencies.lib-server]
-path = "../lib-server"
+[dependencies.server]
+path = "../server"
