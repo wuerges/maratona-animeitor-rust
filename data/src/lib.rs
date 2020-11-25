@@ -1,7 +1,7 @@
-pub mod revelation;
+pub mod auth;
 pub mod config;
 pub mod configdata;
-pub mod auth;
+pub mod revelation;
 
 #[cfg(test)]
 extern crate quickcheck;
@@ -9,12 +9,9 @@ extern crate quickcheck;
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
 
-
-
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
-// use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum Answer {
@@ -382,7 +379,6 @@ impl ContestFile {
     // }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunTuple {
     pub id: i64,
@@ -444,7 +440,6 @@ impl RunsFile {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -470,7 +465,6 @@ mod tests {
         fn problem_with_runs_is_the_same_as_revealed(answers : Vec<Answer>) -> bool {
             let mut p1 = Problem::empty();
             let mut p2 = Problem::empty();
-            
             println!("------------------------------");
             println!("answers={:?}", answers);
             for a in &answers {
