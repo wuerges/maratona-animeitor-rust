@@ -1,7 +1,7 @@
 titulo = "Contest Fake"
 
-[[sede]]
-nome="Sede fake"
-codigo=""
+[[sedes]]
+name="Sede fake"
+codes=[]
 premiacao=true
 vagas=0

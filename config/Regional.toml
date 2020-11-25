@@ -1,7 +1,7 @@
 titulo = "Maratona de Programação da SBC - 1ª fase"
 
 
-[[sede]]
+[[sedes]]
 nome="Acre"
 codigo="teambrac"
 premiacao=false
@@ -9,7 +9,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Alagoas"
 codigo="teambral"
 premiacao=false
@@ -17,7 +17,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Amazonas"
 codigo="teambram"
 premiacao=true
@@ -25,7 +25,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Amapá"
 codigo="teambrap"
 premiacao=true
@@ -33,7 +33,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Bahia"
 codigo="teambrba"
 premiacao=true
@@ -41,7 +41,7 @@ vagas=2
 
 
 
-[[sede]]
+[[sedes]]
 nome="Ceará"
 codigo="teambrce"
 premiacao=true
@@ -49,7 +49,7 @@ vagas=3
 
 
 
-[[sede]]
+[[sedes]]
 nome="Distrito Federal"
 codigo="teambrdf"
 premiacao=true
@@ -57,7 +57,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Espírito Santo"
 codigo="teambres"
 premiacao=true
@@ -65,7 +65,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Goiás"
 codigo="teambrgo"
 premiacao=true
@@ -73,7 +73,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Maranhão"
 codigo="teambrma"
 premiacao=false
@@ -81,7 +81,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Minas Gerais"
 codigo="teambrmg"
 premiacao=true
@@ -89,7 +89,7 @@ vagas=6
 
 
 
-[[sede]]
+[[sedes]]
 nome="Mato Grosso do Sul"
 codigo="teambrms"
 premiacao=false
@@ -97,7 +97,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Mato Grosso"
 codigo="teambrmt"
 premiacao=false
@@ -105,7 +105,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Pará"
 codigo="teambrpa"
 premiacao=false
@@ -113,7 +113,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Paraíba"
 codigo="teambrpb"
 premiacao=true
@@ -121,7 +121,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Pernambuco"
 codigo="teambrpe"
 premiacao=false
@@ -129,7 +129,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Piauí"
 codigo="teambrpi"
 premiacao=false
@@ -137,7 +137,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Paraná"
 codigo="teambrpr"
 premiacao=true
@@ -145,7 +145,7 @@ vagas=2
 
 
 
-[[sede]]
+[[sedes]]
 nome="Rio de Janeiro"
 codigo="teambrrj"
 premiacao=true
@@ -153,7 +153,7 @@ vagas=2
 
 
 
-[[sede]]
+[[sedes]]
 nome="Rio Grande do Norte"
 codigo="teambrrn"
 premiacao=false
@@ -161,7 +161,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Rondônia"
 codigo="teambrro"
 premiacao=false
@@ -169,7 +169,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Roraima"
 codigo="teambrrr"
 premiacao=false
@@ -177,7 +177,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="Rio Grande do Sul"
 codigo="teambrrs"
 premiacao=true
@@ -185,7 +185,7 @@ vagas=1
 
 
 
-[[sede]]
+[[sedes]]
 nome="Santa Catarina"
 codigo="teambrsc"
 premiacao=true
@@ -193,7 +193,7 @@ vagas=3
 
 
 
-[[sede]]
+[[sedes]]
 nome="Sergipe"
 codigo="teambrse"
 premiacao=false
@@ -201,7 +201,7 @@ vagas=0
 
 
 
-[[sede]]
+[[sedes]]
 nome="São Paulo"
 codigo="teambrsp"
 premiacao=true
@@ -209,7 +209,7 @@ vagas=8
 
 
 
-[[sede]]
+[[sedes]]
 nome="Tocantins"
 codigo="teambrto"
 premiacao=false
@@ -217,7 +217,7 @@ vagas=0
 
 
 
-[[supersede]]
+[[sedes]]
 nome="Supersede Centro-Oeste"
 premiacao=true
 vagas=1
@@ -227,7 +227,7 @@ codigo=[
 ]
 
 
-[[supersede]]
+[[sedes]]
 nome="Supersede Nordeste"
 premiacao=true
 vagas=2
@@ -240,7 +240,7 @@ codigo=[
 ]
 
 
-[[supersede]]
+[[sedes]]
 nome="Supersede Norte"
 premiacao=true
 vagas=2
@@ -253,7 +253,7 @@ codigo=[
 ]
 
 
-[[sede]]
+[[sedes]]
 nome="Brasil"
 codigo="teambr"
 premiacao=false
