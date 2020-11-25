@@ -1,20 +1,26 @@
-titulo = "Maratona de Programação da SBC - 2ª fase"
+titulo = "Maratona de Programação da SBC - 1ª fase"
 
-[sede]
-nome: ""
-codigo: ""
-premiacao: 
-vagas:
+[[sede]]
+nome = "Santa Catarina"
+codigo = "teambrsc"
+premiacao = true
+vagas = 3
 
-[supersede]
-nome: 
-codigos:
-premiacao:
-vagas:
+[[sede]]
+nome = "Rio Grande do Sul"
+codigo = "teambrrs"
+premiacao = true
+vagas = 1
+
+[[supersede]]
+nome = "Snordeste" 
+codigos = ["teambrpe", "teambrpb"]
+premiacao = true
+vagas = 2
 
 
-[time]
-nome: 
-login: 
-foto:
-musica:
+[[time]]
+nome = "Time 001"
+login = "teambrsc01"
+foto = "fake.png"
+musica = "fake.mp3"
