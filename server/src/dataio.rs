@@ -1,75 +1,26 @@
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
+use crate::errors::{Error, CResult};
 
 // use rustrimeitor::*;
 use data::*;
 
-type ContestIOResult<T> = Result<T, ContestIOError>;
-
-impl std::error::Error for ContestIOError {}
-
-#[derive(Debug)]
-pub enum ContestIOError {
-    IO(io::Error),
-    InvalidUri(warp::http::uri::InvalidUri),
-    Hyper(hyper::Error),
-    ParseInt(std::num::ParseIntError),
-    InvalidAnswer(String),
-    Chain(ContestError),
-    Info(String),
-}
-
-impl std::fmt::Display for ContestIOError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "ContestIOError: {:?}", self)
-    }
-}
-
-impl std::convert::From<io::Error> for ContestIOError {
-    fn from(error: io::Error) -> Self {
-        ContestIOError::IO(error)
-    }
-}
-
-impl std::convert::From<hyper::Error> for ContestIOError {
-    fn from(error: hyper::Error) -> Self {
-        ContestIOError::Hyper(error)
-    }
-}
-
-impl std::convert::From<warp::http::uri::InvalidUri> for ContestIOError {
-    fn from(error: warp::http::uri::InvalidUri) -> Self {
-        ContestIOError::InvalidUri(error)
-    }
-}
-
-impl std::convert::From<data::ContestError> for ContestIOError {
-    fn from(error: data::ContestError) -> Self {
-        ContestIOError::Chain(error)
-    }
-}
-
-impl std::convert::From<std::num::ParseIntError> for ContestIOError {
-    fn from(error: std::num::ParseIntError) -> Self {
-        ContestIOError::ParseInt(error)
-    }
-}
 
 trait FromString {
-    fn from_string(s: &str) -> ContestIOResult<Self>
+    fn from_string(s: &str) -> CResult<Self>
     where
         Self: std::marker::Sized;
 }
 
 trait FromFile {
-    fn from_file(s: &str) -> ContestIOResult<Self>
+    fn from_file(s: &str) -> CResult<Self>
     where
         Self: std::marker::Sized;
 }
 
 impl FromString for Team {
-    fn from_string(s: &str) -> ContestIOResult<Self> {
+    fn from_string(s: &str) -> CResult<Self> {
         let team_line: Vec<_> = s.split("").collect();
         Ok(Team::new(team_line[0], team_line[1], team_line[2]))
     }
@@ -82,17 +33,17 @@ fn read_to_string(s: &str) -> io::Result<String> {
     Ok(s)
 }
 
-fn from_string_answer(t: &str, tim: i64) -> Result<Answer, ContestIOError> {
+fn from_string_answer(t: &str, tim: i64) -> CResult<Answer> {
     match t {
         "Y" => Ok(Answer::Yes(tim)),
         "N" => Ok(Answer::No),
         "?" => Ok(Answer::Wait),
-        _ => Err(ContestIOError::InvalidAnswer(t.to_string())),
+        _ => Err(Error::InvalidAnswer(t.to_string())),
     }
 }
 
 impl FromString for RunTuple {
-    fn from_string(line: &str) -> Result<Self, ContestIOError> {
+    fn from_string(line: &str) -> CResult<Self> {
         let v: Vec<&str> = line.split('').collect();
         let id = v[0].parse()?;
         let time = v[1].parse()?;
@@ -109,7 +60,7 @@ impl FromString for RunTuple {
 }
 
 impl FromString for ContestFile {
-    fn from_string(s: &str) -> Result<Self, ContestIOError> {
+    fn from_string(s: &str) -> CResult<Self> {
         let mut lines = s.lines();
 
         let contest_name = lines.next().unwrap();
@@ -142,23 +93,23 @@ impl FromString for ContestFile {
 }
 
 impl FromFile for ContestFile {
-    fn from_file(s: &str) -> Result<Self, ContestIOError> {
+    fn from_file(s: &str) -> CResult<Self> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
 impl FromFile for RunsFile {
-    fn from_file(s: &str) -> Result<Self, ContestIOError> {
+    fn from_file(s: &str) -> CResult<Self> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
 impl FromString for RunsFile {
-    fn from_string(s: &str) -> ContestIOResult<Self> {
+    fn from_string(s: &str) -> CResult<Self> {
         let runs = s.lines().map(|line| RunTuple::from_string(line));
-        let runs = runs.collect::<Result<_, _>>()?;
+        let runs = runs.collect::<CResult<_>>()?;
         Ok(RunsFile::new(runs))
     }
 }
@@ -172,11 +123,11 @@ pub struct DB {
     pub time_file: TimeFile,
 }
 
-pub fn read_contest(s: &String) -> ContestIOResult<ContestFile> {
+pub fn read_contest(s: &String) -> CResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &String) -> ContestIOResult<RunsFile> {
+pub fn read_runs(s: &String) -> CResult<RunsFile> {
     RunsFile::from_string(s)
 }
 
@@ -223,15 +174,15 @@ impl DB {
         )
     }
 
-    pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
+    pub fn recalculate_score(&mut self) -> CResult<()> {
         self.contest_file = self.contest_file_begin.clone();
         for r in self.run_file.sorted() {
             self.contest_file.apply_run(r)?;
         }
-        self.contest_file.reload_score()
+        Ok(self.contest_file.reload_score()?)
     }
 
-    pub fn refresh_db(&mut self, time: i64, contest: ContestFile, runs: RunsFile) -> Result<(), ContestError> {
+    pub fn refresh_db(&mut self, time: i64, contest: ContestFile, runs: RunsFile) -> CResult<()> {
         self.time_file = time;
         self.contest_file_begin = contest;
         self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
@@ -252,7 +203,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_string() -> Result<(), ContestIOError> {
+    fn test_from_string() -> CResult<()> {
         let x = "375971416299teambrbr3BN";
         let t = RunTuple::from_string(x)?;
 
@@ -265,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_file() -> Result<(), ContestIOError> {
+    fn test_parse_file() -> CResult<()> {
         let x = RunsFile::from_file("test/sample/runs")?;
         assert_eq!(x.len(), 716);
         Ok(())
@@ -273,14 +224,14 @@ mod tests {
 
     
     #[test]
-    fn test_parse_file_1a_fase_2020() -> Result<(), ContestIOError> {
+    fn test_parse_file_1a_fase_2020() -> CResult<()> {
         let x = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(x.len(), 6285);
         Ok(())
     }
 
     #[test]
-    fn test_db_file_1a_fase_2020() -> Result<(), ContestIOError> {
+    fn test_db_file_1a_fase_2020() -> CResult<()> {
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
         assert_eq!(runs.len(), 6285);
@@ -296,14 +247,14 @@ mod tests {
     }
 
     #[test]
-    fn test_revelation_1a_fase_2020() -> Result<(), ContestIOError> {
+    fn test_revelation_1a_fase_2020() -> CResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
         
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(runs.len(), 6285);
 
-        let mut r1 = Revelation::new(contest.clone(), runs.clone());
-        let mut r2 = Revelation::new(contest, runs);
+        let mut r1 = data::Revelation::new(contest.clone(), runs.clone());
+        let mut r2 = data::Revelation::new(contest, runs);
 
         r1.apply_all_runs();
 
@@ -325,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_revelation_teams_1a_fase_2020() -> Result<(), ContestIOError> {
+    fn test_revelation_teams_1a_fase_2020() -> CResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
         
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
@@ -362,7 +313,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_contest_file() -> Result<(), ContestIOError> {
+    fn test_parse_contest_file() -> CResult<()> {
         let x = ContestFile::from_file("test/sample/contest")?;
         assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
         assert_eq!(x.maximum_time, 300);

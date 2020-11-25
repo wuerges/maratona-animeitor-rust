@@ -31,7 +31,10 @@ pub enum Error {
     ContestError(#[from] data::ContestError),
 
     #[error(transparent)]
-    PoolError(#[from] r2d2::Error)
+    PoolError(#[from] r2d2::Error),
+
+    #[error(transparent)]
+    ServerError(#[from] server::errors::Error),
 }
 
 impl Error {

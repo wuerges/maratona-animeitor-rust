@@ -1,4 +1,8 @@
 pub mod dataio;
+pub mod errors;
+
+use crate::errors::{CResult, Error};
+
 extern crate rand;
 extern crate itertools;
 
@@ -92,20 +96,20 @@ pub fn serve_urlbase(shared_db: Arc<Mutex<DB>>, source: &Option<String>, secret 
 }
 
 
-async fn read_bytes_from_path(path: &String ) -> Result<Vec<u8>, ContestIOError> {
+async fn read_bytes_from_path(path: &String ) -> CResult<Vec<u8>> {
     read_bytes_from_url(path).await
     .or_else(|_| read_bytes_from_file(path) )
 }
 
-fn read_bytes_from_file(path: &String ) -> Result<Vec<u8>, ContestIOError> {
-    std::fs::read(&path).map_err(|e| ContestIOError::IO(e))
+fn read_bytes_from_file(path: &String ) -> CResult<Vec<u8>> {
+    Ok(std::fs::read(&path)?)
 }
 
-async fn read_bytes_from_url(uri: &String) -> Result<Vec<u8>, ContestIOError> {
+async fn read_bytes_from_url(uri: &String) -> CResult<Vec<u8>> {
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
-    let uri = uri.parse()?; //.map_err( |x| ContestIOError::Chain(x))?;
+    let uri = uri.parse()?;
 
     let resp = client.get(uri).await?;
     let bytes = body::to_bytes(resp.into_body()).await?;
@@ -115,23 +119,23 @@ async fn read_bytes_from_url(uri: &String) -> Result<Vec<u8>, ContestIOError> {
 fn try_read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> Result<String, ContestIOError> {
+) -> CResult<String> {
     let mut runs_zip = zip
         .by_name(name)
         .map_err(|e| {
-            ContestIOError::Info(format!("Could not unpack file: {} {:?}", name, e))
+            Error::Info(format!("Could not unpack file: {} {:?}", name, e))
         })?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
     let runs_data = String::from_utf8(buffer)
-        .map_err(|_| ContestIOError::Info("Could not parse to UTF8".to_string()))?;
+        .map_err(|_| Error::Info("Could not parse to UTF8".to_string()))?;
     Ok(runs_data)
 }
 
 fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> Result<String, ContestIOError> {
+) -> CResult<String> {
 
     try_read_from_zip(zip, name)
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
@@ -141,13 +145,13 @@ fn read_from_zip(
         // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
-async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> Result<(), ContestIOError> {
+async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> CResult<()> {
     // let zip_data = read_bytes_from_url(uri).await?;
     let zip_data = read_bytes_from_path(uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|e| ContestIOError::Info(format!("Could not open zipfile: {:?}", e)))?;
+        .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
 
     let time_data : i64 = read_from_zip(&mut zip, "time")?.parse()?;
 
