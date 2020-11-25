@@ -1,5 +1,6 @@
 pub mod dataio;
 pub mod errors;
+pub mod config;
 
 use crate::errors::{CResult, Error};
 

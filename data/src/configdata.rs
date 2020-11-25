@@ -1,3 +1,7 @@
+use serde::{Deserialize, Serialize};
+
+
+#[derive(Deserialize, Serialize)]
 pub struct Sede {
     pub name: String,
     pub source: String,
@@ -60,6 +64,7 @@ impl Sede {
     }
 }
 
+#[derive(Serialize,Deserialize)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
 }
