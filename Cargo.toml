@@ -1,5 +1,5 @@
 [package]
-name = "maratona_animeitor_rust"
+name = "rustrimeitor"
 version = "0.1.0"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 edition = "2018"
@@ -7,11 +7,24 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tokio = { version = "0.2", features = ["full"] }
+clap = "2.33.3"
+
+[dev-dependencies]
+quickcheck = "0.9"
+quickcheck_macros = "0.9"
+
+[dependencies.server]
+path = "server"
+
+[dependencies.data]
+path = "data"
 
 [workspace]
 members = [
-    "lib-server",
-    "lib-seed",
+    "server",
+    "client",
     "turbineitor",
     "turbineitor/ui",
+    "data",
 ]

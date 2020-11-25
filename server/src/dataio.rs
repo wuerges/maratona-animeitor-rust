@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
 
-use maratona_animeitor_rust::data::*;
+// use rustrimeitor::*;
+use data::*;
 
 type ContestIOResult<T> = Result<T, ContestIOError>;
 
@@ -43,8 +44,8 @@ impl std::convert::From<warp::http::uri::InvalidUri> for ContestIOError {
     }
 }
 
-impl std::convert::From<maratona_animeitor_rust::data::ContestError> for ContestIOError {
-    fn from(error: maratona_animeitor_rust::data::ContestError) -> Self {
+impl std::convert::From<data::ContestError> for ContestIOError {
+    fn from(error: data::ContestError) -> Self {
         ContestIOError::Chain(error)
     }
 }
@@ -222,24 +223,6 @@ impl DB {
         )
     }
 
-    // pub fn reload_runs(&mut self, s: &str) -> Result<(), ContestIOError> {
-    //     let runs = RunsFile::from_string(s)?;
-    //     self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
-    //     self.run_file_secret = runs;
-    //     Ok(())
-    // }
-
-    // pub fn reload_contest(&mut self, s: &str) -> Result<(), ContestIOError> {
-    //     self.contest_file_begin = ContestFile::from_string(s)?;
-    //     Ok(())
-    // }
-
-    // pub fn reload_time(&mut self, s: String) -> Result<(), ContestIOError> {
-    //     let t = s.parse()?;
-    //     self.time_file = t;
-    //     Ok(())
-    // }
-
     pub fn recalculate_score(&mut self) -> Result<(), ContestError> {
         self.contest_file = self.contest_file_begin.clone();
         for r in self.run_file.sorted() {
@@ -254,6 +237,7 @@ impl DB {
         self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
         self.run_file_secret = runs;
 
+        
         self.recalculate_score()
     }
 
@@ -283,7 +267,97 @@ mod tests {
     #[test]
     fn test_parse_file() -> Result<(), ContestIOError> {
         let x = RunsFile::from_file("test/sample/runs")?;
-        assert_eq!(x.runs.len(), 716);
+        assert_eq!(x.len(), 716);
+        Ok(())
+    }
+
+    
+    #[test]
+    fn test_parse_file_1a_fase_2020() -> Result<(), ContestIOError> {
+        let x = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        assert_eq!(x.len(), 6285);
+        Ok(())
+    }
+
+    #[test]
+    fn test_db_file_1a_fase_2020() -> Result<(), ContestIOError> {
+        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+        assert_eq!(runs.len(), 6285);
+
+        let mut db = DB::empty();
+        db.refresh_db(0, contest, runs)?;
+
+        assert_eq!(db.run_file.len(), 4927);
+        assert_eq!(db.run_file_secret.len(), 6285);
+
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_revelation_1a_fase_2020() -> Result<(), ContestIOError> {
+        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+        
+        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        assert_eq!(runs.len(), 6285);
+
+        let mut r1 = Revelation::new(contest.clone(), runs.clone());
+        let mut r2 = Revelation::new(contest, runs);
+
+        r1.apply_all_runs();
+
+        r2.apply_all_runs_on_frozen();
+        // r2.apply_all_runs_before_frozen();
+        r2.apply_all_runs_from_queue();
+
+        for t in r1.contest.teams.values() {
+            let t2_p = r2.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t2_p);
+        }
+
+        for t in r2.contest.teams.values() {
+            let t1_p = r1.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t1_p);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_revelation_teams_1a_fase_2020() -> Result<(), ContestIOError> {
+        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+        
+        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        assert_eq!(runs.len(), 6285);
+
+        let mut r1 = Revelation::new(contest.clone(), runs.clone());
+        let mut r2 = Revelation::new(contest, runs);
+
+        r1.apply_all_runs();
+
+        // r2.apply_all_runs_before_frozen();
+        // r2.apply_all_runs_from_queue();
+        
+        r2.apply_all_runs_on_frozen();
+        for t in r2.contest.teams.values_mut() {
+            while t.wait() {
+                t.reveal_run_frozen();
+            }
+        }
+
+        r2.contest.recalculate_placement().unwrap();
+
+        for t in r1.contest.teams.values() {
+            let t2_p = r2.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t2_p);
+        }
+
+        for t in r2.contest.teams.values() {
+            let t1_p = r1.contest.placement(&t.login).unwrap();
+            assert_eq!(t.placement, t1_p);
+        }
+
         Ok(())
     }
 

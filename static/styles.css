@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
+@import url("teams.css");
 
 body {
     color: white;
@@ -8,7 +9,8 @@ body {
     /* background-color: #000000aa; */
     background-color: #131313;
     background-repeat: repeat;
-    background-image: url('/static/assets/maratona-logo-wallpaper.png') ;
+    /* background-image: url('/static/assets/maratona-logo-wallpaper.png') ; */
+    /* background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ; */
     background-blend-mode:multiply;
 
     overflow-y: scroll;
@@ -67,10 +69,10 @@ body {
 }
 
 .unicaColocacao {
-    width: calc(22vw + 12px);
+    width: calc(20.8vw + 12px);
 }
 .duplaColocacao {
-    width: calc(26vw + 18px);
+    width: calc(23.8vw + 18px);
 }
 
 .nomeEscola {
@@ -80,6 +82,22 @@ body {
 .nomeTime {
     font-size: 1vw;
 }
+
+.nomeTime:hover .foto {
+    display: block;
+    border-style: solid;
+}
+
+.foto {
+    display: none;
+    position: fixed;
+    top: 10vh;
+    left: 10vw;
+    width: 80vw;
+    max-height: 80vh;
+    z-index: 123123123123;
+}
+
 
 .time {
     text-align: right;
@@ -91,14 +109,14 @@ body {
 
 .problema {
     text-align: center;
-    width: 3vw;
+    width: 2.8vw;
     font-size: 2.5vw;
 }
 
 .colocacao {
     text-align: center;
-    width: 4vw;
-    font-size: 2vw;
+    width: 3vw;
+    font-size: 1.5vw;
 }
 
 .cima {
@@ -255,3 +273,5 @@ a {
     margin: 3px;
     margin-bottom: 10px;
 }
+
+

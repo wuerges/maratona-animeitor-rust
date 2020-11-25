@@ -1,5 +1,5 @@
 use seed::prelude::*;
-use maratona_animeitor_rust::data;
+use data;
 
 fn prepend(url : &str, source:&Option<String>) -> String {
     source.clone().map( |s| format!("/{}{}", s, url) ).unwrap_or(url.to_string())

@@ -1,5 +1,5 @@
 
-use maratona_animeitor_rust::data::{ContestFile, Team, TimerData};
+use data::{ContestFile, Team, TimerData};
 use seed::{prelude::*, *};
 
 pub fn get_color(n : usize) -> String {
@@ -127,7 +127,9 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],
-                    div![C!["nomeTime"], &team.name],
+                    div![C!["nomeTime"], &team.name,
+                        div![C!["foto"], id![format!("foto_{}", &team.login)]],
+                    ],
                 ],
                 div![
                     C!["cell", "problema"],

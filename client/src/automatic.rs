@@ -1,4 +1,4 @@
-use maratona_animeitor_rust::data;
+use data;
 use seed::{prelude::*, *};
 
 use crate::requests::*;
@@ -62,10 +62,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             
             model.runs = runs;
             model.contest = contest;
+
+            log!("received n runs: {}", model.runs.len());
             
             for r in model.runs.sorted() {
                 if r.time < model.contest.score_freeze_time {
-                    model.contest.apply_run(r).unwrap();
+                    let r = model.contest.apply_run(r);
+                    match r {
+                        Ok(()) => (),
+                        Err(e) => log!("run error:", e),
+                    }
                 }
             }
             
