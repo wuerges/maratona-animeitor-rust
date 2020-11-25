@@ -1,8 +1,8 @@
 use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
-use maratona_animeitor_rust::revelation::{RevelationDriver, Winner};
-use maratona_animeitor_rust::{config, data};
+use data::revelation::{RevelationDriver, Winner};
+use data::config;
 use seed::{prelude::*, *};
 
 extern crate rand;

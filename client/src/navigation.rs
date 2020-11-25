@@ -1,6 +1,6 @@
 // use maratona_animeitor_rust::data;
-use maratona_animeitor_rust::configdata;
-use maratona_animeitor_rust::config;
+use data::configdata;
+use data::config;
 use seed::{prelude::*, *};
 
 // use crate::requests::*;

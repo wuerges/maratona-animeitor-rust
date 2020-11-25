@@ -1,4 +1,4 @@
-use maratona_animeitor_rust::data;
+use data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;

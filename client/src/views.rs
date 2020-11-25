@@ -1,5 +1,5 @@
 
-use maratona_animeitor_rust::data::{ContestFile, Team, TimerData};
+use data::{ContestFile, Team, TimerData};
 use seed::{prelude::*, *};
 
 pub fn get_color(n : usize) -> String {
