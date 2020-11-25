@@ -37,7 +37,7 @@ cargo run --release --bin simples <url_do_placar>
 O repositório contém um exemplo, que pode ser usado para testes:
 
 ```
-python -mhttp.server --directory lib-server/test/
+python -mhttp.server --directory server/test/
 cargo make build_release
 cargo run --release --bin simples http://0.0.0.0:8000/webcast_1573336220.zip
 
@@ -49,7 +49,7 @@ O programa também suporta a leitura dos arquivos do webcast direto de um arquiv
 
 ```
 cargo make build_release 
-cargo run --release --bin simples lib-server/test/webcast_jones.zip
+cargo run --release --bin simples server/test/webcast_jones.zip
 ```
 
 Mais opções podem ser examinadas com o comando help:
@@ -75,7 +75,7 @@ Maratona Rustreimator rodando!
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
-O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](lib-server/static/styles.css). 
+O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](server/static/styles.css). 
 
 
 
