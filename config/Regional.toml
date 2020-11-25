@@ -1,26 +1,261 @@
 titulo = "Maratona de Programação da SBC - 1ª fase"
 
-[[sede]]
-nome = "Santa Catarina"
-codigo = "teambrsc"
-premiacao = true
-vagas = 3
 
 [[sede]]
-nome = "Rio Grande do Sul"
-codigo = "teambrrs"
-premiacao = true
-vagas = 1
+nome="Acre"
+codigo="teambrac"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Alagoas"
+codigo="teambral"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Amazonas"
+codigo="teambram"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Amapá"
+codigo="teambrap"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Bahia"
+codigo="teambrba"
+premiacao=true
+vagas=2
+
+
+
+[[sede]]
+nome="Ceará"
+codigo="teambrce"
+premiacao=true
+vagas=3
+
+
+
+[[sede]]
+nome="Distrito Federal"
+codigo="teambrdf"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Espírito Santo"
+codigo="teambres"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Goiás"
+codigo="teambrgo"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Maranhão"
+codigo="teambrma"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Minas Gerais"
+codigo="teambrmg"
+premiacao=true
+vagas=6
+
+
+
+[[sede]]
+nome="Mato Grosso do Sul"
+codigo="teambrms"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Mato Grosso"
+codigo="teambrmt"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Pará"
+codigo="teambrpa"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Paraíba"
+codigo="teambrpb"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Pernambuco"
+codigo="teambrpe"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Piauí"
+codigo="teambrpi"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Paraná"
+codigo="teambrpr"
+premiacao=true
+vagas=2
+
+
+
+[[sede]]
+nome="Rio de Janeiro"
+codigo="teambrrj"
+premiacao=true
+vagas=2
+
+
+
+[[sede]]
+nome="Rio Grande do Norte"
+codigo="teambrrn"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Rondônia"
+codigo="teambrro"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Roraima"
+codigo="teambrrr"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="Rio Grande do Sul"
+codigo="teambrrs"
+premiacao=true
+vagas=1
+
+
+
+[[sede]]
+nome="Santa Catarina"
+codigo="teambrsc"
+premiacao=true
+vagas=3
+
+
+
+[[sede]]
+nome="Sergipe"
+codigo="teambrse"
+premiacao=false
+vagas=0
+
+
+
+[[sede]]
+nome="São Paulo"
+codigo="teambrsp"
+premiacao=true
+vagas=8
+
+
+
+[[sede]]
+nome="Tocantins"
+codigo="teambrto"
+premiacao=false
+vagas=0
+
+
 
 [[supersede]]
-nome = "Snordeste" 
-codigos = ["teambrpe", "teambrpb"]
-premiacao = true
-vagas = 2
+nome="Supersede Centro-Oeste"
+premiacao=true
+vagas=1
+codigo=[
+  "teambrmt",
+  "teambrms",
+]
 
 
-[[time]]
-nome = "Time 001"
-login = "teambrsc01"
-foto = "fake.png"
-musica = "fake.mp3"
+[[supersede]]
+nome="Supersede Nordeste"
+premiacao=true
+vagas=2
+codigo=[
+  "teambral",
+  "teambrma",
+  "teambrpe",
+  "teambrrn",
+  "teambrse",
+]
+
+
+[[supersede]]
+nome="Supersede Norte"
+premiacao=true
+vagas=2
+codigo=[
+  "teambrac",
+  "teambrpa",
+  "teambrro",
+  "teambrrr",
+  "teambrto",
+]
+
+
+[[sede]]
+nome="Brasil"
+codigo="teambr"
+premiacao=false
+vagas=0
+
