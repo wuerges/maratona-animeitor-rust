@@ -31,7 +31,7 @@ Compile e rode:
 
 ```
 cargo make build_release
-cargo run --release --bin simples -p lib-server <porta_tcp> <url_do_placar>
+cargo run --release --bin simples <url_do_placar>
 ```
 
 O repositório contém um exemplo, que pode ser usado para testes:
@@ -39,7 +39,7 @@ O repositório contém um exemplo, que pode ser usado para testes:
 ```
 python -mhttp.server --directory lib-server/test/
 cargo make build_release
-cargo run --release --bin simples -p lib-server 3030 http://0.0.0.0:8000/webcast_1573336220.zip
+cargo run --release --bin simples http://0.0.0.0:8000/webcast_1573336220.zip
 
 ```
 
@@ -49,8 +49,15 @@ O programa também suporta a leitura dos arquivos do webcast direto de um arquiv
 
 ```
 cargo make build_release 
-cargo run --release --bin simples -p lib-server 3030 lib-server/test/webcast_jones.zip
+cargo run --release --bin simples lib-server/test/webcast_jones.zip
 ```
+
+Mais opções podem ser examinadas com o comando help:
+
+```
+cargo run --release --bin simples -- --help
+```
+
 
 ## Configurando o OBS e customizando o placar
 
