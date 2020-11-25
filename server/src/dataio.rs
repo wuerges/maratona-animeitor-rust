@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
 
-use maratona_animeitor_rust::data::*;
+// use rustrimeitor::*;
+use data::*;
 
 type ContestIOResult<T> = Result<T, ContestIOError>;
 
@@ -43,8 +44,8 @@ impl std::convert::From<warp::http::uri::InvalidUri> for ContestIOError {
     }
 }
 
-impl std::convert::From<maratona_animeitor_rust::data::ContestError> for ContestIOError {
-    fn from(error: maratona_animeitor_rust::data::ContestError) -> Self {
+impl std::convert::From<data::ContestError> for ContestIOError {
+    fn from(error: data::ContestError) -> Self {
         ContestIOError::Chain(error)
     }
 }

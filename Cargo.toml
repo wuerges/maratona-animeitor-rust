@@ -7,10 +7,14 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tokio = { version = "0.2", features = ["full"] }
 
 [dev-dependencies]
 quickcheck = "0.9"
 quickcheck_macros = "0.9"
+
+[dependencies.server]
+path = "server"
 
 [workspace]
 members = [
