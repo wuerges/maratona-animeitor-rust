@@ -1,11 +1,11 @@
+pub mod config;
 pub mod dataio;
 pub mod errors;
-pub mod config;
 
 use crate::errors::{CResult, Error};
 
-extern crate rand;
 extern crate itertools;
+extern crate rand;
 
 use crate::dataio::*;
 
@@ -14,14 +14,19 @@ use hyper_tls::HttpsConnector;
 
 use hyper::body;
 use std::io::prelude::*;
-use zip;
 use std::sync::Arc;
 use tokio;
 use tokio::{spawn, sync::Mutex};
+use zip;
+
+use tokio::sync::{mpsc, RwLock};
+
+use futures::{FutureExt, Sink, SinkExt, StreamExt};
+use warp::ws::{Message, WebSocket};
 
 use warp::Filter;
 
-pub fn spawn_db_update(data_url : String) -> Arc<Mutex<DB>> {
+pub fn spawn_db_update(data_url: String) -> Arc<Mutex<DB>> {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
     let cloned_db = shared_db.clone();
     spawn(async move {
@@ -39,47 +44,46 @@ pub fn spawn_db_update(data_url : String) -> Arc<Mutex<DB>> {
     shared_db
 }
 
-pub fn serve_urlbase(shared_db: Arc<Mutex<DB>>, source: &Option<String>, secret : &String)
- -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-    
+pub fn serve_urlbase(
+    shared_db: Arc<Mutex<DB>>,
+    source: &Option<String>,
+    secret: &String,
+) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     type Shared = Arc<Mutex<DB>>;
     fn with_db(
         db: Shared,
     ) -> impl Filter<Extract = (Shared,), Error = std::convert::Infallible> + Clone {
         warp::any().map(move || db.clone())
     }
-    
 
     // warp::path(source.clone())
-    let runs = 
-        warp::path("runs")
+    let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
 
-    let all_runs = 
-        warp::path("allruns")
+    let all_runs = warp::path("allruns")
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs);
 
-
-    let all_runs_secret = 
-        warp::path(format!("allruns_{}", secret))
+    let all_runs_secret = warp::path(format!("allruns_{}", secret))
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs_secret);
-    
 
-    let timer = 
-        warp::path("timer")
+    // let timer =
+    //     warp::path("timer")
+    //     .and(with_db(shared_db.clone()))
+    //     .and_then(serve_timer);
+
+    let timer = warp::path("timer")
+        .and(warp::ws())
         .and(with_db(shared_db.clone()))
-        .and_then(serve_timer);
+        .map(|ws: warp::ws::Ws, db| ws.on_upgrade(move |ws| serve_timer_ws(ws, db)));
 
-    let contest_file = 
-        warp::path("contest")
+    let contest_file = warp::path("contest")
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
-    let scoreboard = 
-        warp::path("score")
+    let scoreboard = warp::path("score")
         .and(with_db(shared_db))
         .and_then(serve_score);
 
@@ -92,17 +96,17 @@ pub fn serve_urlbase(shared_db: Arc<Mutex<DB>>, source: &Option<String>, secret 
 
     match source {
         None => routes.boxed(),
-        Some(source) => warp::path(source.clone()).and(routes).boxed()
+        Some(source) => warp::path(source.clone()).and(routes).boxed(),
     }
 }
 
-
-async fn read_bytes_from_path(path: &String ) -> CResult<Vec<u8>> {
-    read_bytes_from_url(path).await
-    .or_else(|_| read_bytes_from_file(path) )
+async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
+    read_bytes_from_url(path)
+        .await
+        .or_else(|_| read_bytes_from_file(path))
 }
 
-fn read_bytes_from_file(path: &String ) -> CResult<Vec<u8>> {
+fn read_bytes_from_file(path: &String) -> CResult<Vec<u8>> {
     Ok(std::fs::read(&path)?)
 }
 
@@ -123,9 +127,7 @@ fn try_read_from_zip(
 ) -> CResult<String> {
     let mut runs_zip = zip
         .by_name(name)
-        .map_err(|e| {
-            Error::Info(format!("Could not unpack file: {} {:?}", name, e))
-        })?;
+        .map_err(|e| Error::Info(format!("Could not unpack file: {} {:?}", name, e)))?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
     let runs_data = String::from_utf8(buffer)
@@ -137,13 +139,12 @@ fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
 ) -> CResult<String> {
-
     try_read_from_zip(zip, name)
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
-        
-        // .or_else(|t| try_read_from_zip(zip, name))?
+
+    // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
 async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> CResult<()> {
@@ -154,11 +155,10 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> CResult<()> {
     let mut zip = zip::ZipArchive::new(reader)
         .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
 
-    let time_data : i64 = read_from_zip(&mut zip, "time")?.parse()?;
+    let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
 
     let contest_data = read_from_zip(&mut zip, "contest")?;
     let contest_data = read_contest(&contest_data)?;
-
 
     let runs_data = read_from_zip(&mut zip, "runs")?;
     let runs_data = read_runs(&runs_data)?;
@@ -172,6 +172,32 @@ async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Reje
     let db = runs.lock().await;
     let r = serde_json::to_string(&*db.latest()).unwrap();
     Ok(r)
+}
+
+// pub async fn ws_handler(ws: warp::ws::Ws, id: String, clients: Clients) -> Result<impl Reply> {
+//     let client = clients.lock().await.get(&id).cloned();
+//     match client {
+//       Some(c) => Ok(ws.on_upgrade(move |socket| warp::ws::client_connection(socket, id, clients, c))),
+//       None => Err(warp::reject::not_found()),
+//     }
+//   }
+
+async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
+    let (mut tx, _) = ws.split();
+
+    let fut = async move {
+        let dur = tokio::time::Duration::new(30, 0);
+        let mut interval = tokio::time::interval(dur);
+        loop {
+            interval.tick().await;
+            let l = runs.lock().await.timer_data();
+            let t = serde_json::to_string(&l).unwrap();
+            let m = Message::text(t);
+            tx.send(m).await.expect("Error sending");
+        }
+    };
+
+    tokio::task::spawn(fut);
 }
 
 async fn serve_timer(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
@@ -192,7 +218,6 @@ async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply,
     Ok(r)
 }
 
-
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&db.contest_file_begin).unwrap();
@@ -212,7 +237,6 @@ pub fn random_path_part() -> String {
                             0123456789";
     const PASSWORD_LEN: usize = 6;
     let mut rng = rand::thread_rng();
-    
     (0..PASSWORD_LEN)
         .map(|_| {
             let idx = rng.gen_range(0, CHARSET.len());
@@ -221,21 +245,42 @@ pub fn random_path_part() -> String {
         .collect()
 }
 
-pub async fn serve_simple_contest(url_base : String, server_port : u16, secret : &String) {
-
+pub async fn serve_simple_contest(url_base: String, server_port: u16, secret: &String) {
     let shared_db = spawn_db_update(url_base);
     serve_simple_contest_assets(shared_db, server_port, secret).await
 }
 
-pub async fn serve_simple_contest_assets(db : Arc<Mutex<DB>>, server_port: u16, secret : &String) {
-    
+pub async fn serve_simple_contest_assets(db: Arc<Mutex<DB>>, server_port: u16, secret: &String) {
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let seed_assets = warp::path("seed").and(warp::fs::dir("client"));
-    
-    let root = warp::path::end().map( || {
-        warp::redirect(warp::http::Uri::from_static("/seed/everything2.html"))
-    });
-    
-    let routes = root.or(static_assets).or(seed_assets).or(serve_urlbase(db, &None, secret));
+
+    let root = warp::path::end()
+        .map(|| warp::redirect(warp::http::Uri::from_static("/seed/everything2.html")));
+
+    let routes = root
+        .or(static_assets)
+        .or(seed_assets)
+        .or(serve_urlbase(db, &None, secret));
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
+}
+
+#[tokio::main]
+async fn main() {
+    let routes = warp::path("echo")
+        // The `ws()` filter will prepare the Websocket handshake.
+        .and(warp::ws())
+        .map(|ws: warp::ws::Ws| {
+            // And then our closure will be called when it completes...
+            ws.on_upgrade(|websocket| {
+                // Just echo all messages back...
+                let (tx, rx) = websocket.split();
+                rx.forward(tx).map(|result| {
+                    if let Err(e) = result {
+                        eprintln!("websocket error: {:?}", e);
+                    }
+                })
+            })
+        });
+
+    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
