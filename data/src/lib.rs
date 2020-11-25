@@ -95,7 +95,6 @@ impl Problem {
             Answer::No => {
                 self.submissions += 1;
                 self.penalty += 20;
-                // self.answers.clear();
             }
             Answer::Wait => {
                 self.answers.push(Answer::No) // failsafe
@@ -210,7 +209,6 @@ impl Team {
     }
 
     pub fn wait(&self) -> bool {
-        // false
         self.problems
             .values()
             .map(|p| p.wait())
@@ -225,10 +223,6 @@ impl Team {
             }
         }
     }
-
-    // fn useful_run(&self, run : &RunTuple) -> bool {
-    //     self.problems.get(&run.prob).map(|p| !p.solved ).unwrap_or(true)
-    // }
 
     pub fn score(&self) -> Score {
         let mut solved = 0;
@@ -337,17 +331,6 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    // pub fn useful_run(&self, r : &RunTuple) -> Result<bool, ContestError> {
-    //     match self.teams.get(&r.team_login) {
-    //         None => Err(ContestError::UnmatchedTeam(
-    //             "Could not check useful run to team".to_string(),
-    //         )),
-    //         Some(t) => {
-    //             Ok(t.useful_run(r))
-    //         }
-    //     }
-    // }
-
     pub fn apply_run(&mut self, r: &RunTuple) -> Result<(), ContestError> {
         match self.teams.get_mut(&r.team_login) {
             None => Err(ContestError::UnmatchedTeam(
@@ -371,12 +354,24 @@ impl ContestFile {
             }
         }
     }
-    // pub fn mark_all_wrong(&mut self, team_name : &String) {
-    //     match self.teams.get_mut(team_name) {
-    //         None => (),
-    //         Some(t) => t.mark_all_wrong(),
-    //     }
-    // }
+
+    pub fn build_panel_item(&self, run: &RunTuple) -> Result<RunsPanelItem, ContestError> {
+        let team = self
+            .teams
+            .get(&run.team_login)
+            .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
+
+        Ok(RunsPanelItem {
+            id: run.id,
+            placement: team.placement,
+            color: 0,
+            escola: team.escola.clone(),
+            team_name: team.name.clone(),
+            team_login: run.team_login.clone(),
+            problem: run.prob.clone(),
+            result: run.answer.clone(),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
