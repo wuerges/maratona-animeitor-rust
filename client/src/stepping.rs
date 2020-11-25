@@ -12,7 +12,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.send_msg(Msg::Reset);
     Model { 
         url_filter : get_url_filter(&url),
-        source : get_source(&url),
         contest: data::ContestFile::dummy(),
         runs: data::RunsFile::empty(),
         current_run: 0,
@@ -23,7 +22,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     url_filter : Option<Vec<String>>,
-    source : Option<String>,
     contest : data::ContestFile,
     runs: data::RunsFile,
     current_run: usize,
@@ -46,9 +44,9 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all(source : Option<String>) -> Msg {
-    let r = fetch_allruns(&source).await;
-    let c = fetch_contest(&source).await;
+async fn fetch_all() -> Msg {
+    let r = fetch_allruns().await;
+    let c = fetch_contest().await;
     Msg::Fetched(r, c)
 }
 
@@ -140,7 +138,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched contest error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( fetch_all(model.source.clone()) );    
+            orders.skip().perform_cmd( fetch_all() );    
         }
     }
 }

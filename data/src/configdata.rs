@@ -12,18 +12,14 @@ pub struct Sede {
 impl Sede {
     pub fn new(
         name: &str,
-        source: &str,
-        parent_source: &str,
         code: &str,
         premiacao: bool,
         vagas: usize,
     ) -> Self {
-        Self::supersede(name, source, parent_source, vec![code], premiacao, vagas)
+        Self::supersede(name, vec![code], premiacao, vagas)
     }
     pub fn supersede(
         name: &str,
-        source: &str,
-        parent_source: &str,
         codes: Vec<&str>,
         premiacao: bool,
         vagas: usize,

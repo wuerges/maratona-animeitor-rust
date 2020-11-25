@@ -38,18 +38,18 @@ pub fn contest() -> ConfigContest {
              ("São Paulo", "sp", 8), 
              ("Tocantins", "to", 0)]
             .iter()
-            .map(|(n, s, v)| Sede::new(n, s, BR, format!("teambr{}", s).as_str(), *v > 0, *v))
+            .map(|(n, s, v)| Sede::new(n, format!("teambr{}", s).as_str(), *v > 0, *v))
             .collect();
 
-    sedes.push(Sede::supersede("Supersede Centro-Oeste", "Scentrooeste", BR, vec!["teambrmt", "teambrms"], true, 1));
+    sedes.push(Sede::supersede("Supersede Centro-Oeste", vec!["teambrmt", "teambrms"], true, 1));
     
-    sedes.push(Sede::supersede("Supersede Nordeste", "Snordeste", BR, 
+    sedes.push(Sede::supersede("Supersede Nordeste", 
         vec!["teambral", "teambrma", "teambrpe", "teambrrn", "teambrse"], true, 2));
     
-    sedes.push(Sede::supersede("Supersede Norte", "Snorte", BR, 
+    sedes.push(Sede::supersede("Supersede Norte", 
         vec!["teambrac", "teambrpa", "teambrro", "teambrrr", "teambrto"], true, 2));
 
-    sedes.push(Sede::new(BR, BR, "Global", "teambr", false, 0));
+    sedes.push(Sede::new(BR, "teambr", false, 0));
 
     // sedes.push(Sede::new("Global", "Global", "Global", ""));
 

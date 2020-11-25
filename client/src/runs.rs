@@ -12,7 +12,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().send_msg(Msg::Reset);
     orders.stream(streams::interval(30_000, || Msg::Reset));
     Model {
-        source : get_source(&url),
         url_filter : get_url_filter(&url),
         runs: Vec::new(),
     }
@@ -20,7 +19,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     url_filter : Option<Vec<String>>,
-    source : Option<String>,
     runs: Vec<data::RunsPanelItem>,
 }
 
@@ -30,15 +28,14 @@ enum Msg {
     Fetched(fetch::Result<Vec<data::RunsPanelItem>>),
 }
 
-async fn fetch_all(source :Option<String>) -> Msg {
-    let f= fetch_runspanel(&source).await;
+async fn fetch_all() -> Msg {
+    let f= fetch_runspanel().await;
     Msg::Fetched(f)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.source = get_source(&url);
             model.url_filter = get_url_filter(&url);
             // orders.skip().send_msg(Msg::Reset);
             // url.go_and_load();
@@ -61,7 +58,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched runs error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( fetch_all(model.source.clone()) );
+            orders.skip().perform_cmd( fetch_all() );
         }
     }
 }

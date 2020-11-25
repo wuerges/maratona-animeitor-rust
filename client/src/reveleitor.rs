@@ -11,7 +11,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.send_msg(Msg::Reset);
     Model {
         button_disabled: false,
-        source: get_source(&url),
         secret: get_secret(&url),
         revelation: None,
         center: None,
@@ -21,7 +20,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     button_disabled: bool,
-    source: Option<String>,
     secret: String,
     center: Option<String>,
     revelation: Option<RevelationDriver>,
@@ -47,9 +45,9 @@ enum Msg {
     ),
 }
 
-async fn fetch_all(source: Option<String>, secret: String) -> Msg {
-    let r = fetch_allruns_secret(&source, &secret).await;
-    let c = fetch_contest(&source).await;
+async fn fetch_all(secret: String) -> Msg {
+    let r = fetch_allruns_secret(&secret).await;
+    let c = fetch_contest().await;
     Msg::Fetched(r, c)
 }
 
@@ -128,7 +126,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.button_disabled = true;
             orders
                 .skip()
-                .perform_cmd(fetch_all(model.source.clone(), model.secret.clone()));
+                .perform_cmd(fetch_all(model.secret.clone()));
         }
     }
 }

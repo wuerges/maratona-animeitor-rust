@@ -36,7 +36,6 @@ fn build_url_filter(sede : &configdata::Sede) -> String {
     .add_path_part("everything2.html")
     // Url::current()
     .set_search(UrlSearch::new(vec![
-        // ("source", vec![&sede.parent_source]),
         ("sede", vec![&sede.name]),
         ("filter", sede.codes.iter().map(|s| s).collect()),
     ])).to_string()

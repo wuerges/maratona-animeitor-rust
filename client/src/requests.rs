@@ -1,13 +1,8 @@
 use seed::prelude::*;
 use data;
 
-fn prepend(url : &str, source:&Option<String>) -> String {
-    source.clone().map( |s| format!("/{}{}", s, url) ).unwrap_or(url.to_string())
-}
-
-
-pub async fn fetch_allruns(source :&Option<String>) -> fetch::Result<data::RunsFile> {
-    Request::new(prepend("/allruns", source))
+pub async fn fetch_allruns() -> fetch::Result<data::RunsFile> {
+    Request::new("/allruns")
         .fetch()
         .await?
         .check_status()?
@@ -15,9 +10,9 @@ pub async fn fetch_allruns(source :&Option<String>) -> fetch::Result<data::RunsF
         .await
 }
 
-pub async fn fetch_allruns_secret(source :&Option<String>, secret : &String) -> fetch::Result<data::RunsFile> {
+pub async fn fetch_allruns_secret(secret : &String) -> fetch::Result<data::RunsFile> {
     // Request::new("/allruns")
-    Request::new(prepend(format!("/allruns_{}", secret).as_str(), source))
+    Request::new(format!("/allruns_{}", secret))
         .fetch()
         .await?
         .check_status()?
@@ -26,8 +21,8 @@ pub async fn fetch_allruns_secret(source :&Option<String>, secret : &String) -> 
 }
 
 
-pub async fn fetch_contest(source :&Option<String>) -> fetch::Result<data::ContestFile> {
-    Request::new(prepend("/contest", source))
+pub async fn fetch_contest() -> fetch::Result<data::ContestFile> {
+    Request::new("/contest")
         .fetch()
         .await?
         .check_status()?
@@ -35,8 +30,8 @@ pub async fn fetch_contest(source :&Option<String>) -> fetch::Result<data::Conte
         .await
 }
 
-pub async fn fetch_runspanel(source :&Option<String>) -> fetch::Result<Vec<data::RunsPanelItem>> {
-    Request::new(prepend("/runs", source))
+pub async fn fetch_runspanel() -> fetch::Result<Vec<data::RunsPanelItem>> {
+    Request::new("/runs")
         .fetch()
         .await?
         .check_status()?
@@ -45,8 +40,8 @@ pub async fn fetch_runspanel(source :&Option<String>) -> fetch::Result<Vec<data:
 }
 
 
-pub async fn fetch_time_file(source :&Option<String>) -> fetch::Result<data::TimerData> {
-    Request::new(prepend("/timer", source))
+pub async fn fetch_time_file() -> fetch::Result<data::TimerData> {
+    Request::new("/timer")
         .fetch()
         .await?
         .check_status()?

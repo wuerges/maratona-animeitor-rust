@@ -13,7 +13,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().stream(streams::interval(30_000, || Msg::Reload));
 
     Model {
-        source : get_source(&url),
         center : None,
         url_filter : get_url_filter(&url),
         contest: data::ContestFile::dummy(),
@@ -22,7 +21,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
-    source : Option<String>,
     center : Option<String>,
     url_filter: Option<Vec<String>>,
     contest : data::ContestFile,
@@ -38,25 +36,22 @@ enum Msg {
         fetch::Result<data::ContestFile>),
 }
 
-async fn fetch_all(source : Option<String>) -> Msg {
-    let r = fetch_allruns(&source).await;
-    let c = fetch_contest(&source).await;
+async fn fetch_all() -> Msg {
+    let r = fetch_allruns().await;
+    let c = fetch_contest().await;
     Msg::Fetched(r, c)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.source = get_source(&url);
             model.url_filter = get_url_filter(&url);
-            // orders.skip().send_msg(Msg::Reload);
-            // url.go_and_load();
         },
         Msg::Recenter => {
             model.center = None;
         },
         Msg::Reload => {
-            orders.skip().perform_cmd(fetch_all(model.source.clone()));
+            orders.skip().perform_cmd(fetch_all());
         },
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             

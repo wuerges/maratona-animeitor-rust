@@ -66,7 +66,7 @@ impl TimerData {
     }
 
     pub fn is_frozen(&self) -> bool {
-        self.current_time >= self.score_freeze_time
+        self.current_time >= self.score_freeze_time * 60
     }
 }
 

@@ -2,12 +2,10 @@ use data;
 use seed::{prelude::*, *};
 use crate::views;
 use crate::requests::*;
-use crate::helpers::*;
 
-fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1000, || Msg::Reset));
     Model { 
-        source : get_source(&url),
         p_timer_data: data::TimerData::new(0, 1),
         timer_data: data::TimerData::new(86399, 86399+1),
         // timer_data: 0,
@@ -15,7 +13,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 }
 
 struct Model {
-    source : Option<String>,
     p_timer_data: data::TimerData,
     timer_data: data::TimerData,
 }
@@ -25,8 +22,8 @@ enum Msg {
     Fetched(fetch::Result<data::TimerData>),
 }
 
-async fn fetch_all(source : Option<String>) -> Msg {
-    let f = fetch_time_file(&source).await;
+async fn fetch_all() -> Msg {
+    let f = fetch_time_file().await;
     Msg::Fetched(f)
 }
 
@@ -41,7 +38,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             log!("fetched runs error!", e)
         },
         Msg::Reset => {
-            orders.skip().perform_cmd( fetch_all(model.source.clone()) );    
+            orders.skip().perform_cmd( fetch_all() );    
         }
     }
 }
