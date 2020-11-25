@@ -75,7 +75,7 @@ Maratona Rustreimator rodando!
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
-O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](server/static/styles.css). 
+O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](static/styles.css). 
 
 
 
