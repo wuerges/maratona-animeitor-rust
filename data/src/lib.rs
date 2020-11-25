@@ -51,7 +51,7 @@ pub struct Problem {
     pub answers: Vec<Answer>,
 }
 
-#[derive(Copy, Debug, Clone, Serialize, Deserialize)]
+#[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TimerData {
     pub current_time: TimeFile,
     pub score_freeze_time: i64,
@@ -67,6 +67,10 @@ impl TimerData {
 
     pub fn is_frozen(&self) -> bool {
         self.current_time >= self.score_freeze_time * 60
+    }
+
+    pub fn fake() -> Self {
+        Self::new(86399, 86399+1)
     }
 }
 

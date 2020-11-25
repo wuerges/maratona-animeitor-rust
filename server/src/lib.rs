@@ -174,37 +174,37 @@ async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Reje
     Ok(r)
 }
 
-// pub async fn ws_handler(ws: warp::ws::Ws, id: String, clients: Clients) -> Result<impl Reply> {
-//     let client = clients.lock().await.get(&id).cloned();
-//     match client {
-//       Some(c) => Ok(ws.on_upgrade(move |socket| warp::ws::client_connection(socket, id, clients, c))),
-//       None => Err(warp::reject::not_found()),
-//     }
-//   }
-
 async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
     let (mut tx, _) = ws.split();
 
     let fut = async move {
-        let dur = tokio::time::Duration::new(30, 0);
+        
+        let dur = tokio::time::Duration::new(1, 0);
         let mut interval = tokio::time::interval(dur);
+        
+        let mut old = data::TimerData::fake();
+
         loop {
             interval.tick().await;
             let l = runs.lock().await.timer_data();
-            let t = serde_json::to_string(&l).unwrap();
-            let m = Message::text(t);
-            tx.send(m).await.expect("Error sending");
+
+            if l != old {
+                old = l;
+                let t = serde_json::to_string(&l).unwrap();
+                let m = Message::text(t);
+                tx.send(m).await.expect("Error sending");
+            }
         }
     };
 
     tokio::task::spawn(fut);
 }
 
-async fn serve_timer(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-    let db = runs.lock().await;
-    let r = serde_json::to_string(&db.timer_data()).unwrap();
-    Ok(r)
-}
+// async fn serve_timer(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+//     let db = runs.lock().await;
+//     let r = serde_json::to_string(&db.timer_data()).unwrap();
+//     Ok(r)
+// }
 
 async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;

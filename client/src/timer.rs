@@ -7,7 +7,7 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1000, || Msg::Reset));
     Model { 
         p_timer_data: data::TimerData::new(0, 1),
-        timer_data: data::TimerData::new(86399, 86399+1),
+        timer_data: data::TimerData::fake(),
         // timer_data: 0,
     }
 }
