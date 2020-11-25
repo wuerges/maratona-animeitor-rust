@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Placar interativo</title>        
+    <link rel="stylesheet" href="/static/styles.css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body>
+    <maratona class="stepping"></maratona>
+    <script type="module">
+        import init from './pkg/package.js';
+        init('./pkg/package_bg.wasm');
+    </script>
+</body>
+
+</html>

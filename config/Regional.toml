@@ -1,0 +1,20 @@
+titulo = "Maratona de Programação da SBC - 2ª fase"
+
+[sede]
+nome: ""
+codigo: ""
+premiacao: 
+vagas:
+
+[supersede]
+nome: 
+codigos:
+premiacao:
+vagas:
+
+
+[time]
+nome: 
+login: 
+foto:
+musica:
