@@ -1,44 +1,34 @@
+use crate::{helpers, views};
 use data;
 use seed::{prelude::*, *};
-use crate::views;
-use crate::requests::*;
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.stream(streams::interval(1000, || Msg::Reset));
-    Model { 
+    let ws = WebSocket::builder(helpers::get_ws_url("/timer"), orders)
+        .on_message(Msg::TimerUpdate)
+        .build_and_open()
+        .expect("Open WebSocket");
+    Model {
         p_timer_data: data::TimerData::new(0, 1),
         timer_data: data::TimerData::fake(),
-        // timer_data: 0,
+        _socket: ws,
     }
 }
 
 struct Model {
     p_timer_data: data::TimerData,
     timer_data: data::TimerData,
+    _socket: WebSocket,
 }
 
 enum Msg {
-    Reset,
-    Fetched(fetch::Result<data::TimerData>),
+    TimerUpdate(WebSocketMessage),
 }
 
-async fn fetch_all() -> Msg {
-    let f = fetch_time_file().await;
-    Msg::Fetched(f)
-}
-
-fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
+fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
-        Msg::Fetched(Ok(runs)) => {
-            // log!("fetched runs!", runs);
+        Msg::TimerUpdate(m) => {
             model.p_timer_data = model.timer_data;
-            model.timer_data = runs;
-        },
-        Msg::Fetched(Err(e)) => {
-            log!("fetched runs error!", e)
-        },
-        Msg::Reset => {
-            orders.skip().perform_cmd( fetch_all() );    
+            model.timer_data = m.json().expect("Message should have TimerData");
         }
     }
 }
@@ -47,6 +37,6 @@ fn view(model: &Model) -> Node<Msg> {
     views::view_clock(model.timer_data, model.p_timer_data)
 }
 
-pub fn start(e : impl GetElement) {
+pub fn start(e: impl GetElement) {
     App::start(e, init, update, view);
 }
