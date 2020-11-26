@@ -13,7 +13,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     Model { 
         url_filter : get_url_filter(&url),
         contest: data::ContestFile::dummy(),
-        runs: data::RunsFile::empty(),
+        runs: Vec::new(),
         current_run: 0,
         center: None,
         lock_frozen : true,
@@ -23,7 +23,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 struct Model {
     url_filter : Option<Vec<String>>,
     contest : data::ContestFile,
-    runs: data::RunsFile,
+    runs: Vec<data::RunTuple>,
     current_run: usize,
     center : Option<String>,
     lock_frozen : bool,
@@ -65,7 +65,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::Wait => {
             if model.current_run < model.runs.len() {
-                let mut run = model.runs.as_vec()[model.current_run].clone();
+                let mut run = model.runs[model.current_run].clone();
                 run.answer = data::Answer::Wait;
                 model.contest.apply_run(&run).unwrap();
             }
@@ -73,7 +73,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Recalculate => {
             if model.current_run < model.runs.len() {
-                let run = &model.runs.as_vec()[model.current_run];
+                let run = &model.runs[model.current_run];
                 model.contest.apply_run(run).unwrap();
                 model.current_run += 1;
             }
@@ -81,7 +81,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         },
         Msg::Prox1 => {
             if model.current_run < model.runs.len() {
-                let run = &model.runs.as_vec()[model.current_run];
+                let run = &model.runs[model.current_run];
                 if run.time < model.contest.score_freeze_time || !model.lock_frozen {
                     model.center = Some(run.team_login.clone());
                     orders.perform_cmd(cmds::timeout(5000, move || Msg::Wait));
@@ -96,7 +96,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             
             for _ in 0..n {
                 if model.current_run < model.runs.len() {
-                    let run = &model.runs.as_vec()[model.current_run];
+                    let run = &model.runs[model.current_run];
                     if run.time < model.contest.score_freeze_time || !model.lock_frozen {
                         // log!("run time? ", run.time, " -> ", model.contest.score_freeze_time);
                         model.contest.apply_run(run).unwrap();
@@ -127,7 +127,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(Ok(runs), Ok(contest)) => {
             model.current_run = 0;
             model.center = None;
-            model.runs = runs;
+            model.runs = runs.sorted();
             model.contest = contest;
             model.contest.reload_score().unwrap();
         },

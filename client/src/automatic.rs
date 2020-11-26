@@ -60,7 +60,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             log!("received n runs: {}", model.runs.len());
             
-            for r in model.runs.sorted() {
+            for r in &model.runs.sorted() {
                 if r.time < model.contest.score_freeze_time {
                     let r = model.contest.apply_run(r);
                     match r {

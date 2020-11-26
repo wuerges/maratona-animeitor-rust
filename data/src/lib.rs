@@ -387,11 +387,6 @@ pub struct RunTuple {
     pub answer: Answer,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunsFile {
-    pub runs: Vec<RunTuple>,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
     pub id: i64,
@@ -404,38 +399,43 @@ pub struct RunsPanelItem {
     pub result: Answer,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunsFile {
+    runs: BTreeMap<i64, RunTuple>,
+}
+
 impl RunsFile {
     pub fn empty() -> Self {
-        RunsFile { runs: Vec::new() }
+        Self { runs: BTreeMap::new() }
     }
 
-    pub fn new(mut runs: Vec<RunTuple>) -> Self {
-        runs.sort_by(|a, b| a.time.cmp(&b.time));
-        Self { runs }
+    pub fn new(runs: Vec<RunTuple>) -> Self {
+
+        let mut t = Self::empty();
+        for r in runs {
+            t.runs.insert(r.id, r);
+        }
+        t
     }
 
     pub fn len(&self) -> usize {
         self.runs.len()
     }
 
-    pub fn sorted(&self) -> &Vec<RunTuple> {
-        &self.runs
-        // self.runs.iter().collect()
-    }
-
-    pub fn as_vec(&self) -> &Vec<RunTuple> {
-        &self.runs
+    pub fn sorted(&self) -> Vec<RunTuple> {
+        let mut r : Vec<_>= self.runs.values().cloned().collect();
+        r.sort_by( |t1, t2| t1.time.cmp(&t2.time));
+        r
     }
 
     pub fn filter_frozen(&self, frozen_time: i64) -> Self {
-        RunsFile {
-            runs: self
-                .runs
-                .iter()
-                .cloned()
-                .filter(|r| r.time < frozen_time)
-                .collect(),
-        }
+        Self::new(
+            self
+            .sorted()
+            .into_iter()
+            .filter(|r| r.time < frozen_time)
+            .collect()
+        )
     }
 }
 

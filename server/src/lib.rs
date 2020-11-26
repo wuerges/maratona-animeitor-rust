@@ -221,7 +221,7 @@ async fn serve_all_runs_ws(
         {
             let lock = runs.lock().await;
 
-            for r in lock.all_runs() {
+            for r in &lock.all_runs() {
                 let t = serde_json::to_string(r).unwrap();
                 let m = Message::text(t);
                 tx.send(m).await.expect("Error sending");

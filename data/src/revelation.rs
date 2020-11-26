@@ -130,7 +130,7 @@ impl Revelation {
     }
 
     pub fn apply_all_runs_before_frozen(&mut self) {
-        for run in self.runs.sorted() {
+        for run in &self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
                 self.contest.apply_run(run).unwrap();
             } else {
@@ -142,7 +142,7 @@ impl Revelation {
     }
 
     pub fn apply_all_runs_on_frozen(&mut self) {
-        for run in self.runs.sorted() {
+        for run in &self.runs.sorted() {
             self.contest.apply_run_frozen(run).unwrap();
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
@@ -169,7 +169,7 @@ impl Revelation {
     }
 
     pub fn apply_all_runs(&mut self) {
-        for run in self.runs.sorted() {
+        for run in &self.runs.sorted() {
             self.contest.apply_run(run).unwrap();
         }
         self.contest.recalculate_placement().unwrap();

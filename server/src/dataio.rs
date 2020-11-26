@@ -176,7 +176,7 @@ impl DB {
 
     pub fn recalculate_score(&mut self) -> CResult<()> {
         self.contest_file = self.contest_file_begin.clone();
-        for r in self.run_file.sorted() {
+        for r in &self.run_file.sorted() {
             self.contest_file.apply_run(r)?;
         }
         Ok(self.contest_file.reload_score()?)
@@ -198,8 +198,8 @@ impl DB {
         TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
     }
 
-    pub fn all_runs(&self) -> &Vec<RunTuple> {
-        &self.run_file.runs
+    pub fn all_runs(&self) -> Vec<RunTuple> {
+        self.run_file.sorted()
     }
 }
 
