@@ -185,13 +185,16 @@ impl DB {
     pub fn refresh_db(&mut self, time: i64, contest: ContestFile, runs: RunsFile) -> CResult<Vec<RunTuple>> {
         self.time_file = time;
         self.contest_file_begin = contest;
-        self.run_file = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+
+        let runs_frozen = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+
+        let fresh = self.run_file.refresh(runs_frozen.sorted());
         self.run_file_secret = runs;
 
         
         self.recalculate_score()?;
 
-        Ok(self.all_runs().clone())
+        Ok(fresh)
     }
 
     pub fn timer_data(&self) -> TimerData {

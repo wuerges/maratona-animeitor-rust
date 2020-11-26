@@ -10,7 +10,7 @@ extern crate quickcheck;
 extern crate quickcheck_macros;
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{btree_map, BTreeMap};
 use std::fmt;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
@@ -70,7 +70,7 @@ impl TimerData {
     }
 
     pub fn fake() -> Self {
-        Self::new(86399, 86399+1)
+        Self::new(86399, 86399 + 1)
     }
 }
 
@@ -378,7 +378,7 @@ impl ContestFile {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct RunTuple {
     pub id: i64,
     pub time: i64,
@@ -386,6 +386,19 @@ pub struct RunTuple {
     pub prob: String,
     pub answer: Answer,
 }
+
+impl PartialOrd for RunTuple {
+    fn partial_cmp(&self, other : &Self) -> Option<Ordering> {
+        Some(self.time.cmp(&other.time))
+    }
+}
+
+impl Ord for RunTuple {
+    fn cmp(&self, other : &Self) -> Ordering {
+        self.time.cmp(&other.time)
+    }
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
@@ -406,11 +419,12 @@ pub struct RunsFile {
 
 impl RunsFile {
     pub fn empty() -> Self {
-        Self { runs: BTreeMap::new() }
+        Self {
+            runs: BTreeMap::new(),
+        }
     }
 
     pub fn new(runs: Vec<RunTuple>) -> Self {
-
         let mut t = Self::empty();
         for r in runs {
             t.runs.insert(r.id, r);
@@ -423,19 +437,40 @@ impl RunsFile {
     }
 
     pub fn sorted(&self) -> Vec<RunTuple> {
-        let mut r : Vec<_>= self.runs.values().cloned().collect();
-        r.sort_by( |t1, t2| t1.time.cmp(&t2.time));
+        let mut r: Vec<_> = self.runs.values().cloned().collect();
+        r.sort_by(|t1, t2| t1.time.cmp(&t2.time));
         r
     }
 
     pub fn filter_frozen(&self, frozen_time: i64) -> Self {
         Self::new(
-            self
-            .sorted()
-            .into_iter()
-            .filter(|r| r.time < frozen_time)
-            .collect()
+            self.sorted()
+                .into_iter()
+                .filter(|r| r.time < frozen_time)
+                .collect(),
         )
+    }
+
+    pub fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {
+        let mut rec = Vec::new();
+
+        for t in fresh {
+            let ent = self.runs.entry(t.id);
+            match ent {
+                btree_map::Entry::Vacant(v) => {
+                    v.insert(t.clone());
+                    rec.push(t);
+                }
+                btree_map::Entry::Occupied(mut o) => {
+                    if o.get() != &t {
+                        *o.get_mut() = t.clone();
+                        rec.push(t);
+                    }
+                }
+            }
+        }
+
+        rec
     }
 }
 
