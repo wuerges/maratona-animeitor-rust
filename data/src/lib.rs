@@ -451,22 +451,29 @@ impl RunsFile {
         )
     }
 
+    pub fn refresh_1(&mut self, t :&RunTuple) -> bool {
+        let ent = self.runs.entry(t.id);
+        match ent {
+            btree_map::Entry::Vacant(v) => {
+                v.insert(t.clone());
+                true
+            }
+            btree_map::Entry::Occupied(mut o) => {
+                if o.get() != t {
+                    *o.get_mut() = t.clone();
+                    return true
+                }
+                false
+            }
+        }   
+    }
+
     pub fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {
         let mut rec = Vec::new();
 
         for t in fresh {
-            let ent = self.runs.entry(t.id);
-            match ent {
-                btree_map::Entry::Vacant(v) => {
-                    v.insert(t.clone());
-                    rec.push(t);
-                }
-                btree_map::Entry::Occupied(mut o) => {
-                    if o.get() != &t {
-                        *o.get_mut() = t.clone();
-                        rec.push(t);
-                    }
-                }
+            if self.refresh_1(&t) {
+                rec.push(t);
             }
         }
 

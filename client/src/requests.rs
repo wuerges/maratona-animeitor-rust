@@ -29,12 +29,3 @@ pub async fn fetch_contest() -> fetch::Result<data::ContestFile> {
         .json()
         .await
 }
-
-pub async fn fetch_runspanel() -> fetch::Result<Vec<data::RunsPanelItem>> {
-    Request::new("/runs")
-        .fetch()
-        .await?
-        .check_status()?
-        .json()
-        .await
-}
