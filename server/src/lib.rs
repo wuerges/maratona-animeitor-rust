@@ -16,38 +16,41 @@ use hyper::body;
 use std::io::prelude::*;
 use std::sync::Arc;
 use tokio;
+use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 use zip;
 
-use futures::{FutureExt, SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt};
 use warp::ws::Message;
-// use tokio::sync::{mpsc, RwLock};
+// use tokio::sync::{broadcast, RwLock};
 // use futures::{FutureExt, Sink, SinkExt, StreamExt};
 // use warp::ws::{Message, WebSocket};
 
 use warp::Filter;
 
-pub fn spawn_db_update(data_url: String) -> Arc<Mutex<DB>> {
+pub fn spawn_db_update(data_url: String) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>) {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
     let cloned_db = shared_db.clone();
+    let (tx, _) = broadcast::channel(1000000);
+    let tx2 = tx.clone();
     spawn(async move {
-        let dur = tokio::time::Duration::new(30, 0);
+        let dur = tokio::time::Duration::new(1, 0);
         let mut interval = tokio::time::interval(dur);
         loop {
             interval.tick().await;
-            let r = update_runs(&data_url, cloned_db.clone()).await;
+            let r = update_runs(&data_url, cloned_db.clone(), tx.clone()).await;
             match r {
                 Ok(_) => (),
                 Err(e) => eprintln!("Error updating run: {}", e),
             }
         }
     });
-    shared_db
+    (shared_db, tx2)
 }
 
 pub fn serve_urlbase(
     shared_db: Arc<Mutex<DB>>,
-    source: &Option<String>,
+    tx: broadcast::Sender<data::RunTuple>,
     secret: &String,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     type Shared = Arc<Mutex<DB>>;
@@ -66,14 +69,15 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs);
 
+    let all_runs_ws = warp::path("allruns_ws")
+        .and(warp::ws())
+        .and(with_db(shared_db.clone()))
+        .and(warp::any().map(move || tx.subscribe()))
+        .map(|ws: warp::ws::Ws, db, rx| ws.on_upgrade(move |ws| serve_all_runs_ws(ws, db, rx)));
+
     let all_runs_secret = warp::path(format!("allruns_{}", secret))
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs_secret);
-
-    // let timer =
-    //     warp::path("timer")
-    //     .and(with_db(shared_db.clone()))
-    //     .and_then(serve_timer);
 
     let timer = warp::path("timer")
         .and(warp::ws())
@@ -90,15 +94,13 @@ pub fn serve_urlbase(
 
     let routes = runs
         .or(all_runs)
+        .or(all_runs_ws)
         .or(all_runs_secret)
         .or(timer)
         .or(contest_file)
         .or(scoreboard);
 
-    match source {
-        None => routes.boxed(),
-        Some(source) => warp::path(source.clone()).and(routes).boxed(),
-    }
+    routes.boxed()
 }
 
 async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
@@ -148,7 +150,11 @@ fn read_from_zip(
     // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
-async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> CResult<()> {
+async fn update_runs(
+    uri: &String,
+    runs: Arc<Mutex<DB>>,
+    tx: broadcast::Sender<data::RunTuple>,
+) -> CResult<()> {
     // let zip_data = read_bytes_from_url(uri).await?;
     let zip_data = read_bytes_from_path(uri).await?;
 
@@ -165,7 +171,12 @@ async fn update_runs(uri: &String, runs: Arc<Mutex<DB>>) -> CResult<()> {
     let runs_data = read_runs(&runs_data)?;
 
     let mut db = runs.lock().await;
-    db.refresh_db(time_data, contest_data, runs_data)?;
+    let fresh_runs = db.refresh_db(time_data, contest_data, runs_data)?;
+    if tx.receiver_count() > 0 {
+        for r in fresh_runs {
+            tx.send(r).expect("Should have sent the messages");
+        }
+    }
     Ok(())
 }
 
@@ -179,10 +190,8 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
     let (mut tx, _) = ws.split();
 
     let fut = async move {
-        
         let dur = tokio::time::Duration::new(1, 0);
         let mut interval = tokio::time::interval(dur);
-        
         let mut old = data::TimerData::fake();
 
         loop {
@@ -201,11 +210,36 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
     tokio::task::spawn(fut);
 }
 
-// async fn serve_timer(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-//     let db = runs.lock().await;
-//     let r = serde_json::to_string(&db.timer_data()).unwrap();
-//     Ok(r)
-// }
+async fn serve_all_runs_ws(
+    ws: warp::ws::WebSocket,
+    runs: Arc<Mutex<DB>>,
+    mut rx: broadcast::Receiver<data::RunTuple>,
+) {
+    let (mut tx, _) = ws.split();
+
+    let fut = async move {
+        {
+            let lock = runs.lock().await;
+
+            for r in lock.all_runs() {
+                let t = serde_json::to_string(r).unwrap();
+                let m = Message::text(t);
+                tx.send(m).await.expect("Error sending");
+            }
+        }
+
+        loop {
+            let r = rx.recv().await.expect("Expected a RunTuple");
+
+            let t = serde_json::to_string(&r).unwrap();
+            let m = Message::text(t);
+
+            tx.send(m).await.expect("Should have sent the message");
+        }
+    };
+
+    tokio::task::spawn(fut);
+}
 
 async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
@@ -247,11 +281,16 @@ pub fn random_path_part() -> String {
 }
 
 pub async fn serve_simple_contest(url_base: String, server_port: u16, secret: &String) {
-    let shared_db = spawn_db_update(url_base);
-    serve_simple_contest_assets(shared_db, server_port, secret).await
+    let (shared_db, runs_tx) = spawn_db_update(url_base);
+    serve_simple_contest_assets(shared_db, runs_tx, server_port, secret).await
 }
 
-pub async fn serve_simple_contest_assets(db: Arc<Mutex<DB>>, server_port: u16, secret: &String) {
+pub async fn serve_simple_contest_assets(
+    db: Arc<Mutex<DB>>,
+    tx: broadcast::Sender<data::RunTuple>,
+    server_port: u16,
+    secret: &String,
+) {
     let static_assets = warp::path("static").and(warp::fs::dir("static"));
     let seed_assets = warp::path("seed").and(warp::fs::dir("client"));
 
@@ -261,27 +300,6 @@ pub async fn serve_simple_contest_assets(db: Arc<Mutex<DB>>, server_port: u16, s
     let routes = root
         .or(static_assets)
         .or(seed_assets)
-        .or(serve_urlbase(db, &None, secret));
+        .or(serve_urlbase(db, tx, secret));
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
-}
-
-#[tokio::main]
-async fn main() {
-    let routes = warp::path("echo")
-        // The `ws()` filter will prepare the Websocket handshake.
-        .and(warp::ws())
-        .map(|ws: warp::ws::Ws| {
-            // And then our closure will be called when it completes...
-            ws.on_upgrade(|websocket| {
-                // Just echo all messages back...
-                let (tx, rx) = websocket.split();
-                rx.forward(tx).map(|result| {
-                    if let Err(e) = result {
-                        eprintln!("websocket error: {:?}", e);
-                    }
-                })
-            })
-        });
-
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }

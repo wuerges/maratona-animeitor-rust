@@ -389,7 +389,7 @@ pub struct RunTuple {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunsFile {
-    runs: Vec<RunTuple>,
+    pub runs: Vec<RunTuple>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
