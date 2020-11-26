@@ -77,9 +77,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 model.dirty = false;
 
-                for r in &model.runs {
-                    log!("run:", r);
-                }
+                // for r in &model.runs {
+                //     log!("run:", r);
+                // }
             }
         }
     }
