@@ -74,7 +74,7 @@ async fn load_data_from_sql_maybe(
 async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, data::RunsFile) {
     load_data_from_sql_maybe(params)
         .await
-        .expect("should have loaded data from url")
+        .expect("should have loaded data from SQL")
 }
 
 
