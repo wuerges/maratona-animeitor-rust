@@ -38,7 +38,7 @@ pub fn spawn_db_update(data_url: String) -> (Arc<Mutex<DB>>, broadcast::Sender<d
         let mut interval = tokio::time::interval(dur);
         loop {
             interval.tick().await;
-            let r = update_runs(&data_url, cloned_db.clone(), tx.clone()).await;
+            let r = update_runs_from_url(&data_url, cloned_db.clone(), tx.clone()).await;
             match r {
                 Ok(_) => (),
                 Err(e) => eprintln!("Error updating run: {}", e),
@@ -150,7 +150,7 @@ fn read_from_zip(
     // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
-async fn update_runs(
+async fn update_runs_from_url(
     uri: &String,
     runs: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
@@ -169,6 +169,17 @@ async fn update_runs(
 
     let runs_data = read_from_zip(&mut zip, "runs")?;
     let runs_data = read_runs(&runs_data)?;
+
+    update_runs_from_data((time_data, contest_data, runs_data), runs, tx).await
+}
+
+
+async fn update_runs_from_data(
+    data: (i64, data::ContestFile, data::RunsFile),
+    runs: Arc<Mutex<DB>>,
+    tx: broadcast::Sender<data::RunTuple>,
+) -> CResult<()> {
+    let (time_data, contest_data, runs_data) = data;
 
     let mut db = runs.lock().await;
     let fresh_runs = db.refresh_db(time_data, contest_data, runs_data)?;
