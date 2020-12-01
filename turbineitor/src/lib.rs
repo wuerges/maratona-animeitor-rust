@@ -20,7 +20,7 @@ pub mod models;
 pub mod schema;
 pub mod server;
 
-use ::server::dataio::*;
+use ::server as dserver;
 
 use crate::errors::Error;
 
@@ -59,53 +59,26 @@ pub fn establish_pool() -> Pool {
     Pool::builder().max_size(15).build(manager).unwrap()
 }
 
-// pub fn establish_threaded_connection() -> Arc<Mutex<PgConnection>> {
-//     Arc::new(Mutex::new(establish_connection()))
-// }
+async fn load_data_from_sql_maybe(
+    params: Arc<Params>,
+) -> Result<(i64, data::ContestFile, data::RunsFile), errors::Error> {
 
-// pub fn establish_connection() -> PgConnection {
-//     dotenv().ok();
-
-//     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-//     PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
-// }
-
-async fn update_runs(
-    runs: Arc<Mutex<DB>>,
-    params: &Params,
-) -> Result<(), Error> {
     let contest_data = helpers::get_contest_file(&params)?;
     let runs_data = helpers::get_all_runs(&params)?;
 
     let time_data = contest_data.current_time;
 
-    let mut db = runs.lock().await;
-    db.refresh_db(time_data, contest_data, runs_data)?;
-    Ok(())
+    Ok((time_data, contest_data, runs_data))
 }
 
-pub fn spawn_db_update(params: &Params) -> Arc<Mutex<DB>> {
-    let shared_db = Arc::new(Mutex::new(DB::empty()));
-    let cloned_db = shared_db.clone();
-    let params = params.clone();
-    spawn(async move {
-        let dur = tokio::time::Duration::new(30, 0);
-        let mut interval = tokio::time::interval(dur);
-        // let params = params.clone();
-        // let connection = establish_threaded_connection();
-        loop {
-            interval.tick().await;
-            let r = update_runs(cloned_db.clone(), &params).await;
-            match r {
-                Ok(_) => (),
-                Err(e) => eprintln!("Error updating run: {}", e),
-            }
-        }
-    });
-    shared_db
+async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, data::RunsFile) {
+    load_data_from_sql_maybe(params)
+        .await
+        .expect("should have loaded data from url")
 }
 
-pub async fn serve_simple_contest(server_port: u16, params: Params) {
-    let shared_db = spawn_db_update(&params);
-    ::server::serve_simple_contest_assets(shared_db, server_port, &params.secret).await
+
+pub async fn serve_simple_contest(server_port: u16, params: Arc<Params>) {
+    let secret = params.secret.clone();
+    dserver::serve_simple_contest_f(move || load_data_from_sql(params.clone()), server_port, &secret).await
 }

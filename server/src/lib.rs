@@ -13,6 +13,7 @@ use hyper::Client;
 use hyper_tls::HttpsConnector;
 
 use hyper::body;
+use std::future::Future;
 use std::io::prelude::*;
 use std::sync::Arc;
 use tokio;
@@ -27,6 +28,34 @@ use warp::ws::Message;
 // use warp::ws::{Message, WebSocket};
 
 use warp::Filter;
+
+pub fn spawn_db_update_f<F, Fut>(loader: F) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>)
+where
+    F: Fn() -> Fut + Send + 'static,
+    Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
+{
+    let shared_db = Arc::new(Mutex::new(DB::empty()));
+    let cloned_db = shared_db.clone();
+    let (tx, _) = broadcast::channel(1000000);
+    let tx2 = tx.clone();
+
+    spawn(async move {
+        let dur = tokio::time::Duration::new(1, 0);
+        let mut interval = tokio::time::interval(dur);
+        loop {
+            interval.tick().await;
+
+            let data = loader();
+
+            let r = update_runs_from_data(data.await, cloned_db.clone(), tx.clone()).await;
+            match r {
+                Ok(_) => (),
+                Err(e) => eprintln!("Error updating run: {}", e),
+            }
+        }
+    });
+    (shared_db, tx2)
+}
 
 pub fn spawn_db_update(data_url: String) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>) {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
@@ -150,13 +179,39 @@ fn read_from_zip(
     // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
+async fn load_data_from_url_maybe(
+    uri: String,
+) -> CResult<(i64, data::ContestFile, data::RunsFile)> {
+    let zip_data = read_bytes_from_path(&uri).await?;
+
+    let reader = std::io::Cursor::new(&zip_data);
+    let mut zip = zip::ZipArchive::new(reader)
+        .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
+
+    let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
+
+    let contest_data = read_from_zip(&mut zip, "contest")?;
+    let contest_data = read_contest(&contest_data)?;
+
+    let runs_data = read_from_zip(&mut zip, "runs")?;
+    let runs_data = read_runs(&runs_data)?;
+
+    Ok((time_data, contest_data, runs_data))
+}
+
+async fn load_data_from_url(uri: String) -> (i64, data::ContestFile, data::RunsFile) {
+    load_data_from_url_maybe(uri)
+        .await
+        .expect("should have loaded data from url")
+}
+
 async fn update_runs_from_url(
     uri: &String,
     runs: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
 ) -> CResult<()> {
     // let zip_data = read_bytes_from_url(uri).await?;
-    let zip_data = read_bytes_from_path(uri).await?;
+    let zip_data = read_bytes_from_path(&uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)
@@ -172,7 +227,6 @@ async fn update_runs_from_url(
 
     update_runs_from_data((time_data, contest_data, runs_data), runs, tx).await
 }
-
 
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
@@ -292,7 +346,20 @@ pub fn random_path_part() -> String {
 }
 
 pub async fn serve_simple_contest(url_base: String, server_port: u16, secret: &String) {
-    let (shared_db, runs_tx) = spawn_db_update(url_base);
+    serve_simple_contest_f(
+        move || load_data_from_url(url_base.clone()),
+        server_port,
+        secret,
+    )
+    .await
+}
+
+pub async fn serve_simple_contest_f<F, Fut>(f: F, server_port: u16, secret: &String)
+where
+    F: Fn() -> Fut + Send + 'static,
+    Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
+{
+    let (shared_db, runs_tx) = spawn_db_update_f(f);
     serve_simple_contest_assets(shared_db, runs_tx, server_port, secret).await
 }
 
