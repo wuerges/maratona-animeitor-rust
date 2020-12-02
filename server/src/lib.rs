@@ -25,9 +25,6 @@ use zip;
 
 use futures::{SinkExt, StreamExt};
 use warp::ws::Message;
-// use tokio::sync::{broadcast, RwLock};
-// use futures::{FutureExt, Sink, SinkExt, StreamExt};
-// use warp::ws::{Message, WebSocket};
 
 use warp::Filter;
 
@@ -59,57 +56,25 @@ where
     (shared_db, tx2)
 }
 
-pub fn spawn_db_update(data_url: String) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>) {
-    let shared_db = Arc::new(Mutex::new(DB::empty()));
-    let cloned_db = shared_db.clone();
-    let (tx, _) = broadcast::channel(1000000);
-    let tx2 = tx.clone();
-    spawn(async move {
-        let dur = tokio::time::Duration::new(1, 0);
-        let mut interval = tokio::time::interval(dur);
-        loop {
-            interval.tick().await;
-            let r = update_runs_from_url(&data_url, cloned_db.clone(), tx.clone()).await;
-            match r {
-                Ok(_) => (),
-                Err(e) => eprintln!("Error updating run: {}", e),
-            }
-        }
-    });
-    (shared_db, tx2)
+fn with_db(
+    db: Arc<Mutex<DB>>,
+) -> impl Filter<Extract = (Arc<Mutex<DB>>,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || db.clone())
 }
 
-pub fn serve_urlbase(
-    config : ConfigContest,
+pub fn route_contest_public_data(
     shared_db: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
-    secret: &String,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-    type Shared = Arc<Mutex<DB>>;
-    fn with_db(
-        db: Shared,
-    ) -> impl Filter<Extract = (Shared,), Error = std::convert::Infallible> + Clone {
-        warp::any().map(move || db.clone())
-    }
-
-    // warp::path(source.clone())
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
-
-    // let all_runs = warp::path("allruns")
-    //     .and(with_db(shared_db.clone()))
-    //     .and_then(serve_all_runs);
 
     let all_runs_ws = warp::path("allruns_ws")
         .and(warp::ws())
         .and(with_db(shared_db.clone()))
         .and(warp::any().map(move || tx.subscribe()))
         .map(|ws: warp::ws::Ws, db, rx| ws.on_upgrade(move |ws| serve_all_runs_ws(ws, db, rx)));
-
-    let all_runs_secret = warp::path(format!("allruns_{}", secret))
-        .and(with_db(shared_db.clone()))
-        .and_then(serve_all_runs_secret);
 
     let timer = warp::path("timer")
         .and(warp::ws())
@@ -120,25 +85,30 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
-    let config = Arc::new(config);
-    let config_file = warp::path("config")
-        .and(warp::any().map( move || config.clone()))
-        .and_then(serve_contest_config);
-
-    // let scoreboard = warp::path("score")
-    //     .and(with_db(shared_db))
-    //     .and_then(serve_score);
-
-    let routes = runs
-        // .or(all_runs)
-        .or(all_runs_ws)
-        .or(all_runs_secret)
-        .or(timer)
-        .or(contest_file)
-        .or(config_file);
-        // .or(scoreboard);
+    let routes = runs.or(all_runs_ws).or(timer).or(contest_file);
 
     routes.boxed()
+}
+
+pub fn serve_urlbase(
+    config: ConfigContest,
+    shared_db: Arc<Mutex<DB>>,
+    tx: broadcast::Sender<data::RunTuple>,
+    secret: &String,
+) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
+    let config = Arc::new(config);
+    let config_file = warp::path("config")
+        .and(warp::any().map(move || config.clone()))
+        .and_then(serve_contest_config);
+
+    let all_runs_secret = warp::path(format!("allruns_{}", secret))
+        .and(with_db(shared_db.clone()))
+        .and_then(serve_all_runs_secret);
+
+    route_contest_public_data(shared_db, tx)
+        .or(config_file)
+        .or(all_runs_secret)
+        .boxed()
 }
 
 async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
@@ -184,8 +154,6 @@ fn read_from_zip(
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
-
-    // .or_else(|t| try_read_from_zip(zip, name))?
 }
 
 async fn load_data_from_url_maybe(
@@ -212,29 +180,6 @@ async fn load_data_from_url(uri: String) -> (i64, data::ContestFile, data::RunsF
     load_data_from_url_maybe(uri)
         .await
         .expect("should have loaded data from url")
-}
-
-async fn update_runs_from_url(
-    uri: &String,
-    runs: Arc<Mutex<DB>>,
-    tx: broadcast::Sender<data::RunTuple>,
-) -> CResult<()> {
-    // let zip_data = read_bytes_from_url(uri).await?;
-    let zip_data = read_bytes_from_path(&uri).await?;
-
-    let reader = std::io::Cursor::new(&zip_data);
-    let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
-
-    let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
-
-    let contest_data = read_from_zip(&mut zip, "contest")?;
-    let contest_data = read_contest(&contest_data)?;
-
-    let runs_data = read_from_zip(&mut zip, "runs")?;
-    let runs_data = read_runs(&runs_data)?;
-
-    update_runs_from_data((time_data, contest_data, runs_data), runs, tx).await
 }
 
 async fn update_runs_from_data(
@@ -315,12 +260,6 @@ async fn serve_all_runs_ws(
     tokio::task::spawn(fut);
 }
 
-// async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-//     let db = runs.lock().await;
-//     let r = serde_json::to_string(&db.run_file).unwrap();
-//     Ok(r)
-// }
-
 async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     let r = serde_json::to_string(&db.run_file_secret).unwrap();
@@ -333,16 +272,12 @@ async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, war
     Ok(r)
 }
 
-async fn serve_contest_config(config : Arc<ConfigContest>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_contest_config(
+    config: Arc<ConfigContest>,
+) -> Result<impl warp::Reply, warp::Rejection> {
     let r = serde_json::to_string(&*config).unwrap();
     Ok(r)
 }
-
-// async fn serve_score(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-//     let db = runs.lock().await;
-//     let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
-//     Ok(r)
-// }
 
 pub fn random_path_part() -> String {
     use rand::Rng;
@@ -359,7 +294,12 @@ pub fn random_path_part() -> String {
         .collect()
 }
 
-pub async fn serve_simple_contest(config : ConfigContest, url_base: String, server_port: u16, secret: &String) {
+pub async fn serve_simple_contest(
+    config: ConfigContest,
+    url_base: String,
+    server_port: u16,
+    secret: &String,
+) {
     serve_simple_contest_f(
         config,
         move || load_data_from_url(url_base.clone()),
@@ -369,8 +309,12 @@ pub async fn serve_simple_contest(config : ConfigContest, url_base: String, serv
     .await
 }
 
-pub async fn serve_simple_contest_f<F, Fut>(config : ConfigContest, f: F, server_port: u16, secret: &String)
-where
+pub async fn serve_simple_contest_f<F, Fut>(
+    config: ConfigContest,
+    f: F,
+    server_port: u16,
+    secret: &String,
+) where
     F: Fn() -> Fut + Send + 'static,
     Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
 {
@@ -379,7 +323,7 @@ where
 }
 
 pub async fn serve_simple_contest_assets(
-    config : ConfigContest,
+    config: ConfigContest,
     db: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
     server_port: u16,
