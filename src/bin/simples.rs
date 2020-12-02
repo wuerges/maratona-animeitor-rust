@@ -58,10 +58,6 @@ async fn main() {
         server_port
     );
     println!(
-        "-> Placar interativo em http://localhost:{}/seed/stepping.html",
-        server_port
-    );
-    println!(
         "-> Timer em http://localhost:{}/seed/timer.html",
         server_port
     );

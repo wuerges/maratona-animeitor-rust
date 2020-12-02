@@ -1,7 +1,6 @@
 
 use seed::{prelude::*, *};
 
-mod stepping;
 mod requests;
 mod automatic;
 mod views;
@@ -27,7 +26,6 @@ pub fn start() {
             None => (),
             Some(root_element) => {
                     match root_element.class_name().as_str() {
-                        "stepping" => stepping::start(root_element),
                         "navigation" => navigation::start(root_element),
                         "reveleitor" => reveleitor::start(root_element),
                         "automatic" => automatic::start(root_element),

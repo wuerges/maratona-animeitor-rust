@@ -94,9 +94,9 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_runs);
 
-    let all_runs = warp::path("allruns")
-        .and(with_db(shared_db.clone()))
-        .and_then(serve_all_runs);
+    // let all_runs = warp::path("allruns")
+    //     .and(with_db(shared_db.clone()))
+    //     .and_then(serve_all_runs);
 
     let all_runs_ws = warp::path("allruns_ws")
         .and(warp::ws())
@@ -117,17 +117,21 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
-    let scoreboard = warp::path("score")
-        .and(with_db(shared_db))
-        .and_then(serve_score);
+    // let contest_file = warp::path("config")
+    //     .and(with_db(shared_db.clone()))
+    //     .and_then(serve_contest_config);
+
+    // let scoreboard = warp::path("score")
+    //     .and(with_db(shared_db))
+    //     .and_then(serve_score);
 
     let routes = runs
-        .or(all_runs)
+        // .or(all_runs)
         .or(all_runs_ws)
         .or(all_runs_secret)
         .or(timer)
-        .or(contest_file)
-        .or(scoreboard);
+        .or(contest_file);
+        // .or(scoreboard);
 
     routes.boxed()
 }
@@ -306,11 +310,11 @@ async fn serve_all_runs_ws(
     tokio::task::spawn(fut);
 }
 
-async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-    let db = runs.lock().await;
-    let r = serde_json::to_string(&db.run_file).unwrap();
-    Ok(r)
-}
+// async fn serve_all_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+//     let db = runs.lock().await;
+//     let r = serde_json::to_string(&db.run_file).unwrap();
+//     Ok(r)
+// }
 
 async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
@@ -324,11 +328,11 @@ async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, war
     Ok(r)
 }
 
-async fn serve_score(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-    let db = runs.lock().await;
-    let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
-    Ok(r)
-}
+// async fn serve_score(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+//     let db = runs.lock().await;
+//     let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
+//     Ok(r)
+// }
 
 pub fn random_path_part() -> String {
     use rand::Rng;
