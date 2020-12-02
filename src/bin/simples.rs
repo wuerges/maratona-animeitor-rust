@@ -1,11 +1,9 @@
-use std::env;
 use tokio;
 
 use server::*;
 
 extern crate clap;
-use clap::{App, Arg, SubCommand};
-use std::path::Path;
+use clap::{App, Arg};
 
 #[tokio::main]
 async fn main() {

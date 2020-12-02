@@ -22,6 +22,7 @@ warp = "0.2"
 rand = "0.7.3"
 itertools = "0.9.0"
 r2d2 = "0.8.9"
+clap = "2.33.3"
 
 
 [dependencies.data]
