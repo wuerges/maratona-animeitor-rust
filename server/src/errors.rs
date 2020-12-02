@@ -24,7 +24,7 @@ pub enum Error {
 
     #[error(transparent)]
     ConfigParse(#[from] toml::de::Error),
-    
+
     #[error("Error: {0}")]
     Info(String),
 }

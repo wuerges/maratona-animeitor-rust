@@ -1,11 +1,10 @@
+use crate::errors::{CResult, Error};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
-use crate::errors::{Error, CResult};
 
 // use rustrimeitor::*;
 use data::*;
-
 
 trait FromString {
     fn from_string(s: &str) -> CResult<Self>
@@ -131,13 +130,12 @@ pub fn read_runs(s: &String) -> CResult<RunsFile> {
     RunsFile::from_string(s)
 }
 
-
 impl DB {
     pub fn latest(&self) -> Vec<RunsPanelItem> {
         self.run_file
             .sorted()
             .into_iter()
-            .filter( |r| r.time < self.contest_file.score_freeze_time)
+            .filter(|r| r.time < self.contest_file.score_freeze_time)
             // .take(n)
             .map(|r| {
                 let dummy = Team::dummy();
@@ -182,7 +180,12 @@ impl DB {
         Ok(self.contest_file.reload_score()?)
     }
 
-    pub fn refresh_db(&mut self, time: i64, contest: ContestFile, runs: RunsFile) -> CResult<Vec<RunTuple>> {
+    pub fn refresh_db(
+        &mut self,
+        time: i64,
+        contest: ContestFile,
+        runs: RunsFile,
+    ) -> CResult<Vec<RunTuple>> {
         self.time_file = time;
         self.contest_file_begin = contest;
 
@@ -191,7 +194,6 @@ impl DB {
         let fresh = self.run_file.refresh(runs_frozen.sorted());
         self.run_file_secret = runs;
 
-        
         self.recalculate_score()?;
 
         Ok(fresh)
@@ -231,7 +233,6 @@ mod tests {
         Ok(())
     }
 
-    
     #[test]
     fn test_parse_file_1a_fase_2020() -> CResult<()> {
         let x = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
@@ -251,14 +252,13 @@ mod tests {
         assert_eq!(db.run_file.len(), 4927);
         assert_eq!(db.run_file_secret.len(), 6285);
 
-
         Ok(())
     }
 
     #[test]
     fn test_revelation_1a_fase_2020() -> CResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-        
+
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(runs.len(), 6285);
 
@@ -287,7 +287,7 @@ mod tests {
     #[test]
     fn test_revelation_teams_1a_fase_2020() -> CResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-        
+
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(runs.len(), 6285);
 
@@ -298,7 +298,7 @@ mod tests {
 
         // r2.apply_all_runs_before_frozen();
         // r2.apply_all_runs_from_queue();
-        
+
         r2.apply_all_runs_on_frozen();
         for t in r2.contest.teams.values_mut() {
             while t.wait() {

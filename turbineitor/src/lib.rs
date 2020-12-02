@@ -24,6 +24,8 @@ use ::server as dserver;
 
 use crate::errors::Error;
 
+use warp::Filter;
+
 #[derive(Clone)]
 pub struct Params {
     pub contest_number: i32,
@@ -80,9 +82,12 @@ pub async fn serve_turbinator_data(server_port: u16, params: Arc<Params>) {
     let (shared_db, runs_tx) =
         dserver::spawn_db_update_f(move || load_data_from_sql(params.clone()));
 
+    let ui_route = warp::get().and(warp::fs::dir("turbineitor/ui"));
+    // let assets_route = warp::path("assets").and(warp::fs::dir("turbineitor/ui/assets"));
+
     let route_data = dserver::route_contest_public_data(shared_db, runs_tx);
 
-    warp::serve(route_data)
-        .run(([0, 0, 0, 0], server_port))
-        .await
+    let routes = ui_route.or(route_data);
+
+    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }
