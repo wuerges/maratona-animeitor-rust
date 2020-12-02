@@ -15,7 +15,7 @@ async fn main() {
             Arg::with_name("config")
                 .short("c")
                 .long("config")
-                .value_name("FILE")
+                .value_name("CONFIG")
                 .help("Sets a custom config file")
                 .default_value("config/Default.toml")
                 .takes_value(true),
@@ -45,6 +45,9 @@ async fn main() {
         .unwrap_or(8000);
 
     let url_base = matches.value_of("URL").unwrap();
+    let config_file = matches.value_of("CONFIG").unwrap_or("config/Default.toml");
+    let config = config::parse_config(std::path::Path::new(config_file))
+        .expect("Should be able to parse the config.");
 
     let secret = random_path_part();
 
@@ -70,5 +73,5 @@ async fn main() {
         server_port, secret
     );
 
-    serve_simple_contest(url_base.to_string(), server_port, &secret).await;
+    serve_simple_contest(config, url_base.to_string(), server_port, &secret).await;
 }

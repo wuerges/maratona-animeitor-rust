@@ -1,6 +1,4 @@
 use data::configdata::*;
-use toml::Value;
-use crate::errors::CResult;
 
 // fn sede_from_value(v : Value) -> CResult<Sede> {
 //     let nome = v.get("nome").unwrap();
@@ -18,11 +16,13 @@ use crate::errors::CResult;
 // }
 
 pub fn parse_config(path: &std::path::Path) -> std::io::Result<ConfigContest> {
-    let text = std::fs::read_to_string(path)?.parse::<Value>()?;
+    let text = std::fs::read_to_string(path)?;
 
-    // let sedes = text.get("sede").unwrap().as_array().map( |s| 
+    let contest: ConfigContest = toml::from_str(&text)?;
+
+    // let sedes = text.get("sede").unwrap().as_array().map( |s|
     //     // Sede::new()
     // );
 
-    Ok(ConfigContest::new(vec![]))
+    Ok(contest)
 }

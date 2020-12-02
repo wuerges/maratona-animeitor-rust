@@ -1,57 +1,75 @@
-// use maratona_animeitor_rust::data;
 use data::configdata;
-use data::config;
 use seed::{prelude::*, *};
 
-// use crate::requests::*;
-// use crate::helpers::*;
-// use crate::views;
+use crate::requests;
 
 extern crate rand;
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
-    Model {
-    }
+    orders.perform_cmd(fetch_all());
+
+    Model { contest: None }
+}
+
+async fn fetch_all() -> Msg {
+    let c = requests::fetch_config().await;
+    Msg::Fetched(c)
 }
 
 struct Model {
+    contest: Option<configdata::ConfigContest>,
 }
 
 enum Msg {
-    UrlChanged(subs::UrlChanged)
+    UrlChanged(subs::UrlChanged),
+    Fetched(fetch::Result<configdata::ConfigContest>),
 }
 
-fn update(msg: Msg, _: &mut Model, _: &mut impl Orders<Msg>) {
+fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             url.go_and_load();
         }
+        Msg::Fetched(Ok(config)) => {
+            model.contest = Some(config);
+        }
+        Msg::Fetched(Err(e)) => {
+            log!("Error: failed loading config", e);
+        }
     }
 }
 
-fn build_url_filter(sede : &configdata::Sede) -> String {
+fn build_url_filter(sede: &configdata::Sede) -> String {
     Url::new()
-    .add_path_part("seed")
-    .add_path_part("everything2.html")
-    // Url::current()
-    .set_search(UrlSearch::new(vec![
-        ("sede", vec![&sede.name]),
-        ("filter", sede.codes.iter().map(|s| s).collect()),
-    ])).to_string()
+        .add_path_part("seed")
+        .add_path_part("everything2.html")
+        // Url::current()
+        .set_search(UrlSearch::new(vec![
+            ("sede", vec![&sede.name]),
+            ("filter", sede.codes.iter().map(|s| s).collect()),
+        ]))
+        .to_string()
 }
 
-fn view(_: &Model) -> Node<Msg> {
-    div![C!["sedesnavigation"],
-        config::contest().sedes.iter().map( |sede| {
-            span![
-                C!["sedeslink"],
-                a![attrs!{At::Href=>build_url_filter(&sede), At::Target=>"principal"}, &sede.name],
-            ]
-        }),
-    ]
+fn view(model: &Model) -> Node<Msg> {
+    match model.contest.as_ref() {
+        None => div![],
+        Some(contest) => div![
+            C!["sedesnavigation"],
+            contest.sedes.iter().map(|sede| {
+                span![
+                    C!["sedeslink"],
+                    a![
+                        attrs! {At::Href=>build_url_filter(&sede), At::Target=>"principal"},
+                        &sede.name
+                    ],
+                ]
+            }),
+        ],
+    }
 }
 
-pub fn start(e : impl GetElement) {
+pub fn start(e: impl GetElement) {
     App::start(e, init, update, view);
 }

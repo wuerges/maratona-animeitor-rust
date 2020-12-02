@@ -2,6 +2,8 @@ pub mod config;
 pub mod dataio;
 pub mod errors;
 
+use data::configdata::ConfigContest;
+
 use crate::errors::{CResult, Error};
 
 extern crate itertools;
@@ -78,6 +80,7 @@ pub fn spawn_db_update(data_url: String) -> (Arc<Mutex<DB>>, broadcast::Sender<d
 }
 
 pub fn serve_urlbase(
+    config : ConfigContest,
     shared_db: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
     secret: &String,
@@ -117,9 +120,10 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
-    // let contest_file = warp::path("config")
-    //     .and(with_db(shared_db.clone()))
-    //     .and_then(serve_contest_config);
+    let config = Arc::new(config);
+    let config_file = warp::path("config")
+        .and(warp::any().map( move || config.clone()))
+        .and_then(serve_contest_config);
 
     // let scoreboard = warp::path("score")
     //     .and(with_db(shared_db))
@@ -130,7 +134,8 @@ pub fn serve_urlbase(
         .or(all_runs_ws)
         .or(all_runs_secret)
         .or(timer)
-        .or(contest_file);
+        .or(contest_file)
+        .or(config_file);
         // .or(scoreboard);
 
     routes.boxed()
@@ -328,6 +333,11 @@ async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, war
     Ok(r)
 }
 
+async fn serve_contest_config(config : Arc<ConfigContest>) -> Result<impl warp::Reply, warp::Rejection> {
+    let r = serde_json::to_string(&*config).unwrap();
+    Ok(r)
+}
+
 // async fn serve_score(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
 //     let db = runs.lock().await;
 //     let r = serde_json::to_string(&db.get_scoreboard()).unwrap();
@@ -349,8 +359,9 @@ pub fn random_path_part() -> String {
         .collect()
 }
 
-pub async fn serve_simple_contest(url_base: String, server_port: u16, secret: &String) {
+pub async fn serve_simple_contest(config : ConfigContest, url_base: String, server_port: u16, secret: &String) {
     serve_simple_contest_f(
+        config,
         move || load_data_from_url(url_base.clone()),
         server_port,
         secret,
@@ -358,16 +369,17 @@ pub async fn serve_simple_contest(url_base: String, server_port: u16, secret: &S
     .await
 }
 
-pub async fn serve_simple_contest_f<F, Fut>(f: F, server_port: u16, secret: &String)
+pub async fn serve_simple_contest_f<F, Fut>(config : ConfigContest, f: F, server_port: u16, secret: &String)
 where
     F: Fn() -> Fut + Send + 'static,
     Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
 {
     let (shared_db, runs_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(shared_db, runs_tx, server_port, secret).await
+    serve_simple_contest_assets(config, shared_db, runs_tx, server_port, secret).await
 }
 
 pub async fn serve_simple_contest_assets(
+    config : ConfigContest,
     db: Arc<Mutex<DB>>,
     tx: broadcast::Sender<data::RunTuple>,
     server_port: u16,
@@ -382,6 +394,6 @@ pub async fn serve_simple_contest_assets(
     let routes = root
         .or(static_assets)
         .or(seed_assets)
-        .or(serve_urlbase(db, tx, secret));
+        .or(serve_urlbase(config, db, tx, secret));
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }
