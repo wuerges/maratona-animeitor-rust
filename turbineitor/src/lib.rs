@@ -36,12 +36,12 @@ impl Params {
         Ok(self.pool.get()?)
     }
 
-    pub fn new(contest_number: i32, site_number:i32, secret: String) -> Self {
+    pub fn new(contest_number: i32, site_number: i32, secret: String) -> Self {
         Self {
             contest_number,
             site_number,
             secret,
-            pool : establish_pool()
+            pool: establish_pool(),
         }
     }
 }
@@ -62,7 +62,6 @@ pub fn establish_pool() -> Pool {
 async fn load_data_from_sql_maybe(
     params: Arc<Params>,
 ) -> Result<(i64, data::ContestFile, data::RunsFile), errors::Error> {
-
     let contest_data = helpers::get_contest_file(&params)?;
     let runs_data = helpers::get_all_runs(&params)?;
 
@@ -77,8 +76,13 @@ async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, dat
         .expect("should have loaded data from SQL")
 }
 
+pub async fn serve_turbinator_data(server_port: u16, params: Arc<Params>) {
+    let (shared_db, runs_tx) =
+        dserver::spawn_db_update_f(move || load_data_from_sql(params.clone()));
 
-pub async fn serve_simple_contest(server_port: u16, params: Arc<Params>) {
-    let secret = params.secret.clone();
-    dserver::serve_simple_contest_f(move || load_data_from_sql(params.clone()), server_port, &secret).await
+    let route_data = dserver::route_contest_public_data(shared_db, runs_tx);
+
+    warp::serve(route_data)
+        .run(([0, 0, 0, 0], server_port))
+        .await
 }
