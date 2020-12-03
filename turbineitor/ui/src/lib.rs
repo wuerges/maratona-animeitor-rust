@@ -14,7 +14,7 @@ use seed::{prelude::*, *};
 // ------ ------
 
 // `init` describes what should happen when your app started.
-fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     Model {
         page: Page::Login {
             login: ElRef::new(),
@@ -48,16 +48,16 @@ enum Page {
         login: Input,
         password: Input,
     },
-    // Logged { login: String, token: String, page: Internal },
     Logged {
-        login: String,
         ws: WebSocket,
+        login: String,
         page: Internal,
     },
 }
 
 #[derive(Debug)]
 pub enum Internal {
+    Pre,
     Basic,
     Problems,
     Clarifications,
@@ -90,6 +90,7 @@ impl Page {
 // `Msg` describes the different events you can modify state with.
 pub enum Msg {
     Login(Input, Input),
+    DoLogin(String, String),
     WS(WebSocketMessage),
     Logout,
     Goto(Internal),
@@ -101,26 +102,51 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Login(login, password) => {
             let login = login.get().expect("login").value();
             let password = password.get().expect("password").value();
-            log!("yay:", login, password);
+
+            let plogin = login.clone();
 
             let ws = WebSocket::builder(requests::get_ws_url("/sign"), orders)
                 .on_message(Msg::WS)
+                .on_open(move || Msg::DoLogin(login, password))
+                .on_close(move |e| {
+                    log!("websocket closed!", e);
+                    Msg::Logout
+                })                    
                 .build_and_open()
                 .expect("Open WebSocket");
-
             model.page = Page::Logged {
-                login: login,
                 ws,
-                page: Internal::Problems,
+                login: plogin,
+                page: Internal::Pre,
             };
-        },
+        }
+        Msg::DoLogin(login, password) => {
+            if let Page::Logged {
+                ws,
+                page: Internal::Pre,
+                ..
+            } = &model.page
+            {
+                ws.send_json(&data::auth::Credentials { login, password })
+                    .expect("Should be able to send login and password");
+            }
+        }
         Msg::Logout => {
             model.page = Page::login();
-        },
+        }
         Msg::Goto(intern) => {
             model.page.goto(intern);
-        },
+        }
         Msg::WS(m) => {
+            match m.json().expect("Should decode message do json") {
+                data::turb::Msg::Ready => {}
+                data::turb::Msg::Login => {
+                    model.page.goto(Internal::Problems);
+                }
+                data::turb::Msg::Logout => {
+                    model.page = Page::login();
+                }
+            }
             log!("received websocket message:", m);
         }
     }
@@ -138,7 +164,17 @@ fn view(model: &Model) -> Node<Msg> {
         Page::Login { login, password } => {
             views::view_login_screen(login.clone(), password.clone())
         }
-        Page::Logged { login, page, .. } => div![views::navbar(&login, &page),],
+        Page::Logged { login, page, .. } => match page {
+            Internal::Pre => section![
+                C!["section"],
+                div![
+                    C!["container"],
+                    p![C!["title"], "Checking credentials..."],
+                    progress![C!["progress", "is-large", "is-info"], "60%"]
+                ]
+            ],
+            _ => div![views::navbar(&login, &page),],
+        },
     }
 }
 

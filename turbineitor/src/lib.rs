@@ -10,6 +10,7 @@ use std::env;
 
 use std::sync::Arc;
 use tokio;
+use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 
 use r2d2;
@@ -27,6 +28,9 @@ use crate::errors::Error;
 
 use warp::reject::custom;
 use warp::Filter;
+
+use futures::{SinkExt, StreamExt};
+use warp::ws::Message;
 
 #[derive(Clone)]
 pub struct Params {
@@ -80,20 +84,61 @@ async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, dat
         .expect("should have loaded data from SQL")
 }
 
-async fn serve_sign(
-    data: HashMap<String, String>,
-    params: Arc<Params>,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let login = data
-        .get("login")
-        .ok_or(warp::reject::custom(Error::empty("login")))?;
-    let pass = data
-        .get("password")
-        .ok_or(warp::reject::custom(Error::empty("password")))?;
+enum TurbMsg {
+    Dummy,
+    Login { login: String, pass: String },
+}
 
-    let u = helpers::check_password(&login, &pass, &params).map_err(custom)?;
+// async fn spawn_serve_data(
+//     tx: broadcast::Sender<TurbMsg>,
+//     data: HashMap<String, String>,
+//     params: Arc<Params>,
+// ) {
+// }
 
-    auth::sign_user_key(u, params.secret.as_ref()).map_err(custom)
+async fn serve_sign(ws: warp::ws::WebSocket, params: Arc<Params>) {
+    let (mut tx, mut rx) = ws.split();
+
+    if let Some(result) = rx.next().await {
+        let msg = result.expect("Websocket error");
+        let msg = msg.to_str().expect("Should encode message to text");
+        let creds: data::auth::Credentials =
+            serde_json::from_str(&msg).expect("Should be able to parse login atempt to json");
+
+        match helpers::check_password(&creds.login, &creds.password, &params) {
+            Err(e) => {
+                let response = data::turb::Msg::Logout;
+                let text =
+                    serde_json::to_string(&response).expect("Should convert response to json");
+                tx.send(warp::ws::Message::text(text))
+                    .await
+                    .expect("Should send message to client");
+                eprintln!("login failure {:?}", e);
+            }
+            Ok(_) => {
+                let response = data::turb::Msg::Login;
+                let text =
+                    serde_json::to_string(&response).expect("Should convert response to json");
+                tx.send(warp::ws::Message::text(text))
+                    .await
+                    .expect("Should send message to client");
+
+                let dur = tokio::time::Duration::new(1, 0);
+                let mut interval = tokio::time::interval(dur);
+                let fut = async move {
+
+                    let _tx2 = tx;
+                    let _rx2 = rx;
+                    println!("keeping connection open for user {}", creds.login);
+
+                    loop {
+                        interval.tick().await;
+                    }
+                };
+                tokio::task::spawn(fut);
+            }
+        }
+    }
 }
 
 pub async fn serve_turbinator_data(server_port: u16, params: Arc<Params>) {
@@ -102,11 +147,18 @@ pub async fn serve_turbinator_data(server_port: u16, params: Arc<Params>) {
     let (shared_db, runs_tx) =
         dserver::spawn_db_update_f(move || load_data_from_sql(params.clone()));
 
-    let sign_route = warp::post()
-        .and(warp::path("sign"))
-        .and(warp::body::content_length_limit(1024 * 32))
-        .and(warp::body::json())
-        .and_then(move |m| serve_sign(m, params_sign.clone()));
+    let sign_route = warp::path("sign")
+        .and(warp::ws())
+        .and(warp::any().map(move || params_sign.clone()))
+        .map(|ws: warp::ws::Ws, params: Arc<Params>| {
+            ws.on_upgrade(move |ws| serve_sign(ws, params.clone()))
+        });
+
+    // let all_runs_ws = warp::path("allruns_ws")
+    // .and(warp::ws())
+    // .and(with_db(shared_db.clone()))
+    // .and(warp::any().map(move || tx.subscribe()))
+    // .map(|ws: warp::ws::Ws, db, rx| ws.on_upgrade(move |ws| serve_all_runs_ws(ws, db, rx)));
 
     let ui_route = warp::get().and(warp::fs::dir("turbineitor/ui"));
 
