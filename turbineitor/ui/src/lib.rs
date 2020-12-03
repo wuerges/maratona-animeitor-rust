@@ -42,6 +42,8 @@ struct Model {
 
 type Input = ElRef<web_sys::HtmlInputElement>;
 
+use data::turb::{ClarificationSet, RunSet};
+
 #[derive(Debug)]
 enum Page {
     Login {
@@ -52,6 +54,8 @@ enum Page {
         ws: WebSocket,
         login: String,
         page: Internal,
+        clarifications: ClarificationSet,
+        runs: RunSet,
     },
 }
 
@@ -69,6 +73,15 @@ impl Page {
         Page::Login {
             login: ElRef::new(),
             password: ElRef::new(),
+        }
+    }
+    fn pre(ws: WebSocket, login:String) -> Self  {
+        Page::Logged {
+            ws,
+            login,
+            page: Internal::Pre,
+            clarifications: ClarificationSet::new(),
+            runs: RunSet::new(),
         }
     }
     fn goto(&mut self, intern: Internal) {
@@ -114,11 +127,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 })                    
                 .build_and_open()
                 .expect("Open WebSocket");
-            model.page = Page::Logged {
-                ws,
-                login: plogin,
-                page: Internal::Pre,
-            };
+            model.page = Page::pre(ws, plogin);
         }
         Msg::DoLogin(login, password) => {
             if let Page::Logged {
@@ -164,7 +173,7 @@ fn view(model: &Model) -> Node<Msg> {
         Page::Login { login, password } => {
             views::view_login_screen(login.clone(), password.clone())
         }
-        Page::Logged { login, page, .. } => match page {
+        Page::Logged { login, page, clarifications, runs,.. } => match page {
             Internal::Pre => section![
                 C!["section"],
                 div![
@@ -172,6 +181,16 @@ fn view(model: &Model) -> Node<Msg> {
                     p![C!["title"], "Checking credentials..."],
                     progress![C!["progress", "is-large", "is-info"], "60%"]
                 ]
+            ],
+            Internal::Clarifications => div![
+                div![views::navbar(&login, &page),],
+                main![
+                    C!["container"],
+                    div![C!["columns"],
+                        views::view_clarifications(&"Gerais".to_string(), clarifications),
+                        views::view_submissions(runs),
+                    ]
+                ],
             ],
             _ => div![views::navbar(&login, &page),],
         },
