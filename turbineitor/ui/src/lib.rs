@@ -15,19 +15,19 @@ use seed::{prelude::*, *};
 
 // `init` describes what should happen when your app started.
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
-    // Model {
-    //     page: Page::Login {
-    //         login: ElRef::new(),
-    //         password: ElRef::new(),
-    //     },
-    // }
     Model {
-        page: Page::Logged {
-            login: "kappa".to_string(),
-            token: "aoeuaoeuaoeuoeau".to_string(),
-            page : Internal::Problems,
+        page: Page::Login {
+            login: ElRef::new(),
+            password: ElRef::new(),
         },
     }
+    // Model {
+    //     page: Page::Logged {
+    //         login: "kappa".to_string(),
+    //         // token: "aoeuaoeuaoeuoeau".to_string(),
+    //         page : Internal::Problems,
+    //     },
+    // }
 }
 
 // ------ ------
@@ -44,8 +44,16 @@ type Input = ElRef<web_sys::HtmlInputElement>;
 
 #[derive(Debug)]
 enum Page {
-    Login { login: Input, password: Input },
-    Logged { login: String, token: String, page: Internal },
+    Login {
+        login: Input,
+        password: Input,
+    },
+    // Logged { login: String, token: String, page: Internal },
+    Logged {
+        login: String,
+        ws: WebSocket,
+        page: Internal,
+    },
 }
 
 #[derive(Debug)]
@@ -65,9 +73,9 @@ impl Page {
     }
     fn goto(&mut self, intern: Internal) {
         match self {
-            Page::Logged {page, ..}=> { 
+            Page::Logged { page, .. } => {
                 *page = intern;
-            },
+            }
             _ => (),
         }
     }
@@ -82,9 +90,9 @@ impl Page {
 // `Msg` describes the different events you can modify state with.
 pub enum Msg {
     Login(Input, Input),
+    WS(WebSocketMessage),
     Logout,
     Goto(Internal),
-    Token(fetch::Result<String>, String),
 }
 
 // `update` describes how to handle each `Msg`.
@@ -95,7 +103,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             let password = password.get().expect("password").value();
             log!("yay:", login, password);
 
-            orders.perform_cmd(requests::make_login(login, password));
+            let ws = WebSocket::builder(requests::get_ws_url("/sign"), orders)
+                .on_message(Msg::WS)
+                .build_and_open()
+                .expect("Open WebSocket");
+
+            model.page = Page::Logged {
+                login: login,
+                ws,
+                page: Internal::Problems,
+            };
         },
         Msg::Logout => {
             model.page = Page::login();
@@ -103,12 +120,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Goto(intern) => {
             model.page.goto(intern);
         },
-        Msg::Token(Ok(token), login) => {
-            model.page = Page::Logged { login, token, page : Internal::Problems };
-        },
-        Msg::Token(Err(e), _) => {
-            log!("error on login:", e);
-        } // Msg::Increment => *model += 1,
+        Msg::WS(m) => {
+            log!("received websocket message:", m);
+        }
     }
 }
 
@@ -124,11 +138,7 @@ fn view(model: &Model) -> Node<Msg> {
         Page::Login { login, password } => {
             views::view_login_screen(login.clone(), password.clone())
         }
-        Page::Logged { login, page, .. } => {
-            div![
-                views::navbar(&login, &page),
-            ]
-        },
+        Page::Logged { login, page, .. } => div![views::navbar(&login, &page),],
     }
 }
 
