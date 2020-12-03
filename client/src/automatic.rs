@@ -49,9 +49,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             model.url_filter = get_url_filter(&url);
         }
-        // Msg::Recenter => {
-        //     model.center = None;
-        // }
         Msg::Reload => {
             if model.dirty {
                 model.contest = model.original.clone();
