@@ -5,6 +5,7 @@ extern crate dotenv;
 use diesel::pg::PgConnection;
 // use diesel::prelude::*;
 use dotenv::dotenv;
+use std::collections::HashMap;
 use std::env;
 
 use std::sync::Arc;
@@ -24,6 +25,7 @@ use ::server as dserver;
 
 use crate::errors::Error;
 
+use warp::reject::custom;
 use warp::Filter;
 
 #[derive(Clone)]
@@ -78,16 +80,39 @@ async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, dat
         .expect("should have loaded data from SQL")
 }
 
+async fn serve_sign(
+    data: HashMap<String, String>,
+    params: Arc<Params>,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let login = data
+        .get("login")
+        .ok_or(warp::reject::custom(Error::empty("login")))?;
+    let pass = data
+        .get("password")
+        .ok_or(warp::reject::custom(Error::empty("password")))?;
+
+    let u = helpers::check_password(&login, &pass, &params).map_err(custom)?;
+
+    auth::sign_user_key(u, params.secret.as_ref()).map_err(custom)
+}
+
 pub async fn serve_turbinator_data(server_port: u16, params: Arc<Params>) {
+    let params_sign = params.clone();
+
     let (shared_db, runs_tx) =
         dserver::spawn_db_update_f(move || load_data_from_sql(params.clone()));
 
+    let sign_route = warp::post()
+        .and(warp::path("sign"))
+        .and(warp::body::content_length_limit(1024 * 32))
+        .and(warp::body::json())
+        .and_then(move |m| serve_sign(m, params_sign.clone()));
+
     let ui_route = warp::get().and(warp::fs::dir("turbineitor/ui"));
-    // let assets_route = warp::path("assets").and(warp::fs::dir("turbineitor/ui/assets"));
 
     let route_data = dserver::route_contest_public_data(shared_db, runs_tx);
 
-    let routes = ui_route.or(route_data);
+    let routes = sign_route.or(ui_route).or(route_data);
 
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }
