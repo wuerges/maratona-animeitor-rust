@@ -145,7 +145,10 @@ pub fn view_clarifications(selected: &String, groups: &ClarificationSet) -> Node
             C!["section"],
             div![
                 C!["tabs"],
-                ul![groups.into_iter().map(|(_,g)| li![a![g.name], "(", g.len()]),]
+                ul![groups
+                    .clars
+                    .iter()
+                    .map(|(_, g)| li![a![&g.name], "(", g.len(), ")"])]
             ],
             div![
                 C!["content"],
@@ -182,30 +185,33 @@ pub fn view_clarifications(selected: &String, groups: &ClarificationSet) -> Node
                         footer![
                             C!["modal-card-foot"],
                             button![C!["button", "is-success"], "Enviar"],
-                            button![C!["button"],
+                            button![
+                                C!["button"],
                                 attrs! {At::OnClick=>"toggleModal();"},
                                 "Cancelar"
                             ],
                         ],
                     ]
                 ],
-                groups.get(selected).into_iter().map(|c| div![
-                    C!["box"],
-                    p![C!["title", "is-5"], "⏱", c.time],
-                    div![
-                        C!["columns"],
+                groups
+                    .get(selected).unwrap_or(&data::turb::ClarificationGroup::new(selected.clone()))
+                    .clarifications.iter().map(|c| div![
+                        C!["box"],
+                        p![C!["title", "is-5"], "⏱", c.time],
                         div![
-                            C!["column"],
-                            p![C!["title", "is-5"], "Pergunta:"],
-                            p![c.question],
-                        ],
-                        div![
-                            C!["column"],
-                            p![C!["title", "is-5"], "Resposta:"],
-                            p![c.answer],
-                        ],
-                    ]
-                ],)
+                            C!["columns"],
+                            div![
+                                C!["column"],
+                                p![C!["title", "is-5"], "Pergunta:"],
+                                p![&c.question],
+                            ],
+                            div![
+                                C!["column"],
+                                p![C!["title", "is-5"], "Resposta:"],
+                                p![&c.answer],
+                            ],
+                        ]
+                    ])
             ],
         ],
     ]
@@ -213,7 +219,7 @@ pub fn view_clarifications(selected: &String, groups: &ClarificationSet) -> Node
 
 use data::turb::{Ans, RunSet};
 
-fn check_mark(a: Ans) -> &'static str {
+fn check_mark(a: &Ans) -> &'static str {
     match a {
         Ans::Yes => "✔",
         Ans::No => "✗",
@@ -221,7 +227,7 @@ fn check_mark(a: Ans) -> &'static str {
     }
 }
 
-fn check_style(a: Ans) -> seed::Attrs {
+fn check_style(a: &Ans) -> seed::Attrs {
     match a {
         Ans::Yes => C!["is-success"],
         Ans::No => C!["is-danger"],
@@ -237,15 +243,15 @@ pub fn view_submissions(runs: &RunSet) -> Node<Msg> {
             h5![C!["title", "is-5", "is-primary"], "Submissões:"],
             div![
                 C!["box"],
-                runs.into_iter().map(|(_, r)| div![
+                runs.runs.iter().map(|(_, r)| div![
                     C!["columns", "is-vcentered", "tags", "has-addons"],
-                    div![C!["column", "tag"], r.problem],
+                    div![C!["column", "tag"], &r.problem],
                     div![C!["column", "tag"], r.time],
-                    div![C!["column", "tag"], r.language],
+                    div![C!["column", "tag"], &r.language],
                     div![
                         C!["column", "tag"],
-                        check_style(r.result),
-                        check_mark(r.result)
+                        check_style(&r.result),
+                        check_mark(&r.result)
                     ],
                 ])
             ],

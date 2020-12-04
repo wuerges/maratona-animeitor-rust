@@ -17,7 +17,7 @@ pub struct Clarification {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClarificationGroup {
-    clarifications: Vec<Clarification>,
+    pub clarifications: Vec<Clarification>,
     pub name: String,
 }
 
@@ -34,18 +34,9 @@ impl ClarificationGroup {
     }
 }
 
-impl IntoIterator for ClarificationGroup {
-    type Item = Clarification;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.clarifications.into_iter()
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClarificationSet {
-    clars: BTreeMap<String, ClarificationGroup>,
+    pub clars: BTreeMap<String, ClarificationGroup>,
 }
 
 impl ClarificationSet {
@@ -55,23 +46,14 @@ impl ClarificationSet {
         }
     }
 
-    pub fn get(&self, key :&String) -> &ClarificationGroup {
-        self.clars.get(key).unwrap()
-    }
-}
-
-impl IntoIterator for ClarificationSet {
-    type Item = (String, ClarificationGroup);
-    type IntoIter = std::collections::btree_map::IntoIter<String, ClarificationGroup>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.clars.into_iter()
+    pub fn get(&self, key :&String) -> Option<&ClarificationGroup> {
+        self.clars.get(key)
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunSet {
-    runs: BTreeMap<i64, Run>,
+    pub runs: BTreeMap<i64, Run>,
 }
 
 impl RunSet {
@@ -79,15 +61,6 @@ impl RunSet {
         Self {
             runs: BTreeMap::new(),
         }
-    }
-}
-
-impl IntoIterator for RunSet {
-    type Item = (i64, Run);
-    type IntoIter = std::collections::btree_map::IntoIter<i64, Run>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.runs.into_iter()
     }
 }
 
@@ -106,21 +79,3 @@ pub enum Ans {
     No,
     Wait,
 }
-
-// impl Iterator for ClarificationGroup {
-//     // we will be counting with usize
-//     type Item = usize;
-
-//     // next() is the only required method
-//     fn next(&mut self) -> Option<Self::Item> {
-//         // Increment our count. This is why we started at zero.
-//         self.count += 1;
-
-//         // Check to see if we've finished counting or not.
-//         if self.count < self.len() {
-//             Some(self.)
-//         } else {
-//             None
-//         }
-//     }
-// }
