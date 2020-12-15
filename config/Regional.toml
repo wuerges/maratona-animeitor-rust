@@ -202,296 +202,296 @@ premiacao=false
 vagas=0
 
 [[escolas]]
-codigo="cefet-mg"
-imagem="cefet-mg.png"
-nome="cefet-mg"
+code="cefet-mg"
+logo="cefet-mg.png"
+name="cefet-mg"
 
 [[escolas]]
-codigo="cefet-rj"
-imagem="cefet-rj.png"
-nome="cefet-rj"
+code="cefet-rj"
+logo="cefet-rj.png"
+name="cefet-rj"
 
 [[escolas]]
-codigo="fatec-sorocaba"
-imagem="fatec-sorocaba.jpg"
-nome="fatec-sorocaba"
+code="fatec-sorocaba"
+logo="fatec-sorocaba.jpg"
+name="fatec-sorocaba"
 
 [[escolas]]
-codigo="ifceara"
-imagem="ifceara.png"
-nome="ifceara"
+code="ifceara"
+logo="ifceara.png"
+name="ifceara"
 
 [[escolas]]
-codigo="ifpb-joaopessoa"
-imagem="ifpb-joaopessoa.png"
-nome="ifpb-joaopessoa"
+code="ifpb-joaopessoa"
+logo="ifpb-joaopessoa.png"
+name="ifpb-joaopessoa"
 
 [[escolas]]
-codigo="ifsp"
-imagem="ifsp.png"
-nome="ifsp"
+code="ifsp"
+logo="ifsp.png"
+name="ifsp"
 
 [[escolas]]
-codigo="ifsuldeminas"
-imagem="ifsuldeminas.png"
-nome="ifsuldeminas"
+code="ifsuldeminas"
+logo="ifsuldeminas.png"
+name="ifsuldeminas"
 
 [[escolas]]
-codigo="ime"
-imagem="ime.jpg"
-nome="ime"
+code="ime"
+logo="ime.jpg"
+name="ime"
 
 [[escolas]]
-codigo="inatel"
-imagem="inatel.jpg"
-nome="inatel"
+code="inatel"
+logo="inatel.jpg"
+name="inatel"
 
 [[escolas]]
-codigo="ita"
-imagem="ita.png"
-nome="ita"
+code="ita"
+logo="ita.png"
+name="ita"
 
 [[escolas]]
-codigo="puc-goias"
-imagem="puc-goias.jpg"
-nome="puc-goias"
+code="puc-goias"
+logo="puc-goias.jpg"
+name="puc-goias"
 
 [[escolas]]
-codigo="puc-rio"
-imagem="puc-rio.jpg"
-nome="puc-rio"
+code="puc-rio"
+logo="puc-rio.jpg"
+name="puc-rio"
 
 [[escolas]]
-codigo="udesc"
-imagem="udesc.png"
-nome="udesc"
+code="udesc"
+logo="udesc.png"
+name="udesc"
 
 [[escolas]]
-codigo="uea"
-imagem="uea.png"
-nome="uea"
+code="uea"
+logo="uea.png"
+name="uea"
 
 [[escolas]]
-codigo="uece"
-imagem="uece.png"
-nome="uece"
+code="uece"
+logo="uece.png"
+name="uece"
 
 [[escolas]]
-codigo="uefs"
-imagem="uefs.jpg"
-nome="uefs"
+code="uefs"
+logo="uefs.jpg"
+name="uefs"
 
 [[escolas]]
-codigo="uesb"
-imagem="uesb.jpg"
-nome="uesb"
+code="uesb"
+logo="uesb.jpg"
+name="uesb"
 
 [[escolas]]
-codigo="ufabc"
-imagem="ufabc.png"
-nome="ufabc"
+code="ufabc"
+logo="ufabc.png"
+name="ufabc"
 
 [[escolas]]
-codigo="ufac"
-imagem="ufac.png"
-nome="ufac"
+code="ufac"
+logo="ufac.png"
+name="ufac"
 
 [[escolas]]
-codigo="ufal-arapiraca"
-imagem="ufal-arapiraca.png"
-nome="ufal-arapiraca"
+code="ufal-arapiraca"
+logo="ufal-arapiraca.png"
+name="ufal-arapiraca"
 
 [[escolas]]
-codigo="ufal"
-imagem="ufal.png"
-nome="ufal"
+code="ufal"
+logo="ufal.png"
+name="ufal"
 
 [[escolas]]
-codigo="ufam"
-imagem="ufam.jpg"
-nome="ufam"
+code="ufam"
+logo="ufam.jpg"
+name="ufam"
 
 [[escolas]]
-codigo="ufba"
-imagem="ufba.jpg"
-nome="ufba"
+code="ufba"
+logo="ufba.jpg"
+name="ufba"
 
 [[escolas]]
-codigo="ufce"
-imagem="ufce.jpg"
-nome="ufce"
+code="ufce"
+logo="ufce.jpg"
+name="ufce"
 
 [[escolas]]
-codigo="ufce-quixada"
-imagem="ufce-quixada.png"
-nome="ufce-quixada"
+code="ufce-quixada"
+logo="ufce-quixada.png"
+name="ufce-quixada"
 
 [[escolas]]
-codigo="ufcg"
-imagem="ufcg.png"
-nome="ufcg"
+code="ufcg"
+logo="ufcg.png"
+name="ufcg"
 
 [[escolas]]
-codigo="ufes"
-imagem="ufes.png"
-nome="ufes"
+code="ufes"
+logo="ufes.png"
+name="ufes"
 
 [[escolas]]
-codigo="ufg"
-imagem="ufg.png"
-nome="ufg"
+code="ufg"
+logo="ufg.png"
+name="ufg"
 
 [[escolas]]
-codigo="ufma"
-imagem="ufma.jpg"
-nome="ufma"
+code="ufma"
+logo="ufma.jpg"
+name="ufma"
 
 [[escolas]]
-codigo="ufmg"
-imagem="ufmg.png"
-nome="ufmg"
+code="ufmg"
+logo="ufmg.png"
+name="ufmg"
 
 [[escolas]]
-codigo="ufms"
-imagem="ufms.png"
-nome="ufms"
+code="ufms"
+logo="ufms.png"
+name="ufms"
 
 [[escolas]]
-codigo="ufmt"
-imagem="ufmt.jpg"
-nome="ufmt"
+code="ufmt"
+logo="ufmt.jpg"
+name="ufmt"
 
 [[escolas]]
-codigo="ufpa"
-imagem="ufpa.png"
-nome="ufpa"
+code="ufpa"
+logo="ufpa.png"
+name="ufpa"
 
 [[escolas]]
-codigo="ufpe"
-imagem="ufpe.jpg"
-nome="ufpe"
+code="ufpe"
+logo="ufpe.jpg"
+name="ufpe"
 
 [[escolas]]
-codigo="ufpi"
-imagem="ufpi.jpg"
-nome="ufpi"
+code="ufpi"
+logo="ufpi.jpg"
+name="ufpi"
 
 [[escolas]]
-codigo="ufpr"
-imagem="ufpr.jpg"
-nome="ufpr"
+code="ufpr"
+logo="ufpr.jpg"
+name="ufpr"
 
 [[escolas]]
-codigo="ufrgs"
-imagem="ufrgs.png"
-nome="ufrgs"
+code="ufrgs"
+logo="ufrgs.png"
+name="ufrgs"
 
 [[escolas]]
-codigo="ufrj"
-imagem="ufrj.jpg"
-nome="ufrj"
+code="ufrj"
+logo="ufrj.jpg"
+name="ufrj"
 
 [[escolas]]
-codigo="ufrn"
-imagem="ufrn.png"
-nome="ufrn"
+code="ufrn"
+logo="ufrn.png"
+name="ufrn"
 
 [[escolas]]
-codigo="ufrr"
-imagem="ufrr.png"
-nome="ufrr"
+code="ufrr"
+logo="ufrr.png"
+name="ufrr"
 
 [[escolas]]
-codigo="ufscar"
-imagem="ufscar.png"
-nome="ufscar"
+code="ufscar"
+logo="ufscar.png"
+name="ufscar"
 
 [[escolas]]
-codigo="ufsc"
-imagem="ufsc.png"
-nome="ufsc"
+code="ufsc"
+logo="ufsc.png"
+name="ufsc"
 
 [[escolas]]
-codigo="ufs"
-imagem="ufs.png"
-nome="ufs"
+code="ufs"
+logo="ufs.png"
+name="ufs"
 
 [[escolas]]
-codigo="ufu"
-imagem="ufu.png"
-nome="ufu"
+code="ufu"
+logo="ufu.png"
+name="ufu"
 
 [[escolas]]
-codigo="ufv-florestal"
-imagem="ufv-florestal.png"
-nome="ufv-florestal"
+code="ufv-florestal"
+logo="ufv-florestal.png"
+name="ufv-florestal"
 
 [[escolas]]
-codigo="ufv"
-imagem="ufv.jpg"
-nome="ufv"
+code="ufv"
+logo="ufv.jpg"
+name="ufv"
 
 [[escolas]]
-codigo="unb-gama"
-imagem="unb-gama.jpg"
-nome="unb-gama"
+code="unb-gama"
+logo="unb-gama.jpg"
+name="unb-gama"
 
 [[escolas]]
-codigo="unb"
-imagem="unb.png"
-nome="unb"
+code="unb"
+logo="unb.png"
+name="unb"
 
 [[escolas]]
-codigo="unesc"
-imagem="unesc.jpg"
-nome="unesc"
+code="unesc"
+logo="unesc.jpg"
+name="unesc"
 
 [[escolas]]
-codigo="unesp"
-imagem="unesp.png"
-nome="unesp"
+code="unesp"
+logo="unesp.png"
+name="unesp"
 
 [[escolas]]
-codigo="unicamp"
-imagem="unicamp.png"
-nome="unicamp"
+code="unicamp"
+logo="unicamp.png"
+name="unicamp"
 
 [[escolas]]
-codigo="unifap"
-imagem="unifap.png"
-nome="unifap"
+code="unifap"
+logo="unifap.png"
+name="unifap"
 
 [[escolas]]
-codigo="unifei"
-imagem="unifei.png"
-nome="unifei"
+code="unifei"
+logo="unifei.png"
+name="unifei"
 
 [[escolas]]
-codigo="unir"
-imagem="unir.png"
-nome="unir"
+code="unir"
+logo="unir.png"
+name="unir"
 
 [[escolas]]
-codigo="univem"
-imagem="univem.jpg"
-nome="univem"
+code="univem"
+logo="univem.jpg"
+name="univem"
 
 [[escolas]]
-codigo="unoeste"
-imagem="unoeste.png"
-nome="unoeste"
+code="unoeste"
+logo="unoeste.png"
+name="unoeste"
 
 [[escolas]]
-codigo="usp"
-imagem="usp.png"
-nome="usp"
+code="usp"
+logo="usp.png"
+name="usp"
 
 [[escolas]]
-codigo="usp-sc"
-imagem="usp-sc.png"
-nome="usp-sc"
+code="usp-sc"
+logo="usp-sc.png"
+name="usp-sc"
 
 [[escolas]]
-codigo="utfpr"
-imagem="utfpr.png"
-nome="utfpr"
+code="utfpr"
+logo="utfpr.png"
+name="utfpr"

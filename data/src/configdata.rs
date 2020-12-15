@@ -9,6 +9,13 @@ pub struct Sede {
     pub vagas: usize,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct Escola {
+    pub name: String,
+    pub code: String,
+    pub logo: String,
+}
+
 impl Sede {
     pub fn new(
         name: &str,
@@ -59,11 +66,12 @@ impl Sede {
 #[derive(Serialize,Deserialize)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
+    pub escolas: Vec<Escola>,
 }
 
 impl ConfigContest {
     pub fn new(sedes: Vec<Sede>) -> Self {
-        Self { sedes }
+        Self { sedes , escolas : Vec::new() }
     }
 
     pub fn get_sede(&self, team: &String) -> Option<&Sede> {
