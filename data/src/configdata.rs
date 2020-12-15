@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Deserialize, Serialize)]
 pub struct Sede {
     pub name: String,
@@ -17,20 +16,10 @@ pub struct Escola {
 }
 
 impl Sede {
-    pub fn new(
-        name: &str,
-        code: &str,
-        premiacao: bool,
-        vagas: usize,
-    ) -> Self {
+    pub fn new(name: &str, code: &str, premiacao: bool, vagas: usize) -> Self {
         Self::supersede(name, vec![code], premiacao, vagas)
     }
-    pub fn supersede(
-        name: &str,
-        codes: Vec<&str>,
-        premiacao: bool,
-        vagas: usize,
-    ) -> Self {
+    pub fn supersede(name: &str, codes: Vec<&str>, premiacao: bool, vagas: usize) -> Self {
         Self {
             name: name.to_string(),
             codes: codes.iter().map(|c| c.to_string()).collect(),
@@ -63,15 +52,25 @@ impl Sede {
     }
 }
 
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
     pub escolas: Vec<Escola>,
 }
 
 impl ConfigContest {
+    pub fn dummy() -> Self {
+        Self {
+            sedes: Vec::new(),
+            escolas: Vec::new(),
+        }
+    }
+
     pub fn new(sedes: Vec<Sede>) -> Self {
-        Self { sedes , escolas : Vec::new() }
+        Self {
+            sedes,
+            escolas: Vec::new(),
+        }
     }
 
     pub fn get_sede(&self, team: &String) -> Option<&Sede> {

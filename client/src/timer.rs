@@ -24,11 +24,15 @@ enum Msg {
     TimerUpdate(WebSocketMessage),
 }
 
-fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
+fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::TimerUpdate(m) => {
             model.p_timer_data = model.timer_data;
             model.timer_data = m.json().expect("Message should have TimerData");
+
+            if model.timer_data == model.p_timer_data {
+                orders.skip();
+            }
         }
     }
 }

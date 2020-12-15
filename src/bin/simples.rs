@@ -45,7 +45,8 @@ async fn main() {
         .unwrap_or(8000);
 
     let url_base = matches.value_of("URL").unwrap();
-    let config_file = matches.value_of("CONFIG").unwrap_or("config/Default.toml");
+    let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
+
     let config = config::parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 

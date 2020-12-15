@@ -50,7 +50,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             let run : data::RunTuple = m.json().expect("Expected a RunTuple");
             if model.runs_file.refresh_1(&run) {
                 model.dirty = true;
-            }
+            }            
         },
         Msg::Fetched(Ok(contest)) => {
             model.contest = contest;
@@ -80,6 +80,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 // for r in &model.runs {
                 //     log!("run:", r);
                 // }
+            }
+            else {
+                orders.skip();
             }
         }
     }

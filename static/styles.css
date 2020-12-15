@@ -231,7 +231,7 @@ body {
 }
 
 .changed {
-    animation: clockUpdate 1s infinite;       
+    animation: clockUpdate 1s;       
 }
 @keyframes clockUpdate {
     0% { color: white; }

@@ -16,6 +16,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         url_filter: get_url_filter(&url),
         original: data::ContestFile::dummy(),
         contest: data::ContestFile::dummy(),
+        config: data::configdata::ConfigContest::dummy(),
         runs: data::RunsFile::empty(),
         ws: None,
         dirty: true,
@@ -27,6 +28,7 @@ struct Model {
     url_filter: Option<Vec<String>>,
     original: data::ContestFile,
     contest: data::ContestFile,
+    config: data::configdata::ConfigContest,
     runs: data::RunsFile,
     ws: Option<WebSocket>,
     dirty: bool,
@@ -36,12 +38,14 @@ enum Msg {
     UrlChanged(subs::UrlChanged),
     RunUpdate(WebSocketMessage),
     Reload,
-    Fetched(fetch::Result<data::ContestFile>),
+    Fetched(fetch::Result<data::ContestFile>, fetch::Result<data::configdata::ConfigContest>),
 }
 
 async fn fetch_all() -> Msg {
     let c = fetch_contest().await;
-    Msg::Fetched(c)
+    let cfg = fetch_config().await;
+
+    Msg::Fetched(c, cfg)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -50,7 +54,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.url_filter = get_url_filter(&url);
         }
         Msg::Reload => {
+            // log!("reload!");
             if model.dirty {
+                // log!("reload dirty!");
                 model.contest = model.original.clone();
                 for r in &model.runs.sorted() {
                     model
@@ -64,15 +70,21 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .expect("Should recalculate scores");
                 model.dirty = false;
             }
+            else {
+                // log!("reload clean!");
+                orders.skip();
+            }
         }
         Msg::RunUpdate(m) => {
             let run: data::RunTuple = m.json().expect("Should be a RunTuple");
             if model.runs.refresh_1(&run) {
                 model.dirty = true;
             }
+            orders.skip();
         }
-        Msg::Fetched(Ok(contest)) => {
+        Msg::Fetched(Ok(contest), Ok(config)) => {
             model.original = contest;
+            model.config = config;
             model.dirty = true;
             model.ws = Some(
                 WebSocket::builder(get_ws_url("/allruns_ws"), orders)
@@ -84,8 +96,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .skip()
                 .stream(streams::interval(1_000, || Msg::Reload));
         }
-        Msg::Fetched(Err(e)) => {
+        Msg::Fetched(Err(e), _) => {
             log!("failed fetching contest: ", e);
+        }
+        Msg::Fetched(_, Err(e)) => {
+            log!("failed fetching config: ", e);
         }
     }
 }
