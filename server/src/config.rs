@@ -15,14 +15,21 @@ use data::configdata::*;
 //     ))
 // }
 
-pub fn parse_config(path: &std::path::Path) -> std::io::Result<ConfigContest> {
+pub fn pack_contest_config(sedes: ConfigSedes, escolas: ConfigEscolas) -> ConfigContest {
+    ConfigContest::from_config(sedes.sedes, escolas.escolas)
+}
+
+pub fn parse_config_sedes(path: &std::path::Path) -> std::io::Result<ConfigSedes> {
     let text = std::fs::read_to_string(path)?;
 
-    let contest: ConfigContest = toml::from_str(&text)?;
+    let config: ConfigSedes = toml::from_str(&text)?;
 
-    // let sedes = text.get("sede").unwrap().as_array().map( |s|
-    //     // Sede::new()
-    // );
+    Ok(config)
+}
+pub fn parse_config_escolas(path: &std::path::Path) -> std::io::Result<ConfigEscolas> {
+    let text = std::fs::read_to_string(path)?;
 
-    Ok(contest)
+    let config: ConfigEscolas = toml::from_str(&text)?;
+
+    Ok(config)
 }

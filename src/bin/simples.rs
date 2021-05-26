@@ -21,6 +21,15 @@ async fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("schools")
+                .short("s")
+                .long("schools")
+                .value_name("SCHOOLS")
+                .help("Sets a custom schools config file")
+                .default_value("config/Escolas.toml")
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("port")
                 .short("p")
                 .long("port")
@@ -47,8 +56,15 @@ async fn main() {
     let url_base = matches.value_of("URL").unwrap();
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
 
-    let config = config::parse_config(std::path::Path::new(config_file))
+    let config_file_escolas = matches.value_of("schools").unwrap_or("config/Escolas.toml");
+
+    let config_sedes = config::parse_config_sedes(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
+
+    let config_escolas = config::parse_config_escolas(std::path::Path::new(config_file_escolas))
+        .expect("Should be able to parse the config.");
+    
+    let config = config::pack_contest_config(config_sedes, config_escolas);
 
     let secret = random_path_part();
 

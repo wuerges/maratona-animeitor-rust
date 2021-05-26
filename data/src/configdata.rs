@@ -58,11 +58,28 @@ pub struct ConfigContest {
     pub escolas: Vec<Escola>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ConfigSedes {
+    pub sedes: Vec<Sede>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ConfigEscolas {
+    pub escolas: Vec<Escola>,
+}
+
 impl ConfigContest {
     pub fn dummy() -> Self {
         Self {
             sedes: Vec::new(),
             escolas: Vec::new(),
+        }
+    }
+
+    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>) -> Self {
+        Self {
+            sedes,
+            escolas
         }
     }
 
