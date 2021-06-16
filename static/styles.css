@@ -83,10 +83,10 @@ body {
     font-size: 1vw;
 }
 
-.nomeTime:hover .foto {
+/* .nomeTime:hover .foto {
     display: block;
     border-style: solid;
-}
+} */
 
 .foto {
     display: none;

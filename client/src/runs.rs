@@ -118,6 +118,12 @@ fn view(model: &Model) -> Node<Msg> {
                     ],
                     div![C!["cell", "problema"], &r.problem],
                     div![C!["cell", "resposta", get_answer(&r.result)]],
+
+                    attrs!{At::OnClick => 
+                        std::format!("document.getElementById('foto_{}').style.display = 'block';", &r.team_login),
+                        // std::format!("alert('foto_{}')", &team.login),
+                        // document.getElementById('a').style.backgroundColor = ''"
+                    },                        
                 ]
             }
         })

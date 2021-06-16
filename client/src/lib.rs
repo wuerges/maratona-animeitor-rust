@@ -10,6 +10,7 @@ mod timer;
 mod reveleitor;
 mod navigation;
 mod sede;
+mod teams;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -32,6 +33,7 @@ pub fn start() {
                         "runspanel" => runs::start(root_element),
                         "timerpanel" => timer::start(root_element),
                         "sedepanel" => sede::start(root_element),
+                        "teams" => teams::start(root_element),
                         s => log!("wrong app!:", s)
                     };
             }

@@ -58,13 +58,18 @@ async fn main() {
 
     let config_file_escolas = matches.value_of("schools").unwrap_or("config/Escolas.toml");
 
+    let config_file_teams = matches.value_of("teams").unwrap_or("config/Teams.toml");
+
     let config_sedes = config::parse_config_sedes(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 
     let config_escolas = config::parse_config_escolas(std::path::Path::new(config_file_escolas))
         .expect("Should be able to parse the config.");
     
-    let config = config::pack_contest_config(config_sedes, config_escolas);
+    let config_teams = config::parse_config_teams(std::path::Path::new(config_file_teams))
+        .expect("Should be able to parse the config.");
+    
+    let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
     let secret = random_path_part();
 

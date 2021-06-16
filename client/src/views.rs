@@ -127,9 +127,13 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_fi
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],
-                    div![C!["nomeTime"], &team.name,
-                        div![C!["foto"], id![format!("foto_{}", &team.login)]],
+                    div![C!["nomeTime"], &team.name, 
                     ],
+                    attrs!{At::OnClick => 
+                        std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
+                        // std::format!("alert('foto_{}')", &team.login),
+                        // document.getElementById('a').style.backgroundColor = ''"
+                    },                        
                 ],
                 div![
                     C!["cell", "problema"],

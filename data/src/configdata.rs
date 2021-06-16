@@ -15,6 +15,22 @@ pub struct Escola {
     pub logo: String,
 }
 
+// [[teams]]
+// login="teambrsp066"
+// nome="Nome do Config"
+// foto="KLM.png"
+// musica="https://youtu.be/gdG4xbU8cZo"
+// comentario="Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
+
+#[derive(Deserialize, Serialize)]
+pub struct TeamEntry {
+    pub login: String,
+    pub nome: Option<String>,
+    pub foto: Option<String>,
+    pub musica: Option<String>,
+    pub comentario: Option<String>
+}
+
 impl Sede {
     pub fn new(name: &str, code: &str, premiacao: bool, vagas: usize) -> Self {
         Self::supersede(name, vec![code], premiacao, vagas)
@@ -56,6 +72,7 @@ impl Sede {
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
     pub escolas: Vec<Escola>,
+    pub teams: Vec<TeamEntry>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -68,18 +85,25 @@ pub struct ConfigEscolas {
     pub escolas: Vec<Escola>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ConfigTeams {
+    pub teams: Vec<TeamEntry>,
+}
+
 impl ConfigContest {
     pub fn dummy() -> Self {
         Self {
             sedes: Vec::new(),
             escolas: Vec::new(),
+            teams: Vec::new(),
         }
     }
 
-    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>) -> Self {
+    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>, teams: Vec<TeamEntry> ) -> Self {
         Self {
             sedes,
-            escolas
+            escolas,
+            teams,
         }
     }
 
@@ -87,6 +111,7 @@ impl ConfigContest {
         Self {
             sedes,
             escolas: Vec::new(),
+            teams: Vec::new(),
         }
     }
 
