@@ -43,12 +43,17 @@ fn view(model: &Model) -> Node<Msg> {
         Some(contest) => div![
             span!["Contest Config:"],
             contest.teams.iter().map(|team_entry| {
-                div![C!["foto"], id![format!("foto_{}", &team_entry.login)], &team_entry.nome,
-                attrs!{At::OnClick => 
-                    std::format!("document.getElementById('foto_{}').style.display = 'none';", &team_entry.login),
-                    // std::format!("alert('foto_{}')", &team.login),
-                    // document.getElementById('a').style.backgroundColor = ''"
-                }]
+                let foto_id = format!("foto_{}", &team_entry.login);
+                div![C!["foto"], id![foto_id],
+                attrs!{At::OnClick =>  
+                    std::format!("document.getElementById('foto_{}').style.display = 'none';", 
+                    &team_entry.login)
+                },
+                div![C!["nomeTime"], &team_entry.nome],
+                    &team_entry.foto.as_ref().map(|f| 
+                        img![C!["foto_img"], attrs!{At::Src => std::format!("/static/assets/teams/{}", f)}]
+                    )
+                ]
             }),
         ],
     }

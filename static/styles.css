@@ -91,11 +91,29 @@ body {
 .foto {
     display: none;
     position: fixed;
-    top: 10vh;
-    left: 10vw;
-    width: 80vw;
-    max-height: 80vh;
+    top: 3vh;
+    left: 3vw;
+    /* max-height: 79vh;
+    width: 80vw; */
+    
+    /* width: 80vw; */
+    /* max-height: 80vh; */
     z-index: 123123123123;
+    border-style: solid;
+    background-color: #F4D03F;
+
+}
+
+.foto_img {
+    /* top: 9vh; */
+    /* left: 10vw; */
+    /* width: 100%; */
+    max-height: 90vh;
+    max-width: 90vw;
+    /* z-index: 123123123123; */
+    /* border-style: solid; */
+    /* background-color: #F4D03F; */
+
 }
 
 
