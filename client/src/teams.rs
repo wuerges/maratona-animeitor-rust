@@ -50,10 +50,16 @@ fn view(model: &Model) -> Node<Msg> {
                     &team_entry.login)
                 },
                 div![C!["nomeTime"], &team_entry.nome],
-                    &team_entry.foto.as_ref().map(|f| 
-                        img![C!["foto_img"], attrs!{At::Src => std::format!("/static/assets/teams/{}", f)}]
-                    )
-                ]
+                &team_entry.foto.as_ref().map(|f| 
+                    img![C!["foto_img"], attrs!{At::Src => std::format!("/static/assets/teams/{}", f)}]
+                ),
+                &team_entry.musica.as_ref().map(|m| 
+                    p![a![C!["musica"], attrs!{At::Href => m}, "Música do Time"]]
+                ),
+                &team_entry.comentario.as_ref().map(|c| 
+                    p![C!["comentario"], c]
+                ),
+    ]
             }),
         ],
     }

@@ -93,23 +93,30 @@ body {
     position: fixed;
     top: 3vh;
     left: 3vw;
-    /* max-height: 79vh;
-    width: 80vw; */
+
+    max-height: 90vh;
+    max-width: 90vw;
     
-    /* width: 80vw; */
-    /* max-height: 80vh; */
     z-index: 123123123123;
     border-style: solid;
-    background-color: #F4D03F;
+    /* background-color: #F4D03F; */
+
+    margin: 1px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: gray;
+    border-radius: 5px;
+    padding: 1px;
+    background-color: black;
+
 
 }
 
 .foto_img {
     /* top: 9vh; */
     /* left: 10vw; */
-    /* width: 100%; */
-    max-height: 90vh;
-    max-width: 90vw;
+    max-width: 100%;
+    max-height: 70vh;
     /* z-index: 123123123123; */
     /* border-style: solid; */
     /* background-color: #F4D03F; */
