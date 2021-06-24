@@ -1,5 +1,5 @@
 pub mod auth;
-pub mod config;
+// pub mod config;
 pub mod configdata;
 pub mod revelation;
 pub mod turb;
