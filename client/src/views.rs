@@ -1,5 +1,5 @@
 
-use data::{ContestFile, Team, TimerData};
+use data::{ContestFile, TimerData};
 use seed::{prelude::*, *};
 
 pub fn get_color(n : usize) -> String {
@@ -34,24 +34,6 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
             }
         }
     }
-}
-
-pub fn check_filter_login(url_filter: &Option<Vec<String>>, t : &String) -> bool {
-    match url_filter {
-        None => true,
-        Some(tot) => {
-            for f in tot {
-                if t.find(f).is_some() {
-                    return true
-                }
-            }
-            return false
-        },
-    }
-}
-
-fn check_filter(url_filter: &Option<Vec<String>>, t : &Team) -> bool {
-    check_filter_login(url_filter, &t.login)
 }
 
 use std::collections::BTreeMap;

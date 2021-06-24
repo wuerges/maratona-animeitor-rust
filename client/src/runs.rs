@@ -102,6 +102,12 @@ fn view(model: &Model) -> Node<Msg> {
         C!["runstable"],
         model.runs.iter().enumerate().map({
             |(i, r)| {
+                if check_filter_login(&model.url_filter, &r.team_login) {
+
+                }
+                else {
+
+                }
                 div![
                     C!["run"],
                     style! {

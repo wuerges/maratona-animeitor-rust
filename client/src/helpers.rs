@@ -1,5 +1,7 @@
 use seed::prelude::*;
 
+use data::{Team, TimerData};
+
 pub fn get_secret(url : &Url) -> String {
     url.search().get("secret").unwrap().first().unwrap().to_string()
 }
@@ -17,4 +19,22 @@ pub fn get_ws_url(path :&str) -> String {
     url.set_pathname(path);
     url.href()
 
+}
+
+pub fn check_filter_login(url_filter: &Option<Vec<String>>, t : &String) -> bool {
+    match url_filter {
+        None => true,
+        Some(tot) => {
+            for f in tot {
+                if t.find(f).is_some() {
+                    return true
+                }
+            }
+            return false
+        },
+    }
+}
+
+fn check_filter(url_filter: &Option<Vec<String>>, t : &Team) -> bool {
+    check_filter_login(url_filter, &t.login)
 }

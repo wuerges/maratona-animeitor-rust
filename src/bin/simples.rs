@@ -91,6 +91,10 @@ async fn main() {
         server_port
     );
     println!(
+        "-> Painel geral com sedes em http://localhost:{}/seed/everything2.html",
+        server_port
+    );
+    println!(
         "-> Reveleitor em http://localhost:{}/seed/reveleitor.html?secret={}",
         server_port, secret
     );
