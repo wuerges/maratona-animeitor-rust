@@ -1,6 +1,7 @@
 
 use data::{ContestFile, TimerData};
 use seed::{prelude::*, *};
+use crate::helpers::*;
 
 pub fn get_color(n : usize) -> String {
     (if n == 0 {
