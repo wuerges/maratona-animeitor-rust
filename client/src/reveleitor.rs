@@ -76,6 +76,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             match event {
                 None => {
                     model.vencedor = None;
+                    model.center = model.revelation.as_mut()
+                                        .map( |r| r.peek() )
+                                        .flatten()
+                                        .map( |s| s.to_string() );
                 },
                 Some(Winner { team_login, nome_sede }) => {
                     model.center = Some(team_login);
@@ -98,7 +102,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .flatten();
             log!("event: ", event);
             match event {
-                None => (),
+                None => {
+                    model.vencedor = None;
+                    model.center = model.revelation.as_mut()
+                                        .map( |r| r.peek() )
+                                        .flatten()
+                                        .map( |s| s.to_string() );
+                },
                 Some(Winner {
                     team_login,
                     nome_sede,
