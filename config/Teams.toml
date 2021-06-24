@@ -1,9 +1,9 @@
 [[teams]]
-login="arq1"
-nome="Nome do Config"
-foto="KLM.png"
-musica="https://youtu.be/gdG4xbU8cZo"
-comentario="Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
+login = "teambrrr001"
+nome = "KLM"
+foto = "teambrbr02.webp"
+musica= "https://youtu.be/gdG4xbU8cZo"
+comentario = "Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
 
 [[teams]]
 login="teambrsp066"
@@ -20,8 +20,9 @@ foto = "teambrbr01.webp"
 [[teams]]
 login = "teambrbr02"
 nome = "KLM"
-foto = "teambrbr02.jpg"
+foto = "teambrbr02.webp"
 musica= "https://youtu.be/gdG4xbU8cZo"
+comentario = "Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
 
 [[teams]]
 login = "teambrbr03"
