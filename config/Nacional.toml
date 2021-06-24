@@ -1,0 +1,15 @@
+titulo = "Maratona de Programação da SBC - 2ª fase"
+
+[[sedes]]
+name="Brasil"
+premiacao=true
+vagas=5
+codes=[
+  "teambrbr"
+]
+
+[[sedes]]
+name="América Latina"
+codes=["team"]
+premiacao=false
+vagas=0
