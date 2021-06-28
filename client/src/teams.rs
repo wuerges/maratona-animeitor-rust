@@ -41,7 +41,6 @@ fn view(model: &Model) -> Node<Msg> {
             span!["Failed to load contest config"],
             ],
         Some(contest) => div![
-            span!["Contest Config:"],
             contest.teams.iter().map(|team_entry| {
                 let foto_id = format!("foto_{}", &team_entry.login);
                 div![C!["foto"], id![foto_id],
