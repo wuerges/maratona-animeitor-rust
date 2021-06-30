@@ -1,0 +1,61 @@
+titulo = "ICPC Latin America Regional Contest"
+
+# br - Brasil
+[[sedes]]
+name="Brasil"
+premiacao=true
+vagas=5
+codes=[
+  "teambr"
+]
+
+# so - South
+[[sedes]]
+name="South"
+premiacao=false
+vagas=5
+codes=[
+  "teamso"
+]
+
+# no - North
+[[sedes]]
+name="North"
+premiacao=false
+vagas=5
+codes=[
+  "teamno"
+]
+
+# ca - Central America
+[[sedes]]
+name="Central America"
+premiacao=false
+vagas=5
+codes=[
+  "teamca"
+]
+
+# cb - Caribe
+[[sedes]]
+name="Caribe"
+premiacao=false
+vagas=5
+codes=[
+  "teamcb"
+]
+
+# mx - Mexico
+[[sedes]]
+name="Mexico"
+premiacao=false
+vagas=5
+codes=[
+  "teammx"
+]
+
+[[sedes]]
+name="Latin America"
+codes=["team"]
+premiacao=false
+vagas=0
