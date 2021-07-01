@@ -16,6 +16,7 @@ comentario="Este time e' falso, mas a musica e' legal"
 login = "teambrbr001"
 nome = "Hoje tem AC do Ribamar"
 foto = "teambrbr01.webp"
+musica = "https://www.youtube.com/watch?v=M1n0s60dL44"
 
 [[teams]]
 login = "teambrbr002"
@@ -40,6 +41,7 @@ comentario = "sim"
 login = "teambrbr005"
 nome = "Os k-ésimos"
 foto = "teambrbr05.webp"
+musica = "https://www.youtube.com/watch?v=fB8TyLTD7EE"
 
 [[teams]]
 login = "teambrbr006"
@@ -83,6 +85,7 @@ foto = "teambrbr12.webp"
 login = "teambrbr013"
 nome = "União Fiasco"
 foto = "teambrbr13.webp"
+musica = "https://www.youtube.com/watch?v=OyxbfVpDBCE"
 
 [[teams]]
 login = "teambrbr014"
@@ -110,6 +113,7 @@ foto = "teambrbr17.webp"
 login = "teambrbr018"
 nome = "UFMA Time 1"
 foto = "teambrbr18.webp"
+musica = "https://youtu.be/WNeLUngb-Xg"
 
 [[teams]]
 login = "teambrbr019"
@@ -192,11 +196,13 @@ foto = "teambrbr32.webp"
 login = "teambrbr033"
 nome = "A query tá on"
 foto = "teambrbr33.webp"
+musica = "https://youtu.be/DXohfR9fF7A"
 
 [[teams]]
 login = "teambrbr034"
 nome = "Rock Lee Casado Não Vai + Pra Pagode"
 foto = "teambrbr34.webp"
+
 
 [[teams]]
 login = "teambrbr035"
@@ -212,6 +218,8 @@ foto = "teambrbr36.webp"
 login = "teambrbr037"
 nome = "YouShallNot.stay"
 foto = "teambrbr37.webp"
+musica = "https://www.youtube.com/watch?v=8CDQ83EBClk"
+comentario ="They're taking the hobbits to isengard!"
 
 [[teams]]
 login = "teambrbr038"
@@ -229,11 +237,13 @@ foto = "teambrbr39.webp"
 login = "teambrbr040"
 nome = "PD pá"
 foto = "teambrbr40.webp"
+musica = "https://www.youtube.com/watch?v=JlqwNvePzOs"
 
 [[teams]]
 login = "teambrbr041"
 nome = "Bagre Branco, Branco Bagre"
 foto = "teambrbr41.webp"
+musica = "https://www.youtube.com/watch?v=8cbvC_C9y7Y"
 
 [[teams]]
 login = "teambrbr042"
@@ -276,11 +286,13 @@ comentario = """De cima para baixo e da esquerda para direita na foto:
 login = "teambrbr048"
 nome = "Abacate Atômico"
 foto = "teambrbr48.webp"
+musica = "https://www.youtube.com/watch?v=ZUlAytznxn4"
 
 [[teams]]
 login = "teambrbr049"
 nome = "Vamu vense"
 foto = "teambrbr49.webp"
+musica = "https://www.youtube.com/watch?v=IPXIgEAGe4U&t=12s"
 
 [[teams]]
 login = "teambrbr050"
@@ -323,21 +335,25 @@ foto = "teambrbr56.webp"
 login = "teambrbr057"
 nome = "deitando no gramado"
 foto = "teambrbr57.webp"
+musica = "https://www.youtube.com/watch?v=WTJSt4wP2ME"
 
 [[teams]]
 login = "teambrbr058"
 nome = "CPA - Carregados Pelo Alyson"
 foto = "teambrbr58.webp"
+musica = "https://youtu.be/M1n0s60dL44"
 
 [[teams]]
 login = "teambrbr059"
 nome = "Bolonhesa"
 foto = "teambrbr59.webp"
+musica = "https://www.youtube.com/watch?v=XW0W7j04iRQ"
 
 [[teams]]
 login = "teambrbr060"
 nome = "S -> aSa | a"
 foto = "teambrbr60.webp"
+musica = "https://www.youtube.com/watch?v=EtrodNQKZ8I"
 
 [[teams]]
 login = "teambrbr061"
