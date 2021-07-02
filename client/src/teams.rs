@@ -35,6 +35,8 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     }
 }
 
+static FAKE: &str = "this.onerror=''; this.src='/static/assets/teams/fake.webp';";
+
 fn view(model: &Model) -> Node<Msg> {
     match model.contest.as_ref() {
         None => div![
@@ -50,7 +52,10 @@ fn view(model: &Model) -> Node<Msg> {
                 },
                 div![C!["nomeTime"], &team_entry.nome],
                 &team_entry.foto.as_ref().map(|f| 
-                    img![C!["foto_img"], attrs!{At::Src => std::format!("/static/assets/teams/{}", f)}]
+                    img![C!["foto_img"], 
+                    attrs!{At::Src => std::format!("/static/assets/teams/{}", f)},
+                    attrs!{At::OnError => FAKE}
+                    ]
                 ),
                 &team_entry.musica.as_ref().map(|m| 
                     p![a![C!["musica"], attrs!{At::Href => m}, "Música do Time"]]
