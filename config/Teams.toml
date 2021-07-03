@@ -92,6 +92,7 @@ musica = "https://www.youtube.com/watch?v=OyxbfVpDBCE"
 login = "teambrbr014"
 nome = "Sem TLE irmão"
 foto = "teambrbr14.webp"
+musica = "https://www.youtube.com/watch?v=bug9EmAOT_I&ab_channel=pheophil"
 
 [[teams]]
 login = "teambrbr015"
@@ -153,6 +154,7 @@ foto = "teambrbr24.webp"
 login = "teambrbr025"
 nome = "Qual o nome do time?"
 foto = "teambrbr25.webp"
+musica = "https://www.youtube.com/watch?v=iiJ3Ldxj76Y&ab_channel=Henri"
 
 [[teams]]
 login = "teambrbr026"
@@ -187,6 +189,8 @@ comentario = "Estamos enviando a música via drive. Se precisar que faça o uplo
 login = "teambrbr031"
 nome = "GTA: Grover's Street Algorithms"
 foto = "teambrbr31.webp"
+musica = "https://www.youtube.com/watch?v=W4VTq0sa9yg&t=29s&ab_channel=Buttonik"
+comentario = "Em computação quântica, O algoritmo de Grover ou Algoritmo de Busca O(n½) é um algoritmo quântico que encontra com alta probabilidade a entrada exclusiva para uma função de caixa preta que produz um valor de saída específico, usando apenas avaliações da função O(sqrt N), em que N é o tamanho do domínio da função. O algoritmo quântico Grover permite uma aceleração enorme em algoritmos de busca que afeta a segurança de muitos criptosistemas, incluindo AES. O algoritmo foi inventado por Lov Grover em 1996."
 
 [[teams]]
 login = "teambrbr032"
@@ -366,6 +370,7 @@ foto = "teambrbr61.webp"
 login = "teambrbr062"
 nome = "seila"
 foto = "teambrbr62.webp"
+musica = "https://youtu.be/G_sBOsh-vyI"
 
 [[teams]]
 login = "teambrbr063"
