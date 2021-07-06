@@ -195,7 +195,7 @@ fn view(model: &Model) -> Node<Msg> {
             model.revelation.as_ref().map(|r| views::view_scoreboard(
                 r.contest(),
                 &model.center,
-                &None
+                None
             )),
         ],
     ]

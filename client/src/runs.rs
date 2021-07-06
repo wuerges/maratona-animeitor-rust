@@ -101,7 +101,7 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         C!["runstable"],
         model.runs.iter().filter(
-            |r|check_filter_login(&model.url_filter, &r.team_login)
+            |r|check_filter_login(model.url_filter.as_ref(), &r.team_login)
         ).enumerate().map({
             |(i, r)| {
                 div![

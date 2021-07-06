@@ -1,5 +1,6 @@
 
 use data::{ContestFile, TimerData};
+use data::configdata::Sede;
 use seed::{prelude::*, *};
 use crate::helpers::*;
 
@@ -63,9 +64,10 @@ fn number_submissions(s : usize) -> Option<usize> {
     if s == 1 { None } else { Some(s - 1) }
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, url_filter: &Option<Vec<String>>) -> Node<T> {
+pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: Option<&Sede>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
+    let url_filter =  sede.as_ref().map( |s| &s.codes );
 
     let problem_letters = 
         vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];

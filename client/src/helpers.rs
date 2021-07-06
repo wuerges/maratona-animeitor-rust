@@ -25,7 +25,7 @@ pub fn get_ws_url(path :&str) -> String {
 
 }
 
-pub fn check_filter_login(url_filter: &Option<Vec<String>>, t : &String) -> bool {
+pub fn check_filter_login(url_filter: Option<&Vec<String>>, t : &String) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
@@ -39,6 +39,6 @@ pub fn check_filter_login(url_filter: &Option<Vec<String>>, t : &String) -> bool
     }
 }
 
-pub fn check_filter(url_filter: &Option<Vec<String>>, t : &Team) -> bool {
+pub fn check_filter(url_filter: Option<&Vec<String>>, t : &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }

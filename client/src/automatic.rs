@@ -13,7 +13,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
     Model {
         center: None,
-        url_filter: get_url_filter(&url),
+        // url_filter: get_url_filter(&url),
         sede: get_sede(&url),
         original: data::ContestFile::dummy(),
         contest: data::ContestFile::dummy(),
@@ -26,7 +26,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     center: Option<String>,
-    url_filter: Option<Vec<String>>,
+    // url_filter: Option<Vec<String>>,
     sede: Option<String>,
     original: data::ContestFile,
     contest: data::ContestFile,
@@ -53,7 +53,7 @@ async fn fetch_all() -> Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.url_filter = get_url_filter(&url);
+            model.sede = get_sede(&url);
         }
         Msg::Reload => {
             // log!("reload!");
@@ -108,7 +108,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    views::view_scoreboard(&model.contest, &model.center, &model.url_filter)
+
+    let opt_sede = model.config.sedes.iter().filter(|s| &s.name == model.sede.as_ref().unwrap_or(&"<fake>".to_string()) ).next();
+    views::view_scoreboard(&model.contest, &model.center, opt_sede)
 }
 
 pub fn start(e: impl GetElement) {
