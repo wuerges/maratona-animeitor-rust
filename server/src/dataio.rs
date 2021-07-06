@@ -2,9 +2,9 @@ use crate::errors::{CResult, Error};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
-
 // use rustrimeitor::*;
 use data::*;
+use html_escape::decode_html_entities_to_string;
 
 trait FromString {
     fn from_string(s: &str) -> CResult<Self>
@@ -21,7 +21,9 @@ trait FromFile {
 impl FromString for Team {
     fn from_string(s: &str) -> CResult<Self> {
         let team_line: Vec<_> = s.split("").collect();
-        Ok(Team::new(team_line[0], team_line[1], team_line[2]))
+        let mut team_name = String::new();
+        decode_html_entities_to_string(team_line[2], &mut team_name);
+        Ok(Team::new(team_line[0], team_line[1], team_name))
     }
 }
 

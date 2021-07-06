@@ -185,18 +185,18 @@ impl Ord for Score {
 }
 
 impl Team {
-    pub fn new(login: &str, escola: &str, name: &str) -> Self {
+    pub fn new(login: &str, escola: &str, name: String) -> Self {
         Self {
             login: login.to_string(),
             escola: escola.to_string(),
-            name: name.to_string(),
+            name: name,
             placement: 0,
             problems: BTreeMap::new(),
         }
     }
 
     pub fn dummy() -> Self {
-        Self::new("<login>", "<escola>", "<nome>")
+        Self::new("<login>", "<escola>", "<nome>".to_string())
     }
 
     fn apply_run(&mut self, run: &RunTuple) {

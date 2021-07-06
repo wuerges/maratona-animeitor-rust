@@ -8,6 +8,7 @@ use crate::errors::{CResult, Error};
 
 extern crate itertools;
 extern crate rand;
+extern crate html_escape;
 
 use crate::dataio::*;
 
