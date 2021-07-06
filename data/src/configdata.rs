@@ -5,7 +5,6 @@ pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
     pub premiacao: bool,
-    pub vagas: usize,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -32,17 +31,6 @@ pub struct TeamEntry {
 }
 
 impl Sede {
-    pub fn new(name: &str, code: &str, premiacao: bool, vagas: usize) -> Self {
-        Self::supersede(name, vec![code], premiacao, vagas)
-    }
-    pub fn supersede(name: &str, codes: Vec<&str>, premiacao: bool, vagas: usize) -> Self {
-        Self {
-            name: name.to_string(),
-            codes: codes.iter().map(|c| c.to_string()).collect(),
-            premiacao,
-            vagas,
-        }
-    }
 
     pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &String) -> bool {
         match url_filter {
