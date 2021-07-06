@@ -1,10 +1,11 @@
 use seed::{prelude::*, *};
+use crate::helpers;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
 
     Model { 
-        nome : url.search().get("sede").unwrap_or(&vec![]).iter().cloned().next(),
+        nome : helpers::get_sede(&url),
     }
 }
 
@@ -19,8 +20,7 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.nome =
-                url.search().get("sede").unwrap_or(&vec![]).iter().cloned().next();
+            model.nome = helpers::get_sede(&url);
             // orders.skip().send_msg(Msg::Reload);
             // url.go_and_load();
         },

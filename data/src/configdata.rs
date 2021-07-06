@@ -5,6 +5,9 @@ pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
     pub premiacao: bool,
+    pub ouro: Option<u32>,
+    pub prata: Option<u32>,
+    pub bronze: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -53,6 +56,23 @@ impl Sede {
             }
         }
         return false;
+    }
+
+    pub fn premio(&self, p: u32) -> &str {
+        let inf = 1_000_000;
+
+        if p <= self.ouro.unwrap_or(inf) {
+            "ouro"
+        }
+        else if p <= self.prata.unwrap_or(inf) {
+            "prata"
+        }
+        else if p <= self.bronze.unwrap_or(inf) {
+            "bronze"
+        }
+        else {
+            "semcor"
+        } 
     }
 }
 

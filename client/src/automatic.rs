@@ -14,6 +14,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     Model {
         center: None,
         url_filter: get_url_filter(&url),
+        sede: get_sede(&url),
         original: data::ContestFile::dummy(),
         contest: data::ContestFile::dummy(),
         config: data::configdata::ConfigContest::dummy(),
@@ -26,6 +27,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 struct Model {
     center: Option<String>,
     url_filter: Option<Vec<String>>,
+    sede: Option<String>,
     original: data::ContestFile,
     contest: data::ContestFile,
     config: data::configdata::ConfigContest,
