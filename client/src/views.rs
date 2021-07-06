@@ -4,22 +4,31 @@ use data::configdata::Sede;
 use seed::{prelude::*, *};
 use crate::helpers::*;
 
-pub fn get_color(n : usize) -> String {
-    (if n == 0 {
-        "vermelho"
+
+
+pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
+    match sede {
+        Some(sede) => {
+            sede.premio(n)
+        },
+        None => {
+            if n == 0 {
+                "vermelho"
+            }
+            else if n <= 3 {
+                "ouro"
+            }
+            else if n <= 6 {
+                "prata"
+            }
+            else if n <= 10 {
+                "bronze"
+            }
+            else {
+                "semcor"
+            }
+        }
     }
-    else if n <= 3 {
-        "ouro"
-    }
-    else if n <= 6 {
-        "prata"
-    }
-    else if n <= 10 {
-        "bronze"
-    }
-    else {
-        "semcor"
-    }).to_string()
 }
 
 pub fn cell_top(i : usize, center: &Option<usize>) -> String {
@@ -107,8 +116,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     // St::Position => "absolute",
                     // St::Transition => "top 1s ease 0s",
                 },
-                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement)], team.placement]),
-                div![C!["cell", "colocacao", get_color(*p2+1)], *p2+1],
+                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement, None)], team.placement]),
+                div![C!["cell", "colocacao", get_color(*p2+1, sede)], *p2+1],
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],

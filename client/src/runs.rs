@@ -110,7 +110,7 @@ fn view(model: &Model) -> Node<Msg> {
                         St::Top => format!("calc(var(--row-height) * {} + var(--root-top))", i),
                     },
                     div![
-                        C!["cell", "colocacao", views::get_color(r.placement)],
+                        C!["cell", "colocacao", views::get_color(r.placement, None)],
                         r.placement
                     ],
                     div![
