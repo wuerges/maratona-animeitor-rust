@@ -2,3 +2,4 @@
 Cargo.lock
 secret_boca
 url_boca
+run_warmup.sh
