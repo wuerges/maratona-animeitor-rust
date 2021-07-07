@@ -73,6 +73,17 @@ fn number_submissions(s : usize) -> Option<usize> {
     if s == 1 { None } else { Some(s - 1) }
 }
 
+fn nome_sede (sede: Option<&Sede>) -> String {
+    match sede {
+        None => "Placar".to_string(),
+        Some(sede) => sede.name.clone() 
+    }
+}
+
+fn estilo_sede (sede: Option<&Sede>) -> Option<&String> {
+    sede.map( |s| s.style.as_ref() ).flatten()
+}
+
 pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: Option<&Sede>) -> Node<T> {
 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
@@ -98,7 +109,14 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                 // St::Position => "absolute", 
                 // St::Transition => "top 1s ease 0s",
             },
-            div![C!["cell", "titulo", if is_compressed {"duplaColocacao"} else {"unicaColocacao"}], "Placar"],
+            div![
+                C![
+                    "cell", 
+                    "titulo", 
+                    estilo_sede(sede),
+                    if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
+                    ], 
+                    nome_sede(sede)],
             all_problems.iter().map( |p| div![C!["cell", "problema"], p])
         ],
         contest.teams.values().filter( |t| check_filter(url_filter, t))

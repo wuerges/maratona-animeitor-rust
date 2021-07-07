@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
+    pub style: Option<String>,
     pub premiacao: bool,
     pub ouro: Option<usize>,
     pub prata: Option<usize>,

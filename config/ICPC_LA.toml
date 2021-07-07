@@ -3,6 +3,7 @@ titulo = "ICPC Latin America Regional Contest"
 # br - Brasil
 [[sedes]]
 name="Brasil"
+style="sede_brasil"
 premiacao=true
 vagas=5
 codes=[
