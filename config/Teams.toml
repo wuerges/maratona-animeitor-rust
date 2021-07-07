@@ -69,6 +69,8 @@ foto = "teambrbr09.webp"
 login = "teambrbr010"
 nome = "Você é fraco, te falta O(1)"
 foto = "teambrbr10.webp"
+musica = "https://www.youtube.com/watch?v=dm3R1FuVFtY"
+
 
 [[teams]]
 login = "teambrbr011"
@@ -270,11 +272,14 @@ foto = "teambrbr44.webp"
 login = "teambrbr045"
 nome = "Mensageiros do à main"
 foto = "teambrbr45.webp"
+musica = "https://www.youtube.com/watch?v=ToRzwR_j3qc"
+comentario = "Fica melhor se usarem o refrão da música :D "
 
 [[teams]]
 login = "teambrbr046"
 nome = "Que time?"
 foto = "teambrbr46.webp"
+musica = "https://www.youtube.com/watch?v=tHCYSj0q-cQ"
 
 [[teams]]
 login = "teambrbr047"
