@@ -21,6 +21,14 @@ async fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("secret")
+                .short("x")
+                .long("secret")
+                .value_name("SECRET")
+                .help("Sets the secret to the reveleitor url.")
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("schools")
                 .short("s")
                 .long("schools")
@@ -71,7 +79,8 @@ async fn main() {
     
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
-    let secret = random_path_part();
+    let random_secret = random_path_part();
+    let secret = matches.value_of("secret").unwrap_or(&random_secret);
 
     println!("Maratona Rustreimator rodando!");
     println!(
@@ -99,5 +108,5 @@ async fn main() {
         server_port, secret
     );
 
-    serve_simple_contest(config, url_base.to_string(), server_port, &secret).await;
+    serve_simple_contest(config, url_base.to_string(), server_port, &secret.to_string()).await;
 }
