@@ -52,6 +52,7 @@ bronze = 10
 # cb - Caribe
 [[sedes]]
 name="Caribe"
+style="sede_caribe"
 premiacao=false
 vagas=5
 codes=[
