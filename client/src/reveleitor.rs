@@ -79,7 +79,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     model.center = model.revelation.as_mut()
                                         .map( |r| r.peek() )
                                         .flatten()
-                                        .map( |s| s.to_string() );
+                                        .cloned();
                 },
                 Some(Winner { team_login, nome_sede }) => {
                     model.center = Some(team_login);
@@ -107,7 +107,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     model.center = model.revelation.as_mut()
                                         .map( |r| r.peek() )
                                         .flatten()
-                                        .map( |s| s.to_string() );
+                                        .cloned();
                 },
                 Some(Winner {
                     team_login,
@@ -118,6 +118,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     model.vencedor = Some(nome_sede);
                 }
             }
+            log!("center:", model.center);
             // orders.send_msg(Msg::Unlock);
 
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Unlock));

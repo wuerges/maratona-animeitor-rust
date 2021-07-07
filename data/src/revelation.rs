@@ -195,6 +195,10 @@ impl RunsQueue {
         self.queue.peek().map(|s| &s.team_login )
     }
 
+    pub fn peek_score(&self) -> Option<&Score> {
+        self.queue.peek()
+    }
+
     pub fn setup_queue(contest: &ContestFile) -> Self {
         let mut q = Self::empty();
         for team in contest.teams.values() {
@@ -212,8 +216,12 @@ impl RunsQueue {
                 Some(team) => {
                     team.reveal_run_frozen();
 
+                    let new_score = team.score();
                     if team.wait() {
-                        self.queue.push(team.score());
+                        self.queue.push(new_score);
+                    }
+                    else if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
+                        self.queue.push(new_score);
                     }
                 }
             },
