@@ -100,6 +100,7 @@ musica = "https://www.youtube.com/watch?v=bug9EmAOT_I&ab_channel=pheophil"
 login = "teambrbr015"
 nome = "NP-Lúcia"
 foto = "teambrbr15.webp"
+musica = "https://www.youtube.com/watch?v=y7m1P_ci7Tc"
 
 [[teams]]
 login = "teambrbr016"
@@ -168,6 +169,11 @@ foto = "teambrbr26.webp"
 login = "teambrbr027"
 nome = "vae victis"
 foto = "teambrbr27.webp"
+musica = "https://www.youtube.com/watch?v=F0X4I5wxYR4"
+comentario = """"Só esperem pela surpresa...
+
+Quando as pessoas se deparam com uma situação que não entendem, é fácil o medo se estabelecer.
+(Armin Arlert)"""
 
 [[teams]]
 login = "teambrbr028"
@@ -261,6 +267,7 @@ foto = "teambrbr42.webp"
 login = "teambrbr043"
 nome = "BalloonField"
 foto = "teambrbr43.webp"
+musica = "https://www.youtube.com/watch?v=sENM2wA_FTg&ab_channel=ImagineDragonsVEVO"
 
 [[teams]]
 login = "teambrbr044"
@@ -314,6 +321,7 @@ foto = "teambrbr50.webp"
 login = "teambrbr051"
 nome = "Code Zwang"
 foto = "teambrbr51.webp"
+musica = "https://www.youtube.com/watch?v=j5-yKhDd64s"
 
 [[teams]]
 login = "teambrbr052"
