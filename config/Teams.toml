@@ -64,6 +64,8 @@ foto = "teambrbr08.webp"
 login = "teambrbr009"
 nome = "anarquia às 8"
 foto = "teambrbr09.webp"
+musica = "https://www.youtube.com/watch?v=mzC_5RlltnM"
+comentario = "Tem um palavraozinho no inicio da musica aos 20 seg"
 
 [[teams]]
 login = "teambrbr010"
@@ -113,6 +115,7 @@ comentario = "Após anos de hegemonia com um time imbatível, Weiss e Felipera e
 login = "teambrbr017"
 nome = "Wrong Answer 1000%"
 foto = "teambrbr17.webp"
+musica = "https://www.youtube.com/watch?v=lrzP7Ajzbvw"
 
 [[teams]]
 login = "teambrbr018"
@@ -152,6 +155,7 @@ foto = "teambrbr23.webp"
 login = "teambrbr024"
 nome = "Dorime"
 foto = "teambrbr24.webp"
+musica = "https://www.youtube.com/watch?v=ZHnDTa7jwMI"
 
 [[teams]]
 login = "teambrbr025"
@@ -221,6 +225,8 @@ foto = "teambrbr34.webp"
 login = "teambrbr035"
 nome = "GGG"
 foto = "teambrbr35.webp"
+musica = "https://youtu.be/-tmmCMrXTxw"
+
 
 [[teams]]
 login = "teambrbr036"
@@ -348,6 +354,8 @@ foto = "teambrbr55.webp"
 login = "teambrbr056"
 nome = "No Main No Gain"
 foto = "teambrbr56.webp"
+musica = "https://www.youtube.com/watch?v=am1_JLFDFMw"
+comentario = "/*         */"
 
 [[teams]]
 login = "teambrbr057"
@@ -389,6 +397,7 @@ musica = "https://youtu.be/G_sBOsh-vyI"
 login = "teambrbr063"
 nome = "The droids you are looking for"
 foto = "teambrbr63.webp"
+musica = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 [[teams]]
 login = "teambrbr064"
