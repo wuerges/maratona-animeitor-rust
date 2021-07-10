@@ -76,6 +76,7 @@ bronze = 10
 
 [[sedes]]
 name="Latin America"
+style="sede_la"
 codes=["team"]
 premiacao=false
 vagas=0

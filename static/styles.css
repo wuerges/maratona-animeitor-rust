@@ -74,6 +74,11 @@ body {
     content:url(/static/assets/titulo-final.svg);
     font-size: 2vw;
 }
+.titulo.sede_la {
+    /* content:url(/static/assets/titulo-1stPhase.svg); */
+    content:url(/static/assets/titulo-icpc.svg);
+    font-size: 2vw;
+}
 
 .unicaColocacao {
     width: calc(20.8vw + 12px);
