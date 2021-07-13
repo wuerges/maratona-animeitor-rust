@@ -185,12 +185,6 @@ async fn load_data_from_url_maybe(
     Ok((time_data, contest_data, runs_data))
 }
 
-// async fn load_data_from_url(uri: String) -> (i64, data::ContestFile, data::RunsFile) {
-//     load_data_from_url_maybe(uri)
-//         .await
-//         .expect("should have loaded data from url")
-// }
-
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
     runs: Arc<Mutex<DB>>,
