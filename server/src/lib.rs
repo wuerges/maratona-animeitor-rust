@@ -32,7 +32,7 @@ use warp::Filter;
 pub fn spawn_db_update_f<F, Fut>(loader: F) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>)
 where
     F: Fn() -> Fut + Send + 'static,
-    Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
+    Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
     let cloned_db = shared_db.clone();
@@ -47,11 +47,19 @@ where
 
             let data = loader();
 
-            let r = update_runs_from_data(data.await, cloned_db.clone(), tx.clone()).await;
-            match r {
-                Ok(_) => (),
-                Err(e) => eprintln!("Error updating run: {}", e),
+            match data.await {
+                Ok(data_ok) => {
+                    let r = update_runs_from_data(data_ok, cloned_db.clone(), tx.clone()).await;
+                    match r {
+                        Ok(_) => (),
+                        Err(e) => eprintln!("Error updating run: {}", e),
+                    }
+                },
+                Err(e) => {
+                    eprintln!("Error loading data: {}, retrying.", e);
+                }
             }
+
         }
     });
     (shared_db, tx2)
@@ -177,11 +185,11 @@ async fn load_data_from_url_maybe(
     Ok((time_data, contest_data, runs_data))
 }
 
-async fn load_data_from_url(uri: String) -> (i64, data::ContestFile, data::RunsFile) {
-    load_data_from_url_maybe(uri)
-        .await
-        .expect("should have loaded data from url")
-}
+// async fn load_data_from_url(uri: String) -> (i64, data::ContestFile, data::RunsFile) {
+//     load_data_from_url_maybe(uri)
+//         .await
+//         .expect("should have loaded data from url")
+// }
 
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
@@ -303,7 +311,7 @@ pub async fn serve_simple_contest(
 ) {
     serve_simple_contest_f(
         config,
-        move || load_data_from_url(url_base.clone()),
+        move || load_data_from_url_maybe(url_base.clone()),
         server_port,
         secret,
     )
@@ -317,7 +325,7 @@ pub async fn serve_simple_contest_f<F, Fut>(
     secret: &String,
 ) where
     F: Fn() -> Fut + Send + 'static,
-    Fut: Future<Output = (i64, data::ContestFile, data::RunsFile)> + Send,
+    Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
     let (shared_db, runs_tx) = spawn_db_update_f(f);
     serve_simple_contest_assets(config, shared_db, runs_tx, server_port, secret).await
