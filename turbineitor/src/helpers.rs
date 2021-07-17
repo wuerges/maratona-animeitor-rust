@@ -90,7 +90,7 @@ pub fn get_all_teams(params: &Params) -> Result<BTreeMap<i32, data::Team>, Error
     {
         t.insert(
             u.usernumber,
-            data::Team::new(&u.username, "", &u.userfullname),
+            data::Team::new(&u.username, "", u.userfullname),
         );
     }
 

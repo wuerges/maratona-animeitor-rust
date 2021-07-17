@@ -23,6 +23,7 @@ pub mod schema;
 pub mod server;
 
 use ::server as dserver;
+use ::server::errors::CResult;
 
 use crate::errors::Error;
 
@@ -78,10 +79,10 @@ async fn load_data_from_sql_maybe(
     Ok((time_data, contest_data, runs_data))
 }
 
-async fn load_data_from_sql(params: Arc<Params>) -> (i64, data::ContestFile, data::RunsFile) {
-    load_data_from_sql_maybe(params)
+async fn load_data_from_sql(params: Arc<Params>) -> CResult<(i64, data::ContestFile, data::RunsFile)> {
+    CResult::Ok(load_data_from_sql_maybe(params)
         .await
-        .expect("should have loaded data from SQL")
+        .expect("should have loaded data from SQL"))
 }
 
 enum TurbMsg {

@@ -214,6 +214,7 @@ impl DB {
 mod tests {
 
     use super::*;
+    use data::revelation::Revelation;
 
     #[test]
     fn test_from_string() -> CResult<()> {
@@ -264,8 +265,8 @@ mod tests {
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(runs.len(), 6285);
 
-        let mut r1 = data::Revelation::new(contest.clone(), runs.clone());
-        let mut r2 = data::Revelation::new(contest, runs);
+        let mut r1 = Revelation::new(contest.clone(), runs.clone());
+        let mut r2 = Revelation::new(contest, runs);
 
         r1.apply_all_runs();
 
