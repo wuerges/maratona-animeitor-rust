@@ -34,9 +34,15 @@ impl RevelationDriver {
         teams.sort();
         let mut winners = BTreeMap::new();
         for t in teams {
-            let sede = sedes.get_sede(&t.login).unwrap();
-            if sede.premiacao {
-                winners.entry(sede.name.clone()).or_insert(t.login.clone());
+            let sede_opt = sedes.get_sede(&t.login);
+            match sede_opt {
+                Some(sede) => {
+                    if sede.premiacao {
+                        winners.entry(sede.name.clone()).or_insert(t.login.clone());
+                    }
+                }
+                None => {
+                }
             }
         }
 
