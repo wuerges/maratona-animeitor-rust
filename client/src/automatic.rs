@@ -78,11 +78,20 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         }
         Msg::RunUpdate(m) => {
-            let run: data::RunTuple = m.json().expect("Should be a RunTuple");
-            if model.runs.refresh_1(&run) {
-                model.dirty = true;
+            match m.json::<data::RunTuple>() {
+                Ok(run) => {
+                    if model.runs.refresh_1(&run) {
+                        model.dirty = true;
+                    }
+                    orders.skip();
+                },
+                Err(e) => {
+                    log!("Websocket error: {}", e);
+                    orders.perform_cmd(fetch_all());                    
+                }
             }
-            orders.skip();
+            // let run: data::RunTuple = m.json().expect("Should be a RunTuple");
+            
         }
         Msg::Fetched(Ok(contest), Ok(config)) => {
             model.original = contest;
