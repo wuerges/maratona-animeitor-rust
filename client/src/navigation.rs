@@ -6,7 +6,6 @@ use crate::requests;
 extern crate rand;
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.subscribe(Msg::UrlChanged);
     orders.perform_cmd(fetch_all());
 
     Model { contest: None }
@@ -22,15 +21,11 @@ struct Model {
 }
 
 enum Msg {
-    UrlChanged(subs::UrlChanged),
     Fetched(fetch::Result<configdata::ConfigContest>),
 }
 
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
-        Msg::UrlChanged(subs::UrlChanged(url)) => {
-            url.go_and_load();
-        }
         Msg::Fetched(Ok(config)) => {
             model.contest = Some(config);
         }
@@ -44,7 +39,6 @@ fn build_url_filter(sede: &configdata::Sede) -> String {
     Url::new()
         .add_path_part("seed")
         .add_path_part("everything2.html")
-        // Url::current()
         .set_search(UrlSearch::new(vec![
             ("sede", vec![&sede.name]),
             ("filter", sede.codes.iter().map(|s| s).collect()),
