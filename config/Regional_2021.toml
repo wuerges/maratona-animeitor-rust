@@ -29,12 +29,14 @@ name="Bahia"
 codes=["teambrba"]
 premiacao=true
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Ceará"
 codes=["teambrce"]
 premiacao=true
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Distrito Federal"
@@ -65,6 +67,7 @@ name="Minas Gerais"
 codes=["teambrmg"]
 premiacao=true
 vagas=7
+ouro=7
 
 [[sedes]]
 name="Mato Grosso do Sul"
@@ -89,6 +92,7 @@ name="Paraíba"
 codes=["teambrpb"]
 premiacao=true
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Pernambuco"
@@ -101,18 +105,21 @@ name="Piauí"
 codes=["teambrpi"]
 premiacao=false
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Paraná"
 codes=["teambrpr"]
 premiacao=true
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Rio de Janeiro"
 codes=["teambrrj"]
 premiacao=true
 vagas=4
+ouro=4
 
 [[sedes]]
 name="Rio Grande do Norte"
@@ -143,6 +150,7 @@ name="Santa Catarina"
 codes=["teambrsc"]
 premiacao=true
 vagas=2
+ouro=2
 
 [[sedes]]
 name="Sergipe"
@@ -155,6 +163,8 @@ name="São Paulo"
 codes=["teambrsp"]
 premiacao=true
 vagas=8
+ouro = 8
+
 
 [[sedes]]
 name="Tocantins"
@@ -172,6 +182,7 @@ codes=[
   "teambrmt",
   "teambrms",
 ]
+ouro = 3
 
 [[sedes]]
 name="Supersede Nordeste"
@@ -184,6 +195,7 @@ codes=[
   "teambrrn",
   "teambrse",
 ]
+ouro = 3
 
 [[sedes]]
 name="Supersede Norte"
@@ -198,6 +210,7 @@ codes=[
   "teambrrr",
   "teambrto",
 ]
+ouro = 2
 
 [[sedes]]
 name="Supersede Brasil"
@@ -207,9 +220,13 @@ codes=[
   "teambres",
   "teambrrs",
 ]
+ouro = 2
 
 [[sedes]]
 name="Brasil"
 codes=["teambr"]
 premiacao=false
 vagas=0
+ouro = 3
+prata = 6
+bronze = 10
