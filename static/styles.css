@@ -173,13 +173,16 @@ body {
 }
 
 .answeryes {
-    content:url(/static/assets/yes.svg);
+    content:url(/static/assets/balao.svg);
+    width: 3vw;
 }
 .answerno {
     content:url(/static/assets/no.svg);
+    width: 3vw;
 }
 .answerwait {
     content:url(/static/assets/question.svg);
+    width: 3vw;
 }
 /* .answerfrozen {
     content:url(/static/assets/gear.svg); */

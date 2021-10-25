@@ -89,10 +89,9 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let url_filter =  sede.as_ref().map( |s| &s.codes );
 
-    let problem_letters = 
-        vec!["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+    // let problem_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
-    let all_problems = &problem_letters[..n];
+    let all_problems = &data::PROBLEM_LETTERS[..n];
     let compressed = compress_placement(contest.teams.values()
                         .filter( |t| check_filter(url_filter, t))
                         .map(|t| &t.placement));
@@ -117,7 +116,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
                     ], 
                     nome_sede(sede)],
-            all_problems.iter().map( |p| div![C!["cell", "problema"], p])
+            all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
         ],
         contest.teams.values().filter( |t| check_filter(url_filter, t))
                 .map (|team| {
@@ -152,8 +151,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     div![C!["cima"], score.solved],
                     div![C!["baixo"], score.penalty],
                 ],
-                all_problems.iter().map( |prob| {
-                    match team.problems.get(*prob) {
+                all_problems.chars().map( |prob| {
+                    match team.problems.get(&prob.to_string()) {
                         None => div![C!["cell", "problema"], "-"],
                         Some(prob_v) => {
                             if prob_v.solved {

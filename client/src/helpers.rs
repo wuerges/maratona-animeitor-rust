@@ -42,3 +42,7 @@ pub fn check_filter_login(url_filter: Option<&Vec<String>>, t : &String) -> bool
 pub fn check_filter(url_filter: Option<&Vec<String>>, t : &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }
+
+pub fn get_answer_hue_deg(num_problems: usize, problem_number: u32) -> u32 {
+    (360 / num_problems as u32) * problem_number
+}

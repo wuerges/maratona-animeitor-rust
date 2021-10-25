@@ -260,6 +260,8 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
+pub const PROBLEM_LETTERS : &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 impl ContestFile {
     pub fn new(
         contest_name: String,
@@ -388,17 +390,16 @@ pub struct RunTuple {
 }
 
 impl PartialOrd for RunTuple {
-    fn partial_cmp(&self, other : &Self) -> Option<Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.time.cmp(&other.time))
     }
 }
 
 impl Ord for RunTuple {
-    fn cmp(&self, other : &Self) -> Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         self.time.cmp(&other.time)
     }
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
@@ -451,14 +452,12 @@ impl RunsFile {
         )
     }
 
-    pub fn filter_teams(& mut self, teams: &BTreeMap<String, Team>) {
+    pub fn filter_teams(&mut self, teams: &BTreeMap<String, Team>) {
         let runs = &mut self.runs;
-        runs.retain(|&_, run| {
-            teams.contains_key(&run.team_login)
-        });
+        runs.retain(|&_, run| teams.contains_key(&run.team_login));
     }
 
-    pub fn refresh_1(&mut self, t :&RunTuple) -> bool {
+    pub fn refresh_1(&mut self, t: &RunTuple) -> bool {
         let ent = self.runs.entry(t.id);
         match ent {
             btree_map::Entry::Vacant(v) => {
@@ -468,11 +467,11 @@ impl RunsFile {
             btree_map::Entry::Occupied(mut o) => {
                 if o.get() != t {
                     *o.get_mut() = t.clone();
-                    return true
+                    return true;
                 }
                 false
             }
-        }   
+        }
     }
 
     pub fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {

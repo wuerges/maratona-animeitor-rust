@@ -104,7 +104,8 @@ fn view(model: &Model) -> Node<Msg> {
             |r|check_filter_login(model.url_filter.as_ref(), &r.team_login)
         ).enumerate().map({
             |(i, r)| {
-                let balao = std::format!("run_balao_{}", &r.problem);
+                let pnum = data::PROBLEM_LETTERS.find(r.problem.as_str()).unwrap_or(0);
+                let hue = get_answer_hue_deg(model.contest.number_problems, pnum as u32);
                 div![
                     C!["run"],
                     style! {
@@ -122,7 +123,9 @@ fn view(model: &Model) -> Node<Msg> {
                     div![C!["cell", "problema"], &r.problem],
                     div![
                         C!["cell", "resposta", get_answer(&r.result)],
-                        C![IF!(matches!(r.result, data::Answer::Yes(_)) => balao)],
+                        // C![IF!(matches!(r.result, data::Answer::Yes(_)) => balao)],
+                        IF!(matches!(r.result, data::Answer::Yes(_)) 
+                            => style!{ St::Filter => format!("hue-rotate({}deg)", hue)}),
                     ],
 
                     attrs!{At::OnClick => 
