@@ -220,15 +220,18 @@ impl RunsQueue {
             Some(score) => match contest.teams.get_mut(&score.team_login) {
                 None => panic!("invalid team!"),
                 Some(team) => {
-                    team.reveal_run_frozen();
+                    if team.reveal_run_frozen() {
+                        self.queue.push(team.score());
+                    }
+                    // while !team.reveal_run_frozen() {};
 
-                    let new_score = team.score();
-                    if team.wait() {
-                        self.queue.push(new_score);
-                    }
-                    else if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
-                        self.queue.push(new_score);
-                    }
+                    // let new_score = team.score();
+                    // if team.wait() {
+                    //     self.queue.push(new_score);
+                    // }
+                    // else if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
+                    //     self.queue.push(new_score);
+                    // }
                 }
             },
         }

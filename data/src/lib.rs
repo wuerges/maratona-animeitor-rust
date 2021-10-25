@@ -117,11 +117,16 @@ impl Problem {
         }
     }
 
-    pub fn reveal_run_frozen(&mut self) {
+    pub fn reveal_run_frozen(&mut self) -> bool {
         if self.wait() {
             let a = self.answers.remove(0);
             self.add_run_problem(a);
+            // if !self.wait() {
+            //     self.answers.clear();
+            // }
+            return true;
         }
+        return false;
     }
 }
 
@@ -219,13 +224,13 @@ impl Team {
             .fold(false, |t, e| t || e)
     }
 
-    pub fn reveal_run_frozen(&mut self) {
+    pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
             if p.wait() {
-                p.reveal_run_frozen();
-                return;
+                return p.reveal_run_frozen();
             }
         }
+        false
     }
 
     pub fn score(&self) -> Score {
