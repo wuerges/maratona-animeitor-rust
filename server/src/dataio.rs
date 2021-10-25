@@ -177,12 +177,7 @@ impl DB {
     pub fn recalculate_score(&mut self) -> CResult<()> {
         self.contest_file = self.contest_file_begin.clone();
         for r in &self.run_file.sorted() {
-            match self.contest_file.apply_run(r) {
-                Ok(_) => {},
-                Err(e) => {
-                    eprintln!("Warning: {}", e);
-                }
-            }
+            self.contest_file.apply_run(r)?;
         }
         Ok(self.contest_file.reload_score()?)
     }
@@ -191,11 +186,12 @@ impl DB {
         &mut self,
         time: i64,
         contest: ContestFile,
-        runs: RunsFile,
+        mut runs: RunsFile,
     ) -> CResult<Vec<RunTuple>> {
         self.time_file = time;
         self.contest_file_begin = contest;
 
+        runs.filter_teams(&self.contest_file_begin.teams);
         let runs_frozen = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
 
         let fresh = self.run_file.refresh(runs_frozen.sorted());

@@ -451,6 +451,13 @@ impl RunsFile {
         )
     }
 
+    pub fn filter_teams(& mut self, teams: &BTreeMap<String, Team>) {
+        let runs = &mut self.runs;
+        runs.retain(|&_, run| {
+            teams.contains_key(&run.team_login)
+        });
+    }
+
     pub fn refresh_1(&mut self, t :&RunTuple) -> bool {
         let ent = self.runs.entry(t.id);
         match ent {
