@@ -222,10 +222,13 @@ impl RunsQueue {
                 Some(team) => {
                     if team.reveal_run_frozen() {
                         self.queue.push(team.score());
+                        // let new_score = team.score();
+                        // if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
+                        //     self.queue.push(new_score);
+                        // }
                     }
                     // while !team.reveal_run_frozen() {};
 
-                    // let new_score = team.score();
                     // if team.wait() {
                     //     self.queue.push(new_score);
                     // }

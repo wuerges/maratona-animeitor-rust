@@ -148,7 +148,8 @@ impl PartialEq for Team {
 
 impl PartialOrd for Team {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.score().cmp(&other.score()))
+        // Some(self.score().cmp(&other.score()))
+        self.score().partial_cmp(&other.score())
     }
 }
 
@@ -227,7 +228,9 @@ impl Team {
     pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
             if p.wait() {
-                return p.reveal_run_frozen();
+                if p.reveal_run_frozen() {
+                    return true
+                }
             }
         }
         false

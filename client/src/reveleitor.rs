@@ -71,21 +71,21 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Scroll1 => {
             model.revelation.as_mut().map(|r| r.reveal_step());
 
-            let event = model.revelation.as_mut().map(|r| r.search_for_events()).flatten();
+            // let event = model.revelation.as_mut().map(|r| r.search_for_events()).flatten();
+            model.center = model.revelation.as_mut()
+                                .map( |r| r.peek() )
+                                .flatten()
+                                .cloned();
 
-            match event {
-                None => {
-                    model.vencedor = None;
-                    model.center = model.revelation.as_mut()
-                                        .map( |r| r.peek() )
-                                        .flatten()
-                                        .cloned();
-                },
-                Some(Winner { team_login, nome_sede }) => {
-                    model.center = Some(team_login);
-                    model.vencedor = Some(nome_sede);
-                }
-            }
+            // match event {
+            //     None => {
+            //         model.vencedor = None;
+            //     },
+            //     Some(Winner { team_login, nome_sede }) => {
+            //         model.center = Some(team_login);
+            //         model.vencedor = Some(nome_sede);
+            //     }
+            // }
             model.button_disabled = false;
         }
         Msg::Prox(n) => {
@@ -94,31 +94,32 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             orders.send_msg(Msg::Scroll(n));
         }
         Msg::Scroll(n) => {
-            log!("going to reveal top: ", n);
-            let event = model
+            // log!("going to reveal top: ", n);
+            model
                 .revelation
                 .as_mut()
                 .map(|r| r.reveal_top_n(n))
                 .flatten();
-            log!("event: ", event);
-            match event {
-                None => {
-                    model.vencedor = None;
-                    model.center = model.revelation.as_mut()
-                                        .map( |r| r.peek() )
-                                        .flatten()
-                                        .cloned();
-                },
-                Some(Winner {
-                    team_login,
-                    nome_sede,
-                }) => {
-                    log!("Time ", team_login, "vencedor da sede", nome_sede);
-                    model.center = Some(team_login);
-                    model.vencedor = Some(nome_sede);
-                }
-            }
-            log!("center:", model.center);
+            model.center = model.revelation.as_mut()
+                                .map( |r| r.peek() )
+                                .flatten()
+                                .cloned();
+            
+            // log!("event: ", event);
+            // match event {
+            //     None => {
+            //         model.vencedor = None;
+            //     },
+            //     Some(Winner {
+            //         team_login,
+            //         nome_sede,
+            //     }) => {
+            //         log!("Time ", team_login, "vencedor da sede", nome_sede);
+            //         model.center = Some(team_login);
+            //         model.vencedor = Some(nome_sede);
+            //     }
+            // }
+            // log!("center:", model.center);
             // orders.send_msg(Msg::Unlock);
 
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Unlock));
