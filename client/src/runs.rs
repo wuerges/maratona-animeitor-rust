@@ -104,6 +104,7 @@ fn view(model: &Model) -> Node<Msg> {
             |r|check_filter_login(model.url_filter.as_ref(), &r.team_login)
         ).enumerate().map({
             |(i, r)| {
+                let balao = std::format!("run_balao_{}", &r.problem);
                 div![
                     C!["run"],
                     style! {
@@ -119,7 +120,10 @@ fn view(model: &Model) -> Node<Msg> {
                         div![C!["nomeTime"], &r.team_name],
                     ],
                     div![C!["cell", "problema"], &r.problem],
-                    div![C!["cell", "resposta", get_answer(&r.result)]],
+                    div![
+                        C!["cell", "resposta", get_answer(&r.result)],
+                        C![IF!(matches!(r.result, data::Answer::Yes(_)) => balao)],
+                    ],
 
                     attrs!{At::OnClick => 
                         std::format!("document.getElementById('foto_{}').style.display = 'block';", &r.team_login),

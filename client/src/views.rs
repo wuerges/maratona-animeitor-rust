@@ -157,10 +157,12 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                         None => div![C!["cell", "problema"], "-"],
                         Some(prob_v) => {
                             if prob_v.solved {
+                                let balao = std::format!("balao_{}", prob);
                                 div![
                                     C!["cell", "problema", "verde"],
                                     div![C!["cima"], "+", number_submissions(prob_v.submissions)],
                                     div![C!["baixo"], prob_v.time_solved],
+                                    div![C![balao]],
                                 ]
                             }
                             else {
