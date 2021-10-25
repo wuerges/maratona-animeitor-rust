@@ -151,17 +151,19 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     div![C!["cima"], score.solved],
                     div![C!["baixo"], score.penalty],
                 ],
-                all_problems.chars().map( |prob| {
+                all_problems.char_indices().map( |(prob_i, prob)| {
+                    let hue = get_answer_hue_deg(n, prob_i as u32);
                     match team.problems.get(&prob.to_string()) {
+                
                         None => div![C!["cell", "problema"], "-"],
                         Some(prob_v) => {
                             if prob_v.solved {
-                                let balao = std::format!("balao_{}", prob);
+                                // let balao = std::format!("balao_{}", prob);
                                 div![
                                     C!["cell", "problema", "verde"],
                                     div![C!["cima"], "+", number_submissions(prob_v.submissions)],
                                     div![C!["baixo"], prob_v.time_solved],
-                                    div![C![balao]],
+                                    div![C!["balao"], style!{ St::Filter => format!("hue-rotate({}deg)", hue)}],
                                 ]
                             }
                             else {

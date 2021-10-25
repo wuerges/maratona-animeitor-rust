@@ -176,6 +176,14 @@ body {
     content:url(/static/assets/balao.svg);
     width: 3vw;
 }
+.balao {
+    width: 2vw;
+    content:url(/static/assets/balao.svg);
+    position: absolute;
+    top: 0.1vw;
+    left: 0.5vw;
+    z-index: -100;
+}
 .answerno {
     content:url(/static/assets/no.svg);
     width: 3vw;
@@ -192,8 +200,9 @@ body {
 /* } */
 
 .verde {
+    position: relative;
     /* background-color: green; */
-    background-color: #00ab5e;
+    /* background-color: #00ab5e; */
 }
 
 .vermelho {
