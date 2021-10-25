@@ -14,7 +14,7 @@ use seed::{prelude::*, *};
 // ------ ------
 
 // `init` describes what should happen when your app started.
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     Model {
         page: Page::Login {
             login: ElRef::new(),

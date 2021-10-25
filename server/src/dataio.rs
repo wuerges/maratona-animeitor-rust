@@ -177,7 +177,12 @@ impl DB {
     pub fn recalculate_score(&mut self) -> CResult<()> {
         self.contest_file = self.contest_file_begin.clone();
         for r in &self.run_file.sorted() {
-            self.contest_file.apply_run(r)?;
+            match self.contest_file.apply_run(r) {
+                Ok(_) => {},
+                Err(e) => {
+                    eprintln!("Warning: {}", e);
+                }
+            }
         }
         Ok(self.contest_file.reload_score()?)
     }
