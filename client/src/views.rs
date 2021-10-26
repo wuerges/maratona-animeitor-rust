@@ -92,11 +92,11 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     // let problem_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
-    let compressed = compress_placement(contest.teams.values()
+    let compressed_ = compress_placement(contest.teams.values()
                         .filter( |t| data::check_filter(url_filter, t))
                         .map(|t| &t.placement));
 
-    let is_compressed = compressed.len() < contest.teams.len();
+    let is_compressed = compressed_.len() < contest.teams.len();
     div![
         C!["runstable"],
         div![
@@ -121,20 +121,21 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
         contest.teams.values().filter( |t| data::check_filter(url_filter, t))
                 .map (|team| {
             let score = team.score();
-            let p2 = compressed.get(&team.placement).unwrap_or(&0);
+            let p2 = 1+*compressed_.get(&team.placement).unwrap_or(&0);
+            // let p2 = team.placement;
             div![
                 id![&team.login],
                 C!["run"],
                 center_class(team.placement, &p_center),
                 style!{
                     // St::Top => px(margin_top + (team.placement as i64) * 90),
-                    St::Top => cell_top(*p2+1, &p_center),
+                    St::Top => cell_top(p2, &p_center),
                     // St::Top => cell_top(team.placement, &p_center),
                     // St::Position => "absolute",
                     // St::Transition => "top 1s ease 0s",
                 },
-                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement, None)], team.placement]),
-                div![C!["cell", "colocacao", get_color(*p2+1, sede)], *p2+1],
+                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
+                div![C!["cell", "colocacao", get_color(p2, sede)], p2],
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],

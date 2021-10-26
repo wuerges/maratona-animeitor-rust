@@ -40,11 +40,17 @@ async fn fetch_all() -> Msg {
     let f = fetch_contest().await;
     Msg::Fetched(f)
 }
+async fn reset() -> Msg {
+    Msg::Reset
+}
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             model.url_filter = get_url_filter(&url);
+            model.dirty = true;
+            orders.skip();
+            orders.perform_cmd(reset());
         },
         Msg::RunUpdate(m) => {
             let run : data::RunTuple = m.json().expect("Expected a RunTuple");
