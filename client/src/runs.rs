@@ -124,9 +124,11 @@ fn view(model: &Model) -> Node<Msg> {
                     div![C!["cell", "problema"], &r.problem],
                     div![
                         C!["cell", "resposta", get_answer(&r.result)],
-                        C![IF!(matches!(r.result, data::Answer::Yes(_)) => balao)],
-                        IF!(matches!(r.result, data::Answer::Yes(_)) 
-                            => style!{ St::Filter => format!("hue-rotate({}deg)", hue)}),
+                        IF!(matches!(r.result, data::Answer::Yes(_)) => 
+                        div![
+                            C!["balao", balao],
+                            style!{ St::Filter => format!("hue-rotate({}deg)", hue)},
+                        ]),
                     ],
 
                     attrs!{At::OnClick => 

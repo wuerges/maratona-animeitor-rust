@@ -173,9 +173,60 @@ body {
 }
 
 .answeryes {
-    content:url(/static/assets/balao.svg);
+    position: relative;
+    /* content:url(/static/assets/balao.svg); */
     width: 3vw;
 }
+
+.balao_A {
+    filter: saturate(0%) !important;
+}
+.balao_B {
+    filter: brightness(0) saturate(100%) invert(27%) sepia(97%) saturate(6971%) hue-rotate(120deg) brightness(98%) contrast(106%) !important;
+}
+.balao_C {
+    filter: brightness(0) saturate(100%) invert(84%) sepia(97%) saturate(262%) hue-rotate(77deg) brightness(102%) contrast(101%) !important;
+}
+.balao_D {
+    filter: brightness(0) saturate(100%) invert(81%) sepia(86%) saturate(3551%) hue-rotate(359deg) brightness(104%) contrast(105%) !important;
+}
+.balao_E {
+    filter: brightness(0) saturate(100%) invert(16%) sepia(85%) saturate(7493%) hue-rotate(359deg) brightness(110%) contrast(110%) !important;
+}
+.balao_F {
+    filter: brightness(0) saturate(100%) invert(21%) sepia(91%) saturate(4473%) hue-rotate(317deg) brightness(104%) contrast(101%) !important;
+}
+.balao_G {
+    filter: brightness(0) saturate(100%) invert(45%) sepia(70%) saturate(1162%) hue-rotate(226deg) brightness(94%) contrast(81%) !important;
+}
+.balao_H {
+    filter: brightness(0) saturate(100%) invert(16%) sepia(49%) saturate(7463%) hue-rotate(242deg) brightness(54%) contrast(133%) !important;
+}
+.balao_I {
+    filter: brightness(0) saturate(100%) invert(17%) sepia(96%) saturate(2594%) hue-rotate(273deg) brightness(100%) contrast(130%) !important;
+}
+.balao_J {
+    filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(574%) hue-rotate(348deg) brightness(91%) contrast(93%) !important;
+}
+.balao_K {
+    filter: brightness(0) saturate(100%) invert(62%) sepia(29%) saturate(1511%) hue-rotate(360deg) brightness(103%) contrast(106%) !important;
+}
+.balao_L {
+    filter: brightness(0) saturate(100%) invert(70%) sepia(52%) saturate(584%) hue-rotate(178deg) brightness(105%) contrast(96%) !important;
+}
+.balao_M {
+    filter: brightness(0) saturate(100%) invert(82%) sepia(2%) saturate(5886%) hue-rotate(303deg) brightness(101%) contrast(101%) !important;
+}
+.balao_N {
+    filter: brightness(0) saturate(100%) invert(86%) sepia(75%) saturate(4397%) hue-rotate(172deg) brightness(97%) contrast(85%) !important;
+}
+.balao_O {
+    filter: brightness(0) saturate(100%) invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
+}
+.balao_P {
+    filter: brightness(0) saturate(100%) !important;
+}
+
 .balao {
     width: 2vw;
     content:url(/static/assets/balao.svg);
