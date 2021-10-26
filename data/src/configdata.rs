@@ -122,9 +122,18 @@ impl ConfigContest {
         }
     }
 
-    pub fn get_sede(&self, team: &String) -> Option<&Sede> {
+    pub fn get_sede_team(&self, team: &String) -> Option<&Sede> {
         for sede in &self.sedes {
             if sede.check_login(team) {
+                return Some(&sede);
+            }
+        }
+        None
+    }
+
+    pub fn get_sede_nome_sede(&self, name: &String) -> Option<&Sede> {
+        for sede in &self.sedes {
+            if &sede.name == name {
                 return Some(&sede);
             }
         }

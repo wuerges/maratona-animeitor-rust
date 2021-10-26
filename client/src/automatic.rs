@@ -54,9 +54,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             model.sede = get_sede(&url);
+            model.dirty;
         }
         Msg::Reload => {
             // log!("reload!");
+            let url_filter = model.sede.as_ref().map( |sede| 
+                model.config.get_sede_nome_sede(sede).as_ref().map( |s| s.codes.clone() )
+            ).flatten();
             if model.dirty {
                 // log!("reload dirty!");
                 model.contest = model.original.clone();
@@ -68,7 +72,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 }
                 model
                     .contest
-                    .recalculate_placement()
+                    .recalculate_placement(url_filter.as_ref())
                     .expect("Should recalculate scores");
                 model.dirty = false;
             }
@@ -117,8 +121,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-
-    let opt_sede = model.config.sedes.iter().filter(|s| &s.name == model.sede.as_ref().unwrap_or(&"<fake>".to_string()) ).next();
+    let opt_sede = model.sede.as_ref().map( |sede| model.config.get_sede_nome_sede(sede) ).flatten();
     views::view_scoreboard(&model.contest, &model.center, opt_sede)
 }
 

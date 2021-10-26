@@ -34,7 +34,7 @@ impl RevelationDriver {
         teams.sort();
         let mut winners = BTreeMap::new();
         for t in teams {
-            let sede_opt = sedes.get_sede(&t.login);
+            let sede_opt = sedes.get_sede_team(&t.login);
             match sede_opt {
                 Some(sede) => {
                     if sede.premiacao {
@@ -72,7 +72,7 @@ impl RevelationDriver {
 
     pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
-        self.revelation.contest.recalculate_placement().unwrap();
+        self.revelation.contest.recalculate_placement_no_filter().unwrap();
     }
 
     // pub fn check_winner(&self, login :&String) -> Option<&String> {
@@ -144,7 +144,7 @@ impl Revelation {
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement().unwrap();
+        self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_all_runs_on_frozen(&mut self) {
@@ -152,33 +152,33 @@ impl Revelation {
             self.contest.apply_run_frozen(run).unwrap();
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement().unwrap();
+        self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
-        // self.contest.recalculate_placement().unwrap();
+        // self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_all_runs_from_queue(&mut self) {
         while self.runs_queue.queue.len() > 0 {
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement().unwrap();
+        self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_runs_from_queue_n(&mut self, n : usize) {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement().unwrap();
+        self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_all_runs(&mut self) {
         for run in &self.runs.sorted() {
             self.contest.apply_run(run).unwrap();
         }
-        self.contest.recalculate_placement().unwrap();
+        self.contest.recalculate_placement_no_filter().unwrap();
     }
 }
 

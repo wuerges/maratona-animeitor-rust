@@ -93,7 +93,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     let n = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
     let compressed = compress_placement(contest.teams.values()
-                        .filter( |t| check_filter(url_filter, t))
+                        .filter( |t| data::check_filter(url_filter, t))
                         .map(|t| &t.placement));
 
     let is_compressed = compressed.len() < contest.teams.len();
@@ -118,7 +118,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     nome_sede(sede)],
             all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
         ],
-        contest.teams.values().filter( |t| check_filter(url_filter, t))
+        contest.teams.values().filter( |t| data::check_filter(url_filter, t))
                 .map (|team| {
             let score = team.score();
             let p2 = compressed.get(&team.placement).unwrap_or(&0);

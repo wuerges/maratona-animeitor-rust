@@ -136,6 +136,7 @@ pub struct Team {
     pub escola: String,
     pub name: String,
     pub placement: usize,
+    pub placement_global: usize,
     pub problems: BTreeMap<String, Problem>,
 }
 
@@ -196,6 +197,7 @@ impl Team {
             escola: escola.to_string(),
             name: name,
             placement: 0,
+            placement_global: 0,
             problems: BTreeMap::new(),
         }
     }
@@ -270,6 +272,25 @@ pub struct ContestFile {
 
 pub const PROBLEM_LETTERS : &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+pub fn check_filter(url_filter: Option<&Vec<String>>, t : &Team) -> bool {
+    check_filter_login(url_filter, &t.login)
+}
+
+pub fn check_filter_login(url_filter: Option<&Vec<String>>, t : &String) -> bool {
+    match url_filter {
+        None => true,
+        Some(tot) => {
+            for f in tot {
+                if t.find(f).is_some() {
+                    return true
+                }
+            }
+            return false
+        },
+    }
+}
+
+
 impl ContestFile {
     pub fn new(
         contest_name: String,
@@ -300,7 +321,11 @@ impl ContestFile {
         self.teams.get(team_login).map(|t| t.placement)
     }
 
-    pub fn recalculate_placement(&mut self) -> Result<(), ContestError> {
+    pub fn recalculate_placement_no_filter(&mut self) -> Result<(), ContestError> {
+        return self.recalculate_placement(None);
+    }
+
+    pub fn recalculate_placement(&mut self, url_filter: Option<&Vec<String>>) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
         for (key, _) in self.teams.iter() {
             score_board.push(key.clone());
@@ -310,10 +335,19 @@ impl ContestFile {
             let score_b = self.teams.get(b).unwrap().score();
             score_a.cmp(&score_b)
         });
-        for (i, v) in score_board.iter().enumerate() {
+        let mut placement = 1;
+        let mut placement_global = 1;
+        for v in score_board.iter() {
             match self.teams.get_mut(v) {
                 None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => t.placement = i + 1,
+                Some(t) => {
+                    t.placement = placement;
+                    t.placement_global = placement_global;
+                    if check_filter(url_filter, t) {
+                        placement += 1;
+                    }
+                    placement_global += 1;
+                },
             }
         }
 

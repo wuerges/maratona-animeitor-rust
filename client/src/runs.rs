@@ -67,7 +67,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 for r in &runs {
                     mock.apply_run(r).expect("Should apply run just fine");
                 }
-                mock.recalculate_placement().expect("Should recalculate placement");
+                mock.recalculate_placement(model.url_filter.as_ref()).expect("Should recalculate placement");
 
                 runs.reverse();
 
@@ -101,7 +101,7 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         C!["runstable"],
         model.runs.iter().filter(
-            |r|check_filter_login(model.url_filter.as_ref(), &r.team_login)
+            |r|data::check_filter_login(model.url_filter.as_ref(), &r.team_login)
         ).enumerate().map({
             |(i, r)| {
                 let pnum = data::PROBLEM_LETTERS.find(r.problem.as_str()).unwrap_or(0);
