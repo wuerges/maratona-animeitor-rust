@@ -411,7 +411,7 @@ impl ContestFile {
 
         Ok(RunsPanelItem {
             id: run.id,
-            placement: team.placement,
+            placement: team.placement_global,
             color: 0,
             escola: team.escola.clone(),
             team_name: team.name.clone(),
