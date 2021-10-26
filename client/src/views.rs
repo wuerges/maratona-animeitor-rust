@@ -121,8 +121,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
         contest.teams.values().filter( |t| data::check_filter(url_filter, t))
                 .map (|team| {
             let score = team.score();
-            let p2 = 1+*compressed_.get(&team.placement).unwrap_or(&0);
-            // let p2 = team.placement;
+            // let p2 = 1+*compressed_.get(&team.placement).unwrap_or(&0);
+            let p2 = team.placement;
             div![
                 id![&team.login],
                 C!["run"],

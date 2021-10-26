@@ -10,6 +10,7 @@ extern crate rand;
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
     orders.perform_cmd(fetch_all());
+    orders.stream(streams::interval(1_000, || Msg::Reload));
 
     Model {
         center: None,
@@ -50,11 +51,16 @@ async fn fetch_all() -> Msg {
     Msg::Fetched(c, cfg)
 }
 
+async fn reload() -> Msg {
+    Msg::Reload
+}
+
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             model.sede = get_sede(&url);
-            model.dirty;
+            model.dirty = true;
+            orders.skip().perform_cmd(reload());
         }
         Msg::Reload => {
             // log!("reload!");
@@ -107,9 +113,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .build_and_open()
                     .expect("Open WebSocket"),
             );
-            orders
-                .skip()
-                .stream(streams::interval(1_000, || Msg::Reload));
+            orders.skip();
         }
         Msg::Fetched(Err(e), _) => {
             log!("failed fetching contest: ", e);

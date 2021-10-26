@@ -49,14 +49,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
             model.url_filter = get_url_filter(&url);
             model.dirty = true;
-            orders.skip();
-            orders.perform_cmd(reset());
+            orders.skip().perform_cmd(reset());
         },
         Msg::RunUpdate(m) => {
             let run : data::RunTuple = m.json().expect("Expected a RunTuple");
             if model.runs_file.refresh_1(&run) {
                 model.dirty = true;
-            }            
+            }
+            orders.skip();
         },
         Msg::Fetched(Ok(contest)) => {
             model.contest = contest;
@@ -64,6 +64,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .on_message(Msg::RunUpdate)
                 .build_and_open()
                 .expect("Open WebSocket"));
+            orders.skip();
         }
         Msg::Fetched(Err(e)) => log!("fetched runs error!", e),
         Msg::Reset => {
