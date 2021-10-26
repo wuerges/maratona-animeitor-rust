@@ -252,6 +252,8 @@ body {
 
 .verde {
     position: relative;
+    text-shadow: 0 0 5px #000;
+
     /* background-color: green; */
     /* background-color: #00ab5e; */
 }
