@@ -7,15 +7,15 @@ body {
     font-weight: bold;
     
     /* background-color: #000000aa; */
-    background-color: #151515;
+    background-color: #252525;
     /* background-repeat: repeat; */
     /* background-image: url('/static/assets/maratona-logo-wallpaper.png') ; */
     /* background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ; */
-    /* background-image: url(/static/assets/background_2.jpg); */
-    background-image: url(/static/assets/maratona-background-only.webp);
+    background-image: url(/static/assets/background_2.webp);
+    /* background-image: url(/static/assets/maratona-background-only.webp); */
     background-blend-mode: multiply;
     background-attachment: fixed;
-    /* backdrop-filter: blur(5px); */
+    backdrop-filter: blur(5px);
     background-size: cover;
 
     overflow-y: scroll;
