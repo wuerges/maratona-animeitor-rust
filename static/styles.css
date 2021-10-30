@@ -229,8 +229,8 @@ body {
 
 .balao {
     width: 2.4vw;
-    /* content:url(/static/assets/balao.svg); */
-    content:url(/static/assets/BalaoInterIF.png);
+    content:url(/static/assets/balao2.svg);
+    /* content:url(/static/assets/BalaoInterIF.png); */
     position: absolute;
     top: 0.1vw;
     left: 0.25vw;
