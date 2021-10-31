@@ -1,4 +1,0 @@
-[tasks.watch]
-description = "Watch files and recompile the project on change"
-run_task = []
-

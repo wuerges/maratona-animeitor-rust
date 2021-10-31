@@ -15,7 +15,11 @@ use data::configdata::*;
 //     ))
 // }
 
-pub fn pack_contest_config(sedes: ConfigSedes, escolas: ConfigEscolas, teams: ConfigTeams) -> ConfigContest {
+pub fn pack_contest_config(
+    sedes: ConfigSedes,
+    escolas: ConfigEscolas,
+    teams: ConfigTeams,
+) -> ConfigContest {
     ConfigContest::from_config(sedes.sedes, escolas.escolas, teams.teams)
 }
 

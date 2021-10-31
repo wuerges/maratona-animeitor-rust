@@ -25,7 +25,7 @@ path = "data"
 members = [
     "server",
     "client",
-    "turbineitor",
-    "turbineitor/ui",
+    # "turbineitor",
+    # "turbineitor/ui",
     "data",
 ]

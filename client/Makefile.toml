@@ -1,23 +1,11 @@
-[env]
-PORT = "8000"
-
 [config]
 skip_core_tasks = true
 
-# ---- BASIC ----
+[tasks.serve]
+disabled = true
 
 [tasks.watch]
-description = "Watch files and recompile the project on change"
-run_task = [
-    { name = "build" },
-]
-watch = true
-
-[tasks.serve]
-description = "Start server"
-install_crate = { crate_name = "microserver", binary = "microserver", test_arg = "-h" }
-command = "microserver"
-args = ["--port", "${PORT}"]
+disabled = true
 
 [tasks.verify]
 description = "Format, lint with Clippy and run tests"

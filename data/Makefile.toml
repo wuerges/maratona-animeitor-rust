@@ -1,7 +1,0 @@
-[tasks.watch]
-description = "Watch files and recompile the project on change"
-run_task = []
-
-[tasks.build_release]
-description = "Dummy task"
-run_task = []

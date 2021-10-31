@@ -6,9 +6,9 @@ use data::configdata::ConfigContest;
 
 use crate::errors::{CResult, Error};
 
+extern crate html_escape;
 extern crate itertools;
 extern crate rand;
-extern crate html_escape;
 
 use crate::dataio::*;
 
@@ -54,12 +54,11 @@ where
                         Ok(_) => (),
                         Err(e) => eprintln!("Error updating run: {}", e),
                     }
-                },
+                }
                 Err(e) => {
                     eprintln!("Error loading data: {}, retrying.", e);
                 }
             }
-
         }
     });
     (shared_db, tx2)
