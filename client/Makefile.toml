@@ -5,11 +5,8 @@ skip_core_tasks = true
 disabled = true
 
 [tasks.watch]
-disabled = true
-
-[tasks.verify]
-description = "Format, lint with Clippy and run tests"
-dependencies = ["fmt", "clippy", "test_h_firefox"]
+run_task = "build"
+watch = true
 
 # ---- BUILD ----
 
@@ -24,21 +21,3 @@ description = "Build with wasm-pack in release mode"
 install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
 command = "wasm-pack"
 args = ["build", "--target", "web", "--out-name", "package"]
-
-# ---- TEST ----
-
-[tasks.test_h]
-description = "Run headless tests. Ex: 'cargo make test_h firefox'. Test envs: [chrome, firefox, safari]"
-extend = "test"
-args = ["test", "--headless", "--${@}"]
-
-[tasks.test_h_firefox]
-description = "Run headless tests with Firefox."
-extend = "test"
-args = ["test", "--headless", "--firefox"]
-
-[tasks.test]
-description = "Run tests. Ex: 'cargo make test firefox'. Test envs: [chrome, firefox, safari]"
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["test", "--${@}"]

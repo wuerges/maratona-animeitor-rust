@@ -29,3 +29,7 @@ members = [
     # "turbineitor/ui",
     "data",
 ]
+
+[profile.release.package.client]
+opt-level = 'z'
+codegen-units = 1
