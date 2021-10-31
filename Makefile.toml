@@ -1,0 +1,15 @@
+[tasks.watch]
+run_task = "build"
+watch = true
+
+# ---- BUILD ----
+
+[tasks.build]
+description = "Build server (dev)"
+command = "cargo"
+args = ["build"]
+
+[tasks.build_release]
+description = "Build server"
+command = "cargo"
+args = ["build", "--release"]
