@@ -37,24 +37,6 @@ install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V
 command = "wasm-pack"
 args = ["build", "--target", "web", "--out-name", "package"]
 
-[tasks.build_turbinator]
-disable = true
-
-# ---- LINT ----
-
-[tasks.clippy]
-description = "Lint with Clippy"
-install_crate = { rustup_component_name = "clippy", binary = "cargo-clippy", test_arg = "--help" }
-command = "cargo"
-args = ["clippy", "--all-features", "--", "--deny", "warnings", "--deny", "clippy::pedantic", "--deny", "clippy::nursery"]
-
-[tasks.fmt]
-description = "Format with rustfmt"
-install_crate = { rustup_component_name = "rustfmt", binary = "rustfmt", test_arg = "-V" }
-command = "cargo"
-args = ["fmt"]
-
-
 # ---- TEST ----
 
 [tasks.test_h]
