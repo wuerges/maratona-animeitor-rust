@@ -164,7 +164,7 @@ fn read_from_zip(
         .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
 }
 
-async fn load_data_from_url_maybe(
+pub async fn load_data_from_url_maybe(
     uri: String,
 ) -> CResult<(i64, data::ContestFile, data::RunsFile)> {
     let zip_data = read_bytes_from_path(&uri).await?;

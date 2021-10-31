@@ -6,13 +6,13 @@ use std::io::{self, Read};
 use data::*;
 use html_escape::decode_html_entities_to_string;
 
-trait FromString {
+pub trait FromString {
     fn from_string(s: &str) -> CResult<Self>
     where
         Self: std::marker::Sized;
 }
 
-trait FromFile {
+pub trait FromFile {
     fn from_file(s: &str) -> CResult<Self>
     where
         Self: std::marker::Sized;
