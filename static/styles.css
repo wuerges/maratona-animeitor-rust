@@ -379,4 +379,6 @@ a {
     margin-bottom: 10px;
 }
 
-
+div#runheader > .cell {
+    background-color: #555 !important;
+}
