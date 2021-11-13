@@ -14,6 +14,7 @@ sudo apt-get install build-essential libssl-dev pkg-config
 ```
 
 - Instale o [Rust](https://www.rust-lang.org/pt-BR/tools/install)
+- Instale o [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 - Instale o `cargo-make`: 
 
 ```
