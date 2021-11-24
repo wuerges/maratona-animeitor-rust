@@ -26,3 +26,4 @@ wasm-opt = ['-Os']
 
 [dependencies.data]
 path = "../data"
+
