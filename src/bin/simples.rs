@@ -100,6 +100,10 @@ async fn main() {
         server_port
     );
     println!(
+        "-> Fotos dos times em http://localhost:{}/teams.html",
+        server_port
+    );
+    println!(
         "-> Painel geral com sedes em http://localhost:{}/everything2.html",
         server_port
     );
