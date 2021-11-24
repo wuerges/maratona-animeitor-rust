@@ -331,11 +331,13 @@ pub async fn serve_simple_contest_assets(
     server_port: u16,
     secret: &String,
 ) {
-    let seed_assets = warp::path("seed").and(warp::fs::dir("client"));
+    let seed_assets = warp::fs::dir("client");
 
     // let root = warp::path::end()
     //     .map(|| warp::redirect(warp::http::Uri::from_static("/seed/everything2.html")));
 
-    let routes = seed_assets.or(serve_urlbase(config, db, tx, secret));
+    let routes = serve_urlbase(config, db, tx, secret).or(seed_assets);
+
+
     warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }
