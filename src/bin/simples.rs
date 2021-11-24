@@ -84,27 +84,27 @@ async fn main() {
 
     println!("Maratona Rustreimator rodando!");
     println!(
-        "-> Runs em http://localhost:{}/seed/runspanel.html",
+        "-> Runs em http://localhost:{}/runspanel.html",
         server_port
     );
     println!(
-        "-> Placar automatizado em http://localhost:{}/seed/automatic.html",
+        "-> Placar automatizado em http://localhost:{}/automatic.html",
         server_port
     );
     println!(
-        "-> Timer em http://localhost:{}/seed/timer.html",
+        "-> Timer em http://localhost:{}/timer.html",
         server_port
     );
     println!(
-        "-> Painel geral em http://localhost:{}/seed/everything.html",
+        "-> Painel geral em http://localhost:{}/everything.html",
         server_port
     );
     println!(
-        "-> Painel geral com sedes em http://localhost:{}/seed/everything2.html",
+        "-> Painel geral com sedes em http://localhost:{}/everything2.html",
         server_port
     );
     println!(
-        "-> Reveleitor em http://localhost:{}/seed/reveleitor.html?secret={}",
+        "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
         server_port, secret
     );
 
