@@ -14,7 +14,13 @@ sudo apt-get install build-essential libssl-dev pkg-config
 ```
 
 - Instale o [Rust](https://www.rust-lang.org/pt-BR/tools/install)
-- Instale o [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+- Instale o `wasm-pack`:
+
+```
+cargo install wasm-pack --version 0.9.1
+# obs: neste momento o wasm-pack 0.10.x esta quebrado!
+```
+
 - Instale o `cargo-make`: 
 
 ```
@@ -76,57 +82,5 @@ Maratona Rustreimator rodando!
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
-O placar e os runs podem ser customizados usando CSS, através do arquivo [static/styles.css](static/styles.css). 
+O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](static/styles.css). 
 
-
-
-
-
-### Uso avançado
-
-O rustreimeitor foi desenvolvido para apoiar a Maratona de Programação da SBC, 
-e contém um arquivo de configuração específico para a maratona: `src/config.rs`.
-
-Neste arquivo é possível declarar as sedes da prova.
-
-
-### Uso acessando o database do boca
-
-Se o Rustreimeitor está usando na mesma máquina do banco de dados do BOCA,
-ele é capaz de acessar os dados do contest direto do banco (postgresql).
-
-Para isso, é necessário:
-
-1. Se você está no Ubuntu, instalar as libs do postgresql:
-
-```
-sudo apt-get install libpq-dev
-```
-
-2. Configurar a string de acesso do banco, que está no arquivo `.env`
-
-O arquivo vem configurado com o banco, senha e usuários padrão do BOCA:
-
-```
-DATABASE_URL=postgres://bocauser:boca@localhost/bocadb
-```
-
-3. Descobrir os IDs do contest e do site do contest a mostrar o placar.
-
-Na maioria dos casos, estes valores são 1 e 1.
-
-4. Compilar e rodar o turbineitor:
-
-O formato de execução é
-
-```
-cargo make build_release
-cargo run -p turbineitor <porta http> <contest id> <site id>
-```
-
-Na maioria dos casos o comando executado é este abaixo:
-
-```
-cargo make build_release
-cargo run -p turbineitor 3030 1 1
-```
