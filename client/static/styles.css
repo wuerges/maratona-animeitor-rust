@@ -1,384 +1,501 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
 @import url("teams.css");
-
+/* Container holding the image and the text */
 body {
-    color: white;
-    font-family: Lato, Ubuntu, sans-serif;
-    font-weight: bold;
-    
-    /* background-color: #000000aa; */
-    background-color: #252525;
-    /* background-repeat: repeat; */
-    /* background-image: url('/static/assets/maratona-logo-wallpaper.png') ; */
-    /* background-image: url('https://raw.githubusercontent.com/leodeliyannis/maratona-wallpapers/master/Wallpapers/maratona-logo-wallpaper.png') ; */
-    background-image: url(/static/assets/background_2.webp);
-    /* background-image: url(/static/assets/maratona-background-only.webp); */
-    background-blend-mode: multiply;
-    background-attachment: fixed;
-    backdrop-filter: blur(5px);
-    background-size: cover;
+  color: white;
+  font-family: Lato, Ubuntu, sans-serif;
+  font-weight: bold;
 
-    overflow-y: scroll;
+  background-color: #A7A7A7;
+  overflow-y: scroll;
 }
 
 /* .logoimg {
-    height: 55px;
-    font-size: 0.8vw;
+  height: 55px;
+  font-size: 0.8vw;
 }
 
 .logo {
-    width: 75px;
+  width: 75px;
 } */
 
 :root {
-    --row-height: 3vw;
-    --root-top: 0px;
-    --root-top-center: calc(100vh / 2);
+  --row-height: 3vw;
+  --root-top: 0px;
+  --root-top-center: calc(100vh / 2);
 }
 
 .runstable {
-    position: relative;
+  position: relative;
+  margin-top: 3px;
 }
 
 .runspanel {
-    position: relative;
-    display: block;
-    height: 90vw;
-    width: 2vw;
+  position: relative;
+  display: block;
+  height: 90vw;
+  width: 310px;
 }
 
 .run {
-    height: 2.6vw;
-    position: absolute;
-    align-items: center;
-    display: flex;
-    transition: top 5s ease 0s;
+  height: 45px;
+  position: absolute;
+  align-items: center;
+  display: flex;
+  padding-right: 8px;
+  transition: top 5s ease 0s;
 }
 
 .cell {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 1px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: gray;
-    border-radius: 5px;
-    padding: 1px;
+  height: 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #4F5B62;
+  margin: 1px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #555;
+  border-radius: 5px;
+  padding: 2px;
+}
+.center .not-tried{
+  background-color: #27333a;
+}
+.center .time{
+  background-color: #27333a;
+}
+.center .problema{
+  background-color: #27333a;
+}
+.center .problema{
+  background-color: #27333a;
 }
 
+.accept {
+  width: 40px;
+  position: relative;
+  background-color: #305745;
+}
+
+.accept-img{
+  position: absolute;
+  height: 22px;
+  width: 12px;
+  top: 14px;
+  left: 4px;
+}
+
+.not-tried {
+  width: 40px;
+  text-align: center;
+  background-color: #4F5B62;
+}
+
+.unsolved {
+  width: 40px;
+  text-align: center;
+  background-color: #573a41;
+}
+
+.inqueue {
+  width: 40px;
+  text-align: center;
+  animation: blinkingBackground 2s;
+  background-color: #F4D03F;
+  color: black;
+}
+
+
+/* Top right text */
+.accept-text {
+  position: absolute;
+  width: 20px;
+  left: 20px;
+  text-align: center;
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* Bottom right text */
+.bottom-right {
+  position: absolute;
+  width: 31px;
+  height: 18px
+
+  bottom: 10px;
+  right: 6px;
+  text-align: center;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+/* Top right text */
+.top-center {
+  position: absolute;
+  top: 10px;
+  text-align: center;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+/* Bottom right text */
+.bottom-center {
+  position: absolute;
+  bottom: 10px;
+  right: 6px;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+
 .titulo {
-    /* content:url(/static/assets/titulo-1stPhase.svg); */
-    /* content:url(/static/assets/titulo-final.svg); */
-    font-size: 2vw;
+  /* content:url(/static/assets/titulo-1stPhase.svg); */
+  /* content:url(/static/assets/titulo-final.svg); */
+  font-size: 24px;
 }
 
 .titulo.sede_brasil {
-    /* content:url(/static/assets/titulo-1stPhase.svg); */
-    /* content:url(/static/assets/titulo-final.svg); */
-    font-size: 2vw;
+  /* content:url(/static/assets/titulo-1stPhase.svg); */
+  /* content:url(/static/assets/titulo-final.svg); */
+  font-size: 24px;
 }
 .titulo.sede_la {
-    /* content:url(/static/assets/titulo-1stPhase.svg); */
-    content:url(/static/assets/titulo-icpc.svg);
-    font-size: 2vw;
+  /* content:url(/static/assets/titulo-1stPhase.svg); */
+  content:url(/static/assets/titulo-icpc.svg);
+  font-size: 24px;
+}
+
+.submission-title{
+  width: 302px;
+  height: 45px;
+  background-color: #263238;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 8px;
+  margin-bottom: 3px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #555;
+  border-radius: 5px;
+  padding: 2px;
+  font-size: 24px;
 }
 
 .unicaColocacao {
-    width: calc(20.8vw + 12px);
+  width: 301px;
 }
+
 .duplaColocacao {
-    width: calc(23.8vw + 18px);
+  width: 354px;
 }
 
 .nomeEscola {
-    display: none;
+  display: none;
 }
 
 .nomeTime {
-    font-size: 1vw;
+  font-size: 14px;
+}
+
+.time {
+  text-align: right;
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+
+.problema {
+  text-align: center;
+  width: 40px;
+  font-size: 30px;
+}
+
+.colocacao {
+  text-align: center;
+  width: 45px;
+  font-size: 18px;
+}
+
+.cima {
+  font-size: 14px;
+}
+.baixo {
+  font-size: 12px;
+}
+
+.commandpanel {
+  position: fixed;
+  z-index: 1000;
+  padding: 4px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #555;
+  border-radius: 5px;
+  background-color: #4F5B6288;
+}
+
+.answer-img{
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  text-align: center;
+  top: 16px;
+  left: 4px;
+}
+
+.answer-text {
+  position: absolute;
+  width: 20px;
+  left: 20px;
+  text-align: center;
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.answeryes {
+  position: relative;
+  width: 40px;
+  background-color: #305745;
+}
+
+.answerno {
+  position: relative;
+  width: 40px;
+  background-color: #573a41;
+}
+
+.answerwait {
+  position: relative;
+  width: 40px;
+  background-color: #F4D03F;
+  color: black;
+}
+
+.color-text{
+  color: #263238
 }
 
 /* .nomeTime:hover .foto {
-    display: block;
-    border-style: solid;
+  display: block;
+  border-style: solid;
 } */
 
 .foto {
-    display: none;
-    position: fixed;
-    top: 3vh;
-    left: 3vw;
+  display: none;
+  position: fixed;
+  top: 3vh;
+  left: 3vw;
 
-    max-height: 90vh;
-    max-width: 90vw;
-    
-    z-index: 123123123123;
-    border-style: solid;
-    /* background-color: #F4D03F; */
+  max-height: 90vh;
+  max-width: 90vw;
 
-    margin: 1px;
-    border-style: solid;
-    border-width: 1px;
-    border-color: gray;
-    border-radius: 5px;
-    padding: 1px;
-    background-color: black;
+  z-index: 123123123123;
+  border-style: solid;
+  /* background-color: #F4D03F; */
+
+  margin: 1px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: gray;
+  border-radius: 5px;
+  padding: 1px;
+  background-color: black;
 
 
 }
 
 .foto_img {
-    /* top: 9vh; */
-    /* left: 10vw; */
-    max-width: 100%;
-    max-height: 70vh;
-    /* z-index: 123123123123; */
-    /* border-style: solid; */
-    /* background-color: #F4D03F; */
+  /* top: 9vh; */
+  /* left: 10vw; */
+  max-width: 100%;
+  max-height: 70vh;
+  /* z-index: 123123123123; */
+  /* border-style: solid; */
+  /* background-color: #F4D03F; */
 
-}
-
-
-.time {
-    text-align: right;
-    width: 15vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-}
-
-.problema {
-    text-align: center;
-    width: 2.8vw;
-    font-size: 2.5vw;
-}
-
-.colocacao {
-    text-align: center;
-    width: 3vw;
-    font-size: 1.5vw;
-}
-
-.cima {
-    font-size: 1.2vw;
-}
-.baixo {
-    font-size: 0.8vw;
-}
-
-.commandpanel {
-    position: fixed;
-    z-index: 1000;
-}
-
-.resposta {
-}
-
-.answeryes {
-    position: relative;
-    /* content:url(/static/assets/balao.svg); */
-    width: 3vw;
 }
 
 .balao_A {
-    filter: invert(15%) !important;
+  filter: invert(15%) !important;
 }
 .balao_B {
-    filter: invert(27%) sepia(97%) saturate(6971%) hue-rotate(120deg) brightness(98%) contrast(106%) !important;
+  filter: invert(27%) sepia(97%) saturate(6971%) hue-rotate(120deg) brightness(98%) contrast(106%) !important;
 }
 .balao_C {
-    filter: invert(84%) sepia(97%) saturate(262%) hue-rotate(77deg) brightness(102%) contrast(101%) !important;
+  filter: invert(84%) sepia(97%) saturate(262%) hue-rotate(77deg) brightness(102%) contrast(101%) !important;
 }
 .balao_D {
-    filter: invert(81%) sepia(86%) saturate(3551%) hue-rotate(359deg) brightness(104%) contrast(105%) !important;
+  filter: invert(81%) sepia(86%) saturate(3551%) hue-rotate(359deg) brightness(104%) contrast(105%) !important;
 }
 .balao_E {
-    filter: invert(16%) sepia(85%) saturate(7493%) hue-rotate(359deg) brightness(110%) contrast(110%) !important;
+  filter: invert(16%) sepia(85%) saturate(7493%) hue-rotate(359deg) brightness(110%) contrast(110%) !important;
 }
 .balao_F {
-    filter: invert(21%) sepia(91%) saturate(4473%) hue-rotate(317deg) brightness(104%) contrast(101%) !important;
+  filter: invert(21%) sepia(91%) saturate(4473%) hue-rotate(317deg) brightness(104%) contrast(101%) !important;
 }
 .balao_G {
-    filter: invert(45%) sepia(70%) saturate(1162%) hue-rotate(226deg) brightness(94%) contrast(81%) !important;
+  filter: invert(45%) sepia(70%) saturate(1162%) hue-rotate(226deg) brightness(94%) contrast(81%) !important;
 }
 .balao_H {
-    filter: invert(16%) sepia(49%) saturate(7463%) hue-rotate(242deg) brightness(54%) contrast(133%) !important;
+  filter: invert(16%) sepia(49%) saturate(7463%) hue-rotate(242deg) brightness(54%) contrast(133%) !important;
 }
 .balao_I {
-    filter: invert(17%) sepia(96%) saturate(2594%) hue-rotate(273deg) brightness(100%) contrast(130%) !important;
+  filter: invert(17%) sepia(96%) saturate(2594%) hue-rotate(273deg) brightness(100%) contrast(130%) !important;
 }
 .balao_J {
-    filter: invert(27%) sepia(96%) saturate(574%) hue-rotate(348deg) brightness(91%) contrast(93%) !important;
+  filter: invert(27%) sepia(96%) saturate(574%) hue-rotate(348deg) brightness(91%) contrast(93%) !important;
 }
 .balao_K {
-    filter: invert(62%) sepia(29%) saturate(1511%) hue-rotate(360deg) brightness(103%) contrast(106%) !important;
+  filter: invert(62%) sepia(29%) saturate(1511%) hue-rotate(360deg) brightness(103%) contrast(106%) !important;
 }
 .balao_L {
-    filter: invert(70%) sepia(52%) saturate(584%) hue-rotate(178deg) brightness(105%) contrast(96%) !important;
+  filter: invert(70%) sepia(52%) saturate(584%) hue-rotate(178deg) brightness(105%) contrast(96%) !important;
 }
 .balao_M {
-    filter: invert(82%) sepia(2%) saturate(5886%) hue-rotate(303deg) brightness(101%) contrast(101%) !important;
+  filter: invert(82%) sepia(2%) saturate(5886%) hue-rotate(303deg) brightness(101%) contrast(101%) !important;
 }
 .balao_N {
-    filter: invert(86%) sepia(75%) saturate(4397%) hue-rotate(172deg) brightness(97%) contrast(85%) !important;
+  filter: invert(86%) sepia(75%) saturate(4397%) hue-rotate(172deg) brightness(97%) contrast(85%) !important;
 }
 .balao_O {
-    filter: invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
+  filter: invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
 }
 
-.balao {
-    width: 2.4vw;
-    content:url(/static/assets/balao2.svg);
-    /* content:url(/static/assets/BalaoInterIF.png); */
-    position: absolute;
-    top: 0.1vw;
-    left: 0.25vw;
-    z-index: -100;
-}
-.answerno {
-    content:url(/static/assets/no.svg);
-    width: 3vw;
-}
-.answerwait {
-    content:url(/static/assets/question.svg);
-    width: 3vw;
-}
 /* .answerfrozen {
-    content:url(/static/assets/gear.svg); */
-    /* content:url(/static/assets/yes.png); */
-    /* content:url(/static/assets/no.png); */
-    /* content:url(/static/assets/gear.svg); */
+  content:url(/static/assets/gear.svg); */
+  /* content:url(/static/assets/yes.png); */
+  /* content:url(/static/assets/no.png); */
+  /* content:url(/static/assets/gear.svg); */
 /* } */
 
 .verde {
-    position: relative;
-    text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
-  
-    /* background-color: green; */
-    /* background-color: #00ab5e; */
+  position: relative;
+  text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
+
+  /* background-color: green; */
+  /* background-color: #00ab5e; */
 }
 
 .vermelho {
-    background-color: #ae2538;
-    /* background-color: red; */
+  background-color: #ae2538;
+  /* background-color: red; */
 }
 
 /* .amarelo {
-    background-color: yellow;
-    color: black;
+  background-color: yellow;
+  color: black;
 } */
 
 .amarelo {
-    animation: blinkingBackground 2s;
-    background-color: #F4D03F; 
-    color: black;
+  animation: blinkingBackground 2s;
+  background-color: #F4D03F;
+  color: black;
 }
+
 @keyframes blinkingBackground {
-    0%      { background-color: #F4D03F; color: black; }
-    25%     { background-color: #00ab5e;  color: white; }
-    50%     { background-color: #F4D03F; color: black; }
-    75%     { background-color: #ae2538;    color: white; }
-    100%    { background-color: #F4D03F; color: black; }
+  0%      { background-color: #F4D03F; color: black; }
+  25%     { background-color: #00ab5e; color: white; }
+  50%     { background-color: #F4D03F; color: black; }
+  75%     { background-color: #ae2538; color: white; }
+  100%    { background-color: #F4D03F; color: black; }
 }
 
 
 .ouro {
-    background-color: goldenrod;
-    /* color: black; */
+  background-color: goldenrod;
 }
 
 .prata {
-    background-color: rgb(90, 90, 90);
-    /* color: black; */
+  background-color: rgb(121 121 121);
 }
 
 .bronze {
-    background-color: rgb(114, 89, 26);
+  background-color: rgb(114, 89, 26);
 }
 
 .login {
-    width: 7vw;
+  width: 7vw;
 }
 
 .timer {
-    
-    font-size: 4vw;
-    font-family: "Inconsolata", "Ubuntu Mono", monospace;
-    text-align: center;
-    color: white;
+  font-size: 60px;
+  font-family: "Inconsolata", "Ubuntu Mono", monospace;
+  text-align: center;
+  color: #263238;
 }
 
 .frozen {
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 5px;
-    border-color: #33A3E6;
-    color: #33A3E6;    
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 5px;
+  border-color: #004567;
+  color: #004567;
 }
 
 .frozen::before {
-    content: "❄ ";
-    font-size: 3vw;
+  content: "❄ ";
+  font-size: 60px;
 }
 
 /* .sedepanel {
 } */
 
 .center {
-    animation: borderUpdate 5s infinite;
+  animation: borderUpdate 5s infinite;
 }
 
 @keyframes borderUpdate {
-    0% { background-color: #8888; }
-    100% {  }
+  0% { background-color: #8888; }
+  100% {  }
 }
 
 .changed {
-    animation: clockUpdate 1s;       
+  animation: clockUpdate 1s;
 }
 @keyframes clockUpdate {
-    0% { color: white; }
-    /* 25%		{ color: green;  }
-    50%		{ color: yellow; }
-    75%	    { color: red;    } */
-    50%	{ color: gray; }
-    100% { color: white; }
+  0% { color: #263238; }
+  /* 25%		{ color: green;  }
+  50%		{ color: yellow; }
+  75%	    { color: red;    } */
+  50%	{ color: yellow; }
+  100% { color: #263238; }
 }
 
-/* 
+/*
 .hora .minuto .segundo {
-    float: left;
+  float: left;
 } */
 
 
 a {
-    color: #336;
-}
-
-.nomesede {
-    padding: 3px;
-    font-size: 1.5vw;
-}
-
-.recentes {
-    font-size: 1vw;
-    padding: 3px;
+  color: #336;
 }
 
 .sedeslink {
-    width: 12vw;
-    font-size: 1vw;
-    font-family: "Lato";
-    padding: 2px;
+  font-size: 14px;
+  font-family: "Lato";
+  padding: 2px;
 }
 
 .sedesnavigation {
-    margin: 3px;
-    margin-bottom: 10px;
+  margin: 3px;
+  margin-bottom: 10px;
 }
 
 div#runheader > .cell {
-    background-color: #555 !important;
+  background-color: #263238 !important;
 }

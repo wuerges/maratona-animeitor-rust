@@ -104,6 +104,15 @@ fn get_answer(t: &data::Answer) -> &str {
     }
 }
 
+fn get_image(t: &data::Answer) -> &str {
+    match t {
+        data::Answer::Yes(_) => "/static/assets/balloon-border.svg",
+        data::Answer::No => "/static/assets/no.svg",
+        data::Answer::Wait => "/static/assets/question.svg",
+        _ => "/static/assets/question.svg",
+    }
+}
+
 fn view(model: &Model) -> Node<Msg> {
     div![
         C!["runstable"],
@@ -117,7 +126,7 @@ fn view(model: &Model) -> Node<Msg> {
                 div![
                     C!["run"],
                     style! {
-                        St::Top => format!("calc(var(--row-height) * {} + var(--root-top))", i),
+                        St::Top => format!("calc(54px * {} + var(--root-top))", i),
                     },
                     div![
                         C!["cell", "colocacao", views::get_color(r.placement, None)],
@@ -128,21 +137,30 @@ fn view(model: &Model) -> Node<Msg> {
                         div![C!["nomeEscola"], &r.escola],
                         div![C!["nomeTime"], &r.team_name],
                     ],
-                    div![C!["cell", "problema"], &r.problem],
                     div![
                         C!["cell", "resposta", get_answer(&r.result)],
-                        IF!(matches!(r.result, data::Answer::Yes(_)) => 
+                        IF!(matches!(r.result, data::Answer::Yes(_)) =>
                         div![
-                            C!["balao", balao],
-                            style!{ St::Filter => format!("hue-rotate({}deg)", hue)},
+                            img![
+                                C!["answer-img", balao],
+                                attrs!{At::Src => "/static/assets/balloon.svg"},
+                            ],
                         ]),
+                        img![
+                            C!["answer-img"],
+                            attrs!{At::Src => get_image(&r.result)},
+                        ],
+                        div![
+                            C!["answer-text"],
+                            &r.problem
+                        ]
                     ],
 
-                    attrs!{At::OnClick => 
+                    attrs!{At::OnClick =>
                         std::format!("document.getElementById('foto_{}').style.display = 'block';", &r.team_login),
                         // std::format!("alert('foto_{}')", &team.login),
                         // document.getElementById('a').style.backgroundColor = ''"
-                    },                        
+                    },
                 ]
             }
         })
