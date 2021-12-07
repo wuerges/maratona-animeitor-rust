@@ -34,21 +34,21 @@ pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
 pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     let i = i as i64;
     match center {
-        None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
+        None => format!("calc(54px * {} + var(--root-top))", i),
         Some(p) => {
             let p = *p as i64;
             if p < 9 {
-                format!("calc(var(--row-height) * {} + var(--root-top))", i)
+                format!("calc(54px * {} + var(--root-top))", i)
             }
             else {
-                format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
+                format!("calc(54px * {} + var(--root-top-center))", (i - p))
             }
         }
     }
 }
 
 use std::collections::BTreeMap;
-fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize> 
+fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize>
 where I : Iterator<Item= &'a usize>
     {
     let mut v :Vec<_>= plac.collect();
@@ -76,7 +76,7 @@ fn number_submissions(s : usize) -> Option<usize> {
 fn nome_sede (sede: Option<&Sede>) -> String {
     match sede {
         None => "Placar".to_string(),
-        Some(sede) => sede.name.clone() 
+        Some(sede) => sede.name.clone()
     }
 }
 
@@ -102,19 +102,19 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
         div![
             id!["runheader"],
             C!["run"],
-            style!{ 
+            style!{
                 St::Top => cell_top(0, &p_center),
                 // St::Top => px(margin_top),
-                // St::Position => "absolute", 
+                // St::Position => "absolute",
                 // St::Transition => "top 1s ease 0s",
             },
             div![
                 C![
-                    "cell", 
-                    "titulo", 
+                    "cell",
+                    "titulo",
                     estilo_sede(sede),
                     if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
-                    ], 
+                    ],
                     nome_sede(sede)],
             all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
         ],
@@ -141,13 +141,13 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                 div![
                     C!["cell", "time"],
                     div![C!["nomeEscola"], &team.escola],
-                    div![C!["nomeTime"], &team.name, 
+                    div![C!["nomeTime"], &team.name,
                     ],
-                    attrs!{At::OnClick => 
+                    attrs!{At::OnClick =>
                         std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
                         // std::format!("alert('foto_{}')", &team.login),
                         // document.getElementById('a').style.backgroundColor = ''"
-                    },                        
+                    },
                 ],
                 div![
                     C!["cell", "problema"],
@@ -157,23 +157,34 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                 all_problems.char_indices().map( |(prob_i, prob)| {
                     let hue = get_answer_hue_deg(n, prob_i as u32);
                     match team.problems.get(&prob.to_string()) {
-                
-                        None => div![C!["cell", "problema"], "-"],
+
+                        None => div![C!["not-tried", "cell"], "-"],
                         Some(prob_v) => {
                             if prob_v.solved {
                                 let balao = std::format!("balao_{}", prob);
                                 div![
-                                    C!["cell", "problema", "verde"],
-                                    div![C!["cima"], "+", number_submissions(prob_v.submissions)],
-                                    div![C!["baixo"], prob_v.time_solved],
-                                    div![C!["balao", balao], style!{ St::Filter => format!("hue-rotate({}deg)", hue)}],
+                                    C!["accept", "cell"],
+                                    img![
+                                        C!["accept-img", balao],
+                                        attrs!{At::Src => "/static/assets/balloon.svg"},
+                                    ],
+                                    img![
+                                        C!["accept-img"],
+                                        attrs!{At::Src => "/static/assets/balloon-border.svg"},
+                                    ],
+                                    div![
+                                        C!["accept-text"],
+                                        div!["+", number_submissions(prob_v.submissions)],
+                                        div![prob_v.time_solved],
+                                    ],
                                 ]
                             }
                             else {
-                                let color = if prob_v.wait() {"amarelo"} else {"vermelho"};
+                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
+                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
                                 div![
-                                    C!["cell", "problema", color],
-                                    div![C!["cima"], "X"],
+                                    C![cell_type, "cell"],
+                                    div![C!["cima"], cell_symbol],
                                     div![C!["baixo"], "(", prob_v.submissions, ")"],
                                 ]
                             }
@@ -216,10 +227,10 @@ pub fn view_clock<T>(time_data: TimerData, ptime_data : TimerData) -> Node<T> {
     let frozen = if time_data.is_frozen() { Some(C!["frozen"]) } else { None };
 
     div![C!["timer"], frozen,
-        span![C!["hora", changed(hor(time), hor(ptime))], hor(time)], 
+        span![C!["hora", changed(hor(time), hor(ptime))], hor(time)],
         span![C!["sep"], ":"],
-        span![C!["minuto", changed(min(time), min(ptime))], f(min(time))], 
+        span![C!["minuto", changed(min(time), min(ptime))], f(min(time))],
         span![C!["sep"], ":"],
-        span![C!["segundo", changed(seg(time), seg(ptime))], f(seg(time))], 
+        span![C!["segundo", changed(seg(time), seg(ptime))], f(seg(time))],
     ]
 }

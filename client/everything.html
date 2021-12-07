@@ -2,19 +2,18 @@
 <html lang="en">
 
 <head>
-    <title>Painel completo</title>        
+    <title>Painel completo</title>
     <link rel="stylesheet" href="/static/styles.css" />
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 
 <body>
-    <div style="display: flex; ">
-        
-        <div style="display: flex; flex-direction: column; width: calc( 28vw + 12px );">
-            <maratona class="timerpanel" style="width: 26vw;"></maratona>
+    <div style="display: flex;">
+        <div style="display: flex; flex-direction: column; width: 330px;">
+            <maratona class="timerpanel" style="width: 310px;"></maratona>
             <maratona class="sedepanel"></maratona>
-            <span> Latest submissions: </span>
+            <div class="submission-title"> Últimas Submissões </div>
             <maratona class="runspanel"></maratona>
         </div>
         <maratona class="automatic"></maratona>
@@ -25,5 +24,4 @@
         init('./pkg/package_bg.wasm');
     </script>
 </body>
-
 </html>
