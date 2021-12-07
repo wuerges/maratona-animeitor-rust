@@ -24,7 +24,7 @@ path = "data"
 [workspace]
 members = [
     "server",
-    "client",
+    # "client",
     # "turbineitor",
     # "turbineitor/ui",
     "data",
