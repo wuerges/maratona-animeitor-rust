@@ -12,12 +12,18 @@ mod navigation;
 mod sede;
 mod teams;
 
+// import a JS function called `foo` from the module `mod`
+#[link(wasm_import_module = "../playlist.js")]
+extern { fn stop(); }
+
 #[wasm_bindgen(start)]
 pub fn start() {
 
     // let root_element = document()
     //     .get_element_by_id("app")
     //     .expect("`section` as a root element");
+
+    unsafe { stop(); }
 
         
     let roots = document().get_elements_by_tag_name("maratona");

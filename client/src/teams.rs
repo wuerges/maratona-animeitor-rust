@@ -26,7 +26,7 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
         Msg::Fetched(Ok(config)) => {
-            model.contest = Some(config);
+            // model.contest = Some(config);
         }
         Msg::Fetched(Err(e)) => {
             log!("Error: failed loading config", e);
