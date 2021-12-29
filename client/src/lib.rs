@@ -13,7 +13,7 @@ mod sede;
 mod teams;
 
 // import a JS function called `foo` from the module `mod`
-#[link(wasm_import_module = "../playlist.js")]
+#[link(wasm_import_module = "../dist/bundle.js")]
 extern { fn stop(); }
 
 #[wasm_bindgen(start)]

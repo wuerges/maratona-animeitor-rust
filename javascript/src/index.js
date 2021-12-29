@@ -10,3 +10,7 @@ export function play(file) {
 export function stop() {
   Howler.stop();
 }
+
+export function debugHowler() {
+  console.log("loaded javascript!");
+}
