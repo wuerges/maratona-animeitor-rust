@@ -11,5 +11,8 @@
   ],
   "module": "wasm.js",
   "types": "wasm.d.ts",
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "howler": "^2.2.3"
+  }
 }
