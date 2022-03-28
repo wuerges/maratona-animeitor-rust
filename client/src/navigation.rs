@@ -37,7 +37,6 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
 
 fn build_url_filter(sede: &configdata::Sede) -> String {
     Url::new()
-        .add_path_part("seed")
         .add_path_part("everything2.html")
         .set_search(UrlSearch::new(vec![
             ("sede", vec![&sede.name]),
