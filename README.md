@@ -31,7 +31,7 @@ Compile e rode:
 
 ```
 ( cd client && wasm-pack build --target web --out-name package )
-cargo run --release --bin simples <url_do_placar> --port 9001
+cargo run --release --bin simples <url_do_placar> --port 9091
 ```
 
 O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
