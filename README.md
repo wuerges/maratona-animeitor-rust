@@ -17,14 +17,7 @@ sudo apt-get install build-essential libssl-dev pkg-config
 - Instale o `wasm-pack`:
 
 ```
-cargo install wasm-pack --version 0.9.1
-# obs: neste momento o wasm-pack 0.10.x esta quebrado!
-```
-
-- Instale o `cargo-make`: 
-
-```
-cargo install cargo-make
+cargo install wasm-pack
 ```
 
 Clone este repositório:
@@ -37,26 +30,15 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-cargo make build_release
-cargo run --release --bin simples <url_do_placar>
+( cd client && wasm-pack build --target web --out-name package )
+cargo run --release --bin simples <url_do_placar> --port 9091
 ```
-
-O repositório contém um exemplo, que pode ser usado para testes:
-
-```
-python -mhttp.server --directory server/test/
-cargo make build_release
-cargo run --release --bin simples http://0.0.0.0:8000/webcast_1573336220.zip
-
-```
-
-Os parâmetros necessários para rodar são a porta HTTP e a URL disponibilizada pelo BOCA.
 
 O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
 
 ```
-cargo make build_release 
-cargo run --release --bin simples server/test/webcast_jones.zip
+cargo make build_release
+cargo run --release --bin simples ./tests/inputs/webcast_jones.zip
 ```
 
 Mais opções podem ser examinadas com o comando help:
@@ -72,15 +54,15 @@ A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o 
 
 ```
 Maratona Rustreimator rodando!
--> Runs em http://localhost:3030/seed/runspanel.html
--> Placar automatizado em http://localhost:3030/seed/automatic.html
--> Placar interativo em http://localhost:3030/seed/stepping.html
--> Timer em http://localhost:3030/seed/timer.html
--> Painel geral em http://localhost:3030/seed/everything.html
--> Reveleitor em http://localhost:3030/seed/reveleitor.html?secret=vYZgSm
+-> Runs em http://localhost:9091/runspanel.html
+-> Placar automatizado em http://localhost:9091/automatic.html
+-> Timer em http://localhost:9091/timer.html
+-> Painel geral em http://localhost:9091/everything.html
+-> Fotos dos times em http://localhost:9091/teams.html
+-> Painel geral com sedes em http://localhost:9091/everything2.html
+-> Reveleitor em http://localhost:9091/reveleitor.html?secret=abc
 ```
 
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
-O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](static/styles.css). 
-
+O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](client/static/styles.css).
