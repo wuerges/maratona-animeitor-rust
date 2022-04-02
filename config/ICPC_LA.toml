@@ -16,6 +16,7 @@ bronze = 12
 # so - South
 [[sedes]]
 name="South"
+style="sede_south"
 premiacao=false
 vagas=5
 codes=[
@@ -74,7 +75,7 @@ style="sede_peru"
 premiacao=false
 vagas=5
 codes=[
-  "teamperu"
+  "teamsope"
 ]
 ouro = 1
 prata = 2
@@ -199,26 +200,11 @@ style="sede_republica_dominicana"
 premiacao=false
 vagas=5
 codes=[
-  "teamcbdo"
+  "teamcbdr"
 ]
 ouro = 1
 prata = 2
 bronze = 3
-
-# cbtt - Trinidad and Tobago
-[[sedes]]
-name="Trinidad and Tobago"
-style="sede_trinidad_and_tobago"
-premiacao=false
-vagas=5
-codes=[
-  "teamcbtt"
-]
-ouro = 1
-prata = 2
-bronze = 3
-
-
 
 # mx - Mexico
 [[sedes]]
