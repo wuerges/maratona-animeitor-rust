@@ -299,6 +299,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
+  background-color: #00f;
 
   height: 100vh;
   width: 100vw;
@@ -319,6 +320,9 @@ body {
 .foto_img {
   max-height: 100vh;
   max-width: 100vw;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
   /* width: auto;
   height: auto;
   object-fit: contain;
