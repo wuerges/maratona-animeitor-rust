@@ -25,6 +25,63 @@ ouro = 4
 prata = 8
 bronze = 12
 
+
+# soar - Argentina
+[[sedes]]
+name="Argentina"
+style="sede_argentina"
+premiacao=false
+vagas=5
+codes=[
+  "teamsoar"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+# sobo - Bolivia
+[[sedes]]
+name="Bolivia"
+style="sede_bolivia"
+premiacao=false
+vagas=5
+codes=[
+  "teamsobo"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# soch - Chile
+[[sedes]]
+name="Chile"
+style="sede_chile"
+premiacao=false
+vagas=5
+codes=[
+  "teamsoch"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# sope - Peru
+[[sedes]]
+name="Peru"
+style="sede_peru"
+premiacao=false
+vagas=5
+codes=[
+  "teamperu"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+
 # no - North
 [[sedes]]
 name="North"
@@ -36,6 +93,34 @@ codes=[
 ouro = 3
 prata = 6
 bronze = 10
+
+
+# novz - Venezuela
+[[sedes]]
+name="Venezuela"
+style="sede_venezuela"
+premiacao=false
+vagas=5
+codes=[
+  "teamnovz"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+# noco - Colombia
+[[sedes]]
+name="Colombia"
+style="sede_colombia"
+premiacao=false
+vagas=5
+codes=[
+  "teamnoco"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
 
 # ca - Central America
 [[sedes]]
@@ -49,6 +134,36 @@ ouro = 3
 prata = 6
 bronze = 10
 
+# cbca - El Salvador
+[[sedes]]
+name="El Salvador"
+style="sede_el_salvador"
+premiacao=false
+vagas=5
+codes=[
+  "teamcaes"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# cbca - Costa Rica
+[[sedes]]
+name="Costa Rica"
+style="sede_costa_rica"
+premiacao=false
+vagas=5
+codes=[
+  "teamcacr"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+
+
 # cb - Caribe
 [[sedes]]
 name="Caribe"
@@ -61,6 +176,49 @@ codes=[
 ouro = 1
 prata = 2
 bronze = 3
+
+
+# cbcu - Cuba
+[[sedes]]
+name="Cuba"
+style="sede_cuba"
+premiacao=false
+vagas=5
+codes=[
+  "teamcbcu"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# cbdo - Republica Dominicana
+[[sedes]]
+name="Republica Dominicana"
+style="sede_republica_dominicana"
+premiacao=false
+vagas=5
+codes=[
+  "teamcbdo"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+# cbtt - Trinidad and Tobago
+[[sedes]]
+name="Trinidad and Tobago"
+style="sede_trinidad_and_tobago"
+premiacao=false
+vagas=5
+codes=[
+  "teamcbtt"
+]
+ouro = 1
+prata = 2
+bronze = 3
+
+
 
 # mx - Mexico
 [[sedes]]
