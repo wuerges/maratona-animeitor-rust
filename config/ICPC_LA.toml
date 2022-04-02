@@ -9,9 +9,9 @@ vagas=5
 codes=[
   "teambr"
 ]
-ouro = 3
-prata = 6
-bronze = 10
+ouro = 4
+prata = 8
+bronze = 12
 
 # so - South
 [[sedes]]
@@ -21,9 +21,9 @@ vagas=5
 codes=[
   "teamso"
 ]
-ouro = 4
-prata = 8
-bronze = 12
+ouro = 3
+prata = 6
+bronze = 10
 
 
 # soar - Argentina
