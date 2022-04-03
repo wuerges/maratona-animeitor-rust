@@ -41,7 +41,7 @@ fn view(model: &Model) -> Node<Msg> {
         None => div![
             span!["Failed to load contest config"],
             ],
-        Some(contest) => div![
+        Some(contest) => div![id!["foto_container"],
             contest.teams.iter().map(|(team_login, team_entry)| {
                 let foto_id = format!("foto_{}", team_login);
                 div![C!["foto"], id![foto_id],
@@ -49,8 +49,8 @@ fn view(model: &Model) -> Node<Msg> {
                         std::format!("document.getElementById('foto_{}').style.display = 'none';",
                         &team_entry.login)
                     },
-                    div![C!["nomeTime"], &team_entry.name],
-                        img![C!["foto_img"],
+                    // div![C!["nomeTime"], &team_entry.name],
+                    img![C!["foto_img"],
                         attrs!{At::Src => std::format!("/static/assets/teams/{}.webp", team_login)},
                         attrs!{At::OnError => FAKE}
                     ],

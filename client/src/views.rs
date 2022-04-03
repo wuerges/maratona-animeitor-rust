@@ -15,13 +15,13 @@ pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
             if n == 0 {
                 "vermelho"
             }
-            else if n <= 3 {
+            else if n <= 4 {
                 "ouro"
             }
-            else if n <= 6 {
+            else if n <= 8 {
                 "prata"
             }
-            else if n <= 10 {
+            else if n <= 12 {
                 "bronze"
             }
             else {
