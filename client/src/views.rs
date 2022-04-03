@@ -116,10 +116,9 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                 all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
             ]
         ],
-        contest.teams.values() //.filter( |t| data::check_filter(url_filter, t))
+        contest.teams.values()
                 .map (|team| {
             let score = team.score();
-            // let p2 = 1+*compressed_.get(&team.placement).unwrap_or(&0);
             let p2 = team.placement;
             let display = data::check_filter(url_filter, team);
             div![
