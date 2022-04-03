@@ -100,23 +100,21 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     div![
         C!["runstable"],
         div![
-            id!["runheader"],
-            C!["run"],
-            style!{
-                St::Top => cell_top(0, &p_center),
-                // St::Top => px(margin_top),
-                // St::Position => "absolute",
-                // St::Transition => "top 1s ease 0s",
-            },
+            C!["run_box"],
+            style!{St::Top => cell_top(0, &p_center)},
             div![
-                C![
-                    "cell",
-                    "titulo",
-                    estilo_sede(sede),
-                    if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
-                    ],
-                    nome_sede(sede)],
-            all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
+                id!["runheader"],
+                C!["run"],
+                div![
+                    C![
+                        "cell",
+                        "titulo",
+                        estilo_sede(sede),
+                        if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
+                        ],
+                        nome_sede(sede)],
+                all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
+            ]
         ],
         contest.teams.values() //.filter( |t| data::check_filter(url_filter, t))
                 .map (|team| {
@@ -125,72 +123,69 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
             let p2 = team.placement;
             let display = data::check_filter(url_filter, team);
             div![
-                IF!(!display => style!{St::Display => "none"}),
-                id![&team.login],
-                C!["run"],
-                center_class(team.placement, &p_center),
-                style!{
-                    // St::Top => px(margin_top + (team.placement as i64) * 90),
-                    St::Top => cell_top(p2, &p_center),
-                    // St::Top => cell_top(team.placement, &p_center),
-                    // St::Position => "absolute",
-                    // St::Transition => "top 1s ease 0s",
-                },
-                IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
-                div![C!["cell", "colocacao", get_color(p2, sede)], p2],
+                C!["run_box"],
+                style!{St::Top => cell_top(p2, &p_center)},
                 div![
-                    C!["cell", "time"],
-                    div![C!["nomeEscola"], &team.escola],
-                    div![C!["nomeTime"], &team.name,
-                    ],
-                    attrs!{At::OnClick =>
-                        std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
-                        // std::format!("alert('foto_{}')", &team.login),
-                        // document.getElementById('a').style.backgroundColor = ''"
-                    },
-                ],
-                div![
-                    C!["cell", "problema"],
-                    div![C!["cima"], score.solved],
-                    div![C!["baixo"], score.penalty],
-                ],
-                all_problems.char_indices().map( |(prob_i, prob)| {
-                    let hue = get_answer_hue_deg(n, prob_i as u32);
-                    match team.problems.get(&prob.to_string()) {
-
-                        None => div![C!["not-tried", "cell"], "-"],
-                        Some(prob_v) => {
-                            if prob_v.solved {
-                                let balao = std::format!("balao_{}", prob);
-                                div![
-                                    C!["accept", "cell"],
-                                    img![
-                                        C!["accept-img", balao],
-                                        attrs!{At::Src => "/static/assets/balloon.svg"},
-                                    ],
-                                    img![
-                                        C!["accept-img"],
-                                        attrs!{At::Src => "/static/assets/balloon-border.svg"},
-                                    ],
-                                    div![
-                                        C!["accept-text"],
-                                        div!["+", number_submissions(prob_v.submissions)],
-                                        div![prob_v.time_solved],
-                                    ],
-                                ]
-                            }
-                            else {
-                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
-                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
-                                div![
-                                    C![cell_type, "cell"],
-                                    div![C!["cima"], cell_symbol],
-                                    div![C!["baixo"], "(", prob_v.submissions, ")"],
-                                ]
-                            }
+                    IF!(!display => style!{St::Display => "none"}),
+                    id![&team.login],
+                    C!["run"],
+                    center_class(team.placement, &p_center),
+                    IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
+                    div![C!["cell", "colocacao", get_color(p2, sede)], p2],
+                    div![
+                        C!["cell", "time"],
+                        div![C!["nomeEscola"], &team.escola],
+                        div![C!["nomeTime"], &team.name,
+                        ],
+                        attrs!{At::OnClick =>
+                            std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
+                            // std::format!("alert('foto_{}')", &team.login),
+                            // document.getElementById('a').style.backgroundColor = ''"
                         },
-                    }
-                })
+                    ],
+                    div![
+                        C!["cell", "problema"],
+                        div![C!["cima"], score.solved],
+                        div![C!["baixo"], score.penalty],
+                    ],
+                    all_problems.char_indices().map( |(prob_i, prob)| {
+                        let hue = get_answer_hue_deg(n, prob_i as u32);
+                        match team.problems.get(&prob.to_string()) {
+
+                            None => div![C!["not-tried", "cell"], "-"],
+                            Some(prob_v) => {
+                                if prob_v.solved {
+                                    let balao = std::format!("balao_{}", prob);
+                                    div![
+                                        C!["accept", "cell"],
+                                        img![
+                                            C!["accept-img", balao],
+                                            attrs!{At::Src => "/static/assets/balloon.svg"},
+                                        ],
+                                        img![
+                                            C!["accept-img"],
+                                            attrs!{At::Src => "/static/assets/balloon-border.svg"},
+                                        ],
+                                        div![
+                                            C!["accept-text"],
+                                            div!["+", number_submissions(prob_v.submissions)],
+                                            div![prob_v.time_solved],
+                                        ],
+                                    ]
+                                }
+                                else {
+                                    let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
+                                    let cell_symbol = if prob_v.wait() {"?"} else {"X"};
+                                    div![
+                                        C![cell_type, "cell"],
+                                        div![C!["cima"], cell_symbol],
+                                        div![C!["baixo"], "(", prob_v.submissions, ")"],
+                                    ]
+                                }
+                            },
+                        }
+                    })
+                ]
             ]
         }),
     ]

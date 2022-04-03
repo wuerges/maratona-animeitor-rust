@@ -49,12 +49,18 @@ body {
 
 .run {
   height: 45px;
-  max-width: 100%;
+  width: 100%;
   position: absolute;
   align-items: center;
   display: flex;
   padding-right: 8px;
   transition: top 5s ease 0s;
+}
+
+.run_box {
+  position: absolute;
+  height: 50px;
+  width: 100%;
 }
 
 .cell {
@@ -174,6 +180,7 @@ body {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(/static/assets/titulo-final.svg); */
   font-size: 24px;
+  flex-grow: 5;
 }
 
 .titulo.sede_brasil {
@@ -205,11 +212,11 @@ body {
 }
 
 .unicaColocacao {
-  width: 301px;
+  /* width: 301px; */
 }
 
 .duplaColocacao {
-  width: 354px;
+  /* width: 354px; */
 }
 
 .nomeEscola {
@@ -221,8 +228,9 @@ body {
 }
 
 .time {
+  flex-grow: 5;
   text-align: right;
-  width: 200px;
+  /* width: 200px; */
   overflow: hidden;
   text-overflow: ellipsis;
   word-wrap: break-word;
