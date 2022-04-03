@@ -1,6 +1,16 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
 @import url("teams.css");
 /* Container holding the image and the text */
+
+* {
+  box-sizing: border-box;
+}
+
+maratona {
+  display: block;
+  width: 100%;
+}
+
 body {
   color: white;
   font-family: Lato, Ubuntu, sans-serif;
@@ -39,6 +49,7 @@ body {
 
 .run {
   height: 45px;
+  max-width: 100%;
   position: absolute;
   align-items: center;
   display: flex;
