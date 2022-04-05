@@ -301,12 +301,14 @@ pub async fn serve_simple_contest(
     url_base: String,
     server_port: u16,
     secret: &String,
+    lambda_mode: bool,
 ) {
     serve_simple_contest_f(
         config,
         move || load_data_from_url_maybe(url_base.clone()),
         server_port,
         secret,
+        lambda_mode,
     )
     .await
 }
@@ -316,12 +318,13 @@ pub async fn serve_simple_contest_f<F, Fut>(
     f: F,
     server_port: u16,
     secret: &String,
+    lambda_mode: bool,
 ) where
     F: Fn() -> Fut + Send + 'static,
     Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
     let (shared_db, runs_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(config, shared_db, runs_tx, server_port, secret).await
+    serve_simple_contest_assets(config, shared_db, runs_tx, server_port, secret, lambda_mode).await
 }
 
 pub async fn serve_simple_contest_assets(
@@ -330,14 +333,17 @@ pub async fn serve_simple_contest_assets(
     tx: broadcast::Sender<data::RunTuple>,
     server_port: u16,
     secret: &String,
+    lambda_mode: bool,
 ) {
-    let seed_assets = warp::fs::dir("client");
 
-    // let root = warp::path::end()
-    //     .map(|| warp::redirect(warp::http::Uri::from_static("/seed/everything2.html")));
+    let services = serve_urlbase(config, db, tx, secret);
 
-    let routes = serve_urlbase(config, db, tx, secret).or(seed_assets);
+    if lambda_mode {
+        warp::serve(services).run(([0, 0, 0, 0], server_port)).await;
+    } else {
+        let seed_assets = warp::fs::dir("client");
+        let routes = services.or(seed_assets);
+        warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
+    };
 
-
-    warp::serve(routes).run(([0, 0, 0, 0], server_port)).await
 }

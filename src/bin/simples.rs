@@ -47,6 +47,12 @@ async fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("lambda")
+                .short("l")
+                .long("lambda")
+                .help("Run in lambda function mode"),
+        )
+        .arg(
             Arg::with_name("URL")
                 .required(true)
                 .help("The webcast url from BOCA.")
@@ -73,44 +79,55 @@ async fn main() {
 
     let config_escolas = config::parse_config_escolas(std::path::Path::new(config_file_escolas))
         .expect("Should be able to parse the config.");
-    
+
     let config_teams = config::parse_config_teams(std::path::Path::new(config_file_teams))
         .expect("Should be able to parse the config.");
-    
+
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
     let random_secret = random_path_part();
     let secret = matches.value_of("secret").unwrap_or(&random_secret);
 
-    println!("Maratona Rustreimator rodando!");
-    println!(
-        "-> Runs em http://localhost:{}/runspanel.html",
-        server_port
-    );
-    println!(
-        "-> Placar automatizado em http://localhost:{}/automatic.html",
-        server_port
-    );
-    println!(
-        "-> Timer em http://localhost:{}/timer.html",
-        server_port
-    );
-    println!(
-        "-> Painel geral em http://localhost:{}/everything.html",
-        server_port
-    );
-    println!(
-        "-> Fotos dos times em http://localhost:{}/teams.html",
-        server_port
-    );
-    println!(
-        "-> Painel geral com sedes em http://localhost:{}/everything2.html",
-        server_port
-    );
-    println!(
-        "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
-        server_port, secret
-    );
+    let lambda_mode = matches.is_present("lambda");
 
-    serve_simple_contest(config, url_base.to_string(), server_port, &secret.to_string()).await;
+    println!("Maratona Rustreimator rodando!");
+    if lambda_mode {
+        println!("-> Running on lambda mode em http://localhost/")
+    }
+    else {
+        println!(
+            "-> Runs em http://localhost:{}/runspanel.html",
+            server_port
+        );
+        println!(
+            "-> Placar automatizado em http://localhost:{}/automatic.html",
+            server_port
+        );
+        println!(
+            "-> Timer em http://localhost:{}/timer.html",
+            server_port
+        );
+        println!(
+            "-> Painel geral em http://localhost:{}/everything.html",
+            server_port
+        );
+        println!(
+            "-> Fotos dos times em http://localhost:{}/teams.html",
+            server_port
+        );
+        println!(
+            "-> Painel geral com sedes em http://localhost:{}/everything2.html",
+            server_port
+        );
+        println!(
+            "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
+            server_port, secret
+        );
+    }
+
+    serve_simple_contest(
+        config, url_base.to_string(),
+        server_port, &secret.to_string(),
+        lambda_mode
+    ).await;
 }
