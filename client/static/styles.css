@@ -63,6 +63,12 @@ body {
   width: 100%;
 }
 
+.run_prefix {
+  display: flex;
+  flex-grow: 5;
+  max-width: 200pt;
+}
+
 .cell {
   height: 45px;
   display: flex;
@@ -180,6 +186,7 @@ body {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(/static/assets/titulo-final.svg); */
   font-size: 24px;
+  max-width: 200pt;
   flex-grow: 5;
 }
 
@@ -230,7 +237,7 @@ body {
 .time {
   flex-grow: 5;
   text-align: right;
-  /* width: 200px; */
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   word-wrap: break-word;

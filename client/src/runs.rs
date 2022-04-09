@@ -121,7 +121,6 @@ fn view(model: &Model) -> Node<Msg> {
         ).enumerate().map({
             |(i, r)| {
                 let pnum = data::PROBLEM_LETTERS.find(r.problem.as_str()).unwrap_or(0);
-                let hue = get_answer_hue_deg(model.contest.number_problems, pnum as u32);
                 let balao = std::format!("balao_{}", r.problem);
                 div![
                     C!["run"],

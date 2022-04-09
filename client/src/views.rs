@@ -89,7 +89,6 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let url_filter =  sede.as_ref().map( |s| &s.codes );
 
-    // let problem_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     let n = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
     let compressed_ = compress_placement(contest.teams.values()
@@ -111,8 +110,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                         "titulo",
                         estilo_sede(sede),
                         if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
-                        ],
-                        nome_sede(sede)],
+                    ],
+                nome_sede(sede)],
                 all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
             ]
         ],
@@ -128,27 +127,26 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     IF!(!display => style!{St::Display => "none"}),
                     id![&team.login],
                     C!["run"],
-                    center_class(team.placement, &p_center),
-                    IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
-                    div![C!["cell", "colocacao", get_color(p2, sede)], p2],
-                    div![
-                        C!["cell", "time"],
-                        div![C!["nomeEscola"], &team.escola],
-                        div![C!["nomeTime"], &team.name,
+                    div![C!["run_prefix"],
+                        center_class(team.placement, &p_center),
+                        IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
+                        div![C!["cell", "colocacao", get_color(p2, sede)], p2],
+                        div![
+                            C!["cell", "time"],
+                            div![C!["nomeEscola"], &team.escola],
+                            div![C!["nomeTime"], &team.name,
+                            ],
+                            attrs!{At::OnClick =>
+                                std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
+                            },
                         ],
-                        attrs!{At::OnClick =>
-                            std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
-                            // std::format!("alert('foto_{}')", &team.login),
-                            // document.getElementById('a').style.backgroundColor = ''"
-                        },
-                    ],
-                    div![
-                        C!["cell", "problema"],
-                        div![C!["cima"], score.solved],
-                        div![C!["baixo"], score.penalty],
+                        div![
+                            C!["cell", "problema"],
+                            div![C!["cima"], score.solved],
+                            div![C!["baixo"], score.penalty],
+                        ],
                     ],
                     all_problems.char_indices().map( |(prob_i, prob)| {
-                        let hue = get_answer_hue_deg(n, prob_i as u32);
                         match team.problems.get(&prob.to_string()) {
 
                             None => div![C!["not-tried", "cell"], "-"],
