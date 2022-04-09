@@ -21,7 +21,7 @@ body {
 }
 
 :root {
-  --row-height: 3vw;
+  --row-height: 48px;
   --root-top: 0px;
   --root-top-center: calc(100vh / 2);
 }
