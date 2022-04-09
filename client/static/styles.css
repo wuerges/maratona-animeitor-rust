@@ -86,7 +86,7 @@ body {
 }
 
 .quadrado {
-  width: 55px;
+  width: 40px;
 }
 
 .center .not-tried{
@@ -103,12 +103,11 @@ body {
 }
 
 .accept {
-  /* width: 40px; */
   position: relative;
-  /* background-color: #305745; */
+  background-color: #305745;
 }
 
-.accept-img{
+.accept-img {
   position: absolute;
   height: 22px;
   width: 12px;
@@ -117,19 +116,16 @@ body {
 }
 
 .not-tried {
-  width: 40px;
   text-align: center;
   background-color: #4F5B62;
 }
 
 .unsolved {
-  width: 40px;
   text-align: center;
   background-color: #573a41;
 }
 
 .inqueue {
-  width: 40px;
   text-align: center;
   animation: blinkingBackground 2s;
   background-color: #F4D03F;
@@ -188,7 +184,6 @@ body {
   line-height: 18px;
 }
 
-
 .titulo.sede_brasil {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(/static/assets/titulo-final.svg); */
@@ -201,8 +196,8 @@ body {
 }
 
 .submission-title{
-  width: 302px;
-  height: 45px;
+  /* width: 302px; */
+  /* height: 45px; */
   background-color: #263238;
   display: flex;
   flex-direction: column;
@@ -217,14 +212,6 @@ body {
   font-size: 24px;
 }
 
-.unicaColocacao {
-  /* width: 301px; */
-}
-
-.duplaColocacao {
-  /* width: 354px; */
-}
-
 .nomeEscola {
   display: none;
 }
@@ -233,16 +220,13 @@ body {
   font-size: 14px;
 }
 
-
 .problema {
   text-align: center;
-  width: 40px;
   font-size: 30px;
 }
 
 .colocacao {
   text-align: center;
-  width: 45px;
   font-size: 18px;
 }
 
@@ -285,19 +269,16 @@ body {
 
 .answeryes {
   position: relative;
-  width: 40px;
   background-color: #305745;
 }
 
 .answerno {
   position: relative;
-  width: 40px;
   background-color: #573a41;
 }
 
 .answerwait {
   position: relative;
-  width: 40px;
   background-color: #F4D03F;
   color: black;
 }
@@ -306,32 +287,21 @@ body {
   color: #263238
 }
 
-/* .nomeTime:hover .foto {
-  display: block;
-  border-style: solid;
-} */
-
 .foto {
   display: none;
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #00f;
 
   height: 100vh;
   width: 100vw;
 
-  z-index: 123123123123;
-  /* border-style: solid; */
-  /* background-color: #F4D03F; */
+  z-index: 10;
+  border-color: gray;
 
-  /* margin: 1px;
   border-style: solid;
   border-width: 1px;
-  border-color: gray;
   border-radius: 5px;
-  padding: 1px;
-  background-color: black; */
 }
 
 .foto_img {
@@ -340,18 +310,6 @@ body {
   margin-left: auto;
   margin-right: auto;
   display: block;
-  /* width: auto;
-  height: auto;
-  object-fit: contain;
-  */
-  /* top: 9vh; */
-  /* left: 10vw; */
-  /* max-width: 100%;
-  max-height: 70vh; */
-  /* z-index: 123123123123; */
-  /* border-style: solid; */
-  /* background-color: #F4D03F; */
-
 }
 
 .balao_A {
@@ -400,30 +358,14 @@ body {
   filter: invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
 }
 
-/* .answerfrozen {
-  content:url(/static/assets/gear.svg); */
-  /* content:url(/static/assets/yes.png); */
-  /* content:url(/static/assets/no.png); */
-  /* content:url(/static/assets/gear.svg); */
-/* } */
-
 .verde {
   position: relative;
   text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
-
-  /* background-color: green; */
-  /* background-color: #00ab5e; */
 }
 
 .vermelho {
   background-color: #ae2538;
-  /* background-color: red; */
 }
-
-/* .amarelo {
-  background-color: yellow;
-  color: black;
-} */
 
 .amarelo {
   animation: blinkingBackground 2s;
@@ -452,22 +394,20 @@ body {
   background-color: rgb(114, 89, 26);
 }
 
-.login {
-  width: 7vw;
-}
-
 .timer {
   font-size: 60px;
   font-family: "Inconsolata", "Ubuntu Mono", monospace;
   text-align: center;
   color: #ffffff;
   text-shadow: -2pt 2pt black;
-}
-
-.frozen {
+  margin-top: 4px;
+  margin-bottom: 4px;
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
+}
+
+.frozen {
   border-color: #004567;
   color: #004567;
 }
@@ -476,9 +416,6 @@ body {
   content: "❄ ";
   font-size: 60px;
 }
-
-/* .sedepanel {
-} */
 
 .center {
   animation: borderUpdate 5s infinite;
