@@ -125,10 +125,10 @@ fn view(model: &Model) -> Node<Msg> {
                 div![
                     C!["run"],
                     style! {
-                        St::Top => format!("calc(54px * {} + var(--root-top))", i),
+                        St::Top => format!("calc(var(--row-height) * {} + var(--root-top))", i),
                     },
                     div![
-                        C!["cell", "colocacao", views::get_color(r.placement, None)],
+                        C!["cell", "colocacao", "quadrado", views::get_color(r.placement, None)],
                         r.placement
                     ],
                     div![
@@ -137,7 +137,7 @@ fn view(model: &Model) -> Node<Msg> {
                         div![C!["nomeTime"], &r.team_name],
                     ],
                     div![
-                        C!["cell", "resposta", get_answer(&r.result)],
+                        C!["cell", "resposta", "quadrado", get_answer(&r.result)],
                         IF!(matches!(r.result, data::Answer::Yes(_)) =>
                         div![
                             img![
@@ -157,8 +157,6 @@ fn view(model: &Model) -> Node<Msg> {
 
                     attrs!{At::OnClick =>
                         std::format!("document.getElementById('foto_{}').style.display = 'block';", &r.team_login),
-                        // std::format!("alert('foto_{}')", &team.login),
-                        // document.getElementById('a').style.backgroundColor = ''"
                     },
                 ]
             }
