@@ -34,14 +34,14 @@ pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
 pub fn cell_top(i : usize, center: &Option<usize>) -> String {
     let i = i as i64;
     match center {
-        None => format!("calc(54px * {} + var(--root-top))", i),
+        None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
         Some(p) => {
             let p = *p as i64;
             if p < 9 {
-                format!("calc(54px * {} + var(--root-top))", i)
+                format!("calc(var(--row-height) * {} + var(--root-top))", i)
             }
             else {
-                format!("calc(54px * {} + var(--root-top-center))", (i - p))
+                format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
             }
         }
     }
@@ -108,11 +108,11 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     C![
                         "cell",
                         "titulo",
-                        estilo_sede(sede),
-                        if is_compressed {"duplaColocacao"} else {"unicaColocacao"}
+                        estilo_sede(sede)
                     ],
-                nome_sede(sede)],
-                all_problems.chars().map( |p| div![C!["cell", "problema"], p.to_string()])
+                    nome_sede(sede)
+                ],
+                all_problems.chars().map( |p| div![C!["cell", "problema", "quadrado"], p.to_string()])
             ]
         ],
         contest.teams.values()
@@ -129,8 +129,8 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     C!["run"],
                     div![C!["run_prefix"],
                         center_class(team.placement, &p_center),
-                        IF!(is_compressed => div![C!["cell", "colocacao", get_color(team.placement_global, None)], team.placement_global]),
-                        div![C!["cell", "colocacao", get_color(p2, sede)], p2],
+                        IF!(is_compressed => div![C!["cell", "colocacao", "quadrado", get_color(team.placement_global, None)], team.placement_global]),
+                        div![C!["cell", "colocacao", "quadrado", get_color(p2, sede)], p2],
                         div![
                             C!["cell", "time"],
                             div![C!["nomeEscola"], &team.escola],
@@ -141,7 +141,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                             },
                         ],
                         div![
-                            C!["cell", "problema"],
+                            C!["cell", "problema", "quadrado"],
                             div![C!["cima"], score.solved],
                             div![C!["baixo"], score.penalty],
                         ],
@@ -149,12 +149,11 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                     all_problems.char_indices().map( |(prob_i, prob)| {
                         match team.problems.get(&prob.to_string()) {
 
-                            None => div![C!["not-tried", "cell"], "-"],
+                            None => div![C!["not-tried", "cell", "quadrado"], "-"],
                             Some(prob_v) => {
                                 if prob_v.solved {
                                     let balao = std::format!("balao_{}", prob);
-                                    div![
-                                        C!["accept", "cell"],
+                                    div![C!["accept", "cell", "quadrado"],
                                         img![
                                             C!["accept-img", balao],
                                             attrs!{At::Src => "/static/assets/balloon.svg"},
@@ -174,7 +173,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                                     let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
                                     let cell_symbol = if prob_v.wait() {"?"} else {"X"};
                                     div![
-                                        C![cell_type, "cell"],
+                                        C![cell_type, "cell", "quadrado"],
                                         div![C!["cima"], cell_symbol],
                                         div![C!["baixo"], "(", prob_v.submissions, ")"],
                                     ]

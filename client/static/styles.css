@@ -20,15 +20,6 @@ body {
   overflow-y: scroll;
 }
 
-/* .logoimg {
-  height: 55px;
-  font-size: 0.8vw;
-}
-
-.logo {
-  width: 75px;
-} */
-
 :root {
   --row-height: 3vw;
   --root-top: 0px;
@@ -40,33 +31,45 @@ body {
   margin-top: 3px;
 }
 
-.runspanel {
+/* .runspanel {
   position: relative;
   display: block;
   height: 90vw;
   width: 310px;
-}
+} */
 
 .run {
-  height: 45px;
   width: 100%;
   position: absolute;
-  align-items: center;
   display: flex;
-  padding-right: 8px;
   transition: top 5s ease 0s;
 }
 
 .run_box {
   position: absolute;
-  height: 50px;
   width: 100%;
 }
 
 .run_prefix {
   display: flex;
-  flex-grow: 5;
-  max-width: 200pt;
+  flex-grow: 2;
+  max-width: 300px;
+}
+
+.titulo {
+  /* content:url(/static/assets/titulo-1stPhase.svg); */
+  /* content:url(/static/assets/titulo-final.svg); */
+  font-size: 24px;
+  max-width: 298px;
+  flex-grow: 2;
+}
+
+.time {
+  flex-grow: 2;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
 }
 
 .cell {
@@ -76,12 +79,16 @@ body {
   justify-content: center;
   background-color: #4F5B62;
   margin: 1px;
+  border-radius: 5px;
   border-style: solid;
   border-width: 1px;
   border-color: #555;
-  border-radius: 5px;
-  padding: 2px;
 }
+
+.quadrado {
+  width: 55px;
+}
+
 .center .not-tried{
   background-color: #27333a;
 }
@@ -96,9 +103,9 @@ body {
 }
 
 .accept {
-  width: 40px;
+  /* width: 40px; */
   position: relative;
-  background-color: #305745;
+  /* background-color: #305745; */
 }
 
 .accept-img{
@@ -182,14 +189,6 @@ body {
 }
 
 
-.titulo {
-  /* content:url(/static/assets/titulo-1stPhase.svg); */
-  /* content:url(/static/assets/titulo-final.svg); */
-  font-size: 24px;
-  max-width: 200pt;
-  flex-grow: 5;
-}
-
 .titulo.sede_brasil {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(/static/assets/titulo-final.svg); */
@@ -234,14 +233,6 @@ body {
   font-size: 14px;
 }
 
-.time {
-  flex-grow: 5;
-  text-align: right;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-wrap: break-word;
-}
 
 .problema {
   text-align: center;
