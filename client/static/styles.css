@@ -53,14 +53,16 @@ body {
 .run_prefix {
   display: flex;
   flex-grow: 2;
-  max-width: 300px;
+  max-width: 350px;
+  min-width: 250px;
 }
 
 .titulo {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(/static/assets/titulo-final.svg); */
   font-size: 24px;
-  max-width: 298px;
+  max-width: 348px;
+  min-width: 248px;
   flex-grow: 2;
 }
 
@@ -86,7 +88,8 @@ body {
 }
 
 .quadrado {
-  width: 40px;
+  /* width: 40px; */
+  min-width: 40px;
 }
 
 .center .not-tried{
