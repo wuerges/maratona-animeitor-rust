@@ -337,6 +337,10 @@ pub async fn serve_simple_contest_assets(
 ) {
 
     let services = serve_urlbase(config, db, tx, secret);
+    let cors = warp::cors()
+        .allow_any_origin();
+
+    let services = services.with(cors);
 
     if lambda_mode {
         warp::serve(services).run(([0, 0, 0, 0], server_port)).await;
