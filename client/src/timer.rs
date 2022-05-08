@@ -1,9 +1,9 @@
-use crate::{helpers, views};
+use crate::{requests, views};
 use data;
 use seed::{prelude::*, *};
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    let ws = WebSocket::builder(helpers::get_ws_url("/timer"), orders)
+    let ws = WebSocket::builder(requests::get_ws_url("/timer"), orders)
         .on_message(Msg::TimerUpdate)
         .build_and_open()
         .expect("Open WebSocket");
