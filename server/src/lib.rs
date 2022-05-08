@@ -4,7 +4,7 @@ pub mod errors;
 
 use data::configdata::ConfigContest;
 
-use crate::errors::{CResult, Error};
+use crate::errors::{CResult, Error, SerializationError};
 
 extern crate html_escape;
 extern crate itertools;
@@ -270,8 +270,7 @@ async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply,
 
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
-    let r = serde_json::to_string(&db.contest_file_begin).unwrap();
-    Ok(r)
+    Ok(serde_json::to_string(&db.contest_file_begin).map_err(SerializationError)?)
 }
 
 async fn serve_contest_config(
