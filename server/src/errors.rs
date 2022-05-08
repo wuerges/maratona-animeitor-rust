@@ -19,6 +19,9 @@ pub enum Error {
     #[error("Invalid Answer: {0}")]
     InvalidAnswer(String),
 
+    #[error("Could not parse contest file: {0}")]
+    ContestFileParse(&'static str),
+
     #[error(transparent)]
     Chain(#[from] data::ContestError),
 
