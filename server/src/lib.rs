@@ -24,7 +24,7 @@ use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 use zip;
 
-use futures::{SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt, stream::SplitSink};
 use warp::ws::Message;
 
 use warp::Filter;
@@ -237,6 +237,19 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
     tokio::task::spawn(fut);
 }
 
+async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) {
+    match serde_json::to_string(&r).map(Message::text) {
+        Err(e) => {
+            eprintln!("Error preparing run {:?} message: {:?}", r, e);
+        }
+        Ok(m) => {
+            tx.send(m).await.unwrap_or_else(|e| {
+                eprintln!("Error sending run: {:?}", e);
+            });
+        }
+    }
+}
+
 async fn serve_all_runs_ws(
     ws: warp::ws::WebSocket,
     runs: Arc<Mutex<DB>>,
@@ -248,20 +261,14 @@ async fn serve_all_runs_ws(
         {
             let lock = runs.lock().await;
 
-            for r in &lock.all_runs() {
-                let t = serde_json::to_string(r).unwrap();
-                let m = Message::text(t);
-                tx.send(m).await.expect("Error sending");
+            for r in lock.all_runs() {
+                convert_and_send(&mut tx, r).await;
             }
         }
 
         loop {
             let r = rx.recv().await.expect("Expected a RunTuple");
-
-            let t = serde_json::to_string(&r).unwrap();
-            let m = Message::text(t);
-
-            tx.send(m).await.expect("Should have sent the message");
+            convert_and_send(&mut tx, r).await;
         }
     };
 
