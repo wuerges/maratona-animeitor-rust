@@ -203,8 +203,7 @@ async fn update_runs_from_data(
 
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
-    let r = serde_json::to_string(&*db.latest()).unwrap();
-    Ok(r)
+    Ok(serde_json::to_string(&*db.latest()).map_err(SerializationError)?)
 }
 
 async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
