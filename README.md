@@ -30,7 +30,7 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-( cd client && wasm-pack build --target web --out-name package )
+wasm-pack build --release --target web --out-name package client
 cargo run --release --bin simples <url_do_placar> --port 9091
 ```
 
