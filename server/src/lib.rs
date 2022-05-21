@@ -240,11 +240,11 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
 async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) {
     match serde_json::to_string(&r).map(Message::text) {
         Err(e) => {
-            eprintln!("Error preparing run {:?} message: {:?}", r, e);
+            panic!("Error preparing run {:?} message: {:?}", r, e);
         }
         Ok(m) => {
             tx.send(m).await.unwrap_or_else(|e| {
-                eprintln!("Error sending run: {:?}", e);
+                panic!("Error sending run: {:?}", e);
             });
         }
     }
