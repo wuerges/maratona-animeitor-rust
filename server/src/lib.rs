@@ -221,9 +221,16 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
 
             if l != old {
                 old = l;
-                let t = serde_json::to_string(&l).unwrap();
-                let m = Message::text(t);
-                tx.send(m).await.expect("Error sending");
+                match serde_json::to_string(&l).map(Message::text) {
+                    Ok(m) => {
+                        tx.send(m).await.unwrap_or_else(|e| {
+                            eprintln!("Error sending message: {:?}", e);
+                        });
+                    }
+                    Err(e) => {
+                        eprintln!("Error converting {:?} to a message: {:?}", l, e);
+                    }
+                }
             }
         }
     };
