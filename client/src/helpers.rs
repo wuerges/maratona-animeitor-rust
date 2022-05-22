@@ -3,7 +3,10 @@ use seed::prelude::*;
 use data::Team;
 
 pub fn get_secret(url : &Url) -> String {
-    url.search().get("secret").unwrap().first().unwrap().to_string()
+    url.search()
+        .get("secret").expect("Error: no secret search field in URL")
+        .first().expect("Error: secret param was empty")
+        .to_string()
 }
 
 pub fn get_url_filter(url : &Url) -> Option<Vec<String>> {
