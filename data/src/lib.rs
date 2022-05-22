@@ -443,6 +443,12 @@ impl Ord for RunTuple {
     }
 }
 
+impl fmt::Display for RunTuple {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
     pub id: i64,

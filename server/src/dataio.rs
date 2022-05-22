@@ -2,7 +2,6 @@ use crate::errors::{CResult, Error};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
-// use rustrimeitor::*;
 use data::*;
 use html_escape::decode_html_entities_to_string;
 
