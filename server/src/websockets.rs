@@ -4,9 +4,18 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use futures::{SinkExt, StreamExt, stream::SplitSink};
 use warp::ws::Message;
+use warp::{Filter, Reply};
+use warp::filters::BoxedFilter;
 use tokio::sync::broadcast;
 
-pub async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<data::TimerData>) {
+pub fn serve_timer_ws_filter(time_tx: broadcast::Sender::<data::TimerData>) -> BoxedFilter<(impl Reply,)> {
+    warp::ws()
+        .and(warp::any().map(move || time_tx.subscribe()))
+        .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| serve_timer_ws(ws, tx)))
+        .boxed()
+}
+
+async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<data::TimerData>) {
     let (mut tx, _) = ws.split();
 
     let fut = async move {
@@ -63,7 +72,7 @@ mod tests {
     use tokio::sync::broadcast;
     use warp::Filter;
     use data::TimerData;
-    use crate::websockets::serve_timer_ws;
+    use crate::websockets::serve_timer_ws_filter;
     use warp::filters::ws::Message;
     use serde_json;
 
@@ -72,11 +81,7 @@ mod tests {
         let (time_tx, _) : (broadcast::Sender::<TimerData>, _) = broadcast::channel(1000000);
         let send_time_tx = time_tx.clone();
 
-        let timer = warp::path("timer")
-            .and(warp::ws())
-            .and(warp::any().map(move || time_tx.subscribe()))
-            .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| serve_timer_ws(ws, tx)));
-
+        let timer = warp::path("timer").and(serve_timer_ws_filter(time_tx));
 
         let expected1 = Message::text(serde_json::to_string(&TimerData::new(1, 2)).unwrap());
         let expected2 = Message::text(serde_json::to_string(&TimerData::new(2, 2)).unwrap());

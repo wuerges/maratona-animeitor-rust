@@ -47,10 +47,9 @@ pub fn route_contest_public_data(
         .and(warp::any().map(move || runs_tx.subscribe()))
         .map(|ws: warp::ws::Ws, db, tx| ws.on_upgrade(move |ws| websockets::serve_all_runs_ws(ws, db, tx)));
 
+
     let timer = warp::path("timer")
-        .and(warp::ws())
-        .and(warp::any().map(move || time_tx.subscribe()))
-        .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| websockets::serve_timer_ws(ws, tx)));
+        .and(websockets::serve_timer_ws_filter(time_tx));
 
     let contest_file = warp::path("contest")
         .and(with_db(shared_db.clone()))
