@@ -309,7 +309,7 @@ mod tests {
             }
         }
 
-        r2.contest.recalculate_placement().unwrap();
+        r2.contest.recalculate_placement(None).unwrap();
 
         for t in r1.contest.teams.values() {
             let t2_p = r2.contest.placement(&t.login).unwrap();
