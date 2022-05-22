@@ -74,3 +74,12 @@ O placar e os runs podem ser customizados usando CSS, através do arquivo [clien
 wasm-pack build --dev --target web --out-name package client
 cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
+
+Cargo watch can be used to help development:
+```
+# one tab with the client
+cargo watch -- wasm-pack build --dev --target web --out-name package client
+
+# other tab with the server
+cargo watch -- cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+```
