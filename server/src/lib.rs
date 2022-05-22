@@ -2,10 +2,12 @@ pub mod config;
 pub mod dataio;
 pub mod errors;
 pub mod webcast;
+pub mod dbupdate;
 
 use data::configdata::ConfigContest;
 
 use crate::errors::{CResult, SerializationError};
+use crate::dbupdate::spawn_db_update_f;
 
 extern crate html_escape;
 extern crate itertools;
@@ -16,49 +18,15 @@ use crate::dataio::*;
 
 use std::future::Future;
 use std::sync::Arc;
-use tokio;
+
 use tokio::sync::broadcast;
-use tokio::{spawn, sync::Mutex};
+use tokio::sync::Mutex;
 
 use futures::{SinkExt, StreamExt, stream::SplitSink};
 use warp::ws::Message;
 
 use warp::Filter;
 
-pub fn spawn_db_update_f<F, Fut>(loader: F) -> (Arc<Mutex<DB>>, broadcast::Sender<data::RunTuple>)
-where
-    F: Fn() -> Fut + Send + 'static,
-    Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
-{
-    let shared_db = Arc::new(Mutex::new(DB::empty()));
-    let cloned_db = shared_db.clone();
-    let (tx, _) = broadcast::channel(1000000);
-    let tx2 = tx.clone();
-
-    spawn(async move {
-        let dur = tokio::time::Duration::new(1, 0);
-        let mut interval = tokio::time::interval(dur);
-        loop {
-            interval.tick().await;
-
-            let data = loader();
-
-            match data.await {
-                Ok(data_ok) => {
-                    let r = update_runs_from_data(data_ok, cloned_db.clone(), tx.clone()).await;
-                    match r {
-                        Ok(_) => (),
-                        Err(e) => eprintln!("Error updating run: {}", e),
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Error loading data: {}, retrying.", e);
-                }
-            }
-        }
-    });
-    (shared_db, tx2)
-}
 
 fn with_db(
     db: Arc<Mutex<DB>>,
@@ -115,22 +83,6 @@ pub fn serve_urlbase(
         .boxed()
 }
 
-async fn update_runs_from_data(
-    data: (i64, data::ContestFile, data::RunsFile),
-    runs: Arc<Mutex<DB>>,
-    tx: broadcast::Sender<data::RunTuple>,
-) -> CResult<()> {
-    let (time_data, contest_data, runs_data) = data;
-
-    let mut db = runs.lock().await;
-    let fresh_runs = db.refresh_db(time_data, contest_data, runs_data)?;
-    if tx.receiver_count() > 0 {
-        for r in fresh_runs {
-            tx.send(r).expect("Should have sent the messages");
-        }
-    }
-    Ok(())
-}
 
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
