@@ -1,6 +1,7 @@
 use thiserror::Error;
 use warp::reject::Reject;
 use warp::Rejection;
+use zip::result::ZipError;
 
 pub type CResult<T> = std::result::Result<T, Error>;
 
@@ -23,6 +24,9 @@ pub enum Error {
 
     #[error(transparent)]
     Hyper(#[from] hyper::Error),
+
+    #[error(transparent)]
+    ZipError(#[from] ZipError),
 
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),

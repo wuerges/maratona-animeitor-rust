@@ -1,6 +1,5 @@
 
 use zip;
-// use std::io::prelude::*;
 use hyper::{body, Client};
 use hyper_tls::HttpsConnector;
 use crate::errors::{CResult, Error};
@@ -59,8 +58,7 @@ pub async fn load_data_from_url_maybe(
     let zip_data = read_bytes_from_path(&uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
-    let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
+    let mut zip = zip::ZipArchive::new(reader)?;
 
     let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
 
