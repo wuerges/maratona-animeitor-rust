@@ -1,9 +1,11 @@
 pub mod config;
 pub mod webcast;
+mod routes;
 mod dataio;
 mod errors;
 mod dbupdate;
-mod websockets;
+mod timer;
+mod runs;
 
 use data::configdata::ConfigContest;
 
@@ -25,34 +27,21 @@ use tokio::sync::Mutex;
 
 use warp::Filter;
 
-
-fn with_db(
-    db: Arc<Mutex<DB>>,
-) -> impl Filter<Extract = (Arc<Mutex<DB>>,), Error = std::convert::Infallible> + Clone {
-    warp::any().map(move || db.clone())
-}
-
 pub fn route_contest_public_data(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: broadcast::Sender<data::RunTuple>,
     time_tx: broadcast::Sender<data::TimerData>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let runs = warp::path("runs")
-        .and(with_db(shared_db.clone()))
+        .and(routes::with_db(shared_db.clone()))
         .and_then(serve_runs);
 
-    let all_runs_ws = warp::path("allruns_ws")
-        .and(warp::ws())
-        .and(with_db(shared_db.clone()))
-        .and(warp::any().map(move || runs_tx.subscribe()))
-        .map(|ws: warp::ws::Ws, db, tx| ws.on_upgrade(move |ws| websockets::serve_all_runs_ws(ws, db, tx)));
+    let all_runs_ws = warp::path("allruns_ws").and(runs::serve_all_runs(shared_db.clone(), runs_tx));
 
-
-    let timer = warp::path("timer")
-        .and(websockets::serve_timer_ws_filter(time_tx));
+    let timer = warp::path("timer").and(timer::serve_timer(time_tx));
 
     let contest_file = warp::path("contest")
-        .and(with_db(shared_db.clone()))
+        .and(routes::with_db(shared_db.clone()))
         .and_then(serve_contestfile);
 
     let routes = runs.or(all_runs_ws).or(timer).or(contest_file);
@@ -73,7 +62,7 @@ pub fn serve_urlbase(
         .and_then(serve_contest_config);
 
     let all_runs_secret = warp::path(format!("allruns_{}", secret))
-        .and(with_db(shared_db.clone()))
+        .and(routes::with_db(shared_db.clone()))
         .and_then(serve_all_runs_secret);
 
     route_contest_public_data(shared_db, runs_tx, time_tx)

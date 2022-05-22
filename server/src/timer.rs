@@ -1,14 +1,10 @@
-use crate::DB;
-
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use futures::{SinkExt, StreamExt, stream::SplitSink};
+use futures::{SinkExt, StreamExt};
 use warp::ws::Message;
 use warp::{Filter, Reply};
 use warp::filters::BoxedFilter;
 use tokio::sync::broadcast;
 
-pub fn serve_timer_ws_filter(time_tx: broadcast::Sender::<data::TimerData>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_timer(time_tx: broadcast::Sender::<data::TimerData>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(warp::any().map(move || time_tx.subscribe()))
         .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| serve_timer_ws(ws, tx)))
@@ -32,47 +28,12 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<dat
     tokio::task::spawn(fut);
 }
 
-async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) -> bool {
-    let m = serde_json::to_string(&r).map(Message::text).expect("Expected a message");
-    tx.send(m).await.is_ok()
-}
-
-pub async fn serve_all_runs_ws(
-    ws: warp::ws::WebSocket,
-    runs: Arc<Mutex<DB>>,
-    mut rx: broadcast::Receiver<data::RunTuple>,
-) {
-    let (mut tx, _) = ws.split();
-
-    let fut = async move {
-        {
-            let lock = runs.lock().await;
-
-            for r in lock.all_runs() {
-                if !convert_and_send(&mut tx, r).await {
-                    return
-                }
-            }
-        }
-
-        loop {
-            let r = rx.recv().await.expect("Expected a RunTuple");
-            if !convert_and_send(&mut tx, r).await {
-                return
-            }
-        }
-    };
-
-    tokio::task::spawn(fut);
-}
-
-
 #[cfg(test)]
 mod tests {
     use tokio::sync::broadcast;
     use warp::Filter;
     use data::TimerData;
-    use crate::websockets::serve_timer_ws_filter;
+    use super::serve_timer;
     use warp::filters::ws::Message;
     use serde_json;
 
@@ -81,7 +42,7 @@ mod tests {
         let (time_tx, _) : (broadcast::Sender::<TimerData>, _) = broadcast::channel(1000000);
         let send_time_tx = time_tx.clone();
 
-        let timer = warp::path("timer").and(serve_timer_ws_filter(time_tx));
+        let timer = warp::path("timer").and(serve_timer(time_tx));
 
         let expected1 = Message::text(serde_json::to_string(&TimerData::new(1, 2)).unwrap());
         let expected2 = Message::text(serde_json::to_string(&TimerData::new(2, 2)).unwrap());
