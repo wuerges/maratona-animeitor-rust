@@ -1,10 +1,11 @@
 pub mod config;
 pub mod dataio;
 pub mod errors;
+pub mod webcast;
 
 use data::configdata::ConfigContest;
 
-use crate::errors::{CResult, Error, SerializationError};
+use crate::errors::{CResult, SerializationError};
 
 extern crate html_escape;
 extern crate itertools;
@@ -12,17 +13,12 @@ extern crate rand;
 
 use crate::dataio::*;
 
-use hyper::Client;
-use hyper_tls::HttpsConnector;
 
-use hyper::body;
 use std::future::Future;
-use std::io::prelude::*;
 use std::sync::Arc;
 use tokio;
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
-use zip;
 
 use futures::{SinkExt, StreamExt, stream::SplitSink};
 use warp::ws::Message;
@@ -119,71 +115,6 @@ pub fn serve_urlbase(
         .boxed()
 }
 
-async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
-    read_bytes_from_url(path)
-        .await
-        .or_else(|_| read_bytes_from_file(path))
-}
-
-fn read_bytes_from_file(path: &String) -> CResult<Vec<u8>> {
-    Ok(std::fs::read(&path)?)
-}
-
-async fn read_bytes_from_url(uri: &String) -> CResult<Vec<u8>> {
-    let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
-
-    let uri = uri.parse()?;
-
-    let resp = client.get(uri).await?;
-    let bytes = body::to_bytes(resp.into_body()).await?;
-    Ok(bytes.to_vec())
-}
-
-fn try_read_from_zip(
-    zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
-    name: &str,
-) -> CResult<String> {
-    let mut runs_zip = zip
-        .by_name(name)
-        .map_err(|e| Error::Info(format!("Could not unpack file: {} {:?}", name, e)))?;
-    let mut buffer = Vec::new();
-    runs_zip.read_to_end(&mut buffer)?;
-    let runs_data = String::from_utf8(buffer)
-        .map_err(|_| Error::Info("Could not parse to UTF8".to_string()))?;
-    Ok(runs_data)
-}
-
-fn read_from_zip(
-    zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
-    name: &str,
-) -> CResult<String> {
-    try_read_from_zip(zip, name)
-        .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
-}
-
-pub async fn load_data_from_url_maybe(
-    uri: String,
-) -> CResult<(i64, data::ContestFile, data::RunsFile)> {
-    let zip_data = read_bytes_from_path(&uri).await?;
-
-    let reader = std::io::Cursor::new(&zip_data);
-    let mut zip = zip::ZipArchive::new(reader)
-        .map_err(|e| Error::Info(format!("Could not open zipfile: {:?}", e)))?;
-
-    let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
-
-    let contest_data = read_from_zip(&mut zip, "contest")?;
-    let contest_data = read_contest(&contest_data)?;
-
-    let runs_data = read_from_zip(&mut zip, "runs")?;
-    let runs_data = read_runs(&runs_data)?;
-
-    Ok((time_data, contest_data, runs_data))
-}
-
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
     runs: Arc<Mutex<DB>>,
@@ -220,16 +151,9 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
 
             if l != old {
                 old = l;
-                match serde_json::to_string(&l).map(Message::text) {
-                    Ok(m) => {
-                        tx.send(m).await.unwrap_or_else(|e| {
-                            panic!("Error sending message: {:?}", e);
-                        });
-                    }
-                    Err(e) => {
-                        panic!("Error converting {:?} to a message: {:?}", l, e);
-                    }
-                }
+                let message = serde_json::to_string(&l).map(Message::text)
+                    .unwrap_or_else(|error| panic!("Could not convert `{:?}' to a message: {:?}", l, error));
+                tx.send(message).await.unwrap_or_else(|error| panic!("Could not send message: {:?}", error));
             }
         }
     };
@@ -317,7 +241,7 @@ pub async fn serve_simple_contest(
 ) {
     serve_simple_contest_f(
         config,
-        move || load_data_from_url_maybe(url_base.clone()),
+        move || webcast::load_data_from_url_maybe(url_base.clone()),
         server_port,
         secret,
         lambda_mode,

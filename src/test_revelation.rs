@@ -1,6 +1,6 @@
 use data::configdata::ConfigContest;
 use data::revelation::RevelationDriver;
-use server::load_data_from_url_maybe;
+use server::webcast::load_data_from_url_maybe;
 
 pub async fn build_revelation(input_file: &str) -> Vec<String> {
     let (_, contest_data, runs_data) = load_data_from_url_maybe(input_file.to_string())
