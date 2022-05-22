@@ -113,16 +113,12 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, runs: Arc<Mutex<DB>>) {
     tokio::task::spawn(fut);
 }
 
-async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) {
+async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) -> bool {
     match serde_json::to_string(&r).map(Message::text) {
         Err(e) => {
             panic!("Error preparing run {:?} message: {:?}", r, e);
         }
-        Ok(m) => {
-            tx.send(m).await.unwrap_or_else(|e| {
-                panic!("Error sending run: {:?}", e);
-            });
-        }
+        Ok(m) => tx.send(m).await.is_ok()
     }
 }
 
@@ -138,13 +134,17 @@ async fn serve_all_runs_ws(
             let lock = runs.lock().await;
 
             for r in lock.all_runs() {
-                convert_and_send(&mut tx, r).await;
+                if !convert_and_send(&mut tx, r).await {
+                    return
+                }
             }
         }
 
         loop {
             let r = rx.recv().await.expect("Expected a RunTuple");
-            convert_and_send(&mut tx, r).await;
+            if !convert_and_send(&mut tx, r).await {
+                return
+            }
         }
     };
 
