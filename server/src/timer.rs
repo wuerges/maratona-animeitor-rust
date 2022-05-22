@@ -3,20 +3,21 @@ use warp::ws::Message;
 use warp::{Filter, Reply};
 use warp::filters::BoxedFilter;
 use tokio::sync::broadcast;
+use data::TimerData;
 
-pub fn serve_timer(time_tx: broadcast::Sender::<data::TimerData>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_timer(time_tx: broadcast::Sender::<TimerData>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(warp::any().map(move || time_tx.subscribe()))
         .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| serve_timer_ws(ws, tx)))
         .boxed()
 }
 
-async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<data::TimerData>) {
+async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<TimerData>) {
     let (mut tx, _) = ws.split();
 
     let fut = async move {
         loop {
-            let r : data::TimerData = rx.recv().await.expect("Expected a Time");
+            let r : TimerData = rx.recv().await.expect("Expected a Time");
             let m = serde_json::to_string(&r).map(Message::text).expect("Expected a message");
 
             if !tx.send(m).await.is_ok() {
@@ -30,12 +31,7 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<dat
 
 #[cfg(test)]
 mod tests {
-    use tokio::sync::broadcast;
-    use warp::Filter;
-    use data::TimerData;
-    use super::serve_timer;
-    use warp::filters::ws::Message;
-    use serde_json;
+    use super::*;
 
     #[tokio::test]
     async fn test_serve_timer_ws() {
