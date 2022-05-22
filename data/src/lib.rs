@@ -449,6 +449,18 @@ impl fmt::Display for RunTuple {
     }
 }
 
+impl RunTuple {
+    pub fn new(id : i64, time: i64, team_login : String, prob : String, answer : Answer) -> Self {
+        Self {
+            id,
+            time,
+            team_login,
+            prob,
+            answer
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RunsPanelItem {
     pub id: i64,

@@ -1,4 +1,5 @@
 use crate::dataio::DB;
+use data::{RunTuple, Answer};
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -9,7 +10,7 @@ use warp::filters::BoxedFilter;
 use tokio::sync::broadcast;
 use crate::routes;
 
-pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: broadcast::Sender::<data::RunTuple>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: broadcast::Sender::<RunTuple>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(routes::with_db(shared_db.clone()))
         .and(warp::any().map(move || runs_tx.subscribe()))
@@ -18,7 +19,7 @@ pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: broadcast::Sender::<da
 }
 
 
-async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : data::RunTuple) -> bool {
+async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : RunTuple) -> bool {
     let m = serde_json::to_string(&r).map(Message::text).expect("Expected a message");
     tx.send(m).await.is_ok()
 }
@@ -26,7 +27,7 @@ async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : 
 async fn serve_all_runs_ws(
     ws: warp::ws::WebSocket,
     runs: Arc<Mutex<DB>>,
-    mut rx: broadcast::Receiver<data::RunTuple>,
+    mut rx: broadcast::Receiver<RunTuple>,
 ) {
     let (mut tx, _) = ws.split();
 
@@ -55,44 +56,33 @@ async fn serve_all_runs_ws(
 
 #[cfg(test)]
 mod tests {
-    // use tokio::sync::broadcast;
-    // use warp::Filter;
-    // use super::serve_runs;
-    // use warp::filters::ws::Message;
-    // use serde_json;
+    use super::*;
 
-    // #[tokio::test]
-    // async fn test_serve_timer_ws() {
-    //     let (time_tx, _) : (broadcast::Sender::<TimerData>, _) = broadcast::channel(1000000);
-    //     let send_time_tx = time_tx.clone();
+    #[tokio::test]
+    async fn test_serve_timer_ws() {
+        let (runs_tx, _) : (broadcast::Sender::<RunTuple>, _) = broadcast::channel(1000000);
+        let send_runs_tx = runs_tx.clone();
 
-    //     let timer = warp::path("timer").and(serve_timer_ws_filter(time_tx));
+        let db = Arc::new(Mutex::new(DB::empty()));
 
-    //     let expected1 = Message::text(serde_json::to_string(&TimerData::new(1, 2)).unwrap());
-    //     let expected2 = Message::text(serde_json::to_string(&TimerData::new(2, 2)).unwrap());
+        let runs = warp::path("allruns_ws").and(serve_all_runs(db.clone(), runs_tx));
 
-    //     let mut client = warp::test::ws()
-    //         .path("/timer")
-    //         .handshake(timer.clone())
-    //         .await
-    //         .expect("handshake");
+        let run1 = RunTuple::new(1, 1, "team1".to_string(), "A".to_string(), Answer::Yes(1));
+        let run2 = RunTuple::new(2, 2, "team1".to_string(), "B".to_string(), Answer::Yes(2));
 
-    //     {
-    //         let mut client2 = warp::test::ws()
-    //             .path("/timer")
-    //             .handshake(timer)
-    //             .await
-    //             .expect("handshake");
+        let expected1 = Message::text(serde_json::to_string(&run1).unwrap());
+        let expected2 = Message::text(serde_json::to_string(&run2).unwrap());
 
-    //         send_time_tx.send(TimerData::new(1, 2)).expect("to send message");
+        let mut client1 = warp::test::ws()
+            .path("/allruns_ws")
+            .handshake(runs.clone())
+            .await
+            .expect("handshake");
 
-    //         assert_eq!(client2.recv().await.expect("to receive message"), expected1);
-    //     }
+        send_runs_tx.send(run1).expect("to send runs");
+        send_runs_tx.send(run2).expect("to send runs");
 
-    //     assert_eq!(client.recv().await.expect("to receive message"), expected1);
-
-    //     send_time_tx.send(TimerData::new(2, 2)).expect("to send message");
-
-    //     assert_eq!(client.recv().await.expect("to receive message"), expected2);
-    // }
+        assert_eq!(client1.recv().await.expect("to receive message"), expected1);
+        assert_eq!(client1.recv().await.expect("to receive message"), expected2);
+    }
 }
