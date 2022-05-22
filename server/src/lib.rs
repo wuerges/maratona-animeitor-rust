@@ -34,7 +34,8 @@ fn with_db(
 
 pub fn route_contest_public_data(
     shared_db: Arc<Mutex<DB>>,
-    tx: broadcast::Sender<data::RunTuple>,
+    runs_tx: broadcast::Sender<data::RunTuple>,
+    time_tx: broadcast::Sender<data::TimerData>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let runs = warp::path("runs")
         .and(with_db(shared_db.clone()))
@@ -43,13 +44,13 @@ pub fn route_contest_public_data(
     let all_runs_ws = warp::path("allruns_ws")
         .and(warp::ws())
         .and(with_db(shared_db.clone()))
-        .and(warp::any().map(move || tx.subscribe()))
-        .map(|ws: warp::ws::Ws, db, rx| ws.on_upgrade(move |ws| websockets::serve_all_runs_ws(ws, db, rx)));
+        .and(warp::any().map(move || runs_tx.subscribe()))
+        .map(|ws: warp::ws::Ws, db, tx| ws.on_upgrade(move |ws| websockets::serve_all_runs_ws(ws, db, tx)));
 
     let timer = warp::path("timer")
         .and(warp::ws())
-        .and(with_db(shared_db.clone()))
-        .map(|ws: warp::ws::Ws, db| ws.on_upgrade(move |ws| websockets::serve_timer_ws(ws, db)));
+        .and(warp::any().map(move || time_tx.subscribe()))
+        .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| websockets::serve_timer_ws(ws, tx)));
 
     let contest_file = warp::path("contest")
         .and(with_db(shared_db.clone()))
@@ -63,7 +64,8 @@ pub fn route_contest_public_data(
 pub fn serve_urlbase(
     config: ConfigContest,
     shared_db: Arc<Mutex<DB>>,
-    tx: broadcast::Sender<data::RunTuple>,
+    runs_tx: broadcast::Sender<data::RunTuple>,
+    time_tx: broadcast::Sender<data::TimerData>,
     secret: &String,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let config = Arc::new(config);
@@ -75,7 +77,7 @@ pub fn serve_urlbase(
         .and(with_db(shared_db.clone()))
         .and_then(serve_all_runs_secret);
 
-    route_contest_public_data(shared_db, tx)
+    route_contest_public_data(shared_db, runs_tx, time_tx)
         .or(config_file)
         .or(all_runs_secret)
         .boxed()
@@ -147,20 +149,21 @@ pub async fn serve_simple_contest_f<F, Fut>(
     F: Fn() -> Fut + Send + 'static,
     Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
-    let (shared_db, runs_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(config, shared_db, runs_tx, server_port, secret, lambda_mode).await
+    let (shared_db, runs_tx, time_tx) = spawn_db_update_f(f);
+    serve_simple_contest_assets(config, shared_db, runs_tx, time_tx, server_port, secret, lambda_mode).await
 }
 
 pub async fn serve_simple_contest_assets(
     config: ConfigContest,
     db: Arc<Mutex<DB>>,
-    tx: broadcast::Sender<data::RunTuple>,
+    runs_tx: broadcast::Sender<data::RunTuple>,
+    time_tx: broadcast::Sender<data::TimerData>,
     server_port: u16,
     secret: &String,
     lambda_mode: bool,
 ) {
 
-    let services = serve_urlbase(config, db, tx, secret);
+    let services = serve_urlbase(config, db, runs_tx, time_tx, secret);
     let cors = warp::cors()
         .allow_any_origin();
 

@@ -28,8 +28,8 @@ pub enum Error {
     #[error(transparent)]
     ZipError(#[from] ZipError),
 
-    #[error("Could not refresh DB: {0} {1}")]
-    DBRefreshError(data::RunTuple, String),
+    #[error("Error sending data after DB refresh: {0}")]
+    SendError(String),
 
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),

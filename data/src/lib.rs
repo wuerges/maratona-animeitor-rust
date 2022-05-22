@@ -54,11 +54,11 @@ pub struct Problem {
 #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TimerData {
     pub current_time: TimeFile,
-    pub score_freeze_time: i64,
+    pub score_freeze_time: TimeFile,
 }
 
 impl TimerData {
-    pub fn new(current_time: TimeFile, score_freeze_time: i64) -> Self {
+    pub fn new(current_time: TimeFile, score_freeze_time: TimeFile) -> Self {
         Self {
             current_time,
             score_freeze_time,
