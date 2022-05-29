@@ -54,11 +54,11 @@ pub struct Problem {
 #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TimerData {
     pub current_time: TimeFile,
-    pub score_freeze_time: i64,
+    pub score_freeze_time: TimeFile,
 }
 
 impl TimerData {
-    pub fn new(current_time: TimeFile, score_freeze_time: i64) -> Self {
+    pub fn new(current_time: TimeFile, score_freeze_time: TimeFile) -> Self {
         Self {
             current_time,
             score_freeze_time,
@@ -440,6 +440,24 @@ impl PartialOrd for RunTuple {
 impl Ord for RunTuple {
     fn cmp(&self, other: &Self) -> Ordering {
         self.time.cmp(&other.time)
+    }
+}
+
+impl fmt::Display for RunTuple {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl RunTuple {
+    pub fn new(id : i64, time: i64, team_login : String, prob : String, answer : Answer) -> Self {
+        Self {
+            id,
+            time,
+            team_login,
+            prob,
+            answer
+        }
     }
 }
 

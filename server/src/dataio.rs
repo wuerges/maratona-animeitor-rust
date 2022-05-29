@@ -2,7 +2,6 @@ use crate::errors::{CResult, Error};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
-// use rustrimeitor::*;
 use data::*;
 use html_escape::decode_html_entities_to_string;
 
@@ -64,20 +63,20 @@ impl FromString for ContestFile {
     fn from_string(s: &str) -> CResult<Self> {
         let mut lines = s.lines();
 
-        let contest_name = lines.next().unwrap();
-        let contest_params: Vec<&str> = lines.next().unwrap().split("").collect();
+        let contest_name = lines.next().ok_or(Error::ContestFileParse("contest name"))?;
+        let contest_params: Vec<&str> = lines.next().ok_or(Error::ContestFileParse("timing params"))?.split("").collect();
         let maximum_time = contest_params[0].parse()?;
         let current_time = contest_params[1].parse()?;
         let score_freeze_time = contest_params[2].parse()?;
         let penalty = contest_params[3].parse()?;
 
-        let team_params: Vec<&str> = lines.next().unwrap().split("").collect();
+        let team_params: Vec<&str> = lines.next().ok_or(Error::ContestFileParse("team params"))?.split("").collect();
         let number_teams: usize = team_params[0].parse()?;
         let number_problems: usize = team_params[1].parse()?;
 
         let mut teams = Vec::new();
         for _ in 0..number_teams {
-            let t = Team::from_string(lines.next().unwrap())?;
+            let t = Team::from_string(lines.next().ok_or(Error::ContestFileParse("team"))?)?;
             teams.push(t);
         }
 
@@ -310,7 +309,7 @@ mod tests {
             }
         }
 
-        r2.contest.recalculate_placement().unwrap();
+        r2.contest.recalculate_placement(None).unwrap();
 
         for t in r1.contest.teams.values() {
             let t2_p = r2.contest.placement(&t.login).unwrap();

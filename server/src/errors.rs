@@ -1,6 +1,18 @@
 use thiserror::Error;
+use warp::reject::Reject;
+use warp::Rejection;
+use zip::result::ZipError;
 
 pub type CResult<T> = std::result::Result<T, Error>;
+
+#[derive(Debug)]
+pub struct SerializationError(pub serde_json::Error);
+impl Reject for SerializationError {}
+impl From<SerializationError> for Rejection {
+    fn from(other: SerializationError) -> Self {
+        warp::reject::custom(other)
+    }
+}
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -14,10 +26,19 @@ pub enum Error {
     Hyper(#[from] hyper::Error),
 
     #[error(transparent)]
+    ZipError(#[from] ZipError),
+
+    #[error("Error sending data after DB refresh: {0}")]
+    SendError(String),
+
+    #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),
 
     #[error("Invalid Answer: {0}")]
     InvalidAnswer(String),
+
+    #[error("Could not parse contest file: {0}")]
+    ContestFileParse(&'static str),
 
     #[error(transparent)]
     Chain(#[from] data::ContestError),

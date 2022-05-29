@@ -2,26 +2,35 @@ use crate::{requests, views};
 use data;
 use seed::{prelude::*, *};
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
-    let ws = WebSocket::builder(requests::get_ws_url("/timer"), orders)
+fn open_websocket(orders: &mut impl Orders<Msg>) -> WebSocket {
+  log("connecting...");
+  WebSocket::builder(requests::get_ws_url("/timer"), orders)
         .on_message(Msg::TimerUpdate)
+        .on_open(Msg::Open)
+        .on_close(Msg::Close)
         .build_and_open()
-        .expect("Open WebSocket");
+        .expect("Open WebSocket")
+}
+
+fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
     Model {
         p_timer_data: data::TimerData::new(0, 1),
         timer_data: data::TimerData::fake(),
-        _socket: ws,
+        socket: open_websocket(orders),
     }
 }
 
 struct Model {
     p_timer_data: data::TimerData,
     timer_data: data::TimerData,
-    _socket: WebSocket,
+    socket: WebSocket,
 }
 
 enum Msg {
     TimerUpdate(WebSocketMessage),
+    Open(),
+    Close(CloseEvent),
+    Reconnect,
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -33,6 +42,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             if model.timer_data == model.p_timer_data {
                 orders.skip();
             }
+        }
+        Msg::Open() => {
+            log("... connected!");
+        }
+        Msg::Close(e) => {
+            log(e);
+            orders.perform_cmd(cmds::timeout(5000, || Msg::Reconnect));
+        }
+        Msg::Reconnect => {
+            model.socket = open_websocket(orders);
         }
     }
 }

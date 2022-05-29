@@ -30,15 +30,15 @@ cd maratona-animeitor-rust
 Compile e rode:
 
 ```
-( cd client && wasm-pack build --target web --out-name package )
-cargo run --release --bin simples <url_do_placar> --port 9091
+wasm-pack build --release --target web --out-name package client
+cargo run --release --bin simples -- <url_do_placar> --port 9091
 ```
 
 O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
 
 ```
 cargo make build_release
-cargo run --release --bin simples ./tests/inputs/webcast_jones.zip
+cargo run --release --bin simples -- ./tests/inputs/webcast_jones.zip
 ```
 
 Mais opções podem ser examinadas com o comando help:
@@ -66,3 +66,20 @@ Maratona Rustreimator rodando!
 Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
 
 O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](client/static/styles.css).
+
+
+# Desenvolvimento
+
+```
+wasm-pack build --dev --target web --out-name package client
+cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+```
+
+Cargo watch can be used to help development:
+```
+# one tab with the client
+cargo watch -- wasm-pack build --dev --target web --out-name package client
+
+# other tab with the server
+cargo watch -- cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+```
