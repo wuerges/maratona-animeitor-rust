@@ -10,10 +10,10 @@ use warp::filters::BoxedFilter;
 use tokio::sync::broadcast;
 use crate::routes;
 
-pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: broadcast::Sender::<RunTuple>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: Arc<broadcast::Sender::<RunTuple>>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(routes::with_db(shared_db.clone()))
-        .and(warp::any().map(move || runs_tx.subscribe()))
+        .and(warp::any().map(move || runs_tx.clone()))
         .map(|ws: warp::ws::Ws, db, tx| ws.on_upgrade(move |ws| serve_all_runs_ws(ws, db, tx)))
         .boxed()
 }
@@ -27,8 +27,9 @@ async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : 
 async fn serve_all_runs_ws(
     ws: warp::ws::WebSocket,
     runs: Arc<Mutex<DB>>,
-    mut rx: broadcast::Receiver<RunTuple>,
+    runs_tx: Arc<broadcast::Sender::<RunTuple>>,
 ) {
+    let mut rx = runs_tx.subscribe();
     let (mut tx, _) = ws.split();
 
     let fut = async move {
@@ -60,7 +61,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_serve_timer_ws() {
-        let (runs_tx, _) : (broadcast::Sender::<RunTuple>, _) = broadcast::channel(1000000);
+        let (orig_runs_tx, _) : (broadcast::Sender::<RunTuple>, _) = broadcast::channel(1000000);
+        let runs_tx = Arc::new(orig_runs_tx);
         let send_runs_tx = runs_tx.clone();
 
         let db = Arc::new(Mutex::new(DB::empty()));

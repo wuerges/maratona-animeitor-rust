@@ -32,7 +32,7 @@ async fn update_runs_from_data(
 
 pub fn spawn_db_update_f<F, Fut>(loader: F) -> (
     Arc<Mutex<DB>>,
-    broadcast::Sender<data::RunTuple>,
+    Arc<broadcast::Sender<data::RunTuple>>,
     broadcast::Sender<data::TimerData>
 )
 where
@@ -41,8 +41,9 @@ where
 {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
     let cloned_db = shared_db.clone();
-    let (runs_tx, _) = broadcast::channel(1000000);
+    let (orig_runs_tx, _) = broadcast::channel(1000000);
     let (time_tx, _) = broadcast::channel(1000000);
+    let runs_tx = Arc::new(orig_runs_tx);
     let runs_tx_2 = runs_tx.clone();
     let time_tx_2 = time_tx.clone();
 
