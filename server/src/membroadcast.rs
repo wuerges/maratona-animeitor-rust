@@ -1,6 +1,6 @@
 use tokio::sync::broadcast;
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use parking_lot::RwLock;
 
 pub struct Receiver<T: Clone> {
     rx : broadcast::Receiver<T>,
@@ -31,25 +31,25 @@ impl<T: Clone> Receiver<T> {
 
 pub struct Sender<T: Clone> {
     tx : broadcast::Sender<T>,
-    messages: Mutex<Vec<T>>
+    messages: RwLock<Vec<T>>
 }
 
 impl<T: Clone> Sender<T> {
     fn new(tx : broadcast::Sender<T>) -> Self {
         Self {
             tx,
-            messages: Mutex::new(Vec::new())
+            messages: RwLock::new(Vec::new())
         }
     }
 
     pub fn send_memo(&self, value: T) -> usize {
-        self.messages.lock().unwrap().push(value.clone());
+        self.messages.write().push(value.clone());
         self.tx.send(value).unwrap_or(0)
     }
 
     pub fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
-        Receiver::new(rx, &self.messages.lock().unwrap())
+        Receiver::new(rx, &self.messages.read())
     }
 
     pub fn receiver_count(&self) -> usize {
@@ -60,7 +60,7 @@ impl<T: Clone> Sender<T> {
 pub fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let (tx, rx) = broadcast::channel(capacity);
     let mem_tx = Sender::new(tx);
-    let mem_rx = Receiver::new(rx, &mem_tx.messages.lock().unwrap());
+    let mem_rx = Receiver::new(rx, &mem_tx.messages.read());
     (mem_tx, mem_rx)
 }
 
