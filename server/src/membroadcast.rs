@@ -41,9 +41,9 @@ impl<T: Clone> MemSender<T> {
         }
     }
 
-    pub fn send_memo(&mut self, value: T) -> Result<usize, broadcast::SendError<T>> {
+    pub fn send_memo(&mut self, value: T) -> usize {
         self.messages.push(value.clone());
-        self.tx.send(value)
+        self.tx.send(value).unwrap_or(0)
     }
 
     pub fn subscribe(&self) -> MemReceiver<T> {
@@ -81,7 +81,7 @@ mod tests {
 
         assert_eq!(tx.receiver_count(), 1);
 
-        tx.send_memo(10).unwrap();
+        tx.send_memo(10);
         println!("send_memo 10");
 
         let mut rx2 = tx.subscribe();
@@ -94,7 +94,7 @@ mod tests {
         });
         assert_eq!(tx.receiver_count(), 2);
 
-        tx.send_memo(20).unwrap();
+        tx.send_memo(20);
         println!("send_memo 20");
 
         let mut rx3 = tx.subscribe();
@@ -107,7 +107,7 @@ mod tests {
         });
 
         assert_eq!(tx.receiver_count(), 3);
-        tx.send_memo(30).unwrap();
+        tx.send_memo(30);
         println!("send_memo 30");
 
         t1.await.expect("t1");
