@@ -1,5 +1,5 @@
 use crate::DB;
-use crate::errors::{CResult, Error};
+use crate::errors::CResult;
 
 use std::future::Future;
 use std::sync::Arc;
@@ -20,14 +20,11 @@ async fn update_runs_from_data(
     let mut db = runs.lock().await;
     let fresh_runs = db.refresh_db(time_data, contest_data, runs_data)?;
 
-    if runs_tx.receiver_count() > 0 {
-        for r in fresh_runs {
-            runs_tx.send_memo(r.clone());
-        }
+    for r in fresh_runs {
+        runs_tx.send_memo(r.clone());
     }
-    if time_tx.receiver_count() > 0 {
-        time_tx.send(db.timer_data()).map_err(|e| Error::SendError(format!("Cannot send timer {:?}", e)))?;
-    }
+
+    time_tx.send(db.timer_data()).ok();
     Ok(())
 }
 

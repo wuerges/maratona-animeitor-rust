@@ -52,7 +52,7 @@ impl<T: Clone> Sender<T> {
         Receiver::new(rx, &self.messages.read())
     }
 
-    pub fn receiver_count(&self) -> usize {
+    pub fn receiver_count_memo(&self) -> usize {
         self.tx.receiver_count()
     }
 }
