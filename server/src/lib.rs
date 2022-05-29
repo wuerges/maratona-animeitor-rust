@@ -30,7 +30,7 @@ use warp::Filter;
 
 pub fn route_contest_public_data(
     shared_db: Arc<Mutex<DB>>,
-    runs_tx: Arc<broadcast::Sender<data::RunTuple>>,
+    runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let runs = warp::path("runs")
@@ -53,7 +53,7 @@ pub fn route_contest_public_data(
 pub fn serve_urlbase(
     config: ConfigContest,
     shared_db: Arc<Mutex<DB>>,
-    runs_tx: Arc<broadcast::Sender<data::RunTuple>>,
+    runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     secret: &String,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
@@ -145,7 +145,7 @@ pub async fn serve_simple_contest_f<F, Fut>(
 pub async fn serve_simple_contest_assets(
     config: ConfigContest,
     db: Arc<Mutex<DB>>,
-    runs_tx: Arc<broadcast::Sender<data::RunTuple>>,
+    runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     server_port: u16,
     secret: &String,

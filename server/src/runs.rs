@@ -7,10 +7,11 @@ use futures::{SinkExt, StreamExt, stream::SplitSink};
 use warp::ws::Message;
 use warp::{Filter, Reply};
 use warp::filters::BoxedFilter;
+use crate::membroadcast;
 use tokio::sync::broadcast;
 use crate::routes;
 
-pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: Arc<broadcast::Sender::<RunTuple>>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_all_runs(shared_db: Arc<Mutex<DB>>, runs_tx: Arc<membroadcast::Sender::<RunTuple>>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(routes::with_db(shared_db.clone()))
         .and(warp::any().map(move || runs_tx.clone()))
@@ -27,7 +28,7 @@ async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r : 
 async fn serve_all_runs_ws(
     ws: warp::ws::WebSocket,
     runs: Arc<Mutex<DB>>,
-    runs_tx: Arc<broadcast::Sender::<RunTuple>>,
+    runs_tx: Arc<membroadcast::Sender::<RunTuple>>,
 ) {
     let mut rx = runs_tx.subscribe();
     let (mut tx, _) = ws.split();
@@ -61,7 +62,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_serve_timer_ws() {
-        let (orig_runs_tx, _) : (broadcast::Sender::<RunTuple>, _) = broadcast::channel(1000000);
+        let (orig_runs_tx, _) : (membroadcast::Sender::<RunTuple>, _) = membroadcast::channel(1000000);
         let runs_tx = Arc::new(orig_runs_tx);
         let send_runs_tx = runs_tx.clone();
 
@@ -81,8 +82,8 @@ mod tests {
             .await
             .expect("handshake");
 
-        send_runs_tx.send(run1).expect("to send runs");
-        send_runs_tx.send(run2).expect("to send runs");
+        send_runs_tx.send_memo(run1);
+        send_runs_tx.send_memo(run2);
 
         assert_eq!(client1.recv().await.expect("to receive message"), expected1);
         assert_eq!(client1.recv().await.expect("to receive message"), expected2);
