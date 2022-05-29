@@ -80,7 +80,7 @@ mod tests {
             println!("rx1 finished");
         });
 
-        assert_eq!(tx.receiver_count(), 1);
+        assert_eq!(tx.receiver_count_memo(), 1);
 
         tx.send_memo(10);
         println!("send_memo 10");
@@ -93,7 +93,7 @@ mod tests {
             assert_eq!(rx2.recv().await.unwrap(), 30);
             println!("rx2 finished");
         });
-        assert_eq!(tx.receiver_count(), 2);
+        assert_eq!(tx.receiver_count_memo(), 2);
 
         tx.send_memo(20);
         println!("send_memo 20");
@@ -107,7 +107,7 @@ mod tests {
             println!("rx3 finished");
         });
 
-        assert_eq!(tx.receiver_count(), 3);
+        assert_eq!(tx.receiver_count_memo(), 3);
         tx.send_memo(30);
         println!("send_memo 30");
 
