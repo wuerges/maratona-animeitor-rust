@@ -70,7 +70,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mem_broadcast() {
-        let (mut tx, mut rx1) = channel(1_000_000);
+        let (tx, mut rx1) = channel(1_000_000);
 
         let t1 = tokio::spawn(async move {
             println!("rx1 started");
