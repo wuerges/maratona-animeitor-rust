@@ -23,6 +23,7 @@ thiserror = "1.0"
 toml = "0.5"
 futures = "0.3"
 html-escape = "0.2.9"
+parking_lot = "0.12.0"
 
 [dependencies.data]
 path = "../data"

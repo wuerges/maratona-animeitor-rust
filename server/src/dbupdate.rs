@@ -1,9 +1,10 @@
 use crate::DB;
-use crate::errors::{CResult, Error};
+use crate::errors::CResult;
 
 use std::future::Future;
 use std::sync::Arc;
 
+use crate::membroadcast;
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 
@@ -11,7 +12,7 @@ use tokio::{spawn, sync::Mutex};
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
     runs: &Arc<Mutex<DB>>,
-    runs_tx: &broadcast::Sender<data::RunTuple>,
+    runs_tx: &membroadcast::Sender<data::RunTuple>,
     time_tx: &broadcast::Sender<data::TimerData>,
 ) -> CResult<()> {
     let (time_data, contest_data, runs_data) = data;
@@ -19,20 +20,17 @@ async fn update_runs_from_data(
     let mut db = runs.lock().await;
     let fresh_runs = db.refresh_db(time_data, contest_data, runs_data)?;
 
-    if runs_tx.receiver_count() > 0 {
-        for r in fresh_runs {
-            runs_tx.send(r.clone()).map_err(|e| Error::SendError(format!("{:?}", e)))?;
-        }
+    for r in fresh_runs {
+        runs_tx.send_memo(r.clone());
     }
-    if time_tx.receiver_count() > 0 {
-        time_tx.send(db.timer_data()).map_err(|e| Error::SendError(format!("Cannot send timer {:?}", e)))?;
-    }
+
+    time_tx.send(db.timer_data()).ok();
     Ok(())
 }
 
 pub fn spawn_db_update_f<F, Fut>(loader: F) -> (
     Arc<Mutex<DB>>,
-    broadcast::Sender<data::RunTuple>,
+    Arc<membroadcast::Sender<data::RunTuple>>,
     broadcast::Sender<data::TimerData>
 )
 where
@@ -41,8 +39,9 @@ where
 {
     let shared_db = Arc::new(Mutex::new(DB::empty()));
     let cloned_db = shared_db.clone();
-    let (runs_tx, _) = broadcast::channel(1000000);
+    let (orig_runs_tx, _) = membroadcast::channel(1000000);
     let (time_tx, _) = broadcast::channel(1000000);
+    let runs_tx = Arc::new(orig_runs_tx);
     let runs_tx_2 = runs_tx.clone();
     let time_tx_2 = time_tx.clone();
 
