@@ -6,6 +6,7 @@ mod errors;
 mod dbupdate;
 mod timer;
 mod runs;
+mod membroadcast;
 
 use data::configdata::ConfigContest;
 
