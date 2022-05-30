@@ -1,20 +1,5 @@
 use data::configdata::*;
 
-// fn sede_from_value(v : Value) -> CResult<Sede> {
-//     let nome = v.get("nome").unwrap();
-//     let codigo = v.get("nome").unwrap();
-//     let premiacao = v.get("nome").unwrap().as_bool().unwrap();
-//     let vagas = v.get("nome").unwrap().as_integer().unwrap();
-//     Ok(Sede::new(
-//         nome,
-//         "",
-//         "",
-//         codigo,
-//         premiacao,
-//         vagas,
-//     ))
-// }
-
 pub fn pack_contest_config(
     sedes: ConfigSedes,
     escolas: ConfigEscolas,
