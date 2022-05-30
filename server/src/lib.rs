@@ -91,8 +91,7 @@ async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, war
 async fn serve_contest_config(
     config: Arc<ConfigContest>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let r = serde_json::to_string(&*config).unwrap();
-    Ok(r)
+    Ok(serde_json::to_string(&*config).map_err(SerializationError)?)
 }
 
 pub fn random_path_part() -> String {

@@ -67,7 +67,7 @@ async fn main() {
         .map(|p| p.parse().expect("Expected a TCP port"))
         .unwrap_or(8000);
 
-    let url_base = matches.value_of("URL").unwrap();
+    let url_base = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
 
     let config_file_escolas = matches.value_of("schools").unwrap_or("config/Escolas.toml");
