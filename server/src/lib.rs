@@ -80,8 +80,7 @@ async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Reje
 
 async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
-    let r = serde_json::to_string(&db.run_file_secret).unwrap();
-    Ok(r)
+    Ok(serde_json::to_string(&db.run_file_secret).map_err(SerializationError)?)
 }
 
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
