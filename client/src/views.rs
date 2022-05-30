@@ -2,9 +2,6 @@
 use data::{ContestFile, TimerData};
 use data::configdata::Sede;
 use seed::{prelude::*, *};
-use crate::helpers::*;
-
-
 
 pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
     match sede {
@@ -146,7 +143,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
                             div![C!["baixo"], score.penalty],
                         ],
                     ],
-                    all_problems.char_indices().map( |(prob_i, prob)| {
+                    all_problems.char_indices().map( |(_prob_i, prob)| {
                         match team.problems.get(&prob.to_string()) {
 
                             None => div![C!["not-tried", "cell", "quadrado"], "-"],

@@ -1,7 +1,7 @@
 use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
-use data::revelation::{RevelationDriver, Winner};
+use data::revelation::RevelationDriver;
 use seed::{prelude::*, *};
 
 extern crate rand;
@@ -104,7 +104,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                                 .map( |r| r.peek() )
                                 .flatten()
                                 .cloned();
-            
+
             // log!("event: ", event);
             // match event {
             //     None => {

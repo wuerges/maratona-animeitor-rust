@@ -1,7 +1,5 @@
 use seed::prelude::*;
 
-use data::Team;
-
 pub fn get_secret(url : &Url) -> String {
     url.search()
         .get("secret").expect("Error: no secret search field in URL")
