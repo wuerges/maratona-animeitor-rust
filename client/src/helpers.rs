@@ -16,8 +16,3 @@ pub fn get_url_filter(url : &Url) -> Option<Vec<String>> {
 pub fn get_sede(url : &Url) -> Option<String> {
     url.search().get("sede").unwrap_or(&vec![]).iter().cloned().next()
 }
-
-
-pub fn get_answer_hue_deg(num_problems: usize, problem_number: u32) -> u32 {
-    (360 / num_problems as u32) * problem_number
-}

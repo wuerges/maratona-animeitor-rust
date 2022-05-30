@@ -120,7 +120,6 @@ fn view(model: &Model) -> Node<Msg> {
             |r|data::check_filter_login(model.url_filter.as_ref(), &r.team_login)
         ).enumerate().map({
             |(i, r)| {
-                let pnum = data::PROBLEM_LETTERS.find(r.problem.as_str()).unwrap_or(0);
                 let balao = std::format!("balao_{}", r.problem);
                 div![
                     C!["run"],
