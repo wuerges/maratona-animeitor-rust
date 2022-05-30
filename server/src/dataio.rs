@@ -1,5 +1,4 @@
 use crate::errors::{CResult, Error};
-use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, Read};
 use data::*;
@@ -137,7 +136,6 @@ impl DB {
             .sorted()
             .into_iter()
             .filter(|r| r.time < self.contest_file.score_freeze_time)
-            // .take(n)
             .map(|r| {
                 let dummy = Team::dummy();
                 let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
@@ -165,22 +163,6 @@ impl DB {
         }
     }
 
-    pub fn get_scoreboard(&self) -> (&Vec<String>, &BTreeMap<String, Team>, usize) {
-        (
-            &self.contest_file.score_board,
-            &self.contest_file.teams,
-            self.contest_file.number_problems,
-        )
-    }
-
-    pub fn recalculate_score(&mut self) -> CResult<()> {
-        self.contest_file = self.contest_file_begin.clone();
-        for r in &self.run_file.sorted() {
-            self.contest_file.apply_run(r)?;
-        }
-        Ok(self.contest_file.reload_score()?)
-    }
-
     pub fn refresh_db(
         &mut self,
         time: i64,
@@ -195,8 +177,6 @@ impl DB {
 
         let fresh = self.run_file.refresh(runs_frozen.sorted());
         self.run_file_secret = runs;
-
-        self.recalculate_score()?;
 
         Ok(fresh)
     }
