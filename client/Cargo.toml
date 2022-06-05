@@ -4,7 +4,7 @@ name = "client"
 repository = "https://github.com/seed-rs/seed-quickstart"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 description = "App Description"
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
