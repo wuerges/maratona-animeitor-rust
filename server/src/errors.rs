@@ -1,6 +1,5 @@
 use thiserror::Error;
 use warp::reject::Reject;
-use warp::Rejection;
 use zip::result::ZipError;
 
 pub type CResult<T> = std::result::Result<T, Error>;
@@ -8,11 +7,6 @@ pub type CResult<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub struct SerializationError(pub serde_json::Error);
 impl Reject for SerializationError {}
-impl From<SerializationError> for Rejection {
-    fn from(other: SerializationError) -> Self {
-        warp::reject::custom(other)
-    }
-}
 
 #[derive(Error, Debug)]
 pub enum Error {

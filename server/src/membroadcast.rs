@@ -19,7 +19,7 @@ impl<T: Clone> Receiver<T> {
         }
     }
 
-    pub async fn recv(&mut self) -> Result<T, broadcast::RecvError> {
+    pub async fn recv(&mut self) -> Result<T, broadcast::error::RecvError> {
         let front = self.messages.pop_front();
 
         match front {
