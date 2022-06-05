@@ -103,7 +103,7 @@ pub fn random_path_part() -> String {
     let mut rng = rand::thread_rng();
     (0..PASSWORD_LEN)
         .map(|_| {
-            let idx = rng.gen_range(0, CHARSET.len());
+            let idx = rng.gen_range(0..CHARSET.len());
             CHARSET[idx] as char
         })
         .collect()
