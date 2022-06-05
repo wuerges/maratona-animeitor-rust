@@ -1,10 +1,11 @@
 use crate::{requests, views};
 use data;
 use seed::{prelude::*, *};
+use serde_json;
 
 fn open_websocket(orders: &mut impl Orders<Msg>) -> WebSocket {
-  log("connecting...");
-  WebSocket::builder(requests::get_ws_url("/timer"), orders)
+    log("connecting...");
+    WebSocket::builder(requests::get_ws_url("/timer"), orders)
         .on_message(Msg::TimerUpdate)
         .on_open(Msg::Open)
         .on_close(Msg::Close)
@@ -36,8 +37,24 @@ enum Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::TimerUpdate(m) => {
+            // Gets the text of the websocket message
+            let text = m.text().expect("text");
+
+            // Gets the JsValue: WORKS!
+            let js_value : JsValue = JsValue::from_str(&text);
+            log!(js_value);
+
+            // Gets the data::TimerData directly from the text: WORKS!
+            let timer_serde : data::TimerData = serde_json::from_str(&text).expect("timer data");
+            log!(timer_serde);
+
+            // Gets the data::TimerData from the JsValue: BROKEN =/
+            let timer_into_serde : data::TimerData = js_value.into_serde().expect("timer data");
+            // let timer_into_serde : data::TimerData = m.json().expect("timer data");
+            log!(timer_into_serde);
+
             model.p_timer_data = model.timer_data;
-            model.timer_data = m.json().expect("Message should have TimerData");
+            // model.timer_data = m.json().into_serde().expect("Message should have TimerData");
 
             if model.timer_data == model.p_timer_data {
                 orders.skip();

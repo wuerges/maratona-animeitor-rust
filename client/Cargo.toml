@@ -13,8 +13,9 @@ crate-type = ["cdylib"]
 wasm-bindgen-test = "0.3"
 
 [dependencies]
-seed = "0.8"
+seed = "0.9.1"
 rand = "0.8"
+serde_json = "1.0"
 
 [profile.release]
 lto = true
