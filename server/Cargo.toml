@@ -22,7 +22,7 @@ itertools = "0.10"
 thiserror = "1.0"
 toml = "0.5"
 futures = "0.3"
-html-escape = "0.2.9"
+html-escape = "0.2"
 parking_lot = "0.12"
 
 [dependencies.data]
