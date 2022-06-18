@@ -16,7 +16,6 @@ wasm-bindgen-test = "0.3"
 # seed = "0.9.1"
 seed = { path = "../../seed" }
 rand = "0.8"
-serde_json = "1.0"
 
 [profile.release]
 lto = true
