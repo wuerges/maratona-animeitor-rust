@@ -50,6 +50,8 @@ fn read_from_zip(
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
+        .or_else(|_| try_read_from_zip(zip, &format!("./webcast/{}", name)))
+        .or_else(|_| try_read_from_zip(zip, &format!("webcast/{}", name)))
 }
 
 pub async fn load_data_from_url_maybe(
