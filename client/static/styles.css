@@ -42,10 +42,10 @@ body {
   width: 100%;
   position: absolute;
   display: flex;
-  transition: top 5s ease 0s;
 }
 
 .run_box {
+  transition: top 5s ease 0s;
   position: absolute;
   width: 100%;
 }
