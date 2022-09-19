@@ -1,4 +1,5 @@
-#  Maratona Rustrimeitor
+# Maratona Rustrimeitor
+
 ## Placar para live streaming do BOCA para uso no OBS
 
 Este placar foi feito para as etapas regional e nacional da Maratona de Programação da SBC.
@@ -47,7 +48,6 @@ Mais opções podem ser examinadas com o comando help:
 cargo run --release --bin simples -- --help
 ```
 
-
 ## Configurando o OBS e customizando o placar
 
 A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o programa mostrar:
@@ -67,7 +67,6 @@ Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do b
 
 O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](client/static/styles.css).
 
-
 # Desenvolvimento
 
 ```
@@ -76,6 +75,7 @@ cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc
 ```
 
 Cargo watch can be used to help development:
+
 ```
 # one tab with the client
 cargo watch -- wasm-pack build --dev --target web --out-name package client
@@ -83,3 +83,25 @@ cargo watch -- wasm-pack build --dev --target web --out-name package client
 # other tab with the server
 cargo watch -- cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
+
+# Usando Docker
+
+Construindo a imagem:
+
+```
+docker build -t animeitor .
+```
+
+Executando a imagem:
+
+```
+docker run -p 9091:9091 animeitor --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+```
+
+Executando a imagem, direto do dockerhub:
+
+```
+docker run -p 9091:9091 wuerges/animeitor --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+```
+
+Verifique no seu navegador: http://localhost:9091/reveleitor.html?secret=abc
