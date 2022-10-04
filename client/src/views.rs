@@ -1,34 +1,27 @@
-
-use data::{ContestFile, TimerData};
 use data::configdata::Sede;
+use data::{ContestFile, TimerData};
 use seed::{prelude::*, *};
 
-pub fn get_color(n : usize, sede: Option<&Sede>) -> &str {
+pub fn get_color(n: usize, sede: Option<&Sede>) -> &str {
     match sede {
-        Some(sede) => {
-            sede.premio(n)
-        },
+        Some(sede) => sede.premio(n),
         None => {
             if n == 0 {
                 "vermelho"
-            }
-            else if n <= 4 {
+            } else if n <= 4 {
                 "ouro"
-            }
-            else if n <= 8 {
+            } else if n <= 8 {
                 "prata"
-            }
-            else if n <= 12 {
+            } else if n <= 12 {
                 "bronze"
-            }
-            else {
+            } else {
                 "semcor"
             }
         }
     }
 }
 
-pub fn cell_top(i : usize, center: &Option<usize>) -> String {
+pub fn cell_top(i: usize, center: &Option<usize>) -> String {
     let i = i as i64;
     match center {
         None => format!("calc(var(--row-height) * {} + var(--root-top))", i),
@@ -36,9 +29,11 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
             let p = *p as i64;
             if p < 9 {
                 format!("calc(var(--row-height) * {} + var(--root-top))", i)
-            }
-            else {
-                format!("calc(var(--row-height) * {} + var(--root-top-center))", (i - p))
+            } else {
+                format!(
+                    "calc(var(--row-height) * {} + var(--root-top-center))",
+                    (i - p)
+                )
             }
         }
     }
@@ -46,9 +41,10 @@ pub fn cell_top(i : usize, center: &Option<usize>) -> String {
 
 use std::collections::BTreeMap;
 fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize>
-where I : Iterator<Item= &'a usize>
-    {
-    let mut v :Vec<_>= plac.collect();
+where
+    I: Iterator<Item = &'a usize>,
+{
+    let mut v: Vec<_> = plac.collect();
     v.sort();
 
     let mut ret = BTreeMap::new();
@@ -59,38 +55,55 @@ where I : Iterator<Item= &'a usize>
     ret
 }
 
-fn center_class(p: usize, center : &Option<usize>) -> std::option::Option<seed::Attrs> {
+fn center_class(p: usize, center: &Option<usize>) -> std::option::Option<seed::Attrs> {
     match center {
         None => None,
-        Some(c) => if *c == p { Some(C!["center"]) } else { None }
+        Some(c) => {
+            if *c == p {
+                Some(C!["center"])
+            } else {
+                None
+            }
+        }
     }
 }
 
-fn number_submissions(s : usize) -> Option<usize> {
-    if s == 1 { None } else { Some(s - 1) }
+fn number_submissions(s: usize) -> Option<usize> {
+    if s == 1 {
+        None
+    } else {
+        Some(s - 1)
+    }
 }
 
-fn nome_sede (sede: Option<&Sede>) -> String {
+fn nome_sede(sede: Option<&Sede>) -> String {
     match sede {
         None => "Placar".to_string(),
-        Some(sede) => sede.name.clone()
+        Some(sede) => sede.name.clone(),
     }
 }
 
-fn estilo_sede (sede: Option<&Sede>) -> Option<&String> {
-    sede.map( |s| s.style.as_ref() ).flatten()
+fn estilo_sede(sede: Option<&Sede>) -> Option<&String> {
+    sede.map(|s| s.style.as_ref()).flatten()
 }
 
-pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: Option<&Sede>) -> Node<T> {
-
+pub fn view_scoreboard<T>(
+    contest: &ContestFile,
+    center: &Option<String>,
+    sede: Option<&Sede>,
+) -> Node<T> {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
-    let url_filter =  sede.as_ref().map( |s| &s.codes );
+    let url_filter = sede.as_ref().map(|s| &s.codes);
 
     let n = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
-    let compressed_ = compress_placement(contest.teams.values()
-                        .filter( |t| data::check_filter(url_filter, t))
-                        .map(|t| &t.placement));
+    let compressed_ = compress_placement(
+        contest
+            .teams
+            .values()
+            .filter(|t| data::check_filter(url_filter, t))
+            .map(|t| &t.placement),
+    );
 
     let is_compressed = compressed_.len() < contest.teams.len();
     div![
@@ -119,7 +132,7 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
             let display = data::check_filter(url_filter, team);
             div![
                 C!["run_box"],
-                style!{St::Top => cell_top(p2, &p_center)},
+                style!{St::Top => cell_top(p2, &p_center), St::ZIndex => (-1 * p2 as i32)},
                 div![
                     IF!(!display => style!{St::Display => "none"}),
                     id![&team.login],
@@ -184,37 +197,40 @@ pub fn view_scoreboard<T>(contest: &ContestFile, center: &Option<String>, sede: 
     ]
 }
 
-fn f(n : i64) -> String {
+fn f(n: i64) -> String {
     format!("{:0>2}", n)
 }
 
-fn seg(n : i64) -> i64 {
+fn seg(n: i64) -> i64 {
     n % 60
-
 }
-fn min(n : i64) -> i64 {
+fn min(n: i64) -> i64 {
     (n / 60) % 60
 }
-fn hor(n : i64) -> i64 {
+fn hor(n: i64) -> i64 {
     n / 60 / 60
 }
-fn changed(a : i64, b: i64) -> &'static str {
+fn changed(a: i64, b: i64) -> &'static str {
     if a == b {
         "same"
-    }
-    else {
+    } else {
         "changed"
     }
 }
 
-pub fn view_clock<T>(time_data: TimerData, ptime_data : TimerData) -> Node<T> {
-
+pub fn view_clock<T>(time_data: TimerData, ptime_data: TimerData) -> Node<T> {
     let time = time_data.current_time;
     let ptime = ptime_data.current_time;
 
-    let frozen = if time_data.is_frozen() { Some(C!["frozen"]) } else { None };
+    let frozen = if time_data.is_frozen() {
+        Some(C!["frozen"])
+    } else {
+        None
+    };
 
-    div![C!["timer"], frozen,
+    div![
+        C!["timer"],
+        frozen,
         span![C!["hora", changed(hor(time), hor(ptime))], hor(time)],
         span![C!["sep"], ":"],
         span![C!["minuto", changed(min(time), min(ptime))], f(min(time))],
