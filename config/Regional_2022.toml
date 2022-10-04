@@ -1,199 +1,250 @@
 titulo = "Maratona de Programação da SBC - 1ª fase"
 
 [[sedes]]
-name = "Acre"
-codes = ["teambrac"]
+name = "AC, Rio Branco"
+codes = ["bracrb"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Alagoas"
-codes = ["teambral"]
+name = "AM, Manaus"
+codes = ["bramma"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Amazonas"
-codes = ["teambram"]
+name = "BA, Juazeiro"
+codes = ["brbajo"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Amapá"
-codes = ["teambrap"]
+name = "BA, Lauro de Freitas"
+codes = ["brbalf"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Bahia"
-codes = ["teambrba"]
-premiacao = true
-vagas = 2
-
-[[sedes]]
-name = "Ceará"
-codes = ["teambrce"]
-premiacao = true
-vagas = 2
-
-[[sedes]]
-name = "Distrito Federal"
-codes = ["teambrdf"]
+name = "CE, Fortaleza"
+codes = ["brcefa"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Espírito Santo"
-codes = ["teambres"]
+name = "CE, Juazeiro do Norte"
+codes = ["brcejn"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Goiás"
-codes = ["teambrgo"]
+name = "CE, Quixadá"
+codes = ["brceqx"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Maranhão"
-codes = ["teambrma"]
+name = "DF, Brasília"
+codes = ["brdfdf"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Minas Gerais"
-codes = ["teambrmg"]
-premiacao = true
-vagas = 7
-
-[[sedes]]
-name = "Mato Grosso do Sul"
-codes = ["teambrms"]
+name = "ES, Vitória"
+codes = ["bresva"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Mato Grosso"
-codes = ["teambrmt"]
+name = "GO, Goiânia"
+codes = ["brgogo"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Pará"
-codes = ["teambrpa"]
+name = "MA, Balsas"
+codes = ["brmaba"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Paraíba"
-codes = ["teambrpb"]
-premiacao = true
-vagas = 2
-
-[[sedes]]
-name = "Pernambuco"
-codes = ["teambrpe"]
+name = "MG, Belo Horizonte"
+codes = ["brmgbh"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Piauí"
-codes = ["teambrpi"]
-premiacao = false
-vagas = 2
-
-[[sedes]]
-name = "Paraná"
-codes = ["teambrpr"]
-premiacao = true
-vagas = 2
-
-[[sedes]]
-name = "Rio de Janeiro"
-codes = ["teambrrj"]
-premiacao = true
-vagas = 4
-
-[[sedes]]
-name = "Rio Grande do Norte"
-codes = ["teambrrn"]
+name = "MG, Montes Claros"
+codes = ["brmgmc"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Rondônia"
-codes = ["teambrro"]
+name = "MG, Ouro Branco"
+codes = ["brmgob"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Roraima"
-codes = ["teambrrr"]
+name = "MG, Santa Rita do Sapucaí"
+codes = ["brmgss"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Rio Grande do Sul"
-codes = ["teambrrs"]
+name = "MG, Timoteo"
+codes = ["brmgto"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Santa Catarina"
-codes = ["teambrsc"]
-premiacao = true
-vagas = 2
-
-[[sedes]]
-name = "Sergipe"
-codes = ["teambrse"]
+name = "MG, Uberaba"
+codes = ["brmgub"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "São Paulo"
-codes = ["teambrsp"]
-premiacao = true
-vagas = 8
-
-
-[[sedes]]
-name = "Tocantins"
-codes = ["teambrto"]
+name = "MG, Uberlândia"
+codes = ["brmgud"]
 premiacao = false
 vagas = 0
 
 [[sedes]]
-name = "Supersede Centro-Oeste"
-premiacao = true
-vagas = 3
-codes = ["teambrdf", "teambrgo", "teambrmt", "teambrms"]
+name = "MS, Campo Grande"
+codes = ["brmscg"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name = "Supersede Nordeste"
-premiacao = true
-vagas = 3
-codes = ["teambral", "teambrma", "teambrpe", "teambrrn", "teambrse"]
+name = "MT, Cuiabá"
+codes = ["brmtca"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name = "Supersede Norte"
-premiacao = true
-vagas = 2
-codes = [
-    "teambrac",
-    "teambrap",
-    "teambram",
-    "teambrpa",
-    "teambrro",
-    "teambrrr",
-    "teambrto",
-]
+name = "PA, Belém"
+codes = ["brpabe"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name = "Supersede Brasil"
-premiacao = true
-vagas = 2
-codes = ["teambres", "teambrrs"]
+name = "PA, Santarém"
+codes = ["brpasa"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PB, João Pessoa"
+codes = ["brpbjp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PE, Olinda"
+codes = ["brpeol"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PI, Picos"
+codes = ["brpipi"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PI, Teresina"
+codes = ["brpite"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "RO, Porto Velho"
+codes = ["brropv"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PR, Campo Mourão"
+codes = ["brprcm"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PR, Curitiba"
+codes = ["brprct"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "RJ, Rio de Janeiro"
+codes = ["brrjrj"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "RN, Natal"
+codes = ["brrnnt"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "RS, Porto Alegre"
+codes = ["brrspa"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "RS, Rio Grande"
+codes = ["brrsrg"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SC, Chapecó"
+codes = ["brscch"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SE, São Cristovão"
+codes = ["brsesc"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, Bauru"
+codes = ["brspba"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, Piracicaba"
+codes = ["brsppi"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, Santos"
+codes = ["brspsa"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, São José dos Campos"
+codes = ["brspsc"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, São Paulo"
+codes = ["brspsp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SP, Sorocaba"
+codes = ["brspso"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
 name = "Brasil"
