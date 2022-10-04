@@ -1,6 +1,36 @@
 titulo = "Maratona de Programação da SBC - 1ª fase"
 
 [[sedes]]
+name = "Região Norte"
+codes = ["brac", "bram", "brpa", "brro", "brrn"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "Região Nordeste"
+codes = ["brba", "brce", "brma", "brpb", "brpe", "brpi", "brse"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "Região Centro-Oeste"
+codes = ["brdf", "brgo", "brms", "brmt"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "Região Sudeste"
+codes = ["bres", "brmg", "brrj", "brsp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "Região Sul"
+codes = ["brpr", "brsc", "brrs"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
 name = "AC, Rio Branco"
 codes = ["bracrb"]
 premiacao = false
