@@ -13,20 +13,20 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     Model {
         url_filter: get_url_filter(&url),
         runs_file: data::RunsFile::empty(),
-        runs : Vec::new(),
+        runs: Vec::new(),
         contest: data::ContestFile::dummy(),
         ws: None,
-        dirty : true,
+        dirty: true,
     }
 }
 
 struct Model {
     url_filter: Option<Vec<String>>,
     runs_file: data::RunsFile,
-    runs : Vec<data::RunsPanelItem>,
+    runs: Vec<data::RunsPanelItem>,
     contest: data::ContestFile,
     ws: Option<WebSocket>,
-    dirty : bool,
+    dirty: bool,
 }
 
 enum Msg {
@@ -50,20 +50,22 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.url_filter = get_url_filter(&url);
             model.dirty = true;
             orders.skip().perform_cmd(reset());
-        },
+        }
         Msg::RunUpdate(m) => {
-            let run : data::RunTuple = m.json().expect("Expected a RunTuple");
+            let run: data::RunTuple = m.json().expect("Expected a RunTuple");
             if model.runs_file.refresh_1(&run) {
                 model.dirty = true;
             }
             orders.skip();
-        },
+        }
         Msg::Fetched(Ok(contest)) => {
             model.contest = contest;
-            model.ws = Some(WebSocket::builder(get_ws_url("/allruns_ws"), orders)
-                .on_message(Msg::RunUpdate)
-                .build_and_open()
-                .expect("Open WebSocket"));
+            model.ws = Some(
+                WebSocket::builder(get_ws_url("/allruns_ws"), orders)
+                    .on_message(Msg::RunUpdate)
+                    .build_and_open()
+                    .expect("Open WebSocket"),
+            );
             orders.skip();
         }
         Msg::Fetched(Err(e)) => log!("fetched runs error!", e),
@@ -74,21 +76,23 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 for r in &runs {
                     mock.apply_run(r).expect("Should apply run just fine");
                 }
-                mock.recalculate_placement(model.url_filter.as_ref()).expect("Should recalculate placement");
+                mock.recalculate_placement(model.url_filter.as_ref())
+                    .expect("Should recalculate placement");
 
                 runs.reverse();
 
-                model.runs = runs.into_iter().take(30).map(|r| {
-                    mock.build_panel_item(&r).expect("Expected a valid Run")
-                }).collect();
+                model.runs = runs
+                    .into_iter()
+                    .take(30)
+                    .map(|r| mock.build_panel_item(&r).expect("Expected a valid Run"))
+                    .collect();
 
                 model.dirty = false;
 
                 // for r in &model.runs {
                 //     log!("run:", r);
                 // }
-            }
-            else {
+            } else {
                 orders.skip();
             }
         }

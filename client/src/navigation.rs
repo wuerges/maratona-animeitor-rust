@@ -1,6 +1,6 @@
+use crate::helpers::get_url_parameter;
 use data::configdata;
 use seed::{prelude::*, *};
-use crate::helpers::get_url_parameter;
 
 use crate::requests;
 
@@ -9,7 +9,10 @@ extern crate rand;
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.perform_cmd(fetch_all());
 
-    Model { contest: None, contest_name: get_url_parameter(&url, "contest") }
+    Model {
+        contest: None,
+        contest_name: get_url_parameter(&url, "contest"),
+    }
 }
 
 async fn fetch_all() -> Msg {
@@ -19,7 +22,7 @@ async fn fetch_all() -> Msg {
 
 struct Model {
     contest: Option<configdata::ConfigContest>,
-    contest_name: Option<String>
+    contest_name: Option<String>,
 }
 
 enum Msg {
@@ -56,7 +59,10 @@ fn view(model: &Model) -> Node<Msg> {
         None => div![],
         Some(contest) => {
             log!(model.contest_name);
-            let sedes = contest.sedes.iter().filter(|sede| model.contest_name.is_some() && model.contest_name == sede.contest);
+            let sedes = contest
+                .sedes
+                .iter()
+                .filter(|sede| model.contest_name.is_some() && model.contest_name == sede.contest);
 
             return div![
                 C!["sedesnavigation"],

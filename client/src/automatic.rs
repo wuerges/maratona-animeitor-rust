@@ -41,7 +41,10 @@ enum Msg {
     UrlChanged(subs::UrlChanged),
     RunUpdate(WebSocketMessage),
     Reload,
-    Fetched(fetch::Result<data::ContestFile>, fetch::Result<data::configdata::ConfigContest>),
+    Fetched(
+        fetch::Result<data::ContestFile>,
+        fetch::Result<data::configdata::ConfigContest>,
+    ),
 }
 
 async fn fetch_all() -> Msg {
@@ -64,9 +67,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Reload => {
             // log!("reload!");
-            let url_filter = model.sede.as_ref().map( |sede| 
-                model.config.get_sede_nome_sede(sede).as_ref().map( |s| s.codes.clone() )
-            ).flatten();
+            let url_filter = model
+                .sede
+                .as_ref()
+                .map(|sede| {
+                    model
+                        .config
+                        .get_sede_nome_sede(sede)
+                        .as_ref()
+                        .map(|s| s.codes.clone())
+                })
+                .flatten();
             if model.dirty {
                 // log!("reload dirty!");
                 model.contest = model.original.clone();
@@ -81,8 +92,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .recalculate_placement(url_filter.as_ref())
                     .expect("Should recalculate scores");
                 model.dirty = false;
-            }
-            else {
+            } else {
                 // log!("reload clean!");
                 orders.skip();
             }
@@ -94,14 +104,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                         model.dirty = true;
                     }
                     orders.skip();
-                },
+                }
                 Err(e) => {
                     log!("Websocket error: {}", e);
-                    orders.perform_cmd(fetch_all());                    
+                    orders.perform_cmd(fetch_all());
                 }
             }
             // let run: data::RunTuple = m.json().expect("Should be a RunTuple");
-            
         }
         Msg::Fetched(Ok(contest), Ok(config)) => {
             model.original = contest;
@@ -125,7 +134,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    let opt_sede = model.sede.as_ref().map( |sede| model.config.get_sede_nome_sede(sede) ).flatten();
+    let opt_sede = model
+        .sede
+        .as_ref()
+        .map(|sede| model.config.get_sede_nome_sede(sede))
+        .flatten();
     views::view_scoreboard(&model.contest, &model.center, opt_sede)
 }
 

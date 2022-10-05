@@ -1,20 +1,20 @@
-use seed::{prelude::*, *};
 use crate::helpers;
+use seed::{prelude::*, *};
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
 
-    Model { 
-        nome : helpers::get_sede(&url),
+    Model {
+        nome: helpers::get_sede(&url),
     }
 }
 
 struct Model {
-    nome : Option<String>,
+    nome: Option<String>,
 }
 
 enum Msg {
-    UrlChanged(subs::UrlChanged)
+    UrlChanged(subs::UrlChanged),
 }
 
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
@@ -23,7 +23,7 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             model.nome = helpers::get_sede(&url);
             // orders.skip().send_msg(Msg::Reload);
             // url.go_and_load();
-        },
+        }
     }
 }
 
@@ -31,6 +31,6 @@ fn view(model: &Model) -> Node<Msg> {
     div![C!["nomesede"], &model.nome]
 }
 
-pub fn start(e : impl GetElement) {
+pub fn start(e: impl GetElement) {
     App::start(e, init, update, view);
 }

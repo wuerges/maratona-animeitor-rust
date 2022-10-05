@@ -72,10 +72,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.revelation.as_mut().map(|r| r.reveal_step());
 
             // let event = model.revelation.as_mut().map(|r| r.search_for_events()).flatten();
-            model.center = model.revelation.as_mut()
-                                .map( |r| r.peek() )
-                                .flatten()
-                                .cloned();
+            model.center = model
+                .revelation
+                .as_mut()
+                .map(|r| r.peek())
+                .flatten()
+                .cloned();
 
             // match event {
             //     None => {
@@ -100,10 +102,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .as_mut()
                 .map(|r| r.reveal_top_n(n))
                 .flatten();
-            model.center = model.revelation.as_mut()
-                                .map( |r| r.peek() )
-                                .flatten()
-                                .cloned();
+            model.center = model
+                .revelation
+                .as_mut()
+                .map(|r| r.peek())
+                .flatten()
+                .cloned();
 
             // log!("event: ", event);
             // match event {
@@ -138,9 +142,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(_, _, Err(e)) => log!("fetched contest config error!", e),
         Msg::Reset => {
             model.button_disabled = true;
-            orders
-                .skip()
-                .perform_cmd(fetch_all(model.secret.clone()));
+            orders.skip().perform_cmd(fetch_all(model.secret.clone()));
         }
     }
 }

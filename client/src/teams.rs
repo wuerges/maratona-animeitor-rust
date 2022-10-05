@@ -38,9 +38,7 @@ static FAKE: &str = "this.onerror=''; this.src='/static/assets/teams/fake.webp';
 
 fn view(model: &Model) -> Node<Msg> {
     match model.contest.as_ref() {
-        None => div![
-            span!["Failed to load contest config"],
-            ],
+        None => div![span!["Failed to load contest config"],],
         Some(contest) => div![id!["foto_container"],
             contest.teams.iter().map(|(team_login, team_entry)| {
                 let foto_id = format!("foto_{}", team_login);
