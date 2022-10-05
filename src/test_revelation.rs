@@ -16,7 +16,7 @@ pub async fn build_revelation(input_file: &str) -> Vec<String> {
         result.push(format!("{}, {}", driver.peek().unwrap(), driver.len()));
         driver.reveal_step();
     }
-    return result;
+    result
 }
 
 #[cfg(test)]

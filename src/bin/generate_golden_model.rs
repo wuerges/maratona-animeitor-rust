@@ -2,7 +2,7 @@ use rustrimeitor::test_revelation;
 
 extern crate clap;
 use clap::{App, Arg};
-use tokio;
+
 
 #[tokio::main]
 async fn main() {
