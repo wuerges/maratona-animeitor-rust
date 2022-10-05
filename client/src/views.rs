@@ -164,18 +164,15 @@ pub fn view_scoreboard<T>(
                                 if prob_v.solved {
                                     let balao = std::format!("balao_{}", prob);
                                     div![C!["accept", "cell", "quadrado"],
-                                        img![
+                                        div![
                                             C!["accept-img", balao],
-                                            attrs!{At::Src => "/static/assets/balloon.svg"},
-                                        ],
-                                        img![
-                                            C!["accept-img"],
-                                            attrs!{At::Src => "/static/assets/balloon-border.svg"},
                                         ],
                                         div![
                                             C!["accept-text"],
-                                            div!["+", number_submissions(prob_v.submissions)],
-                                            div![prob_v.time_solved],
+                                            "+",
+                                            number_submissions(prob_v.submissions),
+                                            br![],
+                                            prob_v.time_solved,
                                         ],
                                     ]
                                 }
