@@ -1,14 +1,15 @@
 use data::configdata;
 use seed::{prelude::*, *};
+use crate::helpers::get_url_parameter;
 
 use crate::requests;
 
 extern crate rand;
 
-fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.perform_cmd(fetch_all());
 
-    Model { contest: None }
+    Model { contest: None, contest_name: get_url_parameter(&url, "contest") }
 }
 
 async fn fetch_all() -> Msg {
@@ -18,6 +19,7 @@ async fn fetch_all() -> Msg {
 
 struct Model {
     contest: Option<configdata::ConfigContest>,
+    contest_name: Option<String>
 }
 
 enum Msg {
@@ -35,31 +37,40 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     }
 }
 
-fn build_url_filter(sede: &configdata::Sede) -> String {
+fn build_url_filter(model: &Model, sede: &configdata::Sede) -> String {
+    let mut search = vec![
+        ("sede", vec![&sede.name]),
+        ("filter", sede.codes.iter().map(|s| s).collect()),
+    ];
+    if let Some(ref contest_name) = model.contest_name {
+        search.push(("contest", vec![contest_name]));
+    }
     Url::new()
         .add_path_part("everything2.html")
-        .set_search(UrlSearch::new(vec![
-            ("sede", vec![&sede.name]),
-            ("filter", sede.codes.iter().map(|s| s).collect()),
-        ]))
+        .set_search(UrlSearch::new(search))
         .to_string()
 }
 
 fn view(model: &Model) -> Node<Msg> {
     match model.contest.as_ref() {
         None => div![],
-        Some(contest) => div![
-            C!["sedesnavigation"],
-            contest.sedes.iter().map(|sede| {
-                span![
-                    C!["sedeslink"],
-                    a![
-                        attrs! {At::Href=>build_url_filter(&sede), At::Target=>"principal"},
-                        &sede.name
-                    ],
-                ]
-            }),
-        ],
+        Some(contest) => {
+            log!(model.contest_name);
+            let sedes = contest.sedes.iter().filter(|sede| model.contest_name.is_some() && model.contest_name == sede.contest);
+
+            return div![
+                C!["sedesnavigation"],
+                sedes.map(|sede| {
+                    span![
+                        C!["sedeslink"],
+                        a![
+                            attrs! {At::Href=>build_url_filter(model, &sede), At::Target=>"principal"},
+                            &sede.name
+                        ],
+                    ]
+                }),
+            ];
+        }
     }
 }
 

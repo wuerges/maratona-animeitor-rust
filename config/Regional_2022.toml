@@ -5,282 +5,339 @@ name = "Região Norte"
 codes = ["brac", "bram", "brpa", "brro", "brrn"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "Região Nordeste"
 codes = ["brba", "brce", "brma", "brpb", "brpe", "brpi", "brse"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "Região Centro-Oeste"
 codes = ["brdf", "brgo", "brms", "brmt"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "Região Sudeste"
 codes = ["bres", "brmg", "brrj", "brsp"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "Região Sul"
 codes = ["brpr", "brsc", "brrs"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "AC, Rio Branco"
 codes = ["bracrb"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "AM, Manaus"
 codes = ["bramma"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "BA, Juazeiro"
 codes = ["brbajo"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "BA, Lauro de Freitas"
 codes = ["brbalf"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "CE, Fortaleza"
 codes = ["brcefa"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "CE, Juazeiro do Norte"
 codes = ["brcejn"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "CE, Quixadá"
 codes = ["brceqx"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "DF, Brasília"
 codes = ["brdfdf"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "ES, Vitória"
 codes = ["bresva"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "GO, Goiânia"
 codes = ["brgogo"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MA, Balsas"
 codes = ["brmaba"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Belo Horizonte"
 codes = ["brmgbh"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Montes Claros"
 codes = ["brmgmc"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Ouro Branco"
 codes = ["brmgob"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Santa Rita do Sapucaí"
 codes = ["brmgss"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Timoteo"
 codes = ["brmgto"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Uberaba"
 codes = ["brmgub"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MG, Uberlândia"
 codes = ["brmgud"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MS, Campo Grande"
 codes = ["brmscg"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "MT, Cuiabá"
 codes = ["brmtca"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PA, Belém"
 codes = ["brpabe"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PA, Santarém"
 codes = ["brpasa"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PB, João Pessoa"
 codes = ["brpbjp"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PE, Olinda"
 codes = ["brpeol"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PI, Picos"
 codes = ["brpipi"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PI, Teresina"
 codes = ["brpite"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "RO, Porto Velho"
 codes = ["brropv"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PR, Campo Mourão"
 codes = ["brprcm"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "PR, Curitiba"
 codes = ["brprct"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "RJ, Rio de Janeiro"
 codes = ["brrjrj"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "RN, Natal"
 codes = ["brrnnt"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "RS, Porto Alegre"
 codes = ["brrspa"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "RS, Rio Grande"
 codes = ["brrsrg"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SC, Chapecó"
 codes = ["brscch"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SE, São Cristovão"
 codes = ["brsesc"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, Bauru"
 codes = ["brspba"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, Piracicaba"
 codes = ["brsppi"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, Santos"
 codes = ["brspsa"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, São José dos Campos"
 codes = ["brspsc"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, São Paulo"
 codes = ["brspsp"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "SP, Sorocaba"
 codes = ["brspso"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
 
 [[sedes]]
 name = "Brasil"
 codes = ["teambr"]
 premiacao = false
 vagas = 0
+contest = "Brasil"
+ouro = 3
+prata = 6
+bronze = 10
+
+[[sedes]]
+name = "Mexico"
+codes = ["teammx"]
+premiacao = false
+vagas = 0
+contest = "Mexico"
 ouro = 3
 prata = 6
 bronze = 10

@@ -9,6 +9,7 @@ pub struct Sede {
     pub ouro: Option<usize>,
     pub prata: Option<usize>,
     pub bronze: Option<usize>,
+    pub contest: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -31,11 +32,10 @@ pub struct TeamEntry {
     pub nome: Option<String>,
     pub foto: Option<String>,
     pub musica: Option<String>,
-    pub comentario: Option<String>
+    pub comentario: Option<String>,
 }
 
 impl Sede {
-
     pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &String) -> bool {
         match url_filter {
             None => true,
@@ -62,16 +62,13 @@ impl Sede {
     pub fn premio(&self, p: usize) -> &str {
         if p <= self.ouro.unwrap_or(0) {
             "ouro"
-        }
-        else if p <= self.prata.unwrap_or(0) {
+        } else if p <= self.prata.unwrap_or(0) {
             "prata"
-        }
-        else if p <= self.bronze.unwrap_or(0) {
+        } else if p <= self.bronze.unwrap_or(0) {
             "bronze"
-        }
-        else {
+        } else {
             "semcor"
-        } 
+        }
     }
 }
 
@@ -106,7 +103,7 @@ impl ConfigContest {
         }
     }
 
-    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>, teams: Vec<TeamEntry> ) -> Self {
+    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>, teams: Vec<TeamEntry>) -> Self {
         Self {
             sedes,
             escolas,
