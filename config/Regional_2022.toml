@@ -341,3 +341,429 @@ contest = "Mexico"
 ouro = 3
 prata = 6
 bronze = 10
+
+[[sedes]]
+name = "Bolivia"
+codes = ["teamsobo"]
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+ouro = 3
+prata = 6
+bronze = 10
+
+[[sedes]]
+name = "Argentina"
+codes = ["teamsoar"]
+premiacao = false
+vagas = 0
+contest = "Argentina"
+ouro = 3
+prata = 6
+bronze = 10
+
+[[sedes]]
+codes = ["teammxuoax"]
+name = "Universidad Anahuac Oaxaca"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcsur"]
+name = "Universidad de Guadalajara CUSUR"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxupab"]
+name = "Universidad Panamericana Campus Bonaterra"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxupag"]
+name = "Universidad Panamericana Campus Guadalajara"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxumor"]
+name = "Escuela Nacional de Estudios Superiores UNAM Campus Morelia"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxtmcv"]
+name = "Tecnologico de Monterrey Cuernavaca"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcnnu"]
+name = "Centro de Nanociencias y Nanotecnologia UNAM"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcuat"]
+name = "Capitulo Estudiantil UAT ACM"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcfiu"]
+name = "Club de Programación Competitiva Facultad de Ingeniería UNAM"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuval"]
+name = "Club de Algoritmia CUValles"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxucut"]
+name = "Universidad de Guadalajara CUTONALA"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxupub"]
+name = "CPU - Programación Competitiva Universidad Popular Autónoma del Estado de Puebla"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxucei"]
+name = "CAC - Club de Algoritmia CUCEI"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcuaz"]
+name = "Club de Programación Competitiva UAZ"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxslpt"]
+name = "ICPC San Luis Potosi"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuanl"]
+name = "ACM Universidad Autonoma de Nuevo Leon"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxttol"]
+name = "Programación Competitiva Tec Toluca"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxtmcp"]
+name = "Programación Competitiva Tec de Monterrey Puebla"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxmont"]
+name = "ACM Monterrey"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxtmem"]
+name = "Programación Competitiva Tec de Monterrey Campus Estado de México"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxcipn"]
+name = "Red Académica de Programación Competitiva del Instituto Politécnico Nacional / UNAM FES Acatlán / UAM"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxutyp"]
+name = "Universidades Tecnológicas y Politécnicas"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuasi"]
+name = "Universidad Autónoma de Sinaloa"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuaeh"]
+name = "Universidad Autónoma del Estado de Hidalgo"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuaju"]
+name = "Universidad Autónoma de Ciudad Juárez"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxtnmx"]
+name = "Tecnologico Nacional de Mexico"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxugnj"]
+name = "Universidad de Guanajuato"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxomif"]
+name = "Olimpiada Mexicana de Informatica"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuach"]
+name = "Universidad Autonoma de Chihuahua"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxsujs"]
+name = "Sistema Universitario Jesuita"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuamx"]
+name = "Universidad Nacional Autónoma de México"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxuaag"]
+name = "Universidad Autonoma de Aguascalientes"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teammxadmi"]
+name = "Administrative Site"
+premiacao = false
+vagas = 0
+contest = "Mexico"
+
+[[sedes]]
+codes = ["teamsobotj"]
+name = "Tarija"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoboea"]
+name = "El Alto"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobobe"]
+name = "Bermejo"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoboyc"]
+name = "Yacuiba"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobotp"]
+name = "Tupiza"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobotr"]
+name = "Trinidad"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoboll"]
+name = "Llallagua"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobopt"]
+name = "Potosi"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobocb"]
+name = "Cochabamba"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobolp"]
+name = "La Paz"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobosu"]
+name = "Sucre"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsobosc"]
+name = "Santa Cruz"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoboor"]
+name = "Oruro"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoboco"]
+name = "Cobija"
+premiacao = false
+vagas = 0
+contest = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoarrc"]
+name = "Rio Cuarto"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoaror"]
+name = "Nueva Orán"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarbb"]
+name = "Bahía Blanca"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarba"]
+name = "CABA"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarju"]
+name = "Jujuy"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarlp"]
+name = "La Plata"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarco"]
+name = "Córdoba"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoartu"]
+name = "Tucumán"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarch"]
+name = "Chilecito"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarsf"]
+name = "Santa Fe"
+premiacao = false
+vagas = 0
+contest = "Argentina"
+
+[[sedes]]
+codes = ["teamsoarro"]
+name = "Rosario"
+premiacao = false
+vagas = 0
+contest = "Argentina"
