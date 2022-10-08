@@ -1,8 +1,8 @@
 use crate::errors::{CResult, Error};
-use std::fs::File;
-use std::io::{self, Read};
 use data::*;
 use html_escape::decode_html_entities_to_string;
+use std::fs::File;
+use std::io::{self, Read};
 
 pub trait FromString {
     fn from_string(s: &str) -> CResult<Self>
@@ -19,6 +19,9 @@ pub trait FromFile {
 impl FromString for Team {
     fn from_string(s: &str) -> CResult<Self> {
         let team_line: Vec<_> = s.split("").collect();
+        if team_line.len() != 3 {
+            return Err(Error::Parse("failed parsing Team".into()));
+        }
         let mut team_name = String::new();
         decode_html_entities_to_string(team_line[2], &mut team_name);
         Ok(Team::new(team_line[0], team_line[1], team_name))
@@ -44,6 +47,9 @@ fn from_string_answer(t: &str, tim: i64) -> CResult<Answer> {
 impl FromString for RunTuple {
     fn from_string(line: &str) -> CResult<Self> {
         let v: Vec<&str> = line.split('').collect();
+        if v.len() != 5 {
+            return Err(Error::Parse("failed parsing RunTuple".into()));
+        }
         let id = v[0].parse()?;
         let time = v[1].parse()?;
         let ans = from_string_answer(v[4], time)?;
@@ -62,14 +68,34 @@ impl FromString for ContestFile {
     fn from_string(s: &str) -> CResult<Self> {
         let mut lines = s.lines();
 
-        let contest_name = lines.next().ok_or(Error::ContestFileParse("contest name"))?;
-        let contest_params: Vec<&str> = lines.next().ok_or(Error::ContestFileParse("timing params"))?.split("").collect();
+        let contest_name = lines
+            .next()
+            .ok_or(Error::ContestFileParse("contest name"))?;
+        let contest_params: Vec<&str> = lines
+            .next()
+            .ok_or(Error::ContestFileParse("timing params"))?
+            .split("")
+            .collect();
+
+        if contest_params.len() != 4 {
+            return Err(Error::Parse("failed parsing contest_params".into()));
+        }
+
         let maximum_time = contest_params[0].parse()?;
         let current_time = contest_params[1].parse()?;
         let score_freeze_time = contest_params[2].parse()?;
         let penalty = contest_params[3].parse()?;
 
-        let team_params: Vec<&str> = lines.next().ok_or(Error::ContestFileParse("team params"))?.split("").collect();
+        let team_params: Vec<&str> = lines
+            .next()
+            .ok_or(Error::ContestFileParse("team params"))?
+            .split("")
+            .collect();
+
+        if team_params.len() != 2 {
+            return Err(Error::Parse("failed parsing contest_params".into()));
+        }
+
         let number_teams: usize = team_params[0].parse()?;
         let number_problems: usize = team_params[1].parse()?;
 
@@ -207,6 +233,17 @@ mod tests {
         assert_eq!(t.prob, "B");
         assert_eq!(t.answer, Answer::No);
         Ok(())
+    }
+
+    #[test]
+    fn test_from_string_throws_error() {
+        let x = "375971416";
+        let t = RunTuple::from_string(x);
+        assert!(
+            t.is_err(),
+            "parsing empty arrays should be an error: {:?}",
+            t
+        );
     }
 
     #[test]

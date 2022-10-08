@@ -42,4 +42,7 @@ pub enum Error {
 
     #[error("Error: {0}")]
     Info(String),
+
+    #[error("Error::Parse: {0}")]
+    Parse(String),
 }
