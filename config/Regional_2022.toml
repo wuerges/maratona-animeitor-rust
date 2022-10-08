@@ -767,3 +767,10 @@ name = "Rosario"
 premiacao = false
 vagas = 0
 contest = "Argentina"
+
+[[sedes]]
+codes = ["teamcacrta"]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+premiacao = false
+vagas = 0
+contest = "America Central"
