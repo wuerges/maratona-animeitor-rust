@@ -2,14 +2,14 @@ titulo = "Maratona de Programação da SBC - 1ª fase"
 
 [[sedes]]
 name = "Região Norte"
-codes = ["brac", "bram", "brpa", "brro", "brrn"]
+codes = ["brac", "bram", "brpa", "brro"]
 premiacao = false
 vagas = 0
 contest = "Brasil"
 
 [[sedes]]
 name = "Região Nordeste"
-codes = ["brba", "brce", "brma", "brpb", "brpe", "brpi", "brse"]
+codes = ["brba", "brce", "brma", "brpb", "brpe", "brpi", "brse", "brrn"]
 premiacao = false
 vagas = 0
 contest = "Brasil"
