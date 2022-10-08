@@ -17,7 +17,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         // url_filter: get_url_filter(&url),
         sede: get_sede(&url),
         original: data::ContestFile::dummy(),
-        contest: data::ContestFile::dummy(),
+        contest: None,
         config: data::configdata::ConfigContest::dummy(),
         runs: data::RunsFile::empty(),
         ws: None,
@@ -30,7 +30,7 @@ struct Model {
     // url_filter: Option<Vec<String>>,
     sede: Option<String>,
     original: data::ContestFile,
-    contest: data::ContestFile,
+    contest: Option<data::ContestFile>,
     config: data::configdata::ConfigContest,
     runs: data::RunsFile,
     ws: Option<WebSocket>,
@@ -66,35 +66,41 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             orders.skip().perform_cmd(reload());
         }
         Msg::Reload => {
-            // log!("reload!");
-            let url_filter = model
-                .sede
-                .as_ref()
-                .map(|sede| {
-                    model
-                        .config
-                        .get_sede_nome_sede(sede)
+            match model.contest.as_mut() {
+                None => {
+                    // retrying to fetch contest
+                    orders.perform_cmd(fetch_all());
+                },
+                Some(contest) => {
+                    // log!("reload!");
+                    let url_filter = model
+                        .sede
                         .as_ref()
-                        .map(|s| s.codes.clone())
-                })
-                .flatten();
-            if model.dirty {
-                // log!("reload dirty!");
-                model.contest = model.original.clone();
-                for r in &model.runs.sorted() {
-                    model
-                        .contest
-                        .apply_run(r)
-                        .expect("Should be able to apply the run");
+                        .map(|sede| {
+                            model
+                                .config
+                                .get_sede_nome_sede(sede)
+                                .as_ref()
+                                .map(|s| s.codes.clone())
+                        })
+                        .flatten();
+                    if model.dirty {
+                        // log!("reload dirty!");
+                        *contest = model.original.clone();
+                        for r in &model.runs.sorted() {
+                            contest
+                                .apply_run(r)
+                                .expect("Should be able to apply the run");
+                        }
+                        contest
+                            .recalculate_placement(url_filter.as_ref())
+                            .expect("Should recalculate scores");
+                        model.dirty = false;
+                    } else {
+                        // log!("reload clean!");
+                        orders.skip();
+                    }
                 }
-                model
-                    .contest
-                    .recalculate_placement(url_filter.as_ref())
-                    .expect("Should recalculate scores");
-                model.dirty = false;
-            } else {
-                // log!("reload clean!");
-                orders.skip();
             }
         }
         Msg::RunUpdate(m) => {
@@ -113,7 +119,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             // let run: data::RunTuple = m.json().expect("Should be a RunTuple");
         }
         Msg::Fetched(Ok(contest), Ok(config)) => {
-            model.original = contest;
+            model.original = contest.clone();
+            model.contest = Some(contest);
             model.config = config;
             model.dirty = true;
             model.ws = Some(
@@ -139,7 +146,10 @@ fn view(model: &Model) -> Node<Msg> {
         .as_ref()
         .map(|sede| model.config.get_sede_nome_sede(sede))
         .flatten();
-    views::view_scoreboard(&model.contest, &model.center, opt_sede)
+    match model.contest {
+        None => div!["Contest not ready yet!"],
+        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede)
+    }
 }
 
 pub fn start(e: impl GetElement) {

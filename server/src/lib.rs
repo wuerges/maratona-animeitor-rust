@@ -1,24 +1,23 @@
 pub mod config;
-pub mod webcast;
-mod routes;
 mod dataio;
-mod errors;
 mod dbupdate;
-mod timer;
-mod runs;
+mod errors;
 mod membroadcast;
+mod routes;
+mod runs;
+mod timer;
+pub mod webcast;
 
 use data::configdata::ConfigContest;
 
-use crate::errors::{CResult, SerializationError};
 use crate::dbupdate::spawn_db_update_f;
+use crate::errors::{CResult, SerializationError};
 
 extern crate html_escape;
 extern crate itertools;
 extern crate rand;
 
 use crate::dataio::*;
-
 
 use std::future::Future;
 use std::sync::Arc;
@@ -72,7 +71,6 @@ pub fn serve_urlbase(
         .boxed()
 }
 
-
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
     Ok(serde_json::to_string(&*db.latest()).map_err(SerializationError)?)
@@ -85,6 +83,9 @@ async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply,
 
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
     let db = runs.lock().await;
+    if db.time_file < 0 {
+        return Err(warp::reject::not_found());
+    }
     Ok(serde_json::to_string(&db.contest_file_begin).map_err(SerializationError)?)
 }
 
@@ -137,7 +138,16 @@ pub async fn serve_simple_contest_f<F, Fut>(
     Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
     let (shared_db, runs_tx, time_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(config, shared_db, runs_tx, time_tx, server_port, secret, lambda_mode).await
+    serve_simple_contest_assets(
+        config,
+        shared_db,
+        runs_tx,
+        time_tx,
+        server_port,
+        secret,
+        lambda_mode,
+    )
+    .await
 }
 
 pub async fn serve_simple_contest_assets(
@@ -149,10 +159,8 @@ pub async fn serve_simple_contest_assets(
     secret: &String,
     lambda_mode: bool,
 ) {
-
     let services = serve_urlbase(config, db, runs_tx, time_tx, secret);
-    let cors = warp::cors()
-        .allow_any_origin();
+    let cors = warp::cors().allow_any_origin();
 
     let services = services.with(cors);
 
@@ -163,5 +171,4 @@ pub async fn serve_simple_contest_assets(
         let routes = services.or(seed_assets);
         warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
     };
-
 }
