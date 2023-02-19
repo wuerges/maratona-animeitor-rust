@@ -3,12 +3,6 @@ pub mod configdata;
 pub mod revelation;
 pub mod turb;
 
-#[cfg(test)]
-extern crate quickcheck;
-#[cfg(test)]
-#[macro_use(quickcheck)]
-extern crate quickcheck_macros;
-
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
@@ -231,7 +225,7 @@ impl Team {
         for p in self.problems.values_mut() {
             if p.wait() {
                 if p.reveal_run_frozen() {
-                    return true
+                    return true;
                 }
             }
         }
@@ -270,26 +264,25 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
-pub const PROBLEM_LETTERS : &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-pub fn check_filter(url_filter: Option<&Vec<String>>, t : &Team) -> bool {
+pub fn check_filter(url_filter: Option<&Vec<String>>, t: &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }
 
-pub fn check_filter_login(url_filter: Option<&Vec<String>>, t : &String) -> bool {
+pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &String) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
             for f in tot {
                 if t.find(f).is_some() {
-                    return true
+                    return true;
                 }
             }
-            return false
-        },
+            return false;
+        }
     }
 }
-
 
 impl ContestFile {
     pub fn new(
@@ -325,7 +318,10 @@ impl ContestFile {
         return self.recalculate_placement(None);
     }
 
-    pub fn recalculate_placement(&mut self, url_filter: Option<&Vec<String>>) -> Result<(), ContestError> {
+    pub fn recalculate_placement(
+        &mut self,
+        url_filter: Option<&Vec<String>>,
+    ) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
         for (key, _) in self.teams.iter() {
             score_board.push(key.clone());
@@ -347,7 +343,7 @@ impl ContestFile {
                         placement += 1;
                     }
                     placement_global += 1;
-                },
+                }
             }
         }
 
@@ -450,13 +446,13 @@ impl fmt::Display for RunTuple {
 }
 
 impl RunTuple {
-    pub fn new(id : i64, time: i64, team_login : String, prob : String, answer : Answer) -> Self {
+    pub fn new(id: i64, time: i64, team_login: String, prob: String, answer: Answer) -> Self {
         Self {
             id,
             time,
             team_login,
             prob,
-            answer
+            answer,
         }
     }
 }
@@ -553,16 +549,12 @@ mod tests {
     use quickcheck::*;
 
     impl Arbitrary for Answer {
-        fn arbitrary<G: Gen>(g: &mut G) -> Self {
-            let r = g.next_u32() % 3;
+        fn arbitrary(g: &mut Gen) -> Self {
+            let r = u32::arbitrary(g) % 3;
 
             if r == 0 {
-                Answer::Yes(g.next_u64() as i64)
-            }
-            // else if r == 1{
-            //     Answer::Wait
-            // }
-            else {
+                Answer::Yes(i64::arbitrary(g) % 1e18 as i64)
+            } else {
                 Answer::No
             }
         }
@@ -584,8 +576,6 @@ mod tests {
 
             }
             println!("p2={:?}", p2);
-
-            // p2.answers.clear();
 
             println!("p2={:?}", p2);
             println!("p1==p2= {}", p1==p2);
