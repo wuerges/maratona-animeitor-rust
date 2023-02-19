@@ -220,7 +220,7 @@ impl RunsQueue {
         q
     }
 
-    pub fn pop_run<'a>(&mut self, contest: &'a mut ContestFile) {
+    pub fn pop_run(&mut self, contest: &mut ContestFile) {
         let entry = self.queue.pop();
         match entry {
             None => (),
@@ -229,19 +229,7 @@ impl RunsQueue {
                 Some(team) => {
                     if team.reveal_run_frozen() {
                         self.queue.push(team.score());
-                        // let new_score = team.score();
-                        // if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
-                        //     self.queue.push(new_score);
-                        // }
                     }
-                    // while !team.reveal_run_frozen() {};
-
-                    // if team.wait() {
-                    //     self.queue.push(new_score);
-                    // }
-                    // else if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
-                    //     self.queue.push(new_score);
-                    // }
                 }
             },
         }
