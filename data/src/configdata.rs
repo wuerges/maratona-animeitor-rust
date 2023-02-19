@@ -86,9 +86,33 @@ pub struct ConfigSedes {
     pub sedes: Vec<Sede>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub struct ConfigSecrets {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ConfigSecretPatterns {
     pub secrets: Box<HashMap<String, Vec<String>>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ConfigSecret {
+    pub secrets: HashMap<String, String>,
+}
+
+impl ConfigSecret {
+    pub fn get_patterns(self, sedes: &ConfigSedes) -> ConfigSecretPatterns {
+        ConfigSecretPatterns {
+            secrets: Box::new(
+                self.secrets
+                    .into_iter()
+                    .filter_map(|(key, value)| {
+                        sedes
+                            .sedes
+                            .iter()
+                            .find_map(|sede| (sede.name == value).then_some(sede.codes.clone()))
+                            .map(|codes| (key, codes))
+                    })
+                    .collect(),
+            ),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

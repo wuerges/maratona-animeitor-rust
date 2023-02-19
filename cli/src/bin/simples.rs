@@ -1,11 +1,11 @@
-use data::configdata::ConfigSecrets;
+use data::configdata::ConfigSecret;
 use server::*;
 
 extern crate clap;
 use clap::{App, Arg};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> eyre::Result<()> {
     let matches = App::new("Maratona Rustrimeitor Server")
         .version("0.1")
         .author("Emilio Wuerges. <wuerges@gmail.com>")
@@ -83,12 +83,13 @@ async fn main() {
     let config_teams = config::parse_config(std::path::Path::new(config_file_teams))
         .expect("Should be able to parse the config.");
 
-    let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
+    let config_secret = match matches.value_of("secret") {
+        Some(path) => config::parse_config::<ConfigSecret>(std::path::Path::new(path))?,
+        None => ConfigSecret::default(),
+    }
+    .get_patterns(&config_sedes);
 
-    let config_secret: ConfigSecrets = matches
-        .value_of("secret")
-        .and_then(|path| config::parse_config(std::path::Path::new(path)).ok())
-        .unwrap_or_default();
+    let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
     let lambda_mode = matches.is_present("lambda");
 
@@ -131,4 +132,6 @@ async fn main() {
         lambda_mode,
     )
     .await;
+
+    Ok(())
 }

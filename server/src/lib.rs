@@ -8,7 +8,7 @@ mod secret;
 mod timer;
 
 use data::configdata::ConfigContest;
-use data::configdata::ConfigSecrets;
+use data::configdata::ConfigSecretPatterns;
 use futures::TryFutureExt;
 use warp::Rejection;
 
@@ -57,7 +57,7 @@ pub fn serve_urlbase(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    secrets: ConfigSecrets,
+    secrets: ConfigSecretPatterns,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let config = Arc::new(config);
     let config_file = warp::path("config")
@@ -111,7 +111,7 @@ pub async fn serve_simple_contest(
     config: ConfigContest,
     url_base: String,
     server_port: u16,
-    secret: ConfigSecrets,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) {
     serve_simple_contest_f(
@@ -131,7 +131,7 @@ pub async fn serve_simple_contest_f<F, Fut>(
     config: ConfigContest,
     f: F,
     server_port: u16,
-    secret: ConfigSecrets,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) where
     F: Fn() -> Fut + Send + 'static,
@@ -156,7 +156,7 @@ pub async fn serve_simple_contest_assets(
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     server_port: u16,
-    secret: ConfigSecrets,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) {
     let services = serve_urlbase(config, db, runs_tx, time_tx, secret);
