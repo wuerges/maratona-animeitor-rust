@@ -11,7 +11,7 @@ pub fn request(path: &str) -> Request {
 }
 
 pub async fn fetch_allruns_secret(secret: &String) -> fetch::Result<data::RunsFile> {
-    Request::new(format!("{}/allruns_{}", url_prefix(), secret))
+    Request::new(format!("{}/allruns_secret?secret={}", url_prefix(), secret))
         .fetch()
         .await?
         .check_status()?
