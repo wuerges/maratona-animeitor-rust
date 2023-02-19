@@ -58,7 +58,7 @@ impl Revelation {
     fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
         for run in &self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
-                self.contest.apply_run(run)?;
+                self.contest.apply_run(run);
             } else {
                 self.contest.apply_run_frozen(run)?;
             }

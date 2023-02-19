@@ -360,15 +360,9 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn apply_run(&mut self, r: &RunTuple) -> Result<(), ContestError> {
-        match self.teams.get_mut(&r.team_login) {
-            None => Err(ContestError::UnmatchedTeam(
-                "Could not apply run to team".to_string(),
-            )),
-            Some(t) => {
-                t.apply_run(r);
-                Ok(())
-            }
+    pub fn apply_run(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run(r);
         }
     }
 
