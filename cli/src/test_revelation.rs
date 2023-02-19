@@ -1,19 +1,19 @@
 use data::revelation::RevelationDriver;
 use service::webcast::load_data_from_url_maybe;
 
-pub async fn build_revelation(input_file: &str) -> Vec<String> {
+pub async fn build_revelation(input_file: &str) -> eyre::Result<Vec<String>> {
     let (_, contest_data, runs_data) = load_data_from_url_maybe(input_file.to_string())
         .await
         .expect("Should have loaded file");
 
-    let mut driver = RevelationDriver::new(contest_data, runs_data);
+    let mut driver = RevelationDriver::new(contest_data, runs_data)?;
     let mut result = Vec::new();
 
     while !driver.is_empty() {
         result.push(format!("{}, {}", driver.peek().unwrap(), driver.len()));
-        driver.reveal_step();
+        driver.reveal_step().ok();
     }
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -33,7 +33,7 @@ mod test {
 
     async fn check_revelation(input_file: &str, golden_model: &str) {
         let model = read_lines(golden_model).expect("Should be able to read golden model");
-        let reveals = super::build_revelation(input_file).await;
+        let reveals = super::build_revelation(input_file).await.unwrap();
 
         for (expected, resulted) in model.into_iter().zip(reveals.into_iter()) {
             let expected_string = expected.expect("Should be able to read line from golden model");

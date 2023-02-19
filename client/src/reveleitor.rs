@@ -70,7 +70,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .revelation
                 .as_mut()
                 .and_then(|r| {
-                    r.reveal_step();
+                    r.reveal_step().ok();
                     r.peek()
                 })
                 .cloned();
@@ -86,7 +86,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .revelation
                 .as_mut()
                 .and_then(|r| {
-                    r.reveal_top_n(n);
+                    r.reveal_top_n(n).ok();
                     r.peek()
                 })
                 .cloned();
@@ -97,7 +97,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.button_disabled = false;
         }
         Msg::Fetched(Ok(runs), Ok(contest)) => {
-            model.revelation = Some(RevelationDriver::new(contest, runs));
+            model.revelation = RevelationDriver::new(contest, runs).ok();
             model.center = None;
             model.button_disabled = false;
         }

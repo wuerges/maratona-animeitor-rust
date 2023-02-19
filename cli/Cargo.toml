@@ -14,6 +14,7 @@ clap = "2.33.3"
 data = { path = "../data" }
 service = { path = "../service" }
 server = { path = "../server" }
+eyre = "0.6.8"
 
 [dev-dependencies]
 quickcheck = "1"

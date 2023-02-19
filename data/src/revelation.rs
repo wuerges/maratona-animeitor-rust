@@ -13,27 +13,24 @@ pub struct RevelationDriver {
 }
 
 impl RevelationDriver {
-    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Result<Self, ContestError> {
         let mut revelation = Revelation::new(contest, runs);
-        revelation.apply_all_runs_before_frozen();
+        revelation.apply_all_runs_before_frozen()?;
 
-        Self { revelation }
+        Ok(Self { revelation })
     }
 
-    pub fn reveal_step(&mut self) {
+    pub fn reveal_step(&mut self) -> Result<(), ContestError> {
         self.revelation.apply_one_run_from_queue();
-        self.revelation
-            .contest
-            .recalculate_placement_no_filter()
-            .unwrap();
+        self.revelation.contest.recalculate_placement_no_filter()
     }
 
     pub fn peek(&self) -> Option<&String> {
         self.revelation.runs_queue.peek()
     }
 
-    pub fn reveal_top_n(&mut self, n: usize) {
-        self.revelation.apply_runs_from_queue_n(n);
+    pub fn reveal_top_n(&mut self, n: usize) -> Result<(), ContestError> {
+        self.revelation.apply_runs_from_queue_n(n)
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -58,27 +55,27 @@ impl Revelation {
         }
     }
 
-    fn apply_all_runs_before_frozen(&mut self) {
+    fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
         for run in &self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
-                self.contest.apply_run(run).unwrap();
+                self.contest.apply_run(run)?;
             } else {
-                self.contest.apply_run_frozen(run).unwrap();
+                self.contest.apply_run_frozen(run)?;
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter().unwrap();
+        self.contest.recalculate_placement_no_filter()
     }
 
     fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
     }
 
-    fn apply_runs_from_queue_n(&mut self, n: usize) {
+    fn apply_runs_from_queue_n(&mut self, n: usize) -> Result<(), ContestError> {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement_no_filter().unwrap();
+        self.contest.recalculate_placement_no_filter()
     }
 }
 

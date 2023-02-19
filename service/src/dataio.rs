@@ -282,8 +282,8 @@ mod tests {
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(runs.len(), 6285);
 
-        let r1 = RevelationDriver::new(contest.clone(), runs.clone());
-        let r2 = RevelationDriver::new(contest, runs);
+        let r1 = RevelationDriver::new(contest.clone(), runs.clone())?;
+        let r2 = RevelationDriver::new(contest, runs)?;
 
         for t in r1.contest().teams.values() {
             let t2_p = r2.contest().placement(&t.login).unwrap();
