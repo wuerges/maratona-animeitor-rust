@@ -189,7 +189,7 @@ impl Revelation {
     }
 }
 
-pub struct RunsQueue {
+struct RunsQueue {
     queue: BinaryHeap<Score>,
 }
 
@@ -200,7 +200,7 @@ impl RunsQueue {
         }
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.queue.len()
     }
 
@@ -208,11 +208,7 @@ impl RunsQueue {
         self.queue.peek().map(|s| &s.team_login)
     }
 
-    pub fn peek_score(&self) -> Option<&Score> {
-        self.queue.peek()
-    }
-
-    pub fn setup_queue(contest: &ContestFile) -> Self {
+    fn setup_queue(contest: &ContestFile) -> Self {
         let mut q = Self::empty();
         for team in contest.teams.values() {
             q.queue.push(team.score())
@@ -220,7 +216,7 @@ impl RunsQueue {
         q
     }
 
-    pub fn pop_run(&mut self, contest: &mut ContestFile) {
+    fn pop_run(&mut self, contest: &mut ContestFile) {
         let entry = self.queue.pop();
         match entry {
             None => (),
