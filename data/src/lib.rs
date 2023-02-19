@@ -1,7 +1,6 @@
 pub mod auth;
 pub mod configdata;
 pub mod revelation;
-pub mod turb;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
@@ -265,7 +264,7 @@ pub fn check_filter(url_filter: Option<&Vec<String>>, t: &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }
 
-pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &String) -> bool {
+pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &str) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
@@ -486,6 +485,10 @@ impl RunsFile {
 
     pub fn len(&self) -> usize {
         self.runs.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.runs.is_empty()
     }
 
     pub fn sorted(&self) -> Vec<RunTuple> {
