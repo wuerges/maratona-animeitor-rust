@@ -145,7 +145,6 @@ impl Revelation {
 
     pub fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
-        // self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     pub fn apply_all_runs_from_queue(&mut self) {
