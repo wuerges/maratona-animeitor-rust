@@ -1,4 +1,3 @@
-use data::configdata::ConfigContest;
 use data::revelation::RevelationDriver;
 use service::webcast::load_data_from_url_maybe;
 
@@ -7,9 +6,7 @@ pub async fn build_revelation(input_file: &str) -> Vec<String> {
         .await
         .expect("Should have loaded file");
 
-    let sedes = ConfigContest::dummy();
-
-    let mut driver = RevelationDriver::new(contest_data, runs_data, sedes);
+    let mut driver = RevelationDriver::new(contest_data, runs_data);
     let mut result = Vec::new();
 
     while !driver.is_empty() {

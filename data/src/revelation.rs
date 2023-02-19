@@ -1,7 +1,6 @@
-use crate::configdata::*;
 use crate::*;
 
-use std::collections::{BTreeMap, BinaryHeap};
+use std::collections::BinaryHeap;
 
 struct Revelation {
     contest: ContestFile,
@@ -9,55 +8,16 @@ struct Revelation {
     runs_queue: RunsQueue,
 }
 
-#[derive(Debug, Clone)]
-struct Winner {
-    team_login: String,
-    nome_sede: String,
-}
-
 pub struct RevelationDriver {
     revelation: Revelation,
-    winners: BTreeMap<String, String>,
 }
 
 impl RevelationDriver {
-    fn calculate_winners(
-        contest: ContestFile,
-        runs: RunsFile,
-        sedes: &ConfigContest,
-    ) -> BTreeMap<String, String> {
-        let mut mock = Revelation::new(contest, runs);
-        mock.apply_all_runs();
-
-        let mut teams: Vec<_> = mock.contest.teams.values().collect();
-        teams.sort();
-        let mut winners = BTreeMap::new();
-        for t in teams {
-            let sede_opt = sedes.get_sede_team(&t.login);
-            if let Some(sede) = sede_opt {
-                if sede.premiacao {
-                    winners.entry(sede.name.clone()).or_insert(t.login.clone());
-                }
-            }
-        }
-
-        let mut rev_winners = BTreeMap::new();
-        for (k, v) in winners {
-            rev_winners.entry(v).or_insert(k);
-        }
-        rev_winners
-    }
-
-    pub fn new(contest: ContestFile, runs: RunsFile, sedes: ConfigContest) -> Self {
-        let winners = Self::calculate_winners(contest.clone(), runs.clone(), &sedes);
-
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
         let mut revelation = Revelation::new(contest, runs);
         revelation.apply_all_runs_before_frozen();
 
-        Self {
-            revelation,
-            winners,
-        }
+        Self { revelation }
     }
 
     pub fn reveal_step(&mut self) {
@@ -72,30 +32,8 @@ impl RevelationDriver {
         self.revelation.runs_queue.peek()
     }
 
-    fn search_for_events(&mut self) -> Option<Winner> {
-        let mut teams: Vec<&Team> = self.revelation.contest.teams.values().collect();
-        teams.sort();
-
-        for t in teams.iter().rev() {
-            if t.wait() {
-                break;
-            }
-            match self.winners.remove(&t.login) {
-                None => (),
-                Some(sede) => {
-                    return Some(Winner {
-                        team_login: t.login.clone(),
-                        nome_sede: sede,
-                    })
-                }
-            }
-        }
-        None
-    }
-
     pub fn reveal_top_n(&mut self, n: usize) {
         self.revelation.apply_runs_from_queue_n(n);
-        self.search_for_events();
     }
 
     pub fn contest(&self) -> &ContestFile {

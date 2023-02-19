@@ -99,7 +99,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.button_disabled = false;
         }
         Msg::Fetched(Ok(runs), Ok(contest), Ok(cfg)) => {
-            model.revelation = Some(RevelationDriver::new(contest, runs, cfg));
+            model.revelation = Some(RevelationDriver::new(contest, runs));
             model.center = None;
             model.button_disabled = false;
         }
