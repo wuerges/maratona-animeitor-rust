@@ -124,6 +124,6 @@ impl ConfigContest {
     }
 
     pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
-        self.sedes.iter().find(|&sede| &sede.name == name)
+        self.sedes.iter().find(|&sede| sede.name == name)
     }
 }
