@@ -75,7 +75,7 @@ impl RevelationDriver {
         self.revelation.runs_queue.peek()
     }
 
-    pub fn search_for_events(&mut self) -> Option<Winner> {
+    fn search_for_events(&mut self) -> Option<Winner> {
         let mut teams: Vec<&Team> = self.revelation.contest.teams.values().collect();
         teams.sort();
 
@@ -94,10 +94,6 @@ impl RevelationDriver {
             }
         }
         None
-    }
-
-    pub fn reveal_all(&mut self) {
-        self.revelation.apply_all_runs_from_queue();
     }
 
     pub fn reveal_top_n(&mut self, n: usize) -> Option<Winner> {
@@ -233,8 +229,6 @@ mod tests {
 
             }
             println!("p2={:?}", p2);
-
-            // p2.answers.clear();
 
             println!("p2={:?}", p2);
             println!("p1==p2= {}", p1==p2);

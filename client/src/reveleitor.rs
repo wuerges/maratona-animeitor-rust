@@ -64,14 +64,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 model.center = next_center.cloned();
 
-                // // let delay = 5000;
                 orders.perform_cmd(cmds::timeout(delay, move || Msg::Scroll1));
             }
         }
         Msg::Scroll1 => {
             model.revelation.as_mut().map(|r| r.reveal_step());
 
-            // let event = model.revelation.as_mut().map(|r| r.search_for_events()).flatten();
             model.center = model
                 .revelation
                 .as_mut()
@@ -79,24 +77,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .flatten()
                 .cloned();
 
-            // match event {
-            //     None => {
-            //         model.vencedor = None;
-            //     },
-            //     Some(Winner { team_login, nome_sede }) => {
-            //         model.center = Some(team_login);
-            //         model.vencedor = Some(nome_sede);
-            //     }
-            // }
             model.button_disabled = false;
         }
         Msg::Prox(n) => {
             model.button_disabled = true;
-            // model.center = model.revelation.as_mut().map(|r| r.peek()).flatten();
             orders.send_msg(Msg::Scroll(n));
         }
         Msg::Scroll(n) => {
-            // log!("going to reveal top: ", n);
             model
                 .revelation
                 .as_mut()
@@ -109,23 +96,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .flatten()
                 .cloned();
 
-            // log!("event: ", event);
-            // match event {
-            //     None => {
-            //         model.vencedor = None;
-            //     },
-            //     Some(Winner {
-            //         team_login,
-            //         nome_sede,
-            //     }) => {
-            //         log!("Time ", team_login, "vencedor da sede", nome_sede);
-            //         model.center = Some(team_login);
-            //         model.vencedor = Some(nome_sede);
-            //     }
-            // }
-            // log!("center:", model.center);
-            // orders.send_msg(Msg::Unlock);
-
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Unlock));
         }
         Msg::Unlock => {
@@ -133,7 +103,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Fetched(Ok(runs), Ok(contest), Ok(cfg)) => {
             model.revelation = Some(RevelationDriver::new(contest, runs, cfg));
-            // model.revelation.as_mut().map(|r| r.reveal_all() );
             model.center = None;
             model.button_disabled = false;
         }
@@ -153,7 +122,6 @@ fn view(model: &Model) -> Node<Msg> {
     } else {
         attrs! {}
     };
-    // let frozen = if model.lock_frozen {"Frozen Locked"} else { "Frozen Unlocked"};
     div![
         div![
             C!["commandpanel"],
@@ -191,7 +159,6 @@ fn view(model: &Model) -> Node<Msg> {
                     .as_ref()
                     .map(|v| format!("Vencedor da sede: {}", v)),
             ],
-            // button![frozen, ev(Ev::Click, |_| Msg::ToggleFrozen),],
             div!["Times: ", model.remaining()],
         ],
         div![
