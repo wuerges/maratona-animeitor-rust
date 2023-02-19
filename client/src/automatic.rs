@@ -1,4 +1,3 @@
-use data;
 use seed::{prelude::*, *};
 
 use crate::helpers::*;
@@ -14,7 +13,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
     Model {
         center: None,
-        // url_filter: get_url_filter(&url),
         sede: get_sede(&url),
         original: data::ContestFile::dummy(),
         contest: None,
@@ -27,7 +25,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 struct Model {
     center: Option<String>,
-    // url_filter: Option<Vec<String>>,
     sede: Option<String>,
     original: data::ContestFile,
     contest: Option<data::ContestFile>,
@@ -70,20 +67,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 None => {
                     // retrying to fetch contest
                     orders.perform_cmd(fetch_all());
-                },
+                }
                 Some(contest) => {
                     // log!("reload!");
-                    let url_filter = model
-                        .sede
-                        .as_ref()
-                        .map(|sede| {
-                            model
-                                .config
-                                .get_sede_nome_sede(sede)
-                                .as_ref()
-                                .map(|s| s.codes.clone())
-                        })
-                        .flatten();
+                    let url_filter = model.sede.as_ref().and_then(|sede| {
+                        model
+                            .config
+                            .get_sede_nome_sede(sede)
+                            .as_ref()
+                            .map(|s| s.codes.clone())
+                    });
                     if model.dirty {
                         // log!("reload dirty!");
                         *contest = model.original.clone();
@@ -103,21 +96,18 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 }
             }
         }
-        Msg::RunUpdate(m) => {
-            match m.json::<data::RunTuple>() {
-                Ok(run) => {
-                    if model.runs.refresh_1(&run) {
-                        model.dirty = true;
-                    }
-                    orders.skip();
+        Msg::RunUpdate(m) => match m.json::<data::RunTuple>() {
+            Ok(run) => {
+                if model.runs.refresh_1(&run) {
+                    model.dirty = true;
                 }
-                Err(e) => {
-                    log!("Websocket error: {}", e);
-                    orders.perform_cmd(fetch_all());
-                }
+                orders.skip();
             }
-            // let run: data::RunTuple = m.json().expect("Should be a RunTuple");
-        }
+            Err(e) => {
+                log!("Websocket error: {}", e);
+                orders.perform_cmd(fetch_all());
+            }
+        },
         Msg::Fetched(Ok(contest), Ok(config)) => {
             model.original = contest.clone();
             model.contest = Some(contest);
@@ -144,11 +134,10 @@ fn view(model: &Model) -> Node<Msg> {
     let opt_sede = model
         .sede
         .as_ref()
-        .map(|sede| model.config.get_sede_nome_sede(sede))
-        .flatten();
+        .and_then(|sede| model.config.get_sede_nome_sede(sede));
     match model.contest {
         None => div!["Contest not ready yet!"],
-        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede)
+        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede),
     }
 }
 

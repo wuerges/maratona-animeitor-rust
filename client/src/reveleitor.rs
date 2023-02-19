@@ -56,7 +56,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Prox1 => {
             model.button_disabled = true;
-            let next_center = model.revelation.as_mut().map(|r| r.peek()).flatten();
+            let next_center = model.revelation.as_mut().and_then(|r| r.peek());
             if next_center == model.center.as_ref() {
                 orders.send_msg(Msg::Scroll1);
             } else {
@@ -68,14 +68,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         }
         Msg::Scroll1 => {
-            model.revelation.as_mut().map(|r| r.reveal_step());
+            if let Some(r) = model.revelation.as_mut() {
+                r.reveal_step()
+            }
 
-            model.center = model
-                .revelation
-                .as_mut()
-                .map(|r| r.peek())
-                .flatten()
-                .cloned();
+            model.center = model.revelation.as_mut().and_then(|r| r.peek()).cloned();
 
             model.button_disabled = false;
         }
@@ -84,17 +81,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             orders.send_msg(Msg::Scroll(n));
         }
         Msg::Scroll(n) => {
-            model
-                .revelation
-                .as_mut()
-                .map(|r| r.reveal_top_n(n))
-                .flatten();
-            model.center = model
-                .revelation
-                .as_mut()
-                .map(|r| r.peek())
-                .flatten()
-                .cloned();
+            model.revelation.as_mut().and_then(|r| r.reveal_top_n(n));
+            model.center = model.revelation.as_mut().and_then(|r| r.peek()).cloned();
 
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Unlock));
         }

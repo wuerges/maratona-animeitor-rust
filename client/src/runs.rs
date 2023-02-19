@@ -1,7 +1,7 @@
 use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
-use data;
+
 use seed::{prelude::*, *};
 
 extern crate rand;

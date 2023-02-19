@@ -1,4 +1,3 @@
-use data;
 use seed::prelude::*;
 
 pub fn url_prefix() -> &'static str {

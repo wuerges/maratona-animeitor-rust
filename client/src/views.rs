@@ -84,7 +84,7 @@ fn nome_sede(sede: Option<&Sede>) -> String {
 }
 
 fn estilo_sede(sede: Option<&Sede>) -> Option<&String> {
-    sede.map(|s| s.style.as_ref()).flatten()
+    sede.and_then(|s| s.style.as_ref())
 }
 
 pub fn view_scoreboard<T>(
@@ -132,7 +132,7 @@ pub fn view_scoreboard<T>(
             let display = data::check_filter(url_filter, team);
             div![
                 C!["run_box"],
-                style!{St::Top => cell_top(p2, &p_center), St::ZIndex => (-1 * p2 as i32)},
+                style!{St::Top => cell_top(p2, &p_center), St::ZIndex => -(p2 as i32)},
                 div![
                     IF!(!display => style!{St::Display => "none"}),
                     id![&team.login],
