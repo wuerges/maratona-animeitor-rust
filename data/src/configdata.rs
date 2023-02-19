@@ -91,23 +91,34 @@ pub struct ConfigSecretPatterns {
     pub secrets: Box<HashMap<String, Vec<String>>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SedeSecret {
+    pub name: String,
+    pub secret: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConfigSecret {
-    pub secrets: HashMap<String, String>,
+    pub salt: Option<String>,
+    pub secrets: Vec<SedeSecret>,
 }
 
 impl ConfigSecret {
     pub fn get_patterns(self, sedes: &ConfigSedes) -> ConfigSecretPatterns {
+        let salt = self.salt.unwrap_or_default();
         ConfigSecretPatterns {
             secrets: Box::new(
                 self.secrets
                     .into_iter()
-                    .filter_map(|(key, value)| {
+                    .filter_map(|sede_secret| {
+                        let complete = format!("{}{}", salt, &sede_secret.secret);
                         sedes
                             .sedes
                             .iter()
-                            .find_map(|sede| (sede.name == value).then_some(sede.codes.clone()))
-                            .map(|codes| (key, codes))
+                            .find_map(|sede| {
+                                (sede.name == sede_secret.name).then_some(sede.codes.clone())
+                            })
+                            .map(|codes| (complete, codes))
                     })
                     .collect(),
             ),
