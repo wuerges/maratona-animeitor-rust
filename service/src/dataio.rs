@@ -1,23 +1,23 @@
-use crate::errors::{CResult, Error};
+use crate::errors::{Error, ServiceResult};
 use data::*;
 use html_escape::decode_html_entities_to_string;
 use std::fs::File;
 use std::io::{self, Read};
 
 pub trait FromString {
-    fn from_string(s: &str) -> CResult<Self>
+    fn from_string(s: &str) -> ServiceResult<Self>
     where
         Self: std::marker::Sized;
 }
 
 pub trait FromFile {
-    fn from_file(s: &str) -> CResult<Self>
+    fn from_file(s: &str) -> ServiceResult<Self>
     where
         Self: std::marker::Sized;
 }
 
 impl FromString for Team {
-    fn from_string(s: &str) -> CResult<Self> {
+    fn from_string(s: &str) -> ServiceResult<Self> {
         let team_line: Vec<_> = s.split('').collect();
         if team_line.len() != 3 {
             return Err(Error::Parse("failed parsing Team".into()));
@@ -35,7 +35,7 @@ fn read_to_string(s: &str) -> io::Result<String> {
     Ok(s)
 }
 
-fn from_string_answer(t: &str, tim: i64) -> CResult<Answer> {
+fn from_string_answer(t: &str, tim: i64) -> ServiceResult<Answer> {
     match t {
         "Y" => Ok(Answer::Yes(tim)),
         "N" => Ok(Answer::No),
@@ -45,7 +45,7 @@ fn from_string_answer(t: &str, tim: i64) -> CResult<Answer> {
 }
 
 impl FromString for RunTuple {
-    fn from_string(line: &str) -> CResult<Self> {
+    fn from_string(line: &str) -> ServiceResult<Self> {
         let v: Vec<&str> = line.split('').collect();
         if v.len() != 5 {
             return Err(Error::Parse("failed parsing RunTuple".into()));
@@ -65,7 +65,7 @@ impl FromString for RunTuple {
 }
 
 impl FromString for ContestFile {
-    fn from_string(s: &str) -> CResult<Self> {
+    fn from_string(s: &str) -> ServiceResult<Self> {
         let mut lines = s.lines();
 
         let contest_name = lines
@@ -118,23 +118,23 @@ impl FromString for ContestFile {
 }
 
 impl FromFile for ContestFile {
-    fn from_file(s: &str) -> CResult<Self> {
+    fn from_file(s: &str) -> ServiceResult<Self> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
 impl FromFile for RunsFile {
-    fn from_file(s: &str) -> CResult<Self> {
+    fn from_file(s: &str) -> ServiceResult<Self> {
         let s = read_to_string(s)?;
         Self::from_string(&s)
     }
 }
 
 impl FromString for RunsFile {
-    fn from_string(s: &str) -> CResult<Self> {
+    fn from_string(s: &str) -> ServiceResult<Self> {
         let runs = s.lines().map(RunTuple::from_string);
-        let runs = runs.collect::<CResult<_>>()?;
+        let runs = runs.collect::<ServiceResult<_>>()?;
         Ok(RunsFile::new(runs))
     }
 }
@@ -148,11 +148,11 @@ pub struct DB {
     pub time_file: TimeFile,
 }
 
-pub fn read_contest(s: &str) -> CResult<ContestFile> {
+pub fn read_contest(s: &str) -> ServiceResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &str) -> CResult<RunsFile> {
+pub fn read_runs(s: &str) -> ServiceResult<RunsFile> {
     RunsFile::from_string(s)
 }
 
@@ -194,7 +194,7 @@ impl DB {
         time: i64,
         contest: ContestFile,
         mut runs: RunsFile,
-    ) -> CResult<Vec<RunTuple>> {
+    ) -> ServiceResult<Vec<RunTuple>> {
         self.time_file = time;
         self.contest_file_begin = contest;
 
@@ -223,7 +223,7 @@ mod tests {
     use data::revelation::Revelation;
 
     #[test]
-    fn test_from_string() -> CResult<()> {
+    fn test_from_string() -> ServiceResult<()> {
         let x = "375971416299teambrbr3BN";
         let t = RunTuple::from_string(x)?;
 
@@ -247,21 +247,21 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_file() -> CResult<()> {
+    fn test_parse_file() -> ServiceResult<()> {
         let x = RunsFile::from_file("test/sample/runs")?;
         assert_eq!(x.len(), 716);
         Ok(())
     }
 
     #[test]
-    fn test_parse_file_1a_fase_2020() -> CResult<()> {
+    fn test_parse_file_1a_fase_2020() -> ServiceResult<()> {
         let x = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(x.len(), 6285);
         Ok(())
     }
 
     #[test]
-    fn test_db_file_1a_fase_2020() -> CResult<()> {
+    fn test_db_file_1a_fase_2020() -> ServiceResult<()> {
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
         assert_eq!(runs.len(), 6285);
@@ -276,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_revelation_1a_fase_2020() -> CResult<()> {
+    fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
 
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
@@ -305,7 +305,7 @@ mod tests {
     }
 
     #[test]
-    fn test_revelation_teams_1a_fase_2020() -> CResult<()> {
+    fn test_revelation_teams_1a_fase_2020() -> ServiceResult<()> {
         let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
 
         let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
@@ -342,7 +342,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_contest_file() -> CResult<()> {
+    fn test_parse_contest_file() -> ServiceResult<()> {
         let x = ContestFile::from_file("test/sample/contest")?;
         assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
         assert_eq!(x.maximum_time, 300);

@@ -10,8 +10,6 @@ default = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-hyper = "0.14"
-hyper-tls = "0.5"
 tokio = { version = "~1.18", features = ["full"] }
 zip = "0.6"
 warp = "0.3"
@@ -19,7 +17,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rand = "0.8"
 itertools = "0.10"
-thiserror = "1.0"
 toml = "0.5"
 futures = "0.3"
 html-escape = "0.2"
