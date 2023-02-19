@@ -91,6 +91,7 @@ pub fn view_scoreboard<T>(
     contest: &ContestFile,
     center: &Option<String>,
     sede: Option<&Sede>,
+    revelation: bool,
 ) -> Node<T> {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let url_filter = sede.as_ref().map(|s| &s.codes);
@@ -105,7 +106,7 @@ pub fn view_scoreboard<T>(
             .map(|t| &t.placement),
     );
 
-    let is_compressed = compressed_.len() < contest.teams.len();
+    let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
     div![
         C!["runstable"],
         div![

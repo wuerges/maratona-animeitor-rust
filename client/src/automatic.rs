@@ -135,7 +135,7 @@ fn view(model: &Model) -> Node<Msg> {
         .and_then(|sede| model.config.get_sede_nome_sede(sede));
     match model.contest {
         None => div!["Contest not ready yet!"],
-        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede),
+        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede, false),
     }
 }
 
