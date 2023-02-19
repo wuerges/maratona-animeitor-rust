@@ -34,13 +34,10 @@ impl RevelationDriver {
         let mut winners = BTreeMap::new();
         for t in teams {
             let sede_opt = sedes.get_sede_team(&t.login);
-            match sede_opt {
-                Some(sede) => {
-                    if sede.premiacao {
-                        winners.entry(sede.name.clone()).or_insert(t.login.clone());
-                    }
+            if let Some(sede) = sede_opt {
+                if sede.premiacao {
+                    winners.entry(sede.name.clone()).or_insert(t.login.clone());
                 }
-                None => {}
             }
         }
 
@@ -107,6 +104,10 @@ impl RevelationDriver {
 
     pub fn len(&self) -> usize {
         self.revelation.runs_queue.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.revelation.runs_queue.is_empty()
     }
 }
 
@@ -178,6 +179,10 @@ impl RunsQueue {
 
     fn len(&self) -> usize {
         self.queue.len()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.queue.is_empty()
     }
 
     fn peek(&self) -> Option<&String> {

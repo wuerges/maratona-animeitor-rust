@@ -36,7 +36,7 @@ pub struct TeamEntry {
 }
 
 impl Sede {
-    pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &String) -> bool {
+    pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &str) -> bool {
         match url_filter {
             None => true,
             Some(tot) => {
@@ -50,7 +50,7 @@ impl Sede {
         }
     }
 
-    pub fn check_login(&self, t: &String) -> bool {
+    pub fn check_login(&self, t: &str) -> bool {
         for f in &self.codes {
             if t.contains(f) {
                 return true;
@@ -119,11 +119,11 @@ impl ConfigContest {
         }
     }
 
-    pub fn get_sede_team(&self, team: &String) -> Option<&Sede> {
+    pub fn get_sede_team(&self, team: &str) -> Option<&Sede> {
         self.sedes.iter().find(|&sede| sede.check_login(team))
     }
 
-    pub fn get_sede_nome_sede(&self, name: &String) -> Option<&Sede> {
+    pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
         self.sedes.iter().find(|&sede| &sede.name == name)
     }
 }
