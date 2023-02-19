@@ -1,4 +1,4 @@
-use rustrimeitor::test_revelation;
+use cli::test_revelation;
 
 extern crate clap;
 use clap::{App, Arg};

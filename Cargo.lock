@@ -175,6 +175,7 @@ dependencies = [
  "serde",
  "serde_json",
  "server",
+ "service",
  "tokio",
  "toml",
 ]
@@ -1148,10 +1149,11 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "service",
+ "thiserror",
  "tokio",
  "toml",
  "warp",
- "zip",
 ]
 
 [[package]]

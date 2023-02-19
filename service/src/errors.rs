@@ -2,9 +2,6 @@ use thiserror::Error;
 
 pub type ServiceResult<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
-pub struct SerializationError(pub serde_json::Error);
-
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]

@@ -1,48 +1,51 @@
 use thiserror::Error;
 use warp::reject::Reject;
-use zip::result::ZipError;
 
 pub type CResult<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
-pub struct SerializationError(pub serde_json::Error);
-impl Reject for SerializationError {}
+// #[derive(Debug)]
+// pub struct SerializationError(pub serde_json::Error);
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    IO(#[from] std::io::Error),
-
+    SerializationError(#[from] serde_json::Error),
     #[error(transparent)]
-    InvalidUri(#[from] warp::http::uri::InvalidUri),
+    ServiceError(#[from] service::errors::Error), // #[error(transparent)]
+                                                  // IO(#[from] std::io::Error),
 
-    #[error(transparent)]
-    Hyper(#[from] hyper::Error),
+                                                  // #[error(transparent)]
+                                                  // InvalidUri(#[from] warp::http::uri::InvalidUri),
 
-    #[error(transparent)]
-    ZipError(#[from] ZipError),
+                                                  // #[error(transparent)]
+                                                  // Hyper(#[from] hyper::Error),
 
-    #[error("Error sending data after DB refresh: {0}")]
-    SendError(String),
+                                                  // #[error(transparent)]
+                                                  // ZipError(#[from] ZipError),
 
-    #[error(transparent)]
-    ParseInt(#[from] std::num::ParseIntError),
+                                                  // #[error("Error sending data after DB refresh: {0}")]
+                                                  // SendError(String),
 
-    #[error("Invalid Answer: {0}")]
-    InvalidAnswer(String),
+                                                  // #[error(transparent)]
+                                                  // ParseInt(#[from] std::num::ParseIntError),
 
-    #[error("Could not parse contest file: {0}")]
-    ContestFileParse(&'static str),
+                                                  // #[error("Invalid Answer: {0}")]
+                                                  // InvalidAnswer(String),
 
-    #[error(transparent)]
-    Chain(#[from] data::ContestError),
+                                                  // #[error("Could not parse contest file: {0}")]
+                                                  // ContestFileParse(&'static str),
 
-    #[error(transparent)]
-    ConfigParse(#[from] toml::de::Error),
+                                                  // #[error(transparent)]
+                                                  // Chain(#[from] data::ContestError),
 
-    #[error("Error: {0}")]
-    Info(String),
+                                                  // #[error(transparent)]
+                                                  // ConfigParse(#[from] toml::de::Error),
 
-    #[error("Error::Parse: {0}")]
-    Parse(String),
+                                                  // #[error("Error: {0}")]
+                                                  // Info(String),
+
+                                                  // #[error("Error::Parse: {0}")]
+                                                  // Parse(String),
 }
+
+impl Reject for Error {}

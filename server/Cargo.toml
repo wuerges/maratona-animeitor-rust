@@ -11,7 +11,6 @@ default = []
 
 [dependencies]
 tokio = { version = "~1.18", features = ["full"] }
-zip = "0.6"
 warp = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -21,6 +20,8 @@ toml = "0.5"
 futures = "0.3"
 html-escape = "0.2"
 parking_lot = "0.12"
+service = { path = "../service" }
+thiserror = "1.0"
 
 [dependencies.data]
 path = "../data"

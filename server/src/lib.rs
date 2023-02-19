@@ -1,23 +1,24 @@
 pub mod config;
-mod dataio;
 mod dbupdate;
 mod errors;
 mod membroadcast;
 mod routes;
 mod runs;
 mod timer;
-pub mod webcast;
 
 use data::configdata::ConfigContest;
+use futures::TryFutureExt;
+use warp::Rejection;
 
 use crate::dbupdate::spawn_db_update_f;
-use crate::errors::{CResult, SerializationError};
+use crate::errors::CResult;
+use crate::errors::Error as CError;
 
 extern crate html_escape;
 extern crate itertools;
 extern crate rand;
 
-use crate::dataio::*;
+use service::DB;
 
 use std::future::Future;
 use std::sync::Arc;
@@ -71,28 +72,26 @@ pub fn serve_urlbase(
         .boxed()
 }
 
-async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
-    Ok(serde_json::to_string(&*db.latest()).map_err(SerializationError)?)
+    Ok(serde_json::to_string(&*db.latest()).map_err(CError::SerializationError)?)
 }
 
-async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
-    Ok(serde_json::to_string(&db.run_file_secret).map_err(SerializationError)?)
+    Ok(serde_json::to_string(&db.run_file_secret).map_err(CError::SerializationError)?)
 }
 
-async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
     if db.time_file < 0 {
         return Err(warp::reject::not_found());
     }
-    Ok(serde_json::to_string(&db.contest_file_begin).map_err(SerializationError)?)
+    Ok(serde_json::to_string(&db.contest_file_begin).map_err(CError::SerializationError)?)
 }
 
-async fn serve_contest_config(
-    config: Arc<ConfigContest>,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(serde_json::to_string(&*config).map_err(SerializationError)?)
+async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Rejection> {
+    Ok(serde_json::to_string(&*config).map_err(CError::SerializationError)?)
 }
 
 pub fn random_path_part() -> String {
@@ -119,7 +118,10 @@ pub async fn serve_simple_contest(
 ) {
     serve_simple_contest_f(
         config,
-        move || webcast::load_data_from_url_maybe(url_base.clone()),
+        move || {
+            service::webcast::load_data_from_url_maybe(url_base.clone())
+                .map_err(CError::ServiceError)
+        },
         server_port,
         secret,
         lambda_mode,
