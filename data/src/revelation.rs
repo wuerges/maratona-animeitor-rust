@@ -60,7 +60,7 @@ impl Revelation {
             if run.time < self.contest.score_freeze_time {
                 self.contest.apply_run(run);
             } else {
-                self.contest.apply_run_frozen(run)?;
+                self.contest.apply_run_frozen(run);
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);

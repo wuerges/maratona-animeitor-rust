@@ -346,9 +346,8 @@ impl ContestFile {
             score_a.cmp(&score_b)
         });
         for (i, v) in score_board.iter().enumerate() {
-            match self.teams.get_mut(v) {
-                None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => t.placement = i + 1,
+            if let Some(t) = self.teams.get_mut(v) {
+                t.placement = i + 1;
             }
         }
 
@@ -366,15 +365,9 @@ impl ContestFile {
         }
     }
 
-    pub fn apply_run_frozen(&mut self, r: &RunTuple) -> Result<Score, ContestError> {
-        match self.teams.get_mut(&r.team_login) {
-            None => Err(ContestError::UnmatchedTeam(
-                "Could not apply run to team".to_string(),
-            )),
-            Some(t) => {
-                t.apply_run_frozen(r);
-                Ok(t.score())
-            }
+    pub fn apply_run_frozen(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run_frozen(r);
         }
     }
 

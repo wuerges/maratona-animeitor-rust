@@ -81,9 +81,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                         // log!("reload dirty!");
                         *contest = model.original.clone();
                         for r in &model.runs.sorted() {
-                            contest
-                                .apply_run(r)
-                                .expect("Should be able to apply the run");
+                            contest.apply_run(r);
                         }
                         contest
                             .recalculate_placement(url_filter.as_ref())
