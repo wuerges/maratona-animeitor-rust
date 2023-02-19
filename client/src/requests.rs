@@ -5,7 +5,9 @@ pub fn url_prefix() -> &'static str {
 }
 
 pub fn request(path: &str) -> Request {
-    Request::from(format!("{}/{}", url_prefix(), path))
+    let url = format!("{}/{}", url_prefix(), path);
+    // seed::log!("requesting", url);
+    Request::from(url)
 }
 
 pub async fn fetch_allruns_secret(secret: &String) -> fetch::Result<data::RunsFile> {

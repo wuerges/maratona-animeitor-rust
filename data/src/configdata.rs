@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
@@ -12,7 +12,7 @@ pub struct Sede {
     pub contest: Option<String>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Escola {
     pub name: String,
     pub code: String,
@@ -26,7 +26,7 @@ pub struct Escola {
 // musica="https://youtu.be/gdG4xbU8cZo"
 // comentario="Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct TeamEntry {
     pub login: String,
     pub nome: Option<String>,
@@ -72,24 +72,24 @@ impl Sede {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
     pub escolas: Vec<Escola>,
     pub teams: Vec<TeamEntry>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSedes {
     pub sedes: Vec<Sede>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigEscolas {
     pub escolas: Vec<Escola>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigTeams {
     pub teams: Vec<TeamEntry>,
 }

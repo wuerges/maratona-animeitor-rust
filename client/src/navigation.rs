@@ -62,7 +62,7 @@ fn view(model: &Model) -> Node<Msg> {
             let sedes = contest
                 .sedes
                 .iter()
-                .filter(|sede| model.contest_name.is_some() && model.contest_name == sede.contest);
+                .filter(|sede| model.contest_name.is_none() || model.contest_name == sede.contest);
 
             div![
                 C!["sedesnavigation"],
