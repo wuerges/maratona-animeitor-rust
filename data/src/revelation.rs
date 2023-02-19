@@ -17,7 +17,6 @@ pub struct Winner {
 
 pub struct RevelationDriver {
     revelation: Revelation,
-    // _sedes: ConfigContest,
     winners: BTreeMap<String, String>,
 }
 
@@ -60,14 +59,9 @@ impl RevelationDriver {
 
         Self {
             revelation,
-            // sedes,
             winners,
         }
     }
-
-    // fn pop_winner(&mut self, team_login: &String) -> Option<String> {
-    //     self.winners.remove(team_login)
-    // }
 
     pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
@@ -77,24 +71,11 @@ impl RevelationDriver {
             .unwrap();
     }
 
-    // pub fn check_winner(&self, login :&String) -> Option<&String> {
-    //     let team = self.revelation.contest.teams.get(login);
-    //     let winner = self.winners.get(login);
-    //     match (winner, team) {
-    //         (Some(winner), Some(team)) => {
-    //             if team.wait() { None } else { Some(winner) }
-    //         },
-    //         _ => None,
-    //     }
-    // }
-
     pub fn peek(&self) -> Option<&String> {
         self.revelation.runs_queue.peek()
     }
 
     pub fn search_for_events(&mut self) -> Option<Winner> {
-        // panic!("board = {:?}, winners = {:?}", board, self.winners);
-
         let mut teams: Vec<&Team> = self.revelation.contest.teams.values().collect();
         teams.sort();
 
