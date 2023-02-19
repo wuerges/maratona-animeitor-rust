@@ -41,15 +41,13 @@ enum Msg {
     Fetched(
         fetch::Result<data::RunsFile>,
         fetch::Result<data::ContestFile>,
-        fetch::Result<data::configdata::ConfigContest>,
     ),
 }
 
 async fn fetch_all(secret: String) -> Msg {
     let r = fetch_allruns_secret(&secret).await;
     let c = fetch_contest().await;
-    let cfg = fetch_config().await;
-    Msg::Fetched(r, c, cfg)
+    Msg::Fetched(r, c)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -98,14 +96,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Unlock => {
             model.button_disabled = false;
         }
-        Msg::Fetched(Ok(runs), Ok(contest), Ok(cfg)) => {
+        Msg::Fetched(Ok(runs), Ok(contest)) => {
             model.revelation = Some(RevelationDriver::new(contest, runs));
             model.center = None;
             model.button_disabled = false;
         }
-        Msg::Fetched(Err(e), _, _) => log!("fetched runs error!", e),
-        Msg::Fetched(_, Err(e), _) => log!("fetched contest error!", e),
-        Msg::Fetched(_, _, Err(e)) => log!("fetched contest config error!", e),
+        Msg::Fetched(Err(e), _) => log!("fetched runs error!", e),
+        Msg::Fetched(_, Err(e)) => log!("fetched contest error!", e),
         Msg::Reset => {
             model.button_disabled = true;
             orders.skip().perform_cmd(fetch_all(model.secret.clone()));
