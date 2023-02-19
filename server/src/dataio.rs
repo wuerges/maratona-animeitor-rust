@@ -18,7 +18,7 @@ pub trait FromFile {
 
 impl FromString for Team {
     fn from_string(s: &str) -> CResult<Self> {
-        let team_line: Vec<_> = s.split("").collect();
+        let team_line: Vec<_> = s.split('').collect();
         if team_line.len() != 3 {
             return Err(Error::Parse("failed parsing Team".into()));
         }
@@ -55,8 +55,8 @@ impl FromString for RunTuple {
         let ans = from_string_answer(v[4], time)?;
 
         Ok(Self {
-            id: id,
-            time: time,
+            id,
+            time,
             team_login: v[2].to_string(),
             prob: v[3].to_string(),
             answer: ans,
@@ -74,7 +74,7 @@ impl FromString for ContestFile {
         let contest_params: Vec<&str> = lines
             .next()
             .ok_or(Error::ContestFileParse("timing params"))?
-            .split("")
+            .split('')
             .collect();
 
         if contest_params.len() != 4 {
@@ -89,7 +89,7 @@ impl FromString for ContestFile {
         let team_params: Vec<&str> = lines
             .next()
             .ok_or(Error::ContestFileParse("team params"))?
-            .split("")
+            .split('')
             .collect();
 
         if team_params.len() != 2 {
@@ -133,7 +133,7 @@ impl FromFile for RunsFile {
 
 impl FromString for RunsFile {
     fn from_string(s: &str) -> CResult<Self> {
-        let runs = s.lines().map(|line| RunTuple::from_string(line));
+        let runs = s.lines().map(RunTuple::from_string);
         let runs = runs.collect::<CResult<_>>()?;
         Ok(RunsFile::new(runs))
     }
@@ -148,11 +148,11 @@ pub struct DB {
     pub time_file: TimeFile,
 }
 
-pub fn read_contest(s: &String) -> CResult<ContestFile> {
+pub fn read_contest(s: &str) -> CResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &String) -> CResult<RunsFile> {
+pub fn read_runs(s: &str) -> CResult<RunsFile> {
     RunsFile::from_string(s)
 }
 

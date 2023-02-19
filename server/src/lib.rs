@@ -41,7 +41,7 @@ pub fn route_contest_public_data(
     let timer = warp::path("timer").and(timer::serve_timer(time_tx));
 
     let contest_file = warp::path("contest")
-        .and(routes::with_db(shared_db.clone()))
+        .and(routes::with_db(shared_db))
         .and_then(serve_contestfile);
 
     let routes = runs.or(all_runs_ws).or(timer).or(contest_file);

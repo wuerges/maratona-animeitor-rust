@@ -69,5 +69,5 @@ where
             }
         }
     });
-    (cloned_db, runs_tx_2.clone(), time_tx_2.clone())
+    (cloned_db, runs_tx_2, time_tx_2)
 }

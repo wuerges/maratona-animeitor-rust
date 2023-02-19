@@ -22,7 +22,7 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<Tim
                 .map(Message::text)
                 .expect("Expected a message");
 
-            if !tx.send(m).await.is_ok() {
+            if tx.send(m).await.is_err() {
                 return;
             }
         }

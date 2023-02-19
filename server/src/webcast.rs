@@ -5,17 +5,17 @@ use hyper_tls::HttpsConnector;
 use std::io::Read;
 use zip;
 
-async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
+async fn read_bytes_from_path(path: &str) -> CResult<Vec<u8>> {
     read_bytes_from_url(path)
         .await
         .or_else(|_| read_bytes_from_file(path))
 }
 
-fn read_bytes_from_file(path: &String) -> CResult<Vec<u8>> {
-    Ok(std::fs::read(&path)?)
+fn read_bytes_from_file(path: &str) -> CResult<Vec<u8>> {
+    Ok(std::fs::read(path)?)
 }
 
-async fn read_bytes_from_url(uri: &String) -> CResult<Vec<u8>> {
+async fn read_bytes_from_url(uri: &str) -> CResult<Vec<u8>> {
     let https = HttpsConnector::new();
     let client = Client::builder().build::<_, hyper::Body>(https);
 
