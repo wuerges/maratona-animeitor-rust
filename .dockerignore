@@ -1,0 +1,8 @@
+secrets.txt
+todos-webcast.txt
+urls_placar.txt
+.git
+*.md
+.cache
+target
+client/target

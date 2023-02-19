@@ -240,7 +240,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "0.1.1"
+version = "0.3.0"
 dependencies = [
  "quickcheck",
  "quickcheck_macros",
@@ -1156,6 +1156,10 @@ dependencies = [
  "warp",
  "zip",
 ]
+
+[[package]]
+name = "service"
+version = "0.1.0"
 
 [[package]]
 name = "sha-1"
