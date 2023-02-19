@@ -105,3 +105,11 @@ docker run -p 9091:9091 wuerges/animeitor --config config/ICPC_LA.toml --secret 
 ```
 
 Verifique no seu navegador: http://localhost:9091/reveleitor.html?secret=abc
+
+# Linux
+
+No linux, o animeitor vai criar uma conexa para cada cliente, por isso deve-se aumentar o numero de descritores:
+
+```
+ulimit -n unlimited
+```
