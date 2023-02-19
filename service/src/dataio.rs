@@ -275,73 +275,28 @@ mod tests {
         Ok(())
     }
 
-    // #[test]
-    // fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
-    //     let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+    #[test]
+    fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
+        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
 
-    //     let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-    //     assert_eq!(runs.len(), 6285);
+        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+        assert_eq!(runs.len(), 6285);
 
-    //     let mut r1 = RevelationDriver::new(contest, runs, sedes)
+        let r1 = RevelationDriver::new(contest.clone(), runs.clone());
+        let r2 = RevelationDriver::new(contest, runs);
 
-    //     let mut r1 = Revelation::new(contest.clone(), runs.clone());
-    //     let mut r2 = Revelation::new(contest, runs);
+        for t in r1.contest().teams.values() {
+            let t2_p = r2.contest().placement(&t.login).unwrap();
+            assert_eq!(t.placement, t2_p);
+        }
 
-    //     r1.apply_all_runs();
+        for t in r2.contest().teams.values() {
+            let t1_p = r1.contest().placement(&t.login).unwrap();
+            assert_eq!(t.placement, t1_p);
+        }
 
-    //     r2.apply_all_runs_on_frozen();
-    //     // r2.apply_all_runs_before_frozen();
-    //     r2.apply_all_runs_from_queue();
-
-    //     for t in r1.contest.teams.values() {
-    //         let t2_p = r2.contest.placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t2_p);
-    //     }
-
-    //     for t in r2.contest.teams.values() {
-    //         let t1_p = r1.contest.placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t1_p);
-    //     }
-
-    //     Ok(())
-    // }
-
-    // #[test]
-    // fn test_revelation_teams_1a_fase_2020() -> ServiceResult<()> {
-    //     let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-
-    //     let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-    //     assert_eq!(runs.len(), 6285);
-
-    //     let mut r1 = Revelation::new(contest.clone(), runs.clone());
-    //     let mut r2 = Revelation::new(contest, runs);
-
-    //     r1.apply_all_runs();
-
-    //     // r2.apply_all_runs_before_frozen();
-    //     // r2.apply_all_runs_from_queue();
-
-    //     r2.apply_all_runs_on_frozen();
-    //     for t in r2.contest.teams.values_mut() {
-    //         while t.wait() {
-    //             t.reveal_run_frozen();
-    //         }
-    //     }
-
-    //     r2.contest.recalculate_placement(None).unwrap();
-
-    //     for t in r1.contest.teams.values() {
-    //         let t2_p = r2.contest.placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t2_p);
-    //     }
-
-    //     for t in r2.contest.teams.values() {
-    //         let t1_p = r1.contest.placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t1_p);
-    //     }
-
-    //     Ok(())
-    // }
+        Ok(())
+    }
 
     #[test]
     fn test_parse_contest_file() -> ServiceResult<()> {
