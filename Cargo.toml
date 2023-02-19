@@ -1,6 +1,6 @@
 [package]
 name = "rustrimeitor"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 edition = "2021"
 
@@ -22,10 +22,7 @@ path = "server"
 path = "data"
 
 [workspace]
-members = [
-    "server",
-    "data",
-]
+members = ["server", "data"]
 
 [profile.release.package.client]
 opt-level = 'z'
