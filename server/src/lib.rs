@@ -4,9 +4,11 @@ mod errors;
 mod membroadcast;
 mod routes;
 mod runs;
+mod secret;
 mod timer;
 
 use data::configdata::ConfigContest;
+use data::configdata::ConfigSecrets;
 use futures::TryFutureExt;
 use warp::Rejection;
 
@@ -55,16 +57,17 @@ pub fn serve_urlbase(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    secret: &String,
+    secrets: ConfigSecrets,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let config = Arc::new(config);
     let config_file = warp::path("config")
         .and(warp::any().map(move || config.clone()))
         .and_then(serve_contest_config);
 
-    let all_runs_secret = warp::path(format!("allruns_{}", secret))
-        .and(routes::with_db(shared_db.clone()))
-        .and_then(serve_all_runs_secret);
+    let all_runs_secret = warp::path("allruns_secret").and(secret::serve_all_runs_secret(
+        shared_db.clone(),
+        Box::new(secrets),
+    ));
 
     route_contest_public_data(shared_db, runs_tx, time_tx)
         .or(config_file)
@@ -75,11 +78,6 @@ pub fn serve_urlbase(
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
     Ok(serde_json::to_string(&*db.latest()).map_err(CError::SerializationError)?)
-}
-
-async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
-    let db = runs.lock().await;
-    Ok(serde_json::to_string(&db.run_file_secret).map_err(CError::SerializationError)?)
 }
 
 async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
@@ -113,7 +111,7 @@ pub async fn serve_simple_contest(
     config: ConfigContest,
     url_base: String,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecrets,
     lambda_mode: bool,
 ) {
     serve_simple_contest_f(
@@ -133,7 +131,7 @@ pub async fn serve_simple_contest_f<F, Fut>(
     config: ConfigContest,
     f: F,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecrets,
     lambda_mode: bool,
 ) where
     F: Fn() -> Fut + Send + 'static,
@@ -158,7 +156,7 @@ pub async fn serve_simple_contest_assets(
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecrets,
     lambda_mode: bool,
 ) {
     let services = serve_urlbase(config, db, runs_tx, time_tx, secret);

@@ -1,3 +1,4 @@
+use data::configdata::ConfigSecrets;
 use server::*;
 
 extern crate clap;
@@ -24,6 +25,7 @@ async fn main() {
                 .long("secret")
                 .value_name("SECRET")
                 .help("Sets the secret to the reveleitor url.")
+                .default_value("config/Secret.toml")
                 .takes_value(true),
         )
         .arg(
@@ -72,19 +74,21 @@ async fn main() {
 
     let config_file_teams = matches.value_of("teams").unwrap_or("config/Teams.toml");
 
-    let config_sedes = config::parse_config_sedes(std::path::Path::new(config_file))
+    let config_sedes = config::parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 
-    let config_escolas = config::parse_config_escolas(std::path::Path::new(config_file_escolas))
+    let config_escolas = config::parse_config(std::path::Path::new(config_file_escolas))
         .expect("Should be able to parse the config.");
 
-    let config_teams = config::parse_config_teams(std::path::Path::new(config_file_teams))
+    let config_teams = config::parse_config(std::path::Path::new(config_file_teams))
         .expect("Should be able to parse the config.");
 
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
-    let random_secret = random_path_part();
-    let secret = matches.value_of("secret").unwrap_or(&random_secret);
+    let config_secret: ConfigSecrets = matches
+        .value_of("secret")
+        .and_then(|path| config::parse_config(std::path::Path::new(path)).ok())
+        .unwrap_or_default();
 
     let lambda_mode = matches.is_present("lambda");
 
@@ -110,17 +114,20 @@ async fn main() {
             "-> Painel geral com sedes em http://localhost:{}/everything2.html",
             server_port
         );
-        println!(
-            "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
-            server_port, secret
-        );
+        for (secret, filters) in config_secret.secrets.iter() {
+            println!(
+                "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
+                server_port, secret
+            );
+            println!("    Filters = {filters:?}");
+        }
     }
 
     serve_simple_contest(
         config,
         url_base.to_string(),
         server_port,
-        &secret.to_string(),
+        config_secret,
         lambda_mode,
     )
     .await;

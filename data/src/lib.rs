@@ -489,6 +489,21 @@ impl RunsFile {
         runs.retain(|&_, run| teams.contains_key(&run.team_login));
     }
 
+    pub fn filter_team_patterns(&self, pattern_list: &Vec<String>) -> Self {
+        Self {
+            runs: self
+                .runs
+                .iter()
+                .filter_map(|(key, value)| {
+                    pattern_list
+                        .iter()
+                        .any(|pattern| value.team_login.contains(pattern))
+                        .then_some((*key, value.clone()))
+                })
+                .collect(),
+        }
+    }
+
     pub fn refresh_1(&mut self, t: &RunTuple) -> bool {
         let ent = self.runs.entry(t.id);
         match ent {

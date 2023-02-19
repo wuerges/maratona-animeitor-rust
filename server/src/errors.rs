@@ -9,6 +9,8 @@ pub enum Error {
     SerializationError(#[from] serde_json::Error),
     #[error(transparent)]
     ServiceError(#[from] service::errors::Error),
+    #[error("invalid secret")]
+    InvalidSecret,
 }
 
 impl Reject for Error {}

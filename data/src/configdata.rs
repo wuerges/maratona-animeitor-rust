@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -82,6 +84,11 @@ pub struct ConfigContest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSedes {
     pub sedes: Vec<Sede>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct ConfigSecrets {
+    pub secrets: Box<HashMap<String, Vec<String>>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
