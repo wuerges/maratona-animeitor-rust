@@ -27,7 +27,7 @@ impl RevelationDriver {
         runs: RunsFile,
         sedes: &ConfigContest,
     ) -> BTreeMap<String, String> {
-        let mut mock = Revelation::new(contest.clone(), runs.clone());
+        let mut mock = Revelation::new(contest, runs);
         mock.apply_all_runs();
 
         let mut teams: Vec<_> = mock.contest.teams.values().collect();
@@ -41,8 +41,7 @@ impl RevelationDriver {
                         winners.entry(sede.name.clone()).or_insert(t.login.clone());
                     }
                 }
-                None => {
-                }
+                None => {}
             }
         }
 
@@ -72,7 +71,10 @@ impl RevelationDriver {
 
     pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
-        self.revelation.contest.recalculate_placement_no_filter().unwrap();
+        self.revelation
+            .contest
+            .recalculate_placement_no_filter()
+            .unwrap();
     }
 
     // pub fn check_winner(&self, login :&String) -> Option<&String> {
@@ -90,10 +92,10 @@ impl RevelationDriver {
         self.revelation.runs_queue.peek()
     }
 
-    pub fn search_for_events(&mut self) -> Option<Winner>{
+    pub fn search_for_events(&mut self) -> Option<Winner> {
         // panic!("board = {:?}, winners = {:?}", board, self.winners);
 
-        let mut teams : Vec<&Team> = self.revelation.contest.teams.values().collect();
+        let mut teams: Vec<&Team> = self.revelation.contest.teams.values().collect();
         teams.sort();
 
         for t in teams.iter().rev() {
@@ -102,7 +104,12 @@ impl RevelationDriver {
             }
             match self.winners.remove(&t.login) {
                 None => (),
-                Some(sede) => return Some(Winner { team_login : t.login.clone(), nome_sede : sede }),
+                Some(sede) => {
+                    return Some(Winner {
+                        team_login: t.login.clone(),
+                        nome_sede: sede,
+                    })
+                }
             }
         }
         None
@@ -161,13 +168,13 @@ impl Revelation {
     }
 
     pub fn apply_all_runs_from_queue(&mut self) {
-        while self.runs_queue.queue.len() > 0 {
+        while !self.runs_queue.queue.is_empty() {
             self.apply_one_run_from_queue();
         }
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_runs_from_queue_n(&mut self, n : usize) {
+    pub fn apply_runs_from_queue_n(&mut self, n: usize) {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
@@ -198,7 +205,7 @@ impl RunsQueue {
     }
 
     fn peek(&self) -> Option<&String> {
-        self.queue.peek().map(|s| &s.team_login )
+        self.queue.peek().map(|s| &s.team_login)
     }
 
     pub fn peek_score(&self) -> Option<&Score> {

@@ -41,22 +41,22 @@ impl Sede {
             None => true,
             Some(tot) => {
                 for f in tot {
-                    if t.find(f).is_some() {
+                    if t.contains(f) {
                         return true;
                     }
                 }
-                return false;
+                false
             }
         }
     }
 
     pub fn check_login(&self, t: &String) -> bool {
         for f in &self.codes {
-            if t.find(f).is_some() {
+            if t.contains(f) {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     pub fn premio(&self, p: usize) -> &str {
@@ -120,20 +120,10 @@ impl ConfigContest {
     }
 
     pub fn get_sede_team(&self, team: &String) -> Option<&Sede> {
-        for sede in &self.sedes {
-            if sede.check_login(team) {
-                return Some(&sede);
-            }
-        }
-        None
+        self.sedes.iter().find(|&sede| sede.check_login(team))
     }
 
     pub fn get_sede_nome_sede(&self, name: &String) -> Option<&Sede> {
-        for sede in &self.sedes {
-            if &sede.name == name {
-                return Some(&sede);
-            }
-        }
-        None
+        self.sedes.iter().find(|&sede| &sede.name == name)
     }
 }

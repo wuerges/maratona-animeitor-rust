@@ -1,11 +1,9 @@
-
-use zip;
+use crate::dataio::{read_contest, read_runs};
+use crate::errors::{CResult, Error};
 use hyper::{body, Client};
 use hyper_tls::HttpsConnector;
-use crate::errors::{CResult, Error};
-use crate::dataio::{read_contest, read_runs};
 use std::io::Read;
-
+use zip;
 
 async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
     read_bytes_from_url(path)

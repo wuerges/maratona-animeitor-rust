@@ -46,7 +46,7 @@ impl ClarificationSet {
         }
     }
 
-    pub fn get(&self, key :&String) -> Option<&ClarificationGroup> {
+    pub fn get(&self, key: &String) -> Option<&ClarificationGroup> {
         self.clars.get(key)
     }
 }

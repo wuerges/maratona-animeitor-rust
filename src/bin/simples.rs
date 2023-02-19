@@ -1,5 +1,3 @@
-
-
 use server::*;
 
 extern crate clap;
@@ -93,20 +91,13 @@ async fn main() {
     println!("Maratona Rustreimator rodando!");
     if lambda_mode {
         println!("-> Running on lambda mode em http://localhost/")
-    }
-    else {
-        println!(
-            "-> Runs em http://localhost:{}/runspanel.html",
-            server_port
-        );
+    } else {
+        println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
         println!(
             "-> Placar automatizado em http://localhost:{}/automatic.html",
             server_port
         );
-        println!(
-            "-> Timer em http://localhost:{}/timer.html",
-            server_port
-        );
+        println!("-> Timer em http://localhost:{}/timer.html", server_port);
         println!(
             "-> Painel geral em http://localhost:{}/everything.html",
             server_port
@@ -126,8 +117,11 @@ async fn main() {
     }
 
     serve_simple_contest(
-        config, url_base.to_string(),
-        server_port, &secret.to_string(),
-        lambda_mode
-    ).await;
+        config,
+        url_base.to_string(),
+        server_port,
+        &secret.to_string(),
+        lambda_mode,
+    )
+    .await;
 }

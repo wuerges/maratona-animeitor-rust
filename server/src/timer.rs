@@ -1,11 +1,11 @@
+use data::TimerData;
 use futures::{SinkExt, StreamExt};
+use tokio::sync::broadcast;
+use warp::filters::BoxedFilter;
 use warp::ws::Message;
 use warp::{Filter, Reply};
-use warp::filters::BoxedFilter;
-use tokio::sync::broadcast;
-use data::TimerData;
 
-pub fn serve_timer(time_tx: broadcast::Sender::<TimerData>) -> BoxedFilter<(impl Reply,)> {
+pub fn serve_timer(time_tx: broadcast::Sender<TimerData>) -> BoxedFilter<(impl Reply,)> {
     warp::ws()
         .and(warp::any().map(move || time_tx.subscribe()))
         .map(|ws: warp::ws::Ws, tx| ws.on_upgrade(move |ws| serve_timer_ws(ws, tx)))
@@ -17,11 +17,13 @@ async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<Tim
 
     let fut = async move {
         loop {
-            let r : TimerData = rx.recv().await.expect("Expected a Time");
-            let m = serde_json::to_string(&r).map(Message::text).expect("Expected a message");
+            let r: TimerData = rx.recv().await.expect("Expected a Time");
+            let m = serde_json::to_string(&r)
+                .map(Message::text)
+                .expect("Expected a message");
 
             if !tx.send(m).await.is_ok() {
-                return
+                return;
             }
         }
     };
@@ -35,7 +37,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_serve_timer_ws() {
-        let (time_tx, _) : (broadcast::Sender::<TimerData>, _) = broadcast::channel(1000000);
+        let (time_tx, _): (broadcast::Sender<TimerData>, _) = broadcast::channel(1000000);
         let send_time_tx = time_tx.clone();
 
         let timer = warp::path("timer").and(serve_timer(time_tx));
@@ -56,14 +58,18 @@ mod tests {
                 .await
                 .expect("handshake");
 
-            send_time_tx.send(TimerData::new(1, 2)).expect("to send message");
+            send_time_tx
+                .send(TimerData::new(1, 2))
+                .expect("to send message");
 
             assert_eq!(client2.recv().await.expect("to receive message"), expected1);
         }
 
         assert_eq!(client.recv().await.expect("to receive message"), expected1);
 
-        send_time_tx.send(TimerData::new(2, 2)).expect("to send message");
+        send_time_tx
+            .send(TimerData::new(2, 2))
+            .expect("to send message");
 
         assert_eq!(client.recv().await.expect("to receive message"), expected2);
     }

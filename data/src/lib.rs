@@ -102,7 +102,7 @@ impl Problem {
     }
 
     pub fn wait(&self) -> bool {
-        !self.solved && self.answers.len() > 0
+        !self.solved && !self.answers.is_empty()
     }
 
     pub fn add_run_frozen(&mut self, answer: Answer) {
@@ -120,7 +120,7 @@ impl Problem {
             // }
             return true;
         }
-        return false;
+        false
     }
 }
 
@@ -189,7 +189,7 @@ impl Team {
         Self {
             login: login.to_string(),
             escola: escola.to_string(),
-            name: name,
+            name,
             placement: 0,
             placement_global: 0,
             problems: BTreeMap::new(),
@@ -215,18 +215,13 @@ impl Team {
     }
 
     pub fn wait(&self) -> bool {
-        self.problems
-            .values()
-            .map(|p| p.wait())
-            .fold(false, |t, e| t || e)
+        self.problems.values().map(|p| p.wait()).any(|e| e)
     }
 
     pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
-            if p.wait() {
-                if p.reveal_run_frozen() {
-                    return true;
-                }
+            if p.wait() && p.reveal_run_frozen() {
+                return true;
             }
         }
         false
@@ -275,11 +270,11 @@ pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &String) -> bool 
         None => true,
         Some(tot) => {
             for f in tot {
-                if t.find(f).is_some() {
+                if t.contains(f) {
                     return true;
                 }
             }
-            return false;
+            false
         }
     }
 }
@@ -306,7 +301,7 @@ impl ContestFile {
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
             score_board: Vec::new(),
-            number_problems: number_problems,
+            number_problems,
         }
     }
 
@@ -315,7 +310,7 @@ impl ContestFile {
     }
 
     pub fn recalculate_placement_no_filter(&mut self) -> Result<(), ContestError> {
-        return self.recalculate_placement(None);
+        self.recalculate_placement(None)
     }
 
     pub fn recalculate_placement(
@@ -381,7 +376,7 @@ impl ContestFile {
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
-                t.apply_run(&r);
+                t.apply_run(r);
                 Ok(())
             }
         }
@@ -393,7 +388,7 @@ impl ContestFile {
                 "Could not apply run to team".to_string(),
             )),
             Some(t) => {
-                t.apply_run_frozen(&r);
+                t.apply_run_frozen(r);
                 Ok(t.score())
             }
         }
