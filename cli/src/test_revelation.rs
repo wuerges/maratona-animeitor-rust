@@ -12,7 +12,7 @@ pub async fn build_revelation(input_file: &str) -> Vec<String> {
     let mut driver = RevelationDriver::new(contest_data, runs_data, sedes);
     let mut result = Vec::new();
 
-    while driver.len() > 0 {
+    while !driver.is_empty() {
         result.push(format!("{}, {}", driver.peek().unwrap(), driver.len()));
         driver.reveal_step();
     }
@@ -47,8 +47,8 @@ mod test {
     #[tokio::test]
     async fn test() {
         check_revelation(
-            "tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip",
-            "tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip.revelation",
+            "../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip",
+            "../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip.revelation",
         )
         .await;
     }
