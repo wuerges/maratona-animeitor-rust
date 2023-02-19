@@ -14,15 +14,20 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         revelation: None,
         center: None,
         vencedor: None,
+        config: None,
+        sede: get_sede(&url),
     }
 }
 
+#[derive(Debug)]
 struct Model {
     button_disabled: bool,
     secret: String,
     center: Option<String>,
     revelation: Option<RevelationDriver>,
     vencedor: Option<String>,
+    config: Option<data::configdata::ConfigContest>,
+    sede: Option<String>,
 }
 
 impl Model {
@@ -41,13 +46,15 @@ enum Msg {
     Fetched(
         fetch::Result<data::RunsFile>,
         fetch::Result<data::ContestFile>,
+        fetch::Result<data::configdata::ConfigContest>,
     ),
 }
 
 async fn fetch_all(secret: String) -> Msg {
     let r = fetch_allruns_secret(&secret).await;
     let c = fetch_contest().await;
-    Msg::Fetched(r, c)
+    let cfg = fetch_config().await;
+    Msg::Fetched(r, c, cfg)
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -96,13 +103,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Unlock => {
             model.button_disabled = false;
         }
-        Msg::Fetched(Ok(runs), Ok(contest)) => {
+        Msg::Fetched(Ok(runs), Ok(contest), Ok(config)) => {
+            model.config = Some(config);
             model.revelation = RevelationDriver::new(contest, runs).ok();
             model.center = None;
             model.button_disabled = false;
         }
-        Msg::Fetched(Err(e), _) => log!("fetched runs error!", e),
-        Msg::Fetched(_, Err(e)) => log!("fetched contest error!", e),
+        Msg::Fetched(Err(e), _, _) => log!("fetched runs error!", e),
+        Msg::Fetched(_, Err(e), _) => log!("fetched contest error!", e),
+        Msg::Fetched(_, _, Err(e)) => log!("fetched config error!", e),
         Msg::Reset => {
             model.button_disabled = true;
             orders.skip().perform_cmd(fetch_all(model.secret.clone()));
@@ -111,6 +120,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
+    let opt_sede = model.sede.as_ref().and_then(|sede_name| {
+        model
+            .config
+            .as_ref()
+            .and_then(|config| config.get_sede_nome_sede(sede_name))
+    });
+
     let button_disabled = if model.button_disabled {
         attrs! {At::Disabled => true}
     } else {
@@ -160,7 +176,7 @@ fn view(model: &Model) -> Node<Msg> {
             model.revelation.as_ref().map(|r| views::view_scoreboard(
                 r.contest(),
                 &model.center,
-                None
+                opt_sede
             )),
         ],
     ]

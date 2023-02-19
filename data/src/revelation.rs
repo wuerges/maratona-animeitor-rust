@@ -2,12 +2,14 @@ use crate::*;
 
 use std::collections::BinaryHeap;
 
+#[derive(Debug)]
 struct Revelation {
     contest: ContestFile,
     runs: RunsFile,
     runs_queue: RunsQueue,
 }
 
+#[derive(Debug)]
 pub struct RevelationDriver {
     revelation: Revelation,
 }
@@ -79,6 +81,7 @@ impl Revelation {
     }
 }
 
+#[derive(Debug)]
 struct RunsQueue {
     queue: BinaryHeap<Score>,
 }
