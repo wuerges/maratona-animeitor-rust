@@ -5,6 +5,7 @@ pub mod revelation;
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
+use thiserror::Error;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum Answer {
@@ -14,17 +15,10 @@ pub enum Answer {
     Unk,
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ContestError {
+    #[error("unmatched team: {}", 0.)]
     UnmatchedTeam(String),
-}
-
-impl std::error::Error for ContestError {}
-
-impl fmt::Display for ContestError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ContestError: {:?}", self)
-    }
 }
 
 impl fmt::Display for Answer {
@@ -328,16 +322,13 @@ impl ContestFile {
         let mut placement = 1;
         let mut placement_global = 1;
         for v in score_board.iter() {
-            match self.teams.get_mut(v) {
-                None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => {
-                    t.placement = placement;
-                    t.placement_global = placement_global;
-                    if check_filter(url_filter, t) {
-                        placement += 1;
-                    }
-                    placement_global += 1;
+            if let Some(t) = self.teams.get_mut(v) {
+                t.placement = placement;
+                t.placement_global = placement_global;
+                if check_filter(url_filter, t) {
+                    placement += 1;
                 }
+                placement_global += 1;
             }
         }
 
