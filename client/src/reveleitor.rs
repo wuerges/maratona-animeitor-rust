@@ -68,11 +68,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         }
         Msg::Scroll1 => {
-            if let Some(r) = model.revelation.as_mut() {
-                r.reveal_step()
-            }
-
-            model.center = model.revelation.as_mut().and_then(|r| r.peek()).cloned();
+            model.center = model
+                .revelation
+                .as_mut()
+                .and_then(|r| {
+                    r.reveal_step();
+                    r.peek()
+                })
+                .cloned();
 
             model.button_disabled = false;
         }
@@ -81,8 +84,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             orders.send_msg(Msg::Scroll(n));
         }
         Msg::Scroll(n) => {
-            model.revelation.as_mut().and_then(|r| r.reveal_top_n(n));
-            model.center = model.revelation.as_mut().and_then(|r| r.peek()).cloned();
+            model.center = model
+                .revelation
+                .as_mut()
+                .and_then(|r| {
+                    r.reveal_top_n(n);
+                    r.peek()
+                })
+                .cloned();
 
             orders.perform_cmd(cmds::timeout(5000, move || Msg::Unlock));
         }

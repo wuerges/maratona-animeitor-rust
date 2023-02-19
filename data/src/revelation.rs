@@ -3,16 +3,16 @@ use crate::*;
 
 use std::collections::{BTreeMap, BinaryHeap};
 
-pub struct Revelation {
-    pub contest: ContestFile,
+struct Revelation {
+    contest: ContestFile,
     runs: RunsFile,
     runs_queue: RunsQueue,
 }
 
 #[derive(Debug, Clone)]
-pub struct Winner {
-    pub team_login: String,
-    pub nome_sede: String,
+struct Winner {
+    team_login: String,
+    nome_sede: String,
 }
 
 pub struct RevelationDriver {
@@ -93,9 +93,9 @@ impl RevelationDriver {
         None
     }
 
-    pub fn reveal_top_n(&mut self, n: usize) -> Option<Winner> {
+    pub fn reveal_top_n(&mut self, n: usize) {
         self.revelation.apply_runs_from_queue_n(n);
-        self.search_for_events()
+        self.search_for_events();
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -112,7 +112,7 @@ impl RevelationDriver {
 }
 
 impl Revelation {
-    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
+    fn new(contest: ContestFile, runs: RunsFile) -> Self {
         Self {
             contest,
             runs,
@@ -120,7 +120,7 @@ impl Revelation {
         }
     }
 
-    pub fn apply_all_runs_before_frozen(&mut self) {
+    fn apply_all_runs_before_frozen(&mut self) {
         for run in &self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
                 self.contest.apply_run(run).unwrap();
@@ -132,7 +132,7 @@ impl Revelation {
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_all_runs_on_frozen(&mut self) {
+    fn apply_all_runs_on_frozen(&mut self) {
         for run in &self.runs.sorted() {
             self.contest.apply_run_frozen(run).unwrap();
         }
@@ -140,25 +140,25 @@ impl Revelation {
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_one_run_from_queue(&mut self) {
+    fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
     }
 
-    pub fn apply_all_runs_from_queue(&mut self) {
+    fn apply_all_runs_from_queue(&mut self) {
         while !self.runs_queue.queue.is_empty() {
             self.apply_one_run_from_queue();
         }
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_runs_from_queue_n(&mut self, n: usize) {
+    fn apply_runs_from_queue_n(&mut self, n: usize) {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_all_runs(&mut self) {
+    fn apply_all_runs(&mut self) {
         for run in &self.runs.sorted() {
             self.contest.apply_run(run).unwrap();
         }
