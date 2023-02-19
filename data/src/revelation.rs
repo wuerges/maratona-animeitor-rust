@@ -70,35 +70,13 @@ impl Revelation {
         self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    fn apply_all_runs_on_frozen(&mut self) {
-        for run in &self.runs.sorted() {
-            self.contest.apply_run_frozen(run).unwrap();
-        }
-        self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter().unwrap();
-    }
-
     fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
-    }
-
-    fn apply_all_runs_from_queue(&mut self) {
-        while !self.runs_queue.queue.is_empty() {
-            self.apply_one_run_from_queue();
-        }
-        self.contest.recalculate_placement_no_filter().unwrap();
     }
 
     fn apply_runs_from_queue_n(&mut self, n: usize) {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
-        }
-        self.contest.recalculate_placement_no_filter().unwrap();
-    }
-
-    fn apply_all_runs(&mut self) {
-        for run in &self.runs.sorted() {
-            self.contest.apply_run(run).unwrap();
         }
         self.contest.recalculate_placement_no_filter().unwrap();
     }
