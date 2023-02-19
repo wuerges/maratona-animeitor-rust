@@ -29,6 +29,7 @@ mod test {
         Ok(io::BufReader::new(file).lines())
     }
 
+    use rstest::rstest;
     use tokio;
 
     async fn check_revelation(input_file: &str, golden_model: &str) {
@@ -41,12 +42,29 @@ mod test {
         }
     }
 
+    #[rstest]
+    #[case("../tests/inputs/webcast_jones_2021_judge_submission.zip")]
+    #[case("../tests/inputs/webcast_jones_08_2021.zip")]
+    #[case("../tests/inputs/webcast_jones_2021.zip")]
+    #[case("../tests/inputs/webcast_jones.zip")]
+    #[case("../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip")]
     #[tokio::test]
-    async fn test() {
-        check_revelation(
-            "../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip",
-            "../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip.revelation",
-        )
-        .await;
+    async fn test_golden_model_fast_tests(#[case] test_input: &str) {
+        check_revelation(test_input, &format!("{test_input}.revelation")).await;
+    }
+
+    #[cfg(feature = "slow_tests")]
+    #[rstest]
+    #[case("../tests/inputs/webcast_early_frozen.zip")]
+    #[case("../tests/inputs/webcast_frozen_aquecimento_1a_fase_2021_frozen_unlocked.zip")]
+    #[case("../tests/inputs/warmup_2a_fase_2020_fake_frozen.zip")]
+    #[case("../tests/inputs/webcast_frozen_aquecimento_1a_fase_2021.zip")]
+    #[case("../tests/inputs/webcast_frozen_aquecimento_1a_fase_2020.zip")]
+    #[case("../tests/inputs/1a_fase_2021_frozen_unlocked.zip")]
+    #[case("../tests/inputs/webcast_1573336220.zip")]
+    #[case("../tests/inputs/webcast_zip_1a_fase_2020.zip")]
+    #[tokio::test]
+    async fn test_golden_model_slow_tests(#[case] test_input: &str) {
+        check_revelation(test_input, &format!("{test_input}.revelation")).await;
     }
 }

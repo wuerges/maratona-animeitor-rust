@@ -15,7 +15,11 @@ data = { path = "../data" }
 service = { path = "../service" }
 server = { path = "../server" }
 eyre = "0.6.8"
+rstest = "0.16"
 
 [dev-dependencies]
 quickcheck = "1"
 quickcheck_macros = "1"
+
+[features]
+slow_tests = []
