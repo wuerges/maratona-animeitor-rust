@@ -3,6 +3,7 @@ pub mod configdata;
 pub mod revelation;
 
 use aho_corasick::AhoCorasick;
+use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
@@ -299,6 +300,19 @@ impl ContestFile {
         }
     }
 
+    pub fn filter_sede(self, sede: &Sede) -> Self {
+        let automata = sede.automata();
+
+        Self {
+            teams: self
+                .teams
+                .into_iter()
+                .filter(|(login, _)| automata.is_match(login))
+                .collect(),
+            ..self
+        }
+    }
+
     pub fn placement(&self, team_login: &String) -> Option<usize> {
         self.teams.get(team_login).map(|t| t.placement)
     }
@@ -488,6 +502,12 @@ impl RunsFile {
     pub fn filter_teams(&mut self, teams: &BTreeMap<String, Team>) {
         let runs = &mut self.runs;
         runs.retain(|&_, run| teams.contains_key(&run.team_login));
+    }
+
+    pub fn filter_sede(&self, sede: &Sede) -> Self {
+        let automata = sede.automata();
+
+        self.filter_team_patterns(&automata)
     }
 
     pub fn filter_team_patterns(&self, pattern_list: &AhoCorasick) -> Self {

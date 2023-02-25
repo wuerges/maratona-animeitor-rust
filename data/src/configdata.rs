@@ -53,6 +53,10 @@ impl Sede {
         }
     }
 
+    pub fn automata(&self) -> AhoCorasick {
+        AhoCorasick::new_auto_configured(&self.codes)
+    }
+
     pub fn check_login(&self, t: &str) -> bool {
         for f in &self.codes {
             if t.contains(f) {
@@ -99,7 +103,7 @@ impl ConfigSecretPatterns {
             secrets: Box::new(
                 patterns
                     .iter()
-                    .map(|(key, sede)| (key.clone(), AhoCorasick::new_auto_configured(&sede.codes)))
+                    .map(|(key, sede)| (key.clone(), sede.automata()))
                     .collect(),
             ),
             parameters: Box::new(patterns),

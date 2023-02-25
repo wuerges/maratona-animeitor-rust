@@ -107,6 +107,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 .as_ref()
                 .and_then(|sede_name| config.get_sede_nome_sede(sede_name).cloned());
 
+            let contest = match model.opt_sede.as_ref() {
+                Some(sede) => contest.filter_sede(sede),
+                None => contest,
+            };
+
             model.revelation = RevelationDriver::new(contest, runs).ok();
             model.center = None;
             model.button_disabled = false;
