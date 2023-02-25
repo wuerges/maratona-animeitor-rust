@@ -1,7 +1,11 @@
 {
-"editor.tabSize": 4,
-"editor.wordWrap": "on",
-"cSpell.words": [
-    "membroadcast"
-]
+  "editor.tabSize": 4,
+  "editor.wordWrap": "on",
+  "cSpell.words": [
+    "Escola",
+    "escolas",
+    "membroadcast",
+    "Sede",
+    "sedes"
+  ]
 }
