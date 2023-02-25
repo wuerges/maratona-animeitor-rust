@@ -118,8 +118,8 @@ async fn main() -> eyre::Result<()> {
         for (secret, sede) in config_secret.parameters.iter() {
             println!("-> {}", sede.name);
             println!(
-                "    Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
-                server_port, secret
+                "    Reveleitor em http://localhost:{}/reveleitor.html?secret={}&sede={}",
+                server_port, secret, sede.name
             );
             println!("    Filters = {:?}", sede.codes);
         }
