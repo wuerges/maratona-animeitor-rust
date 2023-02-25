@@ -2,6 +2,7 @@ pub mod auth;
 pub mod configdata;
 pub mod revelation;
 
+use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
@@ -489,15 +490,14 @@ impl RunsFile {
         runs.retain(|&_, run| teams.contains_key(&run.team_login));
     }
 
-    pub fn filter_team_patterns(&self, pattern_list: &Vec<String>) -> Self {
+    pub fn filter_team_patterns(&self, pattern_list: &AhoCorasick) -> Self {
         Self {
             runs: self
                 .runs
                 .iter()
                 .filter_map(|(key, value)| {
                     pattern_list
-                        .iter()
-                        .any(|pattern| value.team_login.contains(pattern))
+                        .is_match(&value.team_login)
                         .then_some((*key, value.clone()))
                 })
                 .collect(),

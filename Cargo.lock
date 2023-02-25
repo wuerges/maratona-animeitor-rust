@@ -245,6 +245,7 @@ dependencies = [
 name = "data"
 version = "0.3.0"
 dependencies = [
+ "aho-corasick",
  "quickcheck",
  "quickcheck_macros",
  "serde",

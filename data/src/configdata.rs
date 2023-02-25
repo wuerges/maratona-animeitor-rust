@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -86,9 +87,22 @@ pub struct ConfigSedes {
     pub sedes: Vec<Sede>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct ConfigSecretPatterns {
-    pub secrets: Box<HashMap<String, Vec<String>>>,
+    pub secrets: Box<HashMap<String, AhoCorasick>>,
+}
+
+impl ConfigSecretPatterns {
+    fn new(patterns: HashMap<String, Vec<String>>) -> Self {
+        Self {
+            secrets: Box::new(
+                patterns
+                    .into_iter()
+                    .map(|(key, teams)| (key, AhoCorasick::new(teams)))
+                    .collect(),
+            ),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -106,23 +120,21 @@ pub struct ConfigSecret {
 impl ConfigSecret {
     pub fn get_patterns(self, sedes: &ConfigSedes) -> ConfigSecretPatterns {
         let salt = self.salt.unwrap_or_default();
-        ConfigSecretPatterns {
-            secrets: Box::new(
-                self.secrets
-                    .into_iter()
-                    .filter_map(|sede_secret| {
-                        let complete = format!("{}{}", salt, &sede_secret.secret);
-                        sedes
-                            .sedes
-                            .iter()
-                            .find_map(|sede| {
-                                (sede.name == sede_secret.name).then_some(sede.codes.clone())
-                            })
-                            .map(|codes| (complete, codes))
-                    })
-                    .collect(),
-            ),
-        }
+        ConfigSecretPatterns::new(
+            self.secrets
+                .into_iter()
+                .filter_map(|sede_secret| {
+                    let complete = format!("{}{}", salt, &sede_secret.secret);
+                    sedes
+                        .sedes
+                        .iter()
+                        .find_map(|sede| {
+                            (sede.name == sede_secret.name).then_some(sede.codes.clone())
+                        })
+                        .map(|codes| (complete, codes))
+                })
+                .collect(),
+        )
     }
 }
 
@@ -167,5 +179,36 @@ impl ConfigContest {
 
     pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
         self.sedes.iter().find(|&sede| sede.name == name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_patterns() {
+        let config = ConfigSecretPatterns::new(HashMap::from([(
+            "key".into(),
+            ["teambr", "teammx"].into_iter().map(String::from).collect(),
+        )]));
+
+        assert!(config.secrets.get("key").unwrap().is_match("teambr$"));
+        assert!(config.secrets.get("key").unwrap().is_match("teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
+
+        assert!(!config.secrets.get("key").unwrap().is_match("tea#mbr$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("tea#mmx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
+
+        assert!(!config.secrets.get("key").unwrap().is_match("teamag"));
+        assert!(!config.secrets.get("key").unwrap().is_match("teamag$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$teamag$"));
     }
 }
