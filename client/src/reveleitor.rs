@@ -1,7 +1,7 @@
 use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
-use data::revelation::RevelationDriver;
+use data::{configdata::Sede, revelation::RevelationDriver};
 use seed::{prelude::*, *};
 
 extern crate rand;
@@ -14,8 +14,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         revelation: None,
         center: None,
         vencedor: None,
-        config: None,
         sede: get_sede(&url),
+        opt_sede: None,
     }
 }
 
@@ -26,8 +26,8 @@ struct Model {
     center: Option<String>,
     revelation: Option<RevelationDriver>,
     vencedor: Option<String>,
-    config: Option<data::configdata::ConfigContest>,
     sede: Option<String>,
+    opt_sede: Option<Sede>,
 }
 
 impl Model {
@@ -104,7 +104,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.button_disabled = false;
         }
         Msg::Fetched(Ok(runs), Ok(contest), Ok(config)) => {
-            model.config = Some(config);
+            model.opt_sede = model
+                .sede
+                .as_ref()
+                .and_then(|sede_name| config.get_sede_nome_sede(sede_name).cloned());
+
             model.revelation = RevelationDriver::new(contest, runs).ok();
             model.center = None;
             model.button_disabled = false;
@@ -120,13 +124,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    let opt_sede = model.sede.as_ref().and_then(|sede_name| {
-        model
-            .config
-            .as_ref()
-            .and_then(|config| config.get_sede_nome_sede(sede_name))
-    });
-
     let button_disabled = if model.button_disabled {
         attrs! {At::Disabled => true}
     } else {
@@ -176,7 +173,7 @@ fn view(model: &Model) -> Node<Msg> {
             model.revelation.as_ref().map(|r| views::view_scoreboard(
                 r.contest(),
                 &model.center,
-                opt_sede,
+                model.opt_sede.as_ref(),
                 true
             )),
         ],
