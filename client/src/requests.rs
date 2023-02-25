@@ -10,7 +10,7 @@ pub fn request(path: &str) -> Request {
     Request::from(url)
 }
 
-pub async fn fetch_allruns_secret(secret: &String) -> fetch::Result<data::RunsFile> {
+pub async fn fetch_allruns_secret(secret: &str) -> fetch::Result<data::RunsFile> {
     Request::new(format!("{}/allruns_secret?secret={}", url_prefix(), secret))
         .fetch()
         .await?
