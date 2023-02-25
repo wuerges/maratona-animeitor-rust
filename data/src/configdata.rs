@@ -90,6 +90,7 @@ pub struct ConfigSedes {
 #[derive(Debug, Clone)]
 pub struct ConfigSecretPatterns {
     pub secrets: Box<HashMap<String, AhoCorasick>>,
+    pub parameters: Box<HashMap<String, Vec<String>>>,
 }
 
 impl ConfigSecretPatterns {
@@ -97,10 +98,11 @@ impl ConfigSecretPatterns {
         Self {
             secrets: Box::new(
                 patterns
-                    .into_iter()
-                    .map(|(key, teams)| (key, AhoCorasick::new_auto_configured(&teams)))
+                    .iter()
+                    .map(|(key, teams)| (key.clone(), AhoCorasick::new_auto_configured(teams)))
                     .collect(),
             ),
+            parameters: Box::new(patterns),
         }
     }
 }
