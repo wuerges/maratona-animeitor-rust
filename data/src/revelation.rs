@@ -1,120 +1,38 @@
-use crate::configdata::*;
 use crate::*;
 
-use std::collections::{BTreeMap, BinaryHeap};
+use std::collections::BinaryHeap;
 
-pub struct Revelation {
-    pub contest: ContestFile,
+#[derive(Debug)]
+struct Revelation {
+    contest: ContestFile,
     runs: RunsFile,
     runs_queue: RunsQueue,
 }
 
-#[derive(Debug, Clone)]
-pub struct Winner {
-    pub team_login: String,
-    pub nome_sede: String,
-}
-
+#[derive(Debug)]
 pub struct RevelationDriver {
     revelation: Revelation,
-    // _sedes: ConfigContest,
-    winners: BTreeMap<String, String>,
 }
 
 impl RevelationDriver {
-    fn calculate_winners(
-        contest: ContestFile,
-        runs: RunsFile,
-        sedes: &ConfigContest,
-    ) -> BTreeMap<String, String> {
-        let mut mock = Revelation::new(contest.clone(), runs.clone());
-        mock.apply_all_runs();
-
-        let mut teams: Vec<_> = mock.contest.teams.values().collect();
-        teams.sort();
-        let mut winners = BTreeMap::new();
-        for t in teams {
-            let sede_opt = sedes.get_sede_team(&t.login);
-            match sede_opt {
-                Some(sede) => {
-                    if sede.premiacao {
-                        winners.entry(sede.name.clone()).or_insert(t.login.clone());
-                    }
-                }
-                None => {
-                }
-            }
-        }
-
-        let mut rev_winners = BTreeMap::new();
-        for (k, v) in winners {
-            rev_winners.entry(v).or_insert(k);
-        }
-        rev_winners
-    }
-
-    pub fn new(contest: ContestFile, runs: RunsFile, sedes: ConfigContest) -> Self {
-        let winners = Self::calculate_winners(contest.clone(), runs.clone(), &sedes);
-
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Result<Self, ContestError> {
         let mut revelation = Revelation::new(contest, runs);
-        revelation.apply_all_runs_before_frozen();
+        revelation.apply_all_runs_before_frozen()?;
 
-        Self {
-            revelation,
-            // sedes,
-            winners,
-        }
+        Ok(Self { revelation })
     }
 
-    // fn pop_winner(&mut self, team_login: &String) -> Option<String> {
-    //     self.winners.remove(team_login)
-    // }
-
-    pub fn reveal_step(&mut self) {
+    pub fn reveal_step(&mut self) -> Result<(), ContestError> {
         self.revelation.apply_one_run_from_queue();
-        self.revelation.contest.recalculate_placement_no_filter().unwrap();
+        self.revelation.contest.recalculate_placement_no_filter()
     }
-
-    // pub fn check_winner(&self, login :&String) -> Option<&String> {
-    //     let team = self.revelation.contest.teams.get(login);
-    //     let winner = self.winners.get(login);
-    //     match (winner, team) {
-    //         (Some(winner), Some(team)) => {
-    //             if team.wait() { None } else { Some(winner) }
-    //         },
-    //         _ => None,
-    //     }
-    // }
 
     pub fn peek(&self) -> Option<&String> {
         self.revelation.runs_queue.peek()
     }
 
-    pub fn search_for_events(&mut self) -> Option<Winner>{
-        // panic!("board = {:?}, winners = {:?}", board, self.winners);
-
-        let mut teams : Vec<&Team> = self.revelation.contest.teams.values().collect();
-        teams.sort();
-
-        for t in teams.iter().rev() {
-            if t.wait() {
-                break;
-            }
-            match self.winners.remove(&t.login) {
-                None => (),
-                Some(sede) => return Some(Winner { team_login : t.login.clone(), nome_sede : sede }),
-            }
-        }
-        None
-    }
-
-    pub fn reveal_all(&mut self) {
-        self.revelation.apply_all_runs_from_queue();
-    }
-
-    pub fn reveal_top_n(&mut self, n: usize) -> Option<Winner> {
-        self.revelation.apply_runs_from_queue_n(n);
-        self.search_for_events()
+    pub fn reveal_top_n(&mut self, n: usize) -> Result<(), ContestError> {
+        self.revelation.apply_runs_from_queue_n(n)
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -124,10 +42,14 @@ impl RevelationDriver {
     pub fn len(&self) -> usize {
         self.revelation.runs_queue.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.revelation.runs_queue.is_empty()
+    }
 }
 
 impl Revelation {
-    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
+    fn new(contest: ContestFile, runs: RunsFile) -> Self {
         Self {
             contest,
             runs,
@@ -135,54 +57,32 @@ impl Revelation {
         }
     }
 
-    pub fn apply_all_runs_before_frozen(&mut self) {
+    fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
         for run in &self.runs.sorted() {
             if run.time < self.contest.score_freeze_time {
-                self.contest.apply_run(run).unwrap();
+                self.contest.apply_run(run);
             } else {
-                self.contest.apply_run_frozen(run).unwrap();
+                self.contest.apply_run_frozen(run);
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter().unwrap();
+        self.contest.recalculate_placement_no_filter()
     }
 
-    pub fn apply_all_runs_on_frozen(&mut self) {
-        for run in &self.runs.sorted() {
-            self.contest.apply_run_frozen(run).unwrap();
-        }
-        self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter().unwrap();
-    }
-
-    pub fn apply_one_run_from_queue(&mut self) {
+    fn apply_one_run_from_queue(&mut self) {
         self.runs_queue.pop_run(&mut self.contest);
-        // self.contest.recalculate_placement_no_filter().unwrap();
     }
 
-    pub fn apply_all_runs_from_queue(&mut self) {
-        while self.runs_queue.queue.len() > 0 {
-            self.apply_one_run_from_queue();
-        }
-        self.contest.recalculate_placement_no_filter().unwrap();
-    }
-
-    pub fn apply_runs_from_queue_n(&mut self, n : usize) {
+    fn apply_runs_from_queue_n(&mut self, n: usize) -> Result<(), ContestError> {
         while self.runs_queue.queue.len() > n {
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement_no_filter().unwrap();
-    }
-
-    pub fn apply_all_runs(&mut self) {
-        for run in &self.runs.sorted() {
-            self.contest.apply_run(run).unwrap();
-        }
-        self.contest.recalculate_placement_no_filter().unwrap();
+        self.contest.recalculate_placement_no_filter()
     }
 }
 
-pub struct RunsQueue {
+#[derive(Debug)]
+struct RunsQueue {
     queue: BinaryHeap<Score>,
 }
 
@@ -193,19 +93,19 @@ impl RunsQueue {
         }
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.queue.len()
     }
 
+    fn is_empty(&self) -> bool {
+        self.queue.is_empty()
+    }
+
     fn peek(&self) -> Option<&String> {
-        self.queue.peek().map(|s| &s.team_login )
+        self.queue.peek().map(|s| &s.team_login)
     }
 
-    pub fn peek_score(&self) -> Option<&Score> {
-        self.queue.peek()
-    }
-
-    pub fn setup_queue(contest: &ContestFile) -> Self {
+    fn setup_queue(contest: &ContestFile) -> Self {
         let mut q = Self::empty();
         for team in contest.teams.values() {
             q.queue.push(team.score())
@@ -213,7 +113,7 @@ impl RunsQueue {
         q
     }
 
-    pub fn pop_run<'a>(&mut self, contest: &'a mut ContestFile) {
+    fn pop_run(&mut self, contest: &mut ContestFile) {
         let entry = self.queue.pop();
         match entry {
             None => (),
@@ -222,19 +122,7 @@ impl RunsQueue {
                 Some(team) => {
                     if team.reveal_run_frozen() {
                         self.queue.push(team.score());
-                        // let new_score = team.score();
-                        // if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
-                        //     self.queue.push(new_score);
-                        // }
                     }
-                    // while !team.reveal_run_frozen() {};
-
-                    // if team.wait() {
-                    //     self.queue.push(new_score);
-                    // }
-                    // else if self.queue.peek().map( |p| &new_score < p ).unwrap_or(false) {
-                    //     self.queue.push(new_score);
-                    // }
                 }
             },
         }
@@ -262,8 +150,6 @@ mod tests {
 
             }
             println!("p2={:?}", p2);
-
-            // p2.answers.clear();
 
             println!("p2={:?}", p2);
             println!("p1==p2= {}", p1==p2);

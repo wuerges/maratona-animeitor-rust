@@ -1,5 +1,5 @@
 [package]
-version = "0.1.1"
+version = "0.3.0"
 name = "client"
 repository = "https://github.com/seed-rs/seed-quickstart"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]

@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
+use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
@@ -12,7 +15,7 @@ pub struct Sede {
     pub contest: Option<String>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Escola {
     pub name: String,
     pub code: String,
@@ -26,7 +29,7 @@ pub struct Escola {
 // musica="https://youtu.be/gdG4xbU8cZo"
 // comentario="Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct TeamEntry {
     pub login: String,
     pub nome: Option<String>,
@@ -36,27 +39,31 @@ pub struct TeamEntry {
 }
 
 impl Sede {
-    pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &String) -> bool {
+    pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &str) -> bool {
         match url_filter {
             None => true,
             Some(tot) => {
                 for f in tot {
-                    if t.find(f).is_some() {
+                    if t.contains(f) {
                         return true;
                     }
                 }
-                return false;
+                false
             }
         }
     }
 
-    pub fn check_login(&self, t: &String) -> bool {
+    pub fn automata(&self) -> AhoCorasick {
+        AhoCorasick::new_auto_configured(&self.codes)
+    }
+
+    pub fn check_login(&self, t: &str) -> bool {
         for f in &self.codes {
-            if t.find(f).is_some() {
+            if t.contains(f) {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     pub fn premio(&self, p: usize) -> &str {
@@ -72,24 +79,75 @@ impl Sede {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
     pub escolas: Vec<Escola>,
     pub teams: Vec<TeamEntry>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigSedes {
     pub sedes: Vec<Sede>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone)]
+pub struct ConfigSecretPatterns {
+    pub secrets: Box<HashMap<String, AhoCorasick>>,
+    pub parameters: Box<HashMap<String, Sede>>,
+}
+
+impl ConfigSecretPatterns {
+    fn new(patterns: HashMap<String, Sede>) -> Self {
+        Self {
+            secrets: Box::new(
+                patterns
+                    .iter()
+                    .map(|(key, sede)| (key.clone(), sede.automata()))
+                    .collect(),
+            ),
+            parameters: Box::new(patterns),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SedeSecret {
+    pub name: String,
+    pub secret: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct ConfigSecret {
+    pub salt: Option<String>,
+    pub secrets: Vec<SedeSecret>,
+}
+
+impl ConfigSecret {
+    pub fn get_patterns(self, sedes: &ConfigSedes) -> ConfigSecretPatterns {
+        let salt = self.salt.unwrap_or_default();
+        ConfigSecretPatterns::new(
+            self.secrets
+                .into_iter()
+                .filter_map(|sede_secret| {
+                    let complete = format!("{}{}", salt, &sede_secret.secret);
+                    sedes
+                        .sedes
+                        .iter()
+                        .find_map(|sede| (sede.name == sede_secret.name).then_some(sede))
+                        .map(|sede| (complete, sede.clone()))
+                })
+                .collect(),
+        )
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigEscolas {
     pub escolas: Vec<Escola>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigTeams {
     pub teams: Vec<TeamEntry>,
 }
@@ -119,21 +177,43 @@ impl ConfigContest {
         }
     }
 
-    pub fn get_sede_team(&self, team: &String) -> Option<&Sede> {
-        for sede in &self.sedes {
-            if sede.check_login(team) {
-                return Some(&sede);
-            }
-        }
-        None
+    pub fn get_sede_team(&self, team: &str) -> Option<&Sede> {
+        self.sedes.iter().find(|&sede| sede.check_login(team))
     }
 
-    pub fn get_sede_nome_sede(&self, name: &String) -> Option<&Sede> {
-        for sede in &self.sedes {
-            if &sede.name == name {
-                return Some(&sede);
-            }
-        }
-        None
+    pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
+        self.sedes.iter().find(|&sede| sede.name == name)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_patterns() {
+        let mut sede = Sede::default();
+
+        sede.codes = ["teambr", "teammx"].into_iter().map(String::from).collect();
+
+        let config = ConfigSecretPatterns::new(HashMap::from([("key".into(), sede)]));
+
+        assert!(config.secrets.get("key").unwrap().is_match("teambr$"));
+        assert!(config.secrets.get("key").unwrap().is_match("teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
+        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
+
+        assert!(!config.secrets.get("key").unwrap().is_match("tea#mbr$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("tea#mmx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
+
+        assert!(!config.secrets.get("key").unwrap().is_match("teamag"));
+        assert!(!config.secrets.get("key").unwrap().is_match("teamag$"));
+        assert!(!config.secrets.get("key").unwrap().is_match("$teamag$"));
     }
 }

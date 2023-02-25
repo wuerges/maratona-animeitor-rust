@@ -1,5 +1,5 @@
-use crate::DB;
 use crate::errors::CResult;
+use crate::DB;
 
 use std::future::Future;
 use std::sync::Arc;
@@ -7,7 +7,6 @@ use std::sync::Arc;
 use crate::membroadcast;
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
-
 
 async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
@@ -28,10 +27,12 @@ async fn update_runs_from_data(
     Ok(())
 }
 
-pub fn spawn_db_update_f<F, Fut>(loader: F) -> (
+pub fn spawn_db_update_f<F, Fut>(
+    loader: F,
+) -> (
     Arc<Mutex<DB>>,
     Arc<membroadcast::Sender<data::RunTuple>>,
-    broadcast::Sender<data::TimerData>
+    broadcast::Sender<data::TimerData>,
 )
 where
     F: Fn() -> Fut + Send + 'static,
@@ -55,7 +56,8 @@ where
 
             match data.await {
                 Ok(data_ok) => {
-                    let result = update_runs_from_data(data_ok, &shared_db, &runs_tx, &time_tx).await;
+                    let result =
+                        update_runs_from_data(data_ok, &shared_db, &runs_tx, &time_tx).await;
                     match result {
                         Ok(()) => (),
                         Err(error) => eprintln!("Retrying after error updating runs: \n{}", error),
@@ -67,5 +69,5 @@ where
             }
         }
     });
-    (cloned_db, runs_tx_2.clone(), time_tx_2.clone())
+    (cloned_db, runs_tx_2, time_tx_2)
 }

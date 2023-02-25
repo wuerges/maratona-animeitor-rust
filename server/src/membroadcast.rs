@@ -1,21 +1,21 @@
-use tokio::sync::broadcast;
-use std::collections::VecDeque;
 use parking_lot::RwLock;
+use std::collections::VecDeque;
+use tokio::sync::broadcast;
 
 pub struct Receiver<T: Clone> {
-    rx : broadcast::Receiver<T>,
-    messages: VecDeque<T>
+    rx: broadcast::Receiver<T>,
+    messages: VecDeque<T>,
 }
 
 impl<T: Clone> Receiver<T> {
-    fn new(rx : broadcast::Receiver<T>, messages: &Vec<T>) -> Self {
+    fn new(rx: broadcast::Receiver<T>, messages: &Vec<T>) -> Self {
         let mut deque = VecDeque::new();
         for m in messages {
             deque.push_back(m.clone())
         }
         Self {
             rx,
-            messages: deque
+            messages: deque,
         }
     }
 
@@ -24,21 +24,21 @@ impl<T: Clone> Receiver<T> {
 
         match front {
             None => self.rx.recv().await,
-            Some(message) => Ok(message)
+            Some(message) => Ok(message),
         }
     }
 }
 
 pub struct Sender<T: Clone> {
-    tx : broadcast::Sender<T>,
-    messages: RwLock<Vec<T>>
+    tx: broadcast::Sender<T>,
+    messages: RwLock<Vec<T>>,
 }
 
 impl<T: Clone> Sender<T> {
-    fn new(tx : broadcast::Sender<T>) -> Self {
+    fn new(tx: broadcast::Sender<T>) -> Self {
         Self {
             tx,
-            messages: RwLock::new(Vec::new())
+            messages: RwLock::new(Vec::new()),
         }
     }
 

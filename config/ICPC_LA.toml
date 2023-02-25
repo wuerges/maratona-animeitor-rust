@@ -2,26 +2,22 @@ titulo = "ICPC Latin America Regional Contest"
 
 # br - Brasil
 [[sedes]]
-name="Brasil"
-style="sede_brasil"
-premiacao=false
-vagas=5
-codes=[
-  "teambr"
-]
+name = "Brasil"
+style = "sede_brasil"
+premiacao = false
+vagas = 5
+codes = ["teambrbr1"]
 ouro = 4
 prata = 8
 bronze = 12
 
 # so - South
 [[sedes]]
-name="South"
-style="sede_south"
-premiacao=false
-vagas=5
-codes=[
-  "teamso"
-]
+name = "South"
+style = "sede_south"
+premiacao = false
+vagas = 5
+codes = ["teamso"]
 ouro = 3
 prata = 6
 bronze = 10
@@ -29,26 +25,22 @@ bronze = 10
 
 # soar - Argentina
 [[sedes]]
-name="Argentina"
-style="sede_argentina"
-premiacao=false
-vagas=5
-codes=[
-  "teamsoar"
-]
+name = "Argentina"
+style = "sede_argentina"
+premiacao = false
+vagas = 5
+codes = ["teamsoar"]
 ouro = 1
 prata = 2
 bronze = 3
 
 # sobo - Bolivia
 [[sedes]]
-name="Bolivia"
-style="sede_bolivia"
-premiacao=false
-vagas=5
-codes=[
-  "teamsobo"
-]
+name = "Bolivia"
+style = "sede_bolivia"
+premiacao = false
+vagas = 5
+codes = ["teamsobo"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -56,13 +48,11 @@ bronze = 3
 
 # soch - Chile
 [[sedes]]
-name="Chile"
-style="sede_chile"
-premiacao=false
-vagas=5
-codes=[
-  "teamsoch"
-]
+name = "Chile"
+style = "sede_chile"
+premiacao = false
+vagas = 5
+codes = ["teamsoch"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -70,27 +60,22 @@ bronze = 3
 
 # sope - Peru
 [[sedes]]
-name="Peru"
-style="sede_peru"
-premiacao=false
-vagas=5
-codes=[
-  "teamsope"
-]
+name = "Peru"
+style = "sede_peru"
+premiacao = false
+vagas = 5
+codes = ["teamsope"]
 ouro = 1
 prata = 2
 bronze = 3
 
 
-
 # no - North
 [[sedes]]
-name="North"
-premiacao=false
-vagas=5
-codes=[
-  "teamno"
-]
+name = "North"
+premiacao = false
+vagas = 5
+codes = ["teamno"]
 ouro = 3
 prata = 6
 bronze = 10
@@ -98,26 +83,22 @@ bronze = 10
 
 # novz - Venezuela
 [[sedes]]
-name="Venezuela"
-style="sede_venezuela"
-premiacao=false
-vagas=5
-codes=[
-  "teamnovz"
-]
+name = "Venezuela"
+style = "sede_venezuela"
+premiacao = false
+vagas = 5
+codes = ["teamnovz"]
 ouro = 1
 prata = 2
 bronze = 3
 
 # noco - Colombia
 [[sedes]]
-name="Colombia"
-style="sede_colombia"
-premiacao=false
-vagas=5
-codes=[
-  "teamnoco"
-]
+name = "Colombia"
+style = "sede_colombia"
+premiacao = false
+vagas = 5
+codes = ["teamnoco"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -125,25 +106,21 @@ bronze = 3
 
 # ca - Central America
 [[sedes]]
-name="Central America"
-premiacao=false
-vagas=5
-codes=[
-  "teamca"
-]
+name = "Central America"
+premiacao = false
+vagas = 5
+codes = ["teamca"]
 ouro = 3
 prata = 6
 bronze = 10
 
 # cbca - El Salvador
 [[sedes]]
-name="El Salvador"
-style="sede_el_salvador"
-premiacao=false
-vagas=5
-codes=[
-  "teamcaes"
-]
+name = "El Salvador"
+style = "sede_el_salvador"
+premiacao = false
+vagas = 5
+codes = ["teamcaes"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -151,29 +128,23 @@ bronze = 3
 
 # cbca - Costa Rica
 [[sedes]]
-name="Costa Rica"
-style="sede_costa_rica"
-premiacao=false
-vagas=5
-codes=[
-  "teamcacr"
-]
+name = "Costa Rica"
+style = "sede_costa_rica"
+premiacao = false
+vagas = 5
+codes = ["teamcacr"]
 ouro = 1
 prata = 2
 bronze = 3
 
 
-
-
 # cb - Caribe
 [[sedes]]
-name="Caribe"
-style="sede_caribe"
-premiacao=false
-vagas=5
-codes=[
-  "teamcb"
-]
+name = "Caribe"
+style = "sede_caribe"
+premiacao = false
+vagas = 5
+codes = ["teamcb"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -181,13 +152,11 @@ bronze = 3
 
 # cbcu - Cuba
 [[sedes]]
-name="Cuba"
-style="sede_cuba"
-premiacao=false
-vagas=5
-codes=[
-  "teamcbcu"
-]
+name = "Cuba"
+style = "sede_cuba"
+premiacao = false
+vagas = 5
+codes = ["teamcbcu"]
 ouro = 1
 prata = 2
 bronze = 3
@@ -195,35 +164,31 @@ bronze = 3
 
 # cbdo - Republica Dominicana
 [[sedes]]
-name="Republica Dominicana"
-style="sede_republica_dominicana"
-premiacao=false
-vagas=5
-codes=[
-  "teamcbdr"
-]
+name = "Republica Dominicana"
+style = "sede_republica_dominicana"
+premiacao = false
+vagas = 5
+codes = ["teamcbdr"]
 ouro = 1
 prata = 2
 bronze = 3
 
 # mx - Mexico
 [[sedes]]
-name="Mexico"
-premiacao=false
-vagas=5
-codes=[
-  "teammx"
-]
+name = "Mexico"
+premiacao = false
+vagas = 5
+codes = ["teammx"]
 ouro = 3
 prata = 6
 bronze = 10
 
 [[sedes]]
-name="Latin America"
-style="sede_la"
-codes=["team"]
-premiacao=false
-vagas=0
+name = "Latin America"
+style = "sede_la"
+codes = ["team"]
+premiacao = false
+vagas = 0
 ouro = 3
 prata = 6
 bronze = 10

@@ -84,13 +84,14 @@ fn nome_sede(sede: Option<&Sede>) -> String {
 }
 
 fn estilo_sede(sede: Option<&Sede>) -> Option<&String> {
-    sede.map(|s| s.style.as_ref()).flatten()
+    sede.and_then(|s| s.style.as_ref())
 }
 
 pub fn view_scoreboard<T>(
     contest: &ContestFile,
     center: &Option<String>,
     sede: Option<&Sede>,
+    revelation: bool,
 ) -> Node<T> {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let url_filter = sede.as_ref().map(|s| &s.codes);
@@ -105,7 +106,7 @@ pub fn view_scoreboard<T>(
             .map(|t| &t.placement),
     );
 
-    let is_compressed = compressed_.len() < contest.teams.len();
+    let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
     div![
         C!["runstable"],
         div![
@@ -132,7 +133,7 @@ pub fn view_scoreboard<T>(
             let display = data::check_filter(url_filter, team);
             div![
                 C!["run_box"],
-                style!{St::Top => cell_top(p2, &p_center), St::ZIndex => (-1 * p2 as i32)},
+                style!{St::Top => cell_top(p2, &p_center), St::ZIndex => -(p2 as i32)},
                 div![
                     IF!(!display => style!{St::Display => "none"}),
                     id![&team.login],

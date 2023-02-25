@@ -1,5 +1,5 @@
 use crate::{requests, views};
-use data;
+
 use seed::{prelude::*, *};
 
 fn open_websocket(orders: &mut impl Orders<Msg>) -> WebSocket {

@@ -1,7 +1,7 @@
 use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
-use data;
+
 use seed::{prelude::*, *};
 
 extern crate rand;
@@ -74,7 +74,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 let mut mock = model.contest.clone();
                 let mut runs = model.runs_file.sorted();
                 for r in &runs {
-                    mock.apply_run(r).expect("Should apply run just fine");
+                    mock.apply_run(r);
                 }
                 mock.recalculate_placement(model.url_filter.as_ref())
                     .expect("Should recalculate placement");

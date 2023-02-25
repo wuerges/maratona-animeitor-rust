@@ -1,25 +1,23 @@
-
-use zip;
-use hyper::{body, Client};
-use hyper_tls::HttpsConnector;
-use crate::errors::{CResult, Error};
 use crate::dataio::{read_contest, read_runs};
+use crate::errors::{Error, ServiceResult};
+use hyper::body;
+use hyper_tls::HttpsConnector;
 use std::io::Read;
+use zip;
 
-
-async fn read_bytes_from_path(path: &String) -> CResult<Vec<u8>> {
+async fn read_bytes_from_path(path: &str) -> ServiceResult<Vec<u8>> {
     read_bytes_from_url(path)
         .await
         .or_else(|_| read_bytes_from_file(path))
 }
 
-fn read_bytes_from_file(path: &String) -> CResult<Vec<u8>> {
-    Ok(std::fs::read(&path)?)
+fn read_bytes_from_file(path: &str) -> ServiceResult<Vec<u8>> {
+    Ok(std::fs::read(path)?)
 }
 
-async fn read_bytes_from_url(uri: &String) -> CResult<Vec<u8>> {
+async fn read_bytes_from_url(uri: &str) -> ServiceResult<Vec<u8>> {
     let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
+    let client = hyper::Client::builder().build::<_, hyper::Body>(https);
 
     let uri = uri.parse()?;
 
@@ -31,7 +29,7 @@ async fn read_bytes_from_url(uri: &String) -> CResult<Vec<u8>> {
 fn try_read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> CResult<String> {
+) -> ServiceResult<String> {
     let mut runs_zip = zip
         .by_name(name)
         .map_err(|e| Error::Info(format!("Could not unpack file: {} {:?}", name, e)))?;
@@ -45,7 +43,7 @@ fn try_read_from_zip(
 fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> CResult<String> {
+) -> ServiceResult<String> {
     try_read_from_zip(zip, name)
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
@@ -56,7 +54,7 @@ fn read_from_zip(
 
 pub async fn load_data_from_url_maybe(
     uri: String,
-) -> CResult<(i64, data::ContestFile, data::RunsFile)> {
+) -> ServiceResult<(i64, data::ContestFile, data::RunsFile)> {
     let zip_data = read_bytes_from_path(&uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);

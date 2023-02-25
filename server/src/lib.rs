@@ -1,23 +1,26 @@
 pub mod config;
-mod dataio;
 mod dbupdate;
 mod errors;
 mod membroadcast;
 mod routes;
 mod runs;
+mod secret;
 mod timer;
-pub mod webcast;
 
 use data::configdata::ConfigContest;
+use data::configdata::ConfigSecretPatterns;
+use futures::TryFutureExt;
+use warp::Rejection;
 
 use crate::dbupdate::spawn_db_update_f;
-use crate::errors::{CResult, SerializationError};
+use crate::errors::CResult;
+use crate::errors::Error as CError;
 
 extern crate html_escape;
 extern crate itertools;
 extern crate rand;
 
-use crate::dataio::*;
+use service::DB;
 
 use std::future::Future;
 use std::sync::Arc;
@@ -41,7 +44,7 @@ pub fn route_contest_public_data(
     let timer = warp::path("timer").and(timer::serve_timer(time_tx));
 
     let contest_file = warp::path("contest")
-        .and(routes::with_db(shared_db.clone()))
+        .and(routes::with_db(shared_db))
         .and_then(serve_contestfile);
 
     let routes = runs.or(all_runs_ws).or(timer).or(contest_file);
@@ -54,16 +57,17 @@ pub fn serve_urlbase(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    secret: &String,
+    secrets: ConfigSecretPatterns,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let config = Arc::new(config);
     let config_file = warp::path("config")
         .and(warp::any().map(move || config.clone()))
         .and_then(serve_contest_config);
 
-    let all_runs_secret = warp::path(format!("allruns_{}", secret))
-        .and(routes::with_db(shared_db.clone()))
-        .and_then(serve_all_runs_secret);
+    let all_runs_secret = warp::path("allruns_secret").and(secret::serve_all_runs_secret(
+        shared_db.clone(),
+        Box::new(secrets),
+    ));
 
     route_contest_public_data(shared_db, runs_tx, time_tx)
         .or(config_file)
@@ -71,28 +75,21 @@ pub fn serve_urlbase(
         .boxed()
 }
 
-async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
-    Ok(serde_json::to_string(&*db.latest()).map_err(SerializationError)?)
+    Ok(serde_json::to_string(&*db.latest()).map_err(CError::SerializationError)?)
 }
 
-async fn serve_all_runs_secret(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
-    let db = runs.lock().await;
-    Ok(serde_json::to_string(&db.run_file_secret).map_err(SerializationError)?)
-}
-
-async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<impl warp::Reply, warp::Rejection> {
+async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
     if db.time_file < 0 {
         return Err(warp::reject::not_found());
     }
-    Ok(serde_json::to_string(&db.contest_file_begin).map_err(SerializationError)?)
+    Ok(serde_json::to_string(&db.contest_file_begin).map_err(CError::SerializationError)?)
 }
 
-async fn serve_contest_config(
-    config: Arc<ConfigContest>,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    Ok(serde_json::to_string(&*config).map_err(SerializationError)?)
+async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Rejection> {
+    Ok(serde_json::to_string(&*config).map_err(CError::SerializationError)?)
 }
 
 pub fn random_path_part() -> String {
@@ -114,12 +111,15 @@ pub async fn serve_simple_contest(
     config: ConfigContest,
     url_base: String,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) {
     serve_simple_contest_f(
         config,
-        move || webcast::load_data_from_url_maybe(url_base.clone()),
+        move || {
+            service::webcast::load_data_from_url_maybe(url_base.clone())
+                .map_err(CError::ServiceError)
+        },
         server_port,
         secret,
         lambda_mode,
@@ -131,7 +131,7 @@ pub async fn serve_simple_contest_f<F, Fut>(
     config: ConfigContest,
     f: F,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) where
     F: Fn() -> Fut + Send + 'static,
@@ -156,7 +156,7 @@ pub async fn serve_simple_contest_assets(
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     server_port: u16,
-    secret: &String,
+    secret: ConfigSecretPatterns,
     lambda_mode: bool,
 ) {
     let services = serve_urlbase(config, db, runs_tx, time_tx, secret);

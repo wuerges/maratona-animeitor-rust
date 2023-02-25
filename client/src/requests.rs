@@ -1,4 +1,3 @@
-use data;
 use seed::prelude::*;
 
 pub fn url_prefix() -> &'static str {
@@ -6,11 +5,13 @@ pub fn url_prefix() -> &'static str {
 }
 
 pub fn request(path: &str) -> Request {
-    Request::from(format!("{}/{}", url_prefix(), path))
+    let url = format!("{}/{}", url_prefix(), path);
+    // seed::log!("requesting", url);
+    Request::from(url)
 }
 
-pub async fn fetch_allruns_secret(secret: &String) -> fetch::Result<data::RunsFile> {
-    Request::new(format!("{}/allruns_{}", url_prefix(), secret))
+pub async fn fetch_allruns_secret(secret: &str) -> fetch::Result<data::RunsFile> {
+    Request::new(format!("{}/allruns_secret?secret={}", url_prefix(), secret))
         .fetch()
         .await?
         .check_status()?

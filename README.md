@@ -10,41 +10,36 @@ Pré-requisitos:
 
 - Se você está no Ubuntu 20.04, deve instalar o build-essential, as libs do openssl e o pkg-config:
 
-```
+```bash
 sudo apt-get install build-essential libssl-dev pkg-config
 ```
 
 - Instale o [Rust](https://www.rust-lang.org/pt-BR/tools/install)
 - Instale o `wasm-pack`:
 
-```
+```bash
 cargo install wasm-pack
 ```
 
 Clone este repositório:
 
-```
+```bash
 git clone https://github.com/wuerges/maratona-animeitor-rust
 cd maratona-animeitor-rust
 ```
 
 Compile e rode:
 
-```
-wasm-pack build --release --target web --out-name package client
-cargo run --release --bin simples -- <url_do_placar> --port 9091
-```
-
-O programa também suporta a leitura dos arquivos do webcast direto de um arquivo, se desejado:
-
-```
-cargo make build_release
-cargo run --release --bin simples -- ./tests/inputs/webcast_jones.zip
+```bash
+# compilando o cliente
+( cd client && wasm-pack build --target web --out-name package )
+# rodando o servidor
+cargo run --release --bin simples -- --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
 
 Mais opções podem ser examinadas com o comando help:
 
-```
+```bash
 cargo run --release --bin simples -- --help
 ```
 
@@ -52,36 +47,27 @@ cargo run --release --bin simples -- --help
 
 A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o programa mostrar:
 
-```
+```bash
 Maratona Rustreimator rodando!
--> Runs em http://localhost:9091/runspanel.html
--> Placar automatizado em http://localhost:9091/automatic.html
--> Timer em http://localhost:9091/timer.html
--> Painel geral em http://localhost:9091/everything.html
--> Fotos dos times em http://localhost:9091/teams.html
--> Painel geral com sedes em http://localhost:9091/everything2.html
--> Reveleitor em http://localhost:9091/reveleitor.html?secret=abc
+-> Runs em http://localhost:8000/runspanel.html
+-> Placar automatizado em http://localhost:8000/automatic.html
+-> Timer em http://localhost:8000/timer.html
+-> Painel geral em http://localhost:8000/everything.html
+-> Fotos dos times em http://localhost:8000/teams.html
+-> Painel geral com sedes em http://localhost:8000/everything2.html
+-> Brasil
+    Reveleitor em http://localhost:8000/reveleitor.html?secret=abcxyz&sede=Brasil
+    Filters = ["teambrbr1"]
 ```
-
-Estas urls podem ser acessados no navegador, ou incluídas no OBS, através do browser incluso.
-
-O placar e os runs podem ser customizados usando CSS, através do arquivo [client/static/styles.css](client/static/styles.css).
 
 # Desenvolvimento
 
-```
-wasm-pack build --dev --target web --out-name package client
-cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
-```
+```bash
+# uma aba para monitorar o cliente
+( cd client && cargo watch -x check )
 
-Cargo watch can be used to help development:
-
-```
-# one tab with the client
-cargo watch -- wasm-pack build --dev --target web --out-name package client
-
-# other tab with the server
-cargo watch -- cargo run --bin simples -- --port 9091 --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+# uma aba para rodar os testes
+cargo watch -x test
 ```
 
 # Usando Docker
@@ -95,13 +81,21 @@ docker build -t animeitor .
 Executando a imagem:
 
 ```
-docker run -p 9091:9091 animeitor --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+docker run -p 9091:9091 animeitor --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
 
 Executando a imagem, direto do dockerhub:
 
 ```
-docker run -p 9091:9091 wuerges/animeitor --config config/ICPC_LA.toml --secret abc ./tests/inputs/2a_fase_2021-22/brasil.zip
+docker run -p 9091:9091 wuerges/animeitor --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
 
-Verifique no seu navegador: http://localhost:9091/reveleitor.html?secret=abc
+Verifique no seu navegador: http://localhost:9091/reveleitor.html?secret=abc&sede=Brasil
+
+# Linux
+
+No linux, o animeitor vai criar uma conexa para cada cliente, por isso deve-se aumentar o numero de descritores:
+
+```
+ulimit -n unlimited
+```

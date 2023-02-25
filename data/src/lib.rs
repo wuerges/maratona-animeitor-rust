@@ -1,17 +1,13 @@
 pub mod auth;
 pub mod configdata;
 pub mod revelation;
-pub mod turb;
 
-#[cfg(test)]
-extern crate quickcheck;
-#[cfg(test)]
-#[macro_use(quickcheck)]
-extern crate quickcheck_macros;
-
+use aho_corasick::AhoCorasick;
+use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
+use thiserror::Error;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
 pub enum Answer {
@@ -21,17 +17,10 @@ pub enum Answer {
     Unk,
 }
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ContestError {
+    #[error("unmatched team: {}", 0.)]
     UnmatchedTeam(String),
-}
-
-impl std::error::Error for ContestError {}
-
-impl fmt::Display for ContestError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ContestError: {:?}", self)
-    }
 }
 
 impl fmt::Display for Answer {
@@ -108,7 +97,7 @@ impl Problem {
     }
 
     pub fn wait(&self) -> bool {
-        !self.solved && self.answers.len() > 0
+        !self.solved && !self.answers.is_empty()
     }
 
     pub fn add_run_frozen(&mut self, answer: Answer) {
@@ -126,7 +115,7 @@ impl Problem {
             // }
             return true;
         }
-        return false;
+        false
     }
 }
 
@@ -162,7 +151,7 @@ impl Ord for Team {
 
 use std::cmp::{Eq, Ord, Ordering};
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Score {
     pub solved: usize,
     pub penalty: i64,
@@ -195,7 +184,7 @@ impl Team {
         Self {
             login: login.to_string(),
             escola: escola.to_string(),
-            name: name,
+            name,
             placement: 0,
             placement_global: 0,
             problems: BTreeMap::new(),
@@ -221,18 +210,13 @@ impl Team {
     }
 
     pub fn wait(&self) -> bool {
-        self.problems
-            .values()
-            .map(|p| p.wait())
-            .fold(false, |t, e| t || e)
+        self.problems.values().map(|p| p.wait()).any(|e| e)
     }
 
     pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
-            if p.wait() {
-                if p.reveal_run_frozen() {
-                    return true
-                }
+            if p.wait() && p.reveal_run_frozen() {
+                return true;
             }
         }
         false
@@ -270,26 +254,25 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
-pub const PROBLEM_LETTERS : &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-pub fn check_filter(url_filter: Option<&Vec<String>>, t : &Team) -> bool {
+pub fn check_filter(url_filter: Option<&Vec<String>>, t: &Team) -> bool {
     check_filter_login(url_filter, &t.login)
 }
 
-pub fn check_filter_login(url_filter: Option<&Vec<String>>, t : &String) -> bool {
+pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &str) -> bool {
     match url_filter {
         None => true,
         Some(tot) => {
             for f in tot {
-                if t.find(f).is_some() {
-                    return true
+                if t.contains(f) {
+                    return true;
                 }
             }
-            return false
-        },
+            false
+        }
     }
 }
-
 
 impl ContestFile {
     pub fn new(
@@ -313,7 +296,20 @@ impl ContestFile {
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
             score_board: Vec::new(),
-            number_problems: number_problems,
+            number_problems,
+        }
+    }
+
+    pub fn filter_sede(self, sede: &Sede) -> Self {
+        let automata = sede.automata();
+
+        Self {
+            teams: self
+                .teams
+                .into_iter()
+                .filter(|(login, _)| automata.is_match(login))
+                .collect(),
+            ..self
         }
     }
 
@@ -322,10 +318,13 @@ impl ContestFile {
     }
 
     pub fn recalculate_placement_no_filter(&mut self) -> Result<(), ContestError> {
-        return self.recalculate_placement(None);
+        self.recalculate_placement(None)
     }
 
-    pub fn recalculate_placement(&mut self, url_filter: Option<&Vec<String>>) -> Result<(), ContestError> {
+    pub fn recalculate_placement(
+        &mut self,
+        url_filter: Option<&Vec<String>>,
+    ) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
         for (key, _) in self.teams.iter() {
             score_board.push(key.clone());
@@ -338,16 +337,13 @@ impl ContestFile {
         let mut placement = 1;
         let mut placement_global = 1;
         for v in score_board.iter() {
-            match self.teams.get_mut(v) {
-                None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => {
-                    t.placement = placement;
-                    t.placement_global = placement_global;
-                    if check_filter(url_filter, t) {
-                        placement += 1;
-                    }
-                    placement_global += 1;
-                },
+            if let Some(t) = self.teams.get_mut(v) {
+                t.placement = placement;
+                t.placement_global = placement_global;
+                if check_filter(url_filter, t) {
+                    placement += 1;
+                }
+                placement_global += 1;
             }
         }
 
@@ -365,9 +361,8 @@ impl ContestFile {
             score_a.cmp(&score_b)
         });
         for (i, v) in score_board.iter().enumerate() {
-            match self.teams.get_mut(v) {
-                None => return Err(ContestError::UnmatchedTeam(v.clone())),
-                Some(t) => t.placement = i + 1,
+            if let Some(t) = self.teams.get_mut(v) {
+                t.placement = i + 1;
             }
         }
 
@@ -379,27 +374,15 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn apply_run(&mut self, r: &RunTuple) -> Result<(), ContestError> {
-        match self.teams.get_mut(&r.team_login) {
-            None => Err(ContestError::UnmatchedTeam(
-                "Could not apply run to team".to_string(),
-            )),
-            Some(t) => {
-                t.apply_run(&r);
-                Ok(())
-            }
+    pub fn apply_run(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run(r);
         }
     }
 
-    pub fn apply_run_frozen(&mut self, r: &RunTuple) -> Result<Score, ContestError> {
-        match self.teams.get_mut(&r.team_login) {
-            None => Err(ContestError::UnmatchedTeam(
-                "Could not apply run to team".to_string(),
-            )),
-            Some(t) => {
-                t.apply_run_frozen(&r);
-                Ok(t.score())
-            }
+    pub fn apply_run_frozen(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run_frozen(r);
         }
     }
 
@@ -450,13 +433,13 @@ impl fmt::Display for RunTuple {
 }
 
 impl RunTuple {
-    pub fn new(id : i64, time: i64, team_login : String, prob : String, answer : Answer) -> Self {
+    pub fn new(id: i64, time: i64, team_login: String, prob: String, answer: Answer) -> Self {
         Self {
             id,
             time,
             team_login,
             prob,
-            answer
+            answer,
         }
     }
 }
@@ -497,6 +480,10 @@ impl RunsFile {
         self.runs.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.runs.is_empty()
+    }
+
     pub fn sorted(&self) -> Vec<RunTuple> {
         let mut r: Vec<_> = self.runs.values().cloned().collect();
         r.sort_by(|t1, t2| t1.time.cmp(&t2.time));
@@ -515,6 +502,26 @@ impl RunsFile {
     pub fn filter_teams(&mut self, teams: &BTreeMap<String, Team>) {
         let runs = &mut self.runs;
         runs.retain(|&_, run| teams.contains_key(&run.team_login));
+    }
+
+    pub fn filter_sede(&self, sede: &Sede) -> Self {
+        let automata = sede.automata();
+
+        self.filter_team_patterns(&automata)
+    }
+
+    pub fn filter_team_patterns(&self, pattern_list: &AhoCorasick) -> Self {
+        Self {
+            runs: self
+                .runs
+                .iter()
+                .filter_map(|(key, value)| {
+                    pattern_list
+                        .is_match(&value.team_login)
+                        .then_some((*key, value.clone()))
+                })
+                .collect(),
+        }
     }
 
     pub fn refresh_1(&mut self, t: &RunTuple) -> bool {
@@ -553,16 +560,12 @@ mod tests {
     use quickcheck::*;
 
     impl Arbitrary for Answer {
-        fn arbitrary<G: Gen>(g: &mut G) -> Self {
-            let r = g.next_u32() % 3;
+        fn arbitrary(g: &mut Gen) -> Self {
+            let r = u32::arbitrary(g) % 3;
 
             if r == 0 {
-                Answer::Yes(g.next_u64() as i64)
-            }
-            // else if r == 1{
-            //     Answer::Wait
-            // }
-            else {
+                Answer::Yes(i64::arbitrary(g) % 1e18 as i64)
+            } else {
                 Answer::No
             }
         }
@@ -584,8 +587,6 @@ mod tests {
 
             }
             println!("p2={:?}", p2);
-
-            // p2.answers.clear();
 
             println!("p2={:?}", p2);
             println!("p1==p2= {}", p1==p2);

@@ -1,12 +1,11 @@
-
-
+use data::configdata::ConfigSecret;
 use server::*;
 
 extern crate clap;
 use clap::{App, Arg};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> eyre::Result<()> {
     let matches = App::new("Maratona Rustrimeitor Server")
         .version("0.1")
         .author("Emilio Wuerges. <wuerges@gmail.com>")
@@ -26,6 +25,7 @@ async fn main() {
                 .long("secret")
                 .value_name("SECRET")
                 .help("Sets the secret to the reveleitor url.")
+                .default_value("config/Secret.toml")
                 .takes_value(true),
         )
         .arg(
@@ -74,39 +74,35 @@ async fn main() {
 
     let config_file_teams = matches.value_of("teams").unwrap_or("config/Teams.toml");
 
-    let config_sedes = config::parse_config_sedes(std::path::Path::new(config_file))
+    let config_sedes = config::parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 
-    let config_escolas = config::parse_config_escolas(std::path::Path::new(config_file_escolas))
+    let config_escolas = config::parse_config(std::path::Path::new(config_file_escolas))
         .expect("Should be able to parse the config.");
 
-    let config_teams = config::parse_config_teams(std::path::Path::new(config_file_teams))
+    let config_teams = config::parse_config(std::path::Path::new(config_file_teams))
         .expect("Should be able to parse the config.");
+
+    let config_secret = match matches.value_of("secret") {
+        Some(path) => config::parse_config::<ConfigSecret>(std::path::Path::new(path))?,
+        None => ConfigSecret::default(),
+    }
+    .get_patterns(&config_sedes);
 
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
-
-    let random_secret = random_path_part();
-    let secret = matches.value_of("secret").unwrap_or(&random_secret);
 
     let lambda_mode = matches.is_present("lambda");
 
     println!("Maratona Rustreimator rodando!");
     if lambda_mode {
         println!("-> Running on lambda mode em http://localhost/")
-    }
-    else {
-        println!(
-            "-> Runs em http://localhost:{}/runspanel.html",
-            server_port
-        );
+    } else {
+        println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
         println!(
             "-> Placar automatizado em http://localhost:{}/automatic.html",
             server_port
         );
-        println!(
-            "-> Timer em http://localhost:{}/timer.html",
-            server_port
-        );
+        println!("-> Timer em http://localhost:{}/timer.html", server_port);
         println!(
             "-> Painel geral em http://localhost:{}/everything.html",
             server_port
@@ -119,15 +115,24 @@ async fn main() {
             "-> Painel geral com sedes em http://localhost:{}/everything2.html",
             server_port
         );
-        println!(
-            "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
-            server_port, secret
-        );
+        for (secret, sede) in config_secret.parameters.iter() {
+            println!("-> {}", sede.name);
+            println!(
+                "    Reveleitor em http://localhost:{}/reveleitor.html?secret={}&sede={}",
+                server_port, secret, sede.name
+            );
+            println!("    Filters = {:?}", sede.codes);
+        }
     }
 
     serve_simple_contest(
-        config, url_base.to_string(),
-        server_port, &secret.to_string(),
-        lambda_mode
-    ).await;
+        config,
+        url_base.to_string(),
+        server_port,
+        config_secret,
+        lambda_mode,
+    )
+    .await;
+
+    Ok(())
 }

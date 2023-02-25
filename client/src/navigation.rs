@@ -43,7 +43,7 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
 fn build_url_filter(model: &Model, sede: &configdata::Sede) -> String {
     let mut search = vec![
         ("sede", vec![&sede.name]),
-        ("filter", sede.codes.iter().map(|s| s).collect()),
+        ("filter", sede.codes.iter().collect()),
     ];
     if let Some(ref contest_name) = model.contest_name {
         search.push(("contest", vec![contest_name]));
@@ -62,20 +62,20 @@ fn view(model: &Model) -> Node<Msg> {
             let sedes = contest
                 .sedes
                 .iter()
-                .filter(|sede| model.contest_name.is_some() && model.contest_name == sede.contest);
+                .filter(|sede| model.contest_name.is_none() || model.contest_name == sede.contest);
 
-            return div![
+            div![
                 C!["sedesnavigation"],
                 sedes.map(|sede| {
                     span![
                         C!["sedeslink"],
                         a![
-                            attrs! {At::Href=>build_url_filter(model, &sede), At::Target=>"principal"},
+                            attrs! {At::Href=>build_url_filter(model, sede), At::Target=>"principal"},
                             &sede.name
                         ],
                     ]
                 }),
-            ];
+            ]
         }
     }
 }
