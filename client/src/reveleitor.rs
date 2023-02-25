@@ -13,7 +13,6 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         secret: get_secret(&url),
         revelation: None,
         center: None,
-        vencedor: None,
         sede: get_sede(&url),
         opt_sede: None,
     }
@@ -25,7 +24,6 @@ struct Model {
     secret: String,
     center: Option<String>,
     revelation: Option<RevelationDriver>,
-    vencedor: Option<String>,
     sede: Option<String>,
     opt_sede: Option<Sede>,
 }
@@ -159,13 +157,6 @@ fn view(model: &Model) -> Node<Msg> {
                 button_disabled.clone()
             ],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset), button_disabled],
-            div![
-                C!["vencedor"],
-                model
-                    .vencedor
-                    .as_ref()
-                    .map(|v| format!("Vencedor da sede: {}", v)),
-            ],
             div!["Times: ", model.remaining()],
         ],
         div![
