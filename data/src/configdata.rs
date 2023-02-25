@@ -98,7 +98,7 @@ impl ConfigSecretPatterns {
             secrets: Box::new(
                 patterns
                     .into_iter()
-                    .map(|(key, teams)| (key, AhoCorasick::new(teams)))
+                    .map(|(key, teams)| (key, AhoCorasick::new_auto_configured(&teams)))
                     .collect(),
             ),
         }
