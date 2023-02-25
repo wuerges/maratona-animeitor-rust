@@ -115,12 +115,13 @@ async fn main() -> eyre::Result<()> {
             "-> Painel geral com sedes em http://localhost:{}/everything2.html",
             server_port
         );
-        for (secret, filters) in config_secret.secrets.iter() {
+        for (secret, sede) in config_secret.parameters.iter() {
+            println!("-> {}", sede.name);
             println!(
-                "-> Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
+                "    Reveleitor em http://localhost:{}/reveleitor.html?secret={}",
                 server_port, secret
             );
-            println!("    Filters = {filters:?}");
+            println!("    Filters = {:?}", sede.codes);
         }
     }
 

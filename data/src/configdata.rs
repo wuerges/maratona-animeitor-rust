@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct Sede {
     pub name: String,
     pub codes: Vec<String>,
@@ -90,16 +90,16 @@ pub struct ConfigSedes {
 #[derive(Debug, Clone)]
 pub struct ConfigSecretPatterns {
     pub secrets: Box<HashMap<String, AhoCorasick>>,
-    pub parameters: Box<HashMap<String, Vec<String>>>,
+    pub parameters: Box<HashMap<String, Sede>>,
 }
 
 impl ConfigSecretPatterns {
-    fn new(patterns: HashMap<String, Vec<String>>) -> Self {
+    fn new(patterns: HashMap<String, Sede>) -> Self {
         Self {
             secrets: Box::new(
                 patterns
                     .iter()
-                    .map(|(key, teams)| (key.clone(), AhoCorasick::new_auto_configured(teams)))
+                    .map(|(key, sede)| (key.clone(), AhoCorasick::new_auto_configured(&sede.codes)))
                     .collect(),
             ),
             parameters: Box::new(patterns),
@@ -130,10 +130,8 @@ impl ConfigSecret {
                     sedes
                         .sedes
                         .iter()
-                        .find_map(|sede| {
-                            (sede.name == sede_secret.name).then_some(sede.codes.clone())
-                        })
-                        .map(|codes| (complete, codes))
+                        .find_map(|sede| (sede.name == sede_secret.name).then_some(sede))
+                        .map(|sede| (complete, sede.clone()))
                 })
                 .collect(),
         )
@@ -190,10 +188,11 @@ mod tests {
 
     #[test]
     fn test_config_patterns() {
-        let config = ConfigSecretPatterns::new(HashMap::from([(
-            "key".into(),
-            ["teambr", "teammx"].into_iter().map(String::from).collect(),
-        )]));
+        let mut sede = Sede::default();
+
+        sede.codes = ["teambr", "teammx"].into_iter().map(String::from).collect();
+
+        let config = ConfigSecretPatterns::new(HashMap::from([("key".into(), sede)]));
 
         assert!(config.secrets.get("key").unwrap().is_match("teambr$"));
         assert!(config.secrets.get("key").unwrap().is_match("teammx$"));
