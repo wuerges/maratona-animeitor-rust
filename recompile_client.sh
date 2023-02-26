@@ -1,1 +1,1 @@
-( cd client && wasm-pack build --target web --out-name package )
+wasm-pack build client --release --out-dir www/pkg --target web --out-name package
