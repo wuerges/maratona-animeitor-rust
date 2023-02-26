@@ -167,7 +167,8 @@ pub async fn serve_simple_contest_assets(
     let services = services.with(cors);
 
     if lambda_mode {
-        warp::serve(services).run(([0, 0, 0, 0], server_port)).await;
+        let routes = services.or(warp::fs::dir("client/www"));
+        warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
     } else {
         let routes = services.or(warp_embed::embed(&ClientAssets));
         warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
