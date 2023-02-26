@@ -22,6 +22,9 @@ html-escape = "0.2"
 parking_lot = "0.12"
 service = { path = "../service" }
 thiserror = "1.0"
+warp-embed = "0.4"
+rust-embed = "6.4"
+openssl = { version = "0.10", features = ["vendored"] }
 
 [dependencies.data]
 path = "../data"

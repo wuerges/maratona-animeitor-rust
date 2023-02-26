@@ -1,3 +1,4 @@
+mod assets;
 pub mod config;
 mod dbupdate;
 mod errors;
@@ -7,6 +8,7 @@ mod runs;
 mod secret;
 mod timer;
 
+use assets::ClientAssets;
 use data::configdata::ConfigContest;
 use data::configdata::ConfigSecretPatterns;
 use futures::TryFutureExt;
@@ -167,8 +169,7 @@ pub async fn serve_simple_contest_assets(
     if lambda_mode {
         warp::serve(services).run(([0, 0, 0, 0], server_port)).await;
     } else {
-        let seed_assets = warp::fs::dir("client/www");
-        let routes = services.or(seed_assets);
+        let routes = services.or(warp_embed::embed(&ClientAssets));
         warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
     };
 }
