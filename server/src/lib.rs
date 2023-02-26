@@ -167,7 +167,7 @@ pub async fn serve_simple_contest_assets(
     if lambda_mode {
         warp::serve(services).run(([0, 0, 0, 0], server_port)).await;
     } else {
-        let seed_assets = warp::fs::dir("client");
+        let seed_assets = warp::fs::dir("client/www");
         let routes = services.or(seed_assets);
         warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
     };
