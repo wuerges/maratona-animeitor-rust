@@ -3,6 +3,7 @@ use server::*;
 
 extern crate clap;
 use clap::{App, Arg};
+use url::Url;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
@@ -116,11 +117,14 @@ async fn main() -> eyre::Result<()> {
             server_port
         );
         for (secret, sede) in config_secret.parameters.iter() {
+            let mut url = Url::parse("http://localhost/reveleitor.html")?;
+            url.set_port(Some(server_port)).ok();
+            url.query_pairs_mut()
+                .append_pair("secret", secret)
+                .append_pair("sede", &sede.name);
+
             println!("-> {}", sede.name);
-            println!(
-                "    Reveleitor em http://localhost:{}/reveleitor.html?secret={}&sede={}",
-                server_port, secret, sede.name
-            );
+            println!("    Reveleitor em {}", url.as_str());
             println!("    Filters = {:?}", sede.codes);
         }
     }

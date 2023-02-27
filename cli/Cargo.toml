@@ -16,6 +16,7 @@ service = { path = "../service" }
 server = { path = "../server" }
 eyre = "0.6.8"
 rstest = "0.16"
+url = "2"
 
 [dev-dependencies]
 quickcheck = "1"
