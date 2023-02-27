@@ -30,6 +30,22 @@ async fn main() -> eyre::Result<()> {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("host")
+                .short("h")
+                .long("host")
+                .value_name("HOST")
+                .help("Sets the hostname for the server.")
+                .default_value("localhost")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("public_port")
+                .long("public")
+                .value_name("PUBLIC")
+                .help("Sets the public port for the server.")
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("schools")
                 .short("s")
                 .long("schools")
@@ -94,6 +110,11 @@ async fn main() -> eyre::Result<()> {
 
     let lambda_mode = matches.is_present("lambda");
 
+    let hostname = matches.value_of("host");
+    let public_port = matches
+        .value_of("public_port")
+        .and_then(|port| port.parse::<u16>().ok());
+
     println!("Maratona Rustreimator rodando!");
     if lambda_mode {
         println!("-> Running on lambda mode em http://localhost/")
@@ -118,7 +139,8 @@ async fn main() -> eyre::Result<()> {
         );
         for (secret, sede) in config_secret.parameters.iter() {
             let mut url = Url::parse("http://localhost/reveleitor.html")?;
-            url.set_port(Some(server_port)).ok();
+            url.set_host(hostname).ok();
+            url.set_port(public_port).ok();
             url.query_pairs_mut()
                 .append_pair("secret", secret)
                 .append_pair("sede", &sede.name);
