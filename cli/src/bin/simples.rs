@@ -122,8 +122,6 @@ async fn main() -> eyre::Result<()> {
         .value_of("public_port")
         .and_then(|port| port.parse::<u16>().ok());
 
-    println!("Maratona Rustreimator rodando!");
-
     println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
     println!(
         "-> Placar automatizado em http://localhost:{}/automatic.html",
@@ -155,6 +153,7 @@ async fn main() -> eyre::Result<()> {
         println!("    Filters = {:?}", sede.codes);
     }
 
+    println!("\nMaratona Rustreimator rodando!");
     let server_config = ServerConfig {
         port: server_port,
         embed_assets,
