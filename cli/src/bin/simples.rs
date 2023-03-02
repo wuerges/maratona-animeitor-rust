@@ -64,12 +64,6 @@ async fn main() -> eyre::Result<()> {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("embed_assets")
-                .short("e")
-                .long("embed")
-                .help("Embed contest assets in the binary"),
-        )
-        .arg(
             Arg::with_name("photos_path")
                 .long("photos")
                 .help("Path for the team photos")
@@ -115,12 +109,15 @@ async fn main() -> eyre::Result<()> {
 
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
-    let embed_assets = matches.is_present("embed_assets");
-
     let hostname = matches.value_of("host");
     let public_port = matches
         .value_of("public_port")
         .and_then(|port| port.parse::<u16>().ok());
+
+    let photos_path = std::path::Path::new(matches.value_of("photos_path").unwrap_or("photos"));
+    if !photos_path.exists() {
+        return Err(eyre::eyre!("path does not exists: {photos_path:?}"));
+    }
 
     println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
     println!(
@@ -156,8 +153,7 @@ async fn main() -> eyre::Result<()> {
     println!("\nMaratona Rustreimator rodando!");
     let server_config = ServerConfig {
         port: server_port,
-        embed_assets,
-        photos_path: matches.value_of("photos_path").map(std::path::Path::new),
+        photos_path,
     };
 
     serve_simple_contest(config, boca_url.to_string(), config_secret, server_config).await;

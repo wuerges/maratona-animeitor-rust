@@ -22,6 +22,5 @@ where
 
 pub struct ServerConfig<'a> {
     pub port: u16,
-    pub embed_assets: bool,
-    pub photos_path: Option<&'a std::path::Path>,
+    pub photos_path: &'a std::path::Path,
 }
