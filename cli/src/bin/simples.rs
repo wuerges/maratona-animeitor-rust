@@ -88,17 +88,7 @@ async fn main() -> eyre::Result<()> {
     let boca_url = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
 
-    let config_file_escolas = matches.value_of("schools").unwrap_or("config/Escolas.toml");
-
-    let config_file_teams = matches.value_of("teams").unwrap_or("config/Teams.toml");
-
     let config_sedes = config::parse_config(std::path::Path::new(config_file))
-        .expect("Should be able to parse the config.");
-
-    let config_escolas = config::parse_config(std::path::Path::new(config_file_escolas))
-        .expect("Should be able to parse the config.");
-
-    let config_teams = config::parse_config(std::path::Path::new(config_file_teams))
         .expect("Should be able to parse the config.");
 
     let config_secret = match matches.value_of("secret") {
@@ -107,7 +97,7 @@ async fn main() -> eyre::Result<()> {
     }
     .get_patterns(&config_sedes);
 
-    let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
+    let config = config::pack_contest_config(config_sedes);
 
     let hostname = matches.value_of("host");
     let public_port = matches
