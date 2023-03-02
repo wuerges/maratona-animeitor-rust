@@ -1,5 +1,5 @@
 use data::configdata::ConfigSecret;
-use server::*;
+use server::{config::ServerConfig, *};
 
 extern crate clap;
 use clap::{App, Arg};
@@ -64,10 +64,17 @@ async fn main() -> eyre::Result<()> {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("lambda")
-                .short("l")
-                .long("lambda")
-                .help("Run in lambda function mode"),
+            Arg::with_name("embed_assets")
+                .short("e")
+                .long("embed")
+                .help("Embed contest assets in the binary"),
+        )
+        .arg(
+            Arg::with_name("photos_path")
+                .long("photos")
+                .help("Path for the team photos")
+                .value_name("PATH")
+                .takes_value(true),
         )
         .arg(
             Arg::with_name("URL")
@@ -84,7 +91,7 @@ async fn main() -> eyre::Result<()> {
         .map(|p| p.parse().expect("Expected a TCP port"))
         .unwrap_or(8000);
 
-    let url_base = matches.value_of("URL").expect("Expected an URL");
+    let boca_url = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
 
     let config_file_escolas = matches.value_of("schools").unwrap_or("config/Escolas.toml");
@@ -108,7 +115,7 @@ async fn main() -> eyre::Result<()> {
 
     let config = config::pack_contest_config(config_sedes, config_escolas, config_teams);
 
-    let lambda_mode = matches.is_present("lambda");
+    let embed_assets = matches.is_present("embed_assets");
 
     let hostname = matches.value_of("host");
     let public_port = matches
@@ -116,49 +123,45 @@ async fn main() -> eyre::Result<()> {
         .and_then(|port| port.parse::<u16>().ok());
 
     println!("Maratona Rustreimator rodando!");
-    if lambda_mode {
-        println!("-> Running on lambda mode em http://localhost/")
-    } else {
-        println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
-        println!(
-            "-> Placar automatizado em http://localhost:{}/automatic.html",
-            server_port
-        );
-        println!("-> Timer em http://localhost:{}/timer.html", server_port);
-        println!(
-            "-> Painel geral em http://localhost:{}/everything.html",
-            server_port
-        );
-        println!(
-            "-> Fotos dos times em http://localhost:{}/teams.html",
-            server_port
-        );
-        println!(
-            "-> Painel geral com sedes em http://localhost:{}/everything2.html",
-            server_port
-        );
-        for (secret, sede) in config_secret.parameters.iter() {
-            let mut url = Url::parse("http://localhost/reveleitor.html")?;
-            url.set_host(hostname).ok();
-            url.set_port(public_port).ok();
-            url.query_pairs_mut()
-                .append_pair("secret", secret)
-                .append_pair("sede", &sede.name);
 
-            println!("-> {}", sede.name);
-            println!("    Reveleitor em {}", url.as_str());
-            println!("    Filters = {:?}", sede.codes);
-        }
+    println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
+    println!(
+        "-> Placar automatizado em http://localhost:{}/automatic.html",
+        server_port
+    );
+    println!("-> Timer em http://localhost:{}/timer.html", server_port);
+    println!(
+        "-> Painel geral em http://localhost:{}/everything.html",
+        server_port
+    );
+    println!(
+        "-> Fotos dos times em http://localhost:{}/teams.html",
+        server_port
+    );
+    println!(
+        "-> Painel geral com sedes em http://localhost:{}/everything2.html",
+        server_port
+    );
+    for (secret, sede) in config_secret.parameters.iter() {
+        let mut url = Url::parse("http://localhost/reveleitor.html")?;
+        url.set_host(hostname).ok();
+        url.set_port(public_port).ok();
+        url.query_pairs_mut()
+            .append_pair("secret", secret)
+            .append_pair("sede", &sede.name);
+
+        println!("-> {}", sede.name);
+        println!("    Reveleitor em {}", url.as_str());
+        println!("    Filters = {:?}", sede.codes);
     }
 
-    serve_simple_contest(
-        config,
-        url_base.to_string(),
-        server_port,
-        config_secret,
-        lambda_mode,
-    )
-    .await;
+    let server_config = ServerConfig {
+        port: server_port,
+        embed_assets,
+        photos_path: matches.value_of("photos_path").map(std::path::Path::new),
+    };
+
+    serve_simple_contest(config, boca_url.to_string(), config_secret, server_config).await;
 
     Ok(())
 }

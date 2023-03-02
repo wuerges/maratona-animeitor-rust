@@ -19,3 +19,9 @@ where
 
     Ok(config)
 }
+
+pub struct ServerConfig<'a> {
+    pub port: u16,
+    pub embed_assets: bool,
+    pub photos_path: Option<&'a std::path::Path>,
+}
