@@ -140,12 +140,15 @@ async fn main() -> eyre::Result<()> {
         println!("    Filters = {:?}", sede.codes);
     }
 
-    println!("\nMaratona Rustreimator rodando!");
     let server_config = ServerConfig {
         port: server_port,
         photos_path,
     };
 
+    println!("\nSetting up sentry guard");
+    let _guard = sentry::setup();
+
+    println!("\nMaratona Rustreimator rodando!");
     serve_simple_contest(config, boca_url.to_string(), config_secret, server_config).await;
 
     Ok(())

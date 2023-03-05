@@ -2,7 +2,7 @@ use data::revelation::RevelationDriver;
 use service::webcast::load_data_from_url_maybe;
 
 pub async fn build_revelation(input_file: &str) -> eyre::Result<Vec<String>> {
-    let (_, contest_data, runs_data) = load_data_from_url_maybe(input_file.to_string())
+    let (_, contest_data, runs_data) = load_data_from_url_maybe(input_file)
         .await
         .expect("Should have loaded file");
 
