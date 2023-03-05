@@ -1,4 +1,5 @@
 use data::RunTuple;
+use metrics::increment_counter;
 
 use crate::membroadcast;
 use futures::{stream::SplitSink, SinkExt, StreamExt};
@@ -24,6 +25,8 @@ async fn convert_and_send(tx: &mut SplitSink<warp::ws::WebSocket, Message>, r: R
 async fn serve_all_runs_ws(ws: warp::ws::WebSocket, runs_tx: Arc<membroadcast::Sender<RunTuple>>) {
     let mut rx = runs_tx.subscribe();
     let (mut tx, _) = ws.split();
+
+    increment_counter!("serve_all_runs_ws_clients_connected");
 
     let fut = async move {
         loop {

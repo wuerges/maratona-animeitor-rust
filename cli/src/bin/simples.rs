@@ -147,6 +147,7 @@ async fn main() -> eyre::Result<()> {
 
     println!("\nSetting up sentry guard");
     let _guard = sentry::setup();
+    let _autometrics = metrics::setup();
 
     println!("\nMaratona Rustreimator rodando!");
     serve_simple_contest(config, boca_url.to_string(), config_secret, server_config).await;

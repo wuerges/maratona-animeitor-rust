@@ -11,6 +11,8 @@ pub enum Error {
     ServiceError(#[from] service::errors::Error),
     #[error("invalid secret")]
     InvalidSecret,
+    #[error(transparent)]
+    Prometheus(#[from] prometheus::Error),
 }
 
 impl Reject for Error {}

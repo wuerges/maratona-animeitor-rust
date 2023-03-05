@@ -26,6 +26,13 @@ warp-embed = "0.4"
 rust-embed = "6.4"
 openssl = { version = "0.10", features = ["vendored"] }
 sentry = "0.30.0"
+autometrics = { version = "0.2.4", features = [
+    "prometheus-exporter",
+    "metrics",
+] }
+prometheus = { version = "0.13.3", features = ["process"] }
+metrics = "0.20.1"
+metrics-prometheus = "0.3.1"
 
 [dependencies.data]
 path = "../data"

@@ -1,5 +1,6 @@
 use data::TimerData;
 use futures::{SinkExt, StreamExt};
+use metrics::increment_counter;
 use tokio::sync::broadcast;
 use warp::filters::BoxedFilter;
 use warp::ws::Message;
@@ -14,6 +15,8 @@ pub fn serve_timer(time_tx: broadcast::Sender<TimerData>) -> BoxedFilter<(impl R
 
 async fn serve_timer_ws(ws: warp::ws::WebSocket, mut rx: broadcast::Receiver<TimerData>) {
     let (mut tx, _) = ws.split();
+
+    increment_counter!("serve_timer_ws_clients_connected");
 
     let fut = async move {
         loop {

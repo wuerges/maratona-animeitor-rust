@@ -3,6 +3,7 @@ pub mod config;
 mod dbupdate;
 mod errors;
 mod membroadcast;
+pub mod metrics;
 mod routes;
 mod runs;
 mod secret;

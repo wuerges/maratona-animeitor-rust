@@ -2,10 +2,12 @@ use crate::assets::ClientAssets;
 use crate::config::ServerConfig;
 use crate::dbupdate::spawn_db_update;
 use crate::membroadcast;
+use crate::metrics::route_metrics;
 use crate::routes;
 use crate::runs;
 use crate::secret;
 use crate::timer;
+use autometrics::autometrics;
 use data::configdata::ConfigContest;
 use data::configdata::ConfigSecretPatterns;
 use warp::filters::BoxedFilter;
@@ -38,7 +40,7 @@ fn route_contest_public_data(
 
     let contest_file = warp::path("contest")
         .and(routes::with_db(shared_db))
-        .and_then(serve_contestfile);
+        .and_then(serve_contest_file);
 
     let routes = runs.or(all_runs_ws).or(timer).or(contest_file);
 
@@ -68,12 +70,14 @@ fn serve_urlbase(
         .boxed()
 }
 
+#[autometrics]
 async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
     Ok(serde_json::to_string(&*db.latest()).map_err(CError::SerializationError)?)
 }
 
-async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
+#[autometrics]
+async fn serve_contest_file(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
     if db.time_file < 0 {
         return Err(warp::reject::not_found());
@@ -81,6 +85,7 @@ async fn serve_contestfile(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     Ok(serde_json::to_string(&db.contest_file_begin).map_err(CError::SerializationError)?)
 }
 
+#[autometrics]
 async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Rejection> {
     Ok(serde_json::to_string(&*config).map_err(CError::SerializationError)?)
 }
@@ -100,9 +105,12 @@ pub async fn serve_simple_contest(
     let service_routes = serve_urlbase(config, shared_db, runs_tx, time_tx, secrets);
     let asset_routes = contest_assets(server_config);
 
-    warp::serve(service_routes.or(asset_routes).with(cors))
-        .run(([0, 0, 0, 0], port))
-        .await;
+    let all_routes = service_routes
+        .or(asset_routes)
+        .or(route_metrics())
+        .with(cors);
+
+    warp::serve(all_routes).run(([0, 0, 0, 0], port)).await;
 }
 
 fn photos_route(photos_path: &std::path::Path) -> BoxedFilter<(impl Reply,)> {

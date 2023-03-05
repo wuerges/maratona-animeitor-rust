@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use autometrics::autometrics;
 use data::configdata::ConfigSecretPatterns;
 use serde::Deserialize;
 use service::DB;
@@ -26,6 +27,7 @@ struct SecretQuery {
     secret: Option<String>,
 }
 
+#[autometrics]
 async fn serve_all_runs_secret_filter(
     runs: Arc<Mutex<DB>>,
     secrets: Box<ConfigSecretPatterns>,
