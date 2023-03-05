@@ -22,7 +22,6 @@ fn main() -> std::io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     for a in args.iter().skip(1) {
-        println!("args: {}", a);
         let f = std::fs::read_to_string(a)?;
         let mut secrets: ConfigSecret = toml::from_str(&f)?;
         shuffle_secrets(&mut secrets);
