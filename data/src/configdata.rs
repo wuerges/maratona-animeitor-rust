@@ -82,8 +82,6 @@ impl Sede {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConfigContest {
     pub sedes: Vec<Sede>,
-    pub escolas: Vec<Escola>,
-    pub teams: Vec<TeamEntry>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -154,27 +152,15 @@ pub struct ConfigTeams {
 
 impl ConfigContest {
     pub fn dummy() -> Self {
-        Self {
-            sedes: Vec::new(),
-            escolas: Vec::new(),
-            teams: Vec::new(),
-        }
+        Self { sedes: Vec::new() }
     }
 
-    pub fn from_config(sedes: Vec<Sede>, escolas: Vec<Escola>, teams: Vec<TeamEntry>) -> Self {
-        Self {
-            sedes,
-            escolas,
-            teams,
-        }
+    pub fn from_config(sedes: Vec<Sede>) -> Self {
+        Self { sedes }
     }
 
     pub fn new(sedes: Vec<Sede>) -> Self {
-        Self {
-            sedes,
-            escolas: Vec::new(),
-            teams: Vec::new(),
-        }
+        Self { sedes }
     }
 
     pub fn get_sede_team(&self, team: &str) -> Option<&Sede> {

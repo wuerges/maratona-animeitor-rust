@@ -1,0 +1,222 @@
+titulo = "ICPC Latin America Regional Contest"
+
+
+# ##North
+# teamno
+[[sedes]]
+name = "North"
+premiacao = false
+vagas = 5
+codes = ["teamno"]
+ouro = 3
+prata = 6
+bronze = 10
+
+
+# #Venezuela
+# teamnovz
+[[sedes]]
+name = "Venezuela"
+style = "sede_venezuela"
+premiacao = false
+vagas = 5
+codes = ["teamnovz"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# #Colombia
+# teamnoco
+[[sedes]]
+name = "Colombia"
+style = "sede_colombia"
+premiacao = false
+vagas = 5
+codes = ["teamnoco"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# ## South
+# teamso
+[[sedes]]
+name = "South"
+style = "sede_south"
+premiacao = false
+vagas = 5
+codes = ["teamso"]
+ouro = 3
+prata = 6
+bronze = 10
+
+
+# #Argentina
+# teamsoar
+[[sedes]]
+name = "Argentina"
+style = "sede_argentina"
+premiacao = false
+vagas = 5
+codes = ["teamsoar"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# #Bolicia
+# teamsobo
+[[sedes]]
+name = "Bolivia"
+style = "sede_bolivia"
+premiacao = false
+vagas = 5
+codes = ["teamsobo"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# #Chile
+# teamsoch
+[[sedes]]
+name = "Chile"
+style = "sede_chile"
+premiacao = false
+vagas = 5
+codes = ["teamsoch"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# #Peru
+# teamsope
+[[sedes]]
+name = "Peru"
+style = "sede_peru"
+premiacao = false
+vagas = 5
+codes = ["teamsope"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# #Brasil
+# teambrbr
+[[sedes]]
+name = "Brasil"
+style = "sede_brasil"
+premiacao = false
+vagas = 5
+codes = ["teambrbr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+
+# mx - Mexico
+[[sedes]]
+name = "Mexico"
+premiacao = false
+vagas = 5
+codes = ["teammx"]
+ouro = 3
+prata = 6
+bronze = 10
+
+
+# ##Central America
+# teamca
+[[sedes]]
+name = "Central America"
+premiacao = false
+vagas = 5
+codes = ["teamca"]
+ouro = 3
+prata = 6
+bronze = 10
+
+# #El Salvador
+# teamcaes
+[[sedes]]
+name = "El Salvador"
+style = "sede_el_salvador"
+premiacao = false
+vagas = 5
+codes = ["teamcaes"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# #Costa Rica
+# teamcacr
+[[sedes]]
+name = "Costa Rica"
+style = "sede_costa_rica"
+premiacao = false
+vagas = 5
+codes = ["teamcacr"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# ##Caribe
+# teamcb
+[[sedes]]
+name = "Caribe"
+style = "sede_caribe"
+premiacao = false
+vagas = 5
+codes = ["teamcb"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# #Cuba
+# teamcbcu
+[[sedes]]
+name = "Cuba"
+style = "sede_cuba"
+premiacao = false
+vagas = 5
+codes = ["teamcbcu"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+# #Dominican Republic
+# teamcbdr
+[[sedes]]
+name = "Republica Dominicana"
+style = "sede_republica_dominicana"
+premiacao = false
+vagas = 5
+codes = ["teamcbdr"]
+ouro = 1
+prata = 2
+bronze = 3
+
+# #Puerto Rico
+# teamcbpr
+[[sedes]]
+name = "Puerto Rico"
+style = "sede_puerto_rico"
+premiacao = false
+vagas = 5
+codes = ["teamcbpr"]
+ouro = 1
+prata = 2
+bronze = 3
+
+
+[[sedes]]
+name = "Latin America"
+style = "sede_la"
+codes = ["team"]
+premiacao = false
+vagas = 0
+ouro = 3
+prata = 6
+bronze = 10

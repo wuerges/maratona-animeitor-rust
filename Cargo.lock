@@ -180,6 +180,7 @@ dependencies = [
  "service",
  "tokio",
  "toml",
+ "url",
 ]
 
 [[package]]

@@ -9,10 +9,13 @@ mod secret;
 mod timer;
 
 use assets::ClientAssets;
+use config::ServerConfig;
 use data::configdata::ConfigContest;
 use data::configdata::ConfigSecretPatterns;
 use futures::TryFutureExt;
+use warp::filters::BoxedFilter;
 use warp::Rejection;
+use warp::Reply;
 
 use crate::dbupdate::spawn_db_update_f;
 use crate::errors::CResult;
@@ -112,9 +115,8 @@ pub fn random_path_part() -> String {
 pub async fn serve_simple_contest(
     config: ConfigContest,
     url_base: String,
-    server_port: u16,
     secret: ConfigSecretPatterns,
-    lambda_mode: bool,
+    server_config: ServerConfig<'_>,
 ) {
     serve_simple_contest_f(
         config,
@@ -122,9 +124,8 @@ pub async fn serve_simple_contest(
             service::webcast::load_data_from_url_maybe(url_base.clone())
                 .map_err(CError::ServiceError)
         },
-        server_port,
         secret,
-        lambda_mode,
+        server_config,
     )
     .await
 }
@@ -132,24 +133,22 @@ pub async fn serve_simple_contest(
 pub async fn serve_simple_contest_f<F, Fut>(
     config: ConfigContest,
     f: F,
-    server_port: u16,
     secret: ConfigSecretPatterns,
-    lambda_mode: bool,
+    server_config: ServerConfig<'_>,
 ) where
     F: Fn() -> Fut + Send + 'static,
     Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
 {
     let (shared_db, runs_tx, time_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(
-        config,
-        shared_db,
-        runs_tx,
-        time_tx,
-        server_port,
-        secret,
-        lambda_mode,
-    )
-    .await
+    serve_simple_contest_assets(config, shared_db, runs_tx, time_tx, secret, server_config).await
+}
+
+fn photos_route(photos_path: &std::path::Path) -> BoxedFilter<(impl Reply,)> {
+    warp::path("static")
+        .and(warp::path("assets"))
+        .and(warp::path("teams"))
+        .and(warp::fs::dir(photos_path.to_owned()))
+        .boxed()
 }
 
 pub async fn serve_simple_contest_assets(
@@ -157,20 +156,15 @@ pub async fn serve_simple_contest_assets(
     db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    server_port: u16,
     secret: ConfigSecretPatterns,
-    lambda_mode: bool,
+    ServerConfig { port, photos_path }: ServerConfig<'_>,
 ) {
-    let services = serve_urlbase(config, db, runs_tx, time_tx, secret);
     let cors = warp::cors().allow_any_origin();
+    let services = serve_urlbase(config, db, runs_tx, time_tx, secret).with(cors);
 
-    let services = services.with(cors);
+    let client_assets = warp_embed::embed(&ClientAssets);
 
-    if lambda_mode {
-        let routes = services.or(warp::fs::dir("client/www"));
-        warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
-    } else {
-        let routes = services.or(warp_embed::embed(&ClientAssets));
-        warp::serve(routes).run(([0, 0, 0, 0], server_port)).await;
-    };
+    warp::serve(services.or(photos_route(photos_path).or(client_assets)))
+        .run(([0, 0, 0, 0], port))
+        .await;
 }
