@@ -146,6 +146,8 @@ async fn main() -> eyre::Result<()> {
         photos_path,
     };
 
+    let _guard = sentry::setup();
+
     serve_simple_contest(config, boca_url.to_string(), config_secret, server_config).await;
 
     Ok(())

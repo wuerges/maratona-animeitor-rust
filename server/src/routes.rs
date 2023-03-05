@@ -1,4 +1,4 @@
-use crate::DB;
+use service::DB;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;

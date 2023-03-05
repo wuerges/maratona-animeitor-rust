@@ -25,6 +25,7 @@ thiserror = "1.0"
 warp-embed = "0.4"
 rust-embed = "6.4"
 openssl = { version = "0.10", features = ["vendored"] }
+sentry = "0.30.0"
 
 [dependencies.data]
 path = "../data"

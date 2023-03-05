@@ -1,9 +1,9 @@
 use crate::errors::CResult;
-use crate::DB;
 
 use std::sync::Arc;
 
 use crate::membroadcast;
+use service::DB;
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 
