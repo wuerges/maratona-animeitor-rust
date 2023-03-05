@@ -53,7 +53,7 @@ fn read_from_zip(
 }
 
 pub async fn load_data_from_url_maybe(
-    uri: String,
+    uri: &str,
 ) -> ServiceResult<(i64, data::ContestFile, data::RunsFile)> {
     let zip_data = read_bytes_from_path(&uri).await?;
 

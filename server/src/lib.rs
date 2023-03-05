@@ -12,13 +12,11 @@ use assets::ClientAssets;
 use config::ServerConfig;
 use data::configdata::ConfigContest;
 use data::configdata::ConfigSecretPatterns;
-use futures::TryFutureExt;
+use dbupdate::spawn_db_update;
 use warp::filters::BoxedFilter;
 use warp::Rejection;
 use warp::Reply;
 
-use crate::dbupdate::spawn_db_update_f;
-use crate::errors::CResult;
 use crate::errors::Error as CError;
 
 extern crate html_escape;
@@ -27,7 +25,6 @@ extern crate rand;
 
 use service::DB;
 
-use std::future::Future;
 use std::sync::Arc;
 
 use tokio::sync::broadcast;
@@ -35,7 +32,7 @@ use tokio::sync::Mutex;
 
 use warp::Filter;
 
-pub fn route_contest_public_data(
+fn route_contest_public_data(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
@@ -57,7 +54,7 @@ pub fn route_contest_public_data(
     routes.boxed()
 }
 
-pub fn serve_urlbase(
+fn serve_urlbase(
     config: ConfigContest,
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
@@ -97,50 +94,24 @@ async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Reje
     Ok(serde_json::to_string(&*config).map_err(CError::SerializationError)?)
 }
 
-pub fn random_path_part() -> String {
-    use rand::Rng;
-    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                            abcdefghijklmnopqrstuvwxyz\
-                            0123456789";
-    const PASSWORD_LEN: usize = 6;
-    let mut rng = rand::thread_rng();
-    (0..PASSWORD_LEN)
-        .map(|_| {
-            let idx = rng.gen_range(0..CHARSET.len());
-            CHARSET[idx] as char
-        })
-        .collect()
-}
-
 pub async fn serve_simple_contest(
     config: ConfigContest,
-    url_base: String,
-    secret: ConfigSecretPatterns,
+    boca_url: String,
+    secrets: ConfigSecretPatterns,
     server_config: ServerConfig<'_>,
 ) {
-    serve_simple_contest_f(
-        config,
-        move || {
-            service::webcast::load_data_from_url_maybe(url_base.clone())
-                .map_err(CError::ServiceError)
-        },
-        secret,
-        server_config,
-    )
-    .await
-}
+    let port = server_config.port;
 
-pub async fn serve_simple_contest_f<F, Fut>(
-    config: ConfigContest,
-    f: F,
-    secret: ConfigSecretPatterns,
-    server_config: ServerConfig<'_>,
-) where
-    F: Fn() -> Fut + Send + 'static,
-    Fut: Future<Output = CResult<(i64, data::ContestFile, data::RunsFile)>> + Send,
-{
-    let (shared_db, runs_tx, time_tx) = spawn_db_update_f(f);
-    serve_simple_contest_assets(config, shared_db, runs_tx, time_tx, secret, server_config).await
+    let cors = warp::cors().allow_any_origin();
+
+    let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url);
+
+    let service_routes = serve_urlbase(config, shared_db, runs_tx, time_tx, secrets);
+    let asset_routes = contest_assets(server_config);
+
+    warp::serve(service_routes.or(asset_routes).with(cors))
+        .run(([0, 0, 0, 0], port))
+        .await;
 }
 
 fn photos_route(photos_path: &std::path::Path) -> BoxedFilter<(impl Reply,)> {
@@ -151,20 +122,9 @@ fn photos_route(photos_path: &std::path::Path) -> BoxedFilter<(impl Reply,)> {
         .boxed()
 }
 
-pub async fn serve_simple_contest_assets(
-    config: ConfigContest,
-    db: Arc<Mutex<DB>>,
-    runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
-    time_tx: broadcast::Sender<data::TimerData>,
-    secret: ConfigSecretPatterns,
-    ServerConfig { port, photos_path }: ServerConfig<'_>,
-) {
-    let cors = warp::cors().allow_any_origin();
-    let services = serve_urlbase(config, db, runs_tx, time_tx, secret).with(cors);
-
+fn contest_assets(
+    ServerConfig { photos_path, .. }: ServerConfig<'_>,
+) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let client_assets = warp_embed::embed(&ClientAssets);
-
-    warp::serve(services.or(photos_route(photos_path).or(client_assets)))
-        .run(([0, 0, 0, 0], port))
-        .await;
+    photos_route(photos_path).or(client_assets).boxed()
 }
