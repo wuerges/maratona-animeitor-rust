@@ -209,6 +209,7 @@ dependencies = [
  "eyre",
  "quickcheck",
  "quickcheck_macros",
+ "rand",
  "rstest",
  "serde",
  "serde_json",
