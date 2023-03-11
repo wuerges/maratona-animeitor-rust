@@ -1,6 +1,7 @@
 use seed::{prelude::*, *};
 
 mod automatic;
+mod countdown;
 mod helpers;
 mod navigation;
 mod requests;
@@ -31,6 +32,7 @@ pub fn start() {
                     "timerpanel" => timer::start(root_element),
                     "sedepanel" => sede::start(root_element),
                     "teams" => teams::start(root_element),
+                    "countdown" => countdown::start(root_element),
                     s => log!("wrong app!:", s),
                 };
             }
