@@ -21,15 +21,20 @@ struct Model {
 
 enum Msg {
     Fetched(fetch::Result<data::ContestFile>),
+    Reconnect,
 }
 
-fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
+fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::Fetched(Ok(config)) => {
             model.contest = Some(config);
         }
         Msg::Fetched(Err(e)) => {
-            log!("Error: failed loading config", e);
+            log!("Error: failed loading config, retrying in 5 seconds", e);
+            orders.perform_cmd(cmds::timeout(5000, || Msg::Reconnect));
+        }
+        Msg::Reconnect => {
+            orders.perform_cmd(fetch_all());
         }
     }
 }
