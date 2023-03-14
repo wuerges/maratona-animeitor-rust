@@ -99,3 +99,15 @@ No linux, o animeitor vai criar uma conexa para cada cliente, por isso deve-se a
 ```
 ulimit -n unlimited
 ```
+
+# Client only setup
+
+The client can be redirected to another server, using an environment variable:
+
+```bash
+# generating the client pointing to animeitor
+URL_PREFIX="http://animeitor.naquadah.com.br" wasm-pack build client --release --out-dir www/pkg --target web --out-name package
+
+# serving the client assets locally
+python3 -m http.server 8000 -d client/www
+```
