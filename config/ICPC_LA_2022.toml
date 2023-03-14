@@ -136,13 +136,13 @@ prata = 6
 bronze = 10
 
 # #El Salvador
-# teamcaes
+# teamcael
 [[sedes]]
 name = "El Salvador"
 style = "sede_el_salvador"
 premiacao = false
 vagas = 5
-codes = ["teamcaes"]
+codes = ["teamcael"]
 ouro = 1
 prata = 2
 bronze = 3
