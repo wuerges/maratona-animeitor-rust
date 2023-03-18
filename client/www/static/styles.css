@@ -319,43 +319,43 @@ body {
 }
 
 .balao_A {
-  filter: invert(15%) !important;
+  filter: invert(93%) sepia(68%) saturate(2%) hue-rotate(57deg) brightness(107%) contrast(100%) !important;
 }
 .balao_B {
-  filter: invert(27%) sepia(97%) saturate(6971%) hue-rotate(120deg) brightness(98%) contrast(106%) !important;
+  filter: invert(0%) sepia(0%) saturate(7497%) hue-rotate(212deg) brightness(90%) contrast(100%) !important;
 }
 .balao_C {
-  filter: invert(84%) sepia(97%) saturate(262%) hue-rotate(77deg) brightness(102%) contrast(101%) !important;
+  filter: invert(17%) sepia(95%) saturate(6747%) hue-rotate(358deg) brightness(128%) contrast(116%) !important;
 }
 .balao_D {
-  filter: invert(81%) sepia(86%) saturate(3551%) hue-rotate(359deg) brightness(104%) contrast(105%) !important;
+  filter: invert(15%) sepia(25%) saturate(7375%) hue-rotate(349deg) brightness(87%) contrast(126%) !important;
 }
 .balao_E {
-  filter: invert(16%) sepia(85%) saturate(7493%) hue-rotate(359deg) brightness(110%) contrast(110%) !important;
+  filter: invert(90%) sepia(63%) saturate(3562%) hue-rotate(358deg) brightness(108%) contrast(101%) !important;
 }
 .balao_F {
-  filter: invert(21%) sepia(91%) saturate(4473%) hue-rotate(317deg) brightness(104%) contrast(101%) !important;
+  filter: invert(26%) sepia(97%) saturate(1646%) hue-rotate(102deg) brightness(90%) contrast(104%) !important;
 }
 .balao_G {
-  filter: invert(45%) sepia(70%) saturate(1162%) hue-rotate(226deg) brightness(94%) contrast(81%) !important;
+  filter: invert(8%) sepia(100%) saturate(7474%) hue-rotate(247deg) brightness(92%) contrast(143%) !important;
 }
 .balao_H {
-  filter: invert(16%) sepia(49%) saturate(7463%) hue-rotate(242deg) brightness(54%) contrast(133%) !important;
+  filter: invert(10%) sepia(38%) saturate(6078%) hue-rotate(236deg) brightness(106%) contrast(143%) !important;
 }
 .balao_I {
-  filter: invert(17%) sepia(96%) saturate(2594%) hue-rotate(273deg) brightness(100%) contrast(130%) !important;
+  filter: invert(16%) sepia(81%) saturate(5328%) hue-rotate(296deg) brightness(117%) contrast(119%) !important;
 }
 .balao_J {
-  filter: invert(27%) sepia(96%) saturate(574%) hue-rotate(348deg) brightness(91%) contrast(93%) !important;
+  filter: invert(11%) sepia(92%) saturate(5890%) hue-rotate(296deg) brightness(66%) contrast(106%) !important;
 }
 .balao_K {
-  filter: invert(62%) sepia(29%) saturate(1511%) hue-rotate(360deg) brightness(103%) contrast(106%) !important;
+  filter: invert(54%) sepia(91%) saturate(3217%) hue-rotate(88deg) brightness(126%) contrast(118%) !important;
 }
 .balao_L {
-  filter: invert(70%) sepia(52%) saturate(584%) hue-rotate(178deg) brightness(105%) contrast(96%) !important;
+  filter: invert(90%) sepia(50%) saturate(4791%) hue-rotate(102deg) brightness(100%) contrast(103%) !important;
 }
 .balao_M {
-  filter: invert(82%) sepia(2%) saturate(5886%) hue-rotate(303deg) brightness(101%) contrast(101%) !important;
+  filter: invert(88%) sepia(0%) saturate(0%) hue-rotate(8deg) brightness(91%) contrast(83%) !important;
 }
 .balao_N {
   filter: invert(86%) sepia(75%) saturate(4397%) hue-rotate(172deg) brightness(97%) contrast(85%) !important;
