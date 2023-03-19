@@ -83,7 +83,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 model.runs = runs
                     .into_iter()
-                    .take(30)
                     .map(|r| mock.build_panel_item(&r).expect("Expected a valid Run"))
                     .collect();
 
@@ -122,7 +121,7 @@ fn view(model: &Model) -> Node<Msg> {
         C!["runstable"],
         model.runs.iter().filter(
             |r|data::check_filter_login(model.url_filter.as_ref(), &r.team_login)
-        ).enumerate().map({
+        ).take(30).enumerate().map({
             |(i, r)| {
                 let balao = std::format!("balao_{}", r.problem);
                 div![
