@@ -75,22 +75,8 @@ cargo watch -x test
 Construindo a imagem:
 
 ```
-docker build -t animeitor .
+docker compose up --build
 ```
-
-Executando a imagem:
-
-```
-docker run -p 9091:9091 animeitor --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
-```
-
-Executando a imagem, direto do dockerhub:
-
-```
-docker run -p 9091:9091 wuerges/animeitor --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
-```
-
-Verifique no seu navegador: http://localhost:9091/reveleitor.html?secret=abc&sede=Brasil
 
 # Linux
 
