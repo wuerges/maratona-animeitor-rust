@@ -2,7 +2,7 @@ version: "3.7"
 services:
   animeitor:
     image: animeitor
-    command: "/simples --config $SEDES --secret $SECRET $BOCA_URL --port $HTTP_PORT --public $HTTP_PORT"
+    command: "--config $SEDES --secret $SECRET $BOCA_URL --port $HTTP_PORT --public $HTTP_PORT"
     build: 
       context: .
       args:
