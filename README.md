@@ -32,7 +32,7 @@ Compile e rode:
 
 ```bash
 # compilando o cliente
-( cd client && wasm-pack build --target web --out-name package )
+wasm-pack build client --release --out-dir www/pkg --target web --out-name package
 # rodando o servidor
 cargo run --release --bin simples -- --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
 ```
