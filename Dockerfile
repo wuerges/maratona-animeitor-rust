@@ -7,7 +7,7 @@ FROM build-base AS build
 WORKDIR /src
 COPY . .
 
-RUN wasm-pack build --dev --target web --out-name package client
+RUN wasm-pack build client --release --out-dir www/pkg --target web --out-name package
 RUN --mount=type=cache,mode=0777,target=/usr/local/cargo/registry \
     cargo build --release
 
