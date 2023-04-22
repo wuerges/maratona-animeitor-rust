@@ -1,3 +1,4 @@
+use cli::parse_config;
 use data::configdata::ConfigSecret;
 use server::{config::ServerConfig, *};
 
@@ -88,11 +89,11 @@ async fn main() -> eyre::Result<()> {
     let boca_url = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
 
-    let config_sedes = config::parse_config(std::path::Path::new(config_file))
+    let config_sedes = parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 
     let config_secret = match matches.value_of("secret") {
-        Some(path) => config::parse_config::<ConfigSecret>(std::path::Path::new(path))?,
+        Some(path) => parse_config::<ConfigSecret>(std::path::Path::new(path))?,
         None => ConfigSecret::default(),
     }
     .get_patterns(&config_sedes);
