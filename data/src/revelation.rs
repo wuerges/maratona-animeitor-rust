@@ -2,7 +2,7 @@ use crate::*;
 
 use std::collections::BinaryHeap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Revelation {
     contest: ContestFile,
     runs: RunsFile,
@@ -11,7 +11,9 @@ struct Revelation {
 
 #[derive(Debug)]
 pub struct RevelationDriver {
+    starting_point: Revelation,
     revelation: Revelation,
+    step: u32,
 }
 
 impl RevelationDriver {
@@ -19,11 +21,16 @@ impl RevelationDriver {
         let mut revelation = Revelation::new(contest, runs);
         revelation.apply_all_runs_before_frozen()?;
 
-        Ok(Self { revelation })
+        Ok(Self {
+            starting_point: revelation.clone(),
+            revelation,
+            step: 0,
+        })
     }
 
     pub fn reveal_step(&mut self) -> Result<(), ContestError> {
         self.revelation.apply_one_run_from_queue();
+        self.step += 1;
         self.revelation.contest.recalculate_placement_no_filter()
     }
 
@@ -32,7 +39,9 @@ impl RevelationDriver {
     }
 
     pub fn reveal_top_n(&mut self, n: usize) -> Result<(), ContestError> {
-        self.revelation.apply_runs_from_queue_n(n)
+        let steps = self.revelation.apply_runs_from_queue_n(n)?;
+        self.step += steps;
+        Ok(())
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -47,12 +56,21 @@ impl RevelationDriver {
         self.revelation.runs_queue.is_empty()
     }
 
-    pub fn restart(&mut self) -> Result<(), ContestError> {
-        todo!()
+    pub fn restart(&mut self) {
+        self.revelation = self.starting_point.clone();
+        self.step = 0;
     }
 
     pub fn back_one(&mut self) -> Result<(), ContestError> {
-        todo!()
+        if self.step > 0 {
+            self.revelation = self.starting_point.clone();
+            self.step -= 1;
+            for _ in 0..self.step {
+                self.revelation.apply_one_run_from_queue();
+            }
+            self.revelation.contest.recalculate_placement_no_filter()?;
+        }
+        Ok(())
     }
 }
 
@@ -81,15 +99,18 @@ impl Revelation {
         self.runs_queue.pop_run(&mut self.contest);
     }
 
-    fn apply_runs_from_queue_n(&mut self, n: usize) -> Result<(), ContestError> {
+    fn apply_runs_from_queue_n(&mut self, n: usize) -> Result<u32, ContestError> {
+        let mut count = 0;
         while self.runs_queue.queue.len() > n {
+            count += 1;
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement_no_filter()
+        self.contest.recalculate_placement_no_filter()?;
+        Ok(count)
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct RunsQueue {
     queue: BinaryHeap<Score>,
 }

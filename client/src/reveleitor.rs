@@ -145,7 +145,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(_, Err(e), _) => log!("fetched contest error!", e),
         Msg::Fetched(_, _, Err(e)) => log!("fetched config error!", e),
         Msg::Reset => {
-            model.revelation.as_mut().and_then(|r| r.restart().ok());
+            if let Some(r) = &mut model.revelation {
+                r.restart();
+            }
             model.center = None;
             model.button_disabled = false;
         }
@@ -161,8 +163,8 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         div![
             C!["commandpanel"],
-            button!["→", ev(Ev::Click, |_| Msg::Prox1), button_disabled.clone()],
             button!["←", ev(Ev::Click, |_| Msg::Back1), button_disabled.clone()],
+            button!["→", ev(Ev::Click, |_| Msg::Prox1), button_disabled.clone()],
             button![
                 "All",
                 ev(Ev::Click, |_| Msg::Prox(0)),

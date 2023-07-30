@@ -151,7 +151,7 @@ impl Ord for Team {
 
 use std::cmp::{Eq, Ord, Ordering};
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Score {
     pub solved: usize,
     pub penalty: i64,
