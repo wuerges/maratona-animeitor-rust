@@ -166,18 +166,8 @@ fn view(model: &Model) -> Node<Msg> {
             button!["←", ev(Ev::Click, |_| Msg::Back1), button_disabled.clone()],
             button!["→", ev(Ev::Click, |_| Msg::Prox1), button_disabled.clone()],
             button![
-                "All",
-                ev(Ev::Click, |_| Msg::Prox(0)),
-                button_disabled.clone()
-            ],
-            button![
-                "Top 10",
-                ev(Ev::Click, |_| Msg::Prox(10)),
-                button_disabled.clone()
-            ],
-            button![
-                "Top 30",
-                ev(Ev::Click, |_| Msg::Prox(30)),
+                "Top 100",
+                ev(Ev::Click, |_| Msg::Prox(100)),
                 button_disabled.clone()
             ],
             button![
@@ -186,8 +176,18 @@ fn view(model: &Model) -> Node<Msg> {
                 button_disabled.clone()
             ],
             button![
-                "Top 100",
-                ev(Ev::Click, |_| Msg::Prox(100)),
+                "Top 30",
+                ev(Ev::Click, |_| Msg::Prox(30)),
+                button_disabled.clone()
+            ],
+            button![
+                "Top 10",
+                ev(Ev::Click, |_| Msg::Prox(10)),
+                button_disabled.clone()
+            ],
+            button![
+                "All",
+                ev(Ev::Click, |_| Msg::Prox(0)),
                 button_disabled.clone()
             ],
             button!["Reset", ev(Ev::Click, |_| Msg::Reset), button_disabled],
