@@ -46,6 +46,14 @@ impl RevelationDriver {
     pub fn is_empty(&self) -> bool {
         self.revelation.runs_queue.is_empty()
     }
+
+    pub fn restart(&mut self) -> Result<(), ContestError> {
+        todo!()
+    }
+
+    pub fn back_one(&mut self) -> Result<(), ContestError> {
+        todo!()
+    }
 }
 
 impl Revelation {

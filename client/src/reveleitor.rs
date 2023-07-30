@@ -7,25 +7,33 @@ use seed::{prelude::*, *};
 extern crate rand;
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    orders.send_msg(Msg::Reset);
+    let event_stream = orders.stream_with_handle(streams::window_event(Ev::KeyDown, |event| {
+        Msg::KeyPressed(event.unchecked_into())
+    }));
+    let secret = get_secret(&url);
+
+    orders.skip().perform_cmd(fetch_all(secret));
+
     Model {
-        button_disabled: false,
-        secret: get_secret(&url),
+        button_disabled: true,
         revelation: None,
         center: None,
         sede: get_sede(&url),
         opt_sede: None,
+        event_stream,
     }
 }
 
 #[derive(Debug)]
 struct Model {
     button_disabled: bool,
-    secret: String,
     center: Option<String>,
     revelation: Option<RevelationDriver>,
     sede: Option<String>,
     opt_sede: Option<Sede>,
+
+    #[allow(dead_code)]
+    event_stream: StreamHandle,
 }
 
 impl Model {
@@ -38,9 +46,11 @@ enum Msg {
     Prox(usize),
     Scroll(usize),
     Prox1,
+    Back1,
     Scroll1,
     Reset,
     Unlock,
+    KeyPressed(web_sys::KeyboardEvent),
     Fetched(
         fetch::Result<data::RunsFile>,
         fetch::Result<data::ContestFile>,
@@ -82,6 +92,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             model.button_disabled = false;
         }
+        Msg::Back1 => {
+            model.center = model.revelation.as_mut().and_then(|r| {
+                r.back_one().ok();
+                r.peek().cloned()
+            });
+        }
         Msg::Prox(n) => {
             model.button_disabled = true;
             orders.send_msg(Msg::Scroll(n));
@@ -101,6 +117,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Unlock => {
             model.button_disabled = false;
         }
+        Msg::KeyPressed(event) => match event.key().as_str() {
+            "ArrowRight" => {
+                orders.send_msg(Msg::Prox1);
+            }
+            "ArrowLeft" => {
+                orders.send_msg(Msg::Back1);
+            }
+            _ => (),
+        },
         Msg::Fetched(Ok(runs), Ok(contest), Ok(config)) => {
             model.opt_sede = model
                 .sede
@@ -120,8 +145,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Fetched(_, Err(e), _) => log!("fetched contest error!", e),
         Msg::Fetched(_, _, Err(e)) => log!("fetched config error!", e),
         Msg::Reset => {
-            model.button_disabled = true;
-            orders.skip().perform_cmd(fetch_all(model.secret.clone()));
+            model.revelation.as_mut().and_then(|r| r.restart().ok());
+            model.center = None;
+            model.button_disabled = false;
         }
     }
 }
@@ -135,7 +161,8 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         div![
             C!["commandpanel"],
-            button!["+1", ev(Ev::Click, |_| Msg::Prox1), button_disabled.clone()],
+            button!["→", ev(Ev::Click, |_| Msg::Prox1), button_disabled.clone()],
+            button!["←", ev(Ev::Click, |_| Msg::Back1), button_disabled.clone()],
             button![
                 "All",
                 ev(Ev::Click, |_| Msg::Prox(0)),
