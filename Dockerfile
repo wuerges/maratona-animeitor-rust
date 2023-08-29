@@ -1,4 +1,4 @@
-FROM rust:1.68.2-bullseye AS build-base
+FROM rust:1.72.0-buster AS build-base
 
 RUN cargo install wasm-pack
 RUN cargo install cargo-chef

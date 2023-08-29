@@ -1,13 +1,8 @@
 version: "3.7"
 services:
   animeitor:
-    image: animeitor
+    image: wuerges/animeitor:0.5.0
     command: "--config $SEDES --secret $SECRET $BOCA_URL --port $HTTP_PORT --public $HTTP_PORT"
-    build: 
-      context: .
-      args:
-        - DOCKER_BUILDKIT=1
-        - HTTP_PORT=$HTTP_PORT
     ports: 
       - $HTTP_PORT:$HTTP_PORT
     volumes:
