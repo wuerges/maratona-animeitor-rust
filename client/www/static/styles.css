@@ -14,7 +14,7 @@ maratona {
 body {
   color: white;
   font-family: Lato, Ubuntu, sans-serif;
-  font-weight: bold;
+  font-weight: 800;
 
   background-color: #000;
   overflow-y: scroll;
@@ -68,7 +68,7 @@ body {
 
 .time {
   flex-grow: 2;
-  text-align: right;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   word-wrap: break-word;
@@ -143,9 +143,9 @@ body {
   width: 100%;
   height: 100%;
   text-align: center;
-  font-family: Roboto;
-  font-weight: 400;
-  font-size: 14px;
+  font-family: Lato;
+  font-weight: 1000;
+  font-size: 15px;
   color: white;
   position: relative;
   text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
@@ -159,7 +159,7 @@ body {
   bottom: 10px;
   right: 6px;
   text-align: center;
-  font-family: Roboto;
+  font-family: Lato;
   font-style: normal;
   font-weight: normal;
   font-size: 15px;
@@ -171,7 +171,7 @@ body {
   position: absolute;
   top: 10px;
   text-align: center;
-  font-family: Roboto;
+  font-family: Lato;
   font-style: normal;
   font-weight: normal;
   font-size: 15px;
@@ -183,7 +183,7 @@ body {
   position: absolute;
   bottom: 10px;
   right: 6px;
-  font-family: Roboto;
+  font-family: Lato;
   font-style: normal;
   font-weight: normal;
   font-size: 15px;
@@ -223,7 +223,7 @@ body {
 }
 
 .nomeTime {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .problema {
@@ -237,10 +237,12 @@ body {
 }
 
 .cima {
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: 800;
 }
 .baixo {
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .commandpanel {
@@ -268,7 +270,7 @@ body {
   width: 20px;
   left: 20px;
   text-align: center;
-  font-family: Roboto;
+  font-family: Lato;
   font-weight: 400;
   font-size: 18px;
 }
