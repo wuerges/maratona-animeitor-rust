@@ -14,7 +14,7 @@ maratona {
 body {
   color: white;
   font-family: Lato, Ubuntu, sans-serif;
-  font-weight: 800;
+  font-weight: 700;
 
   background-color: #000;
   overflow-y: scroll;
@@ -144,7 +144,7 @@ body {
   height: 100%;
   text-align: center;
   font-family: Lato;
-  font-weight: 1000;
+  font-weight: 700;
   font-size: 15px;
   color: white;
   position: relative;
