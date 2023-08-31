@@ -1,4 +1,4 @@
-FROM rust:1.72.0-buster AS build-base
+FROM rust:1.72.0-bookworm AS build-base
 
 RUN cargo install wasm-pack
 RUN cargo install cargo-chef
@@ -17,8 +17,9 @@ COPY . .
 RUN wasm-pack build client --release --out-dir www/pkg --target web --out-name package
 RUN cargo build --release
 
-FROM debian:buster-slim AS app
+FROM debian:bookworm-slim AS app
 COPY --from=build /src/target/release/simples /simples
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 ARG HTTP_PORT
 EXPOSE $HTTP_PORT
