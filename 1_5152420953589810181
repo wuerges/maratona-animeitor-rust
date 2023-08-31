@@ -1,0 +1,159 @@
+# BRASIL
+mscg23:MS:Campo Grande
+pait23:PA:Itaituba
+mtcu23:MT:Cuiabá
+gogo23:GO:Goiânia
+dfdf23:DF:Brasília
+peol23:PE:Olinda
+sesc23:SE:São Cristóvão
+masl23:MA:São Luís
+pite23:PI:Teresina
+ceju23:CE:Juazeiro do Norte
+pbcg23:PB:Campina Grande
+rnna23:RN:Natal
+maba23:MA:Balsas
+baju23:BA:Juazeiro
+cefo23:CE:Fortaleza
+basa23:BA:Salvador
+rnpf23:RN:Pau dos Ferros
+alma23:AL:Maceió
+ceqx23:CE:Quixadá
+acrb23:AC:Rio Branco
+papa23:PA:Paragominas
+ropv23:RO:Porto Velho
+amma23:AM:Manaus
+mgmc23:MG:Montes Claros
+mgti23:MG:Timóteo
+spba23:SP:Bauru
+spta23:SP:Taubaté
+mgsj23:MG:São João del-Rei
+mgbh23:MG:Belo Horizonte
+spso23:SP:Sorocaba
+mgud23:MG:Uberlândia
+spbs23:SP:Barretos
+rjrj23:RJ:Rio de Janeiro
+spsp23:SP:São Paulo
+mgub23:MG:Uberaba
+mgsr23:MG:Santa Rita do Sapucaí
+mgvi23:MG:Viçosa
+scfl23:SC:Florianópolis
+prcm23:PR:Campo Mourão
+prcu23:PR:Curitiba
+scch23:SC:Chapecó
+rsij23:RS:Ijuí
+prto23:PR:Toledo
+rspa23:RS:Porto Alegre
+
+# BOLIVIA
+sobolp23:La Paz
+soboco23:Cochabamba
+sobota23:Tarija
+sobotr23:Trinidad
+sobosc23:Santa Cruz
+sobocb23:Cobija
+sobobe23:Bermejo
+soboor23:Oruro
+soboya23:Yacuiba
+sobotu23:Tupiza
+soboea23:El Alto
+soboll23:Llallagua
+sobopo23:Potosí
+sobosu23:Sucre
+
+# CHILE
+chsaud23:Santiago (UDP)
+chrauo23:Rancagua (UOH)
+chcouc23:Coquimbo / La Serena (UCN)
+chsaut23:Santiago (UTFSM)
+chcoud23:Concepción (UdeC)
+chtauc23:Talca (UCM)
+
+# MEXICO
+mxitrr:Instituto Tecnológico de Parral
+mxitcx:Instituto Tecnológico Superior de Comalcaco
+mxitza:Instituto Tecnológico de Zacatepec
+mxitzo:Instituto Tecnológico Superior de Zongolica
+mxitpu:Instituto Tecnológico Superior de Purísima del Rincón
+mxtnml:Instituto Tecnológico de León
+mxicul:Instituto Tecnológico de Culiacán
+mxitrv:Instituto Tecnológico Superior de Rioverde
+mxitsz:Instituto Tecnológico y de Estudios Superiores de Zamora
+mxitsv:Instituto Tecnológico Superior de Salvatierra
+mxitoh:Instituto Tecnológico Superior del Oriente del Estado de Hidalgo
+mxitoc:Instituto Tecnologico Superior del Occidente del Estado de Hidalgo
+mxitph:Instituto Tecnológico de Pachuca
+mxitck:Instituto Tecnológico Superior de Calkiní
+mxitcm:Instituto Tecnológico de Ciudad Madero
+mxitpz:Instituto Tecnológico Superior de Pátzcuaro
+mxitch:Instituto Tecnológico Superior de Ciudad Hidalgo
+mxitox:Instituto Tecnológico de Oaxaca
+mxitco:Instituto Tecnológico de Comitán
+mxuayc:Universidad Autónoma de Yucatán
+mxitpn:Instituto Tecnológico de Piedras Negras
+mxitnl:Instituto Tecnológico de Nuevo León
+mxitcl:Instituto Tecnológico de Celaya
+mxitap:Instituto Tecnológico Superior de Apatzingán
+mxitcn:Instituto Tecnológico de Cancún
+mxitmo:Instituto Tecnológico de Morelia
+mxitcz:Instituto Tecnológico Superior de Coatzacoalcos
+mxithe:Instituto Tecnológico Superior de Huetamo
+mxitur:Instituto Tecnológico Superior de Uruapan
+mxitcj:Instituto Tecnológico de Ciudad Juárez
+mxitsg:ACM Campus ITESG
+mxuasi:Coding CUP Sinaloa
+mxiver:Comunidad Estudiantil de Programación Competitiva de Instituto Tecnológico de Veracruz
+mximan:Sistemas Computacionales ITS Mante
+mxitlr:ACM ICPC Algorithmia ITSLerdo
+mxlzcr:Programación Lázaro Cárdenas
+mxisur:Coding CUP ITSUR
+mxitlg:Club de Programación Competitiva ITLag
+mxuacj:UACJ Algorithmic Club
+mxuton:Universidad de Guadalajara CUTonalá
+mxucos:Universidad de Guadalajara CUCOSTA
+mxnmig:UNAM Facultad de Ingeniería - Club de Programación Competitiva
+mxnmci:UNAM Facultad de Ciencias - Club de Programación Competitiva
+mxcipn:Red Académica de Programación Competitiva del Instituto Politécnico Nacional / UNAM FES Acatlán / UAM / ITAM
+mxuoax:Universidad Anahuac Oaxaca
+mxupab:Universidad Panamericana Campus Bonaterra
+mxupag:Universidad Panamericana Campus Guadalajara
+mxumor:Escuela Nacional de Estudios Superiores UNAM Campus Morelia
+mxtmcv:Tecnologico de Monterrey Cuernavaca
+mxcnnu:Centro de Nanociencias y Nanotecnologia UNAM
+mxcuat:Capitulo Estudiantil UAT ACM
+mxuval:Club de Algoritmia CUValles
+mxupub:CPU - Programación Competitiva Universidad Popular Autónoma del Estado de Puebla
+mxucei:CAC - Club de Algoritmia CUCEI
+mxcuaz:Club de Programación Competitiva UAZ
+mxslpt:ICPC San Luis Potosi
+mxuanl:ACM Universidad Autonoma de Nuevo Leon
+mxttol:Programación Competitiva Tec Toluca
+mxtmcp:Programación Competitiva Tec de Monterrey Puebla
+mxmont:ACM Monterrey
+mxtmem:Programación Competitiva Tec de Monterrey Campus Estado de México
+mxuaeh:Universidad Autónoma del Estado de Hidalgo
+mxugnj:Universidad de Guanajuato
+mxomif:Olimpiada Mexicana de Informatica
+mxuach:Universidad Autonoma de Chihuahua
+mxsujs:Sistema Universitario Jesuita
+mxuaag:Universidad Autonoma de Aguascalientes
+mxmari:Universidad Marista de Guadalajara
+mxtmmx:Tecnológico de Monterrey Campus Ciudad de México
+mxumsn:Universidad Michoacana de San Nicolás de Hidalgo
+mxuayt:Universidad Autónoma de Yucatan Unidad Multidisciplinaria Tizimín
+mxumon:Universidad de Monterrey
+mxfims:Facultad de Informática Mazatlán Universidad Autónoma de Sinaloa
+mxquer:ACM Querétaro
+
+#Centro America
+caurlq23:Universidad Rafael Landívar sede Quetzaltenango
+caufla23:Universidad Rafael Landívar
+cacrsp23:Universidad de Costa Rica sede San Pedro
+caujsc23:Universidad Centroamericana "José Simeón Cañas"
+cananm23:Universidad Nacional Autónoma de Nicaragua sede Managua
+catcrs23:Tecnológico de Costa Rica Sede Cartago
+caucrp23:Universidad de Costa Rica Pacífico
+cauncn23:Universidad Nacional Chorotega - Nicoya
+caunco23:Universidad Nacional sede Coto
+catcrl23:Tecnológico de Costa Rica sede Limón
+caumgg23:Universidad Mariano Galvez de Guatemala Campus Chiquimulilla
+catcra23:Tecnológico de Costa Rica Sede Alajuela
