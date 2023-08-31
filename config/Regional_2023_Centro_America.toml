@@ -1,0 +1,83 @@
+titulo = "ICPC Regionals - 1st phase"
+
+#Centro America
+
+[[sedes]]
+codes = ["caurlq23","caufla23","cacrsp23","caujsc23","cananm23","catcrs23","caucrp23","cauncn23","caunco23","catcrl23","caumgg23","catcra23"]
+name = "Centro America"
+premiacao = false
+contest = "Centro America"
+
+
+[[sedes]]
+codes = ["caurlq23"]
+name = "Universidad Rafael Landívar sede Quetzaltenango"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["caufla23"]
+name = "Universidad Rafael Landívar"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["cacrsp23"]
+name = "Universidad de Costa Rica sede San Pedro"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["caujsc23"]
+name = "Universidad Centroamericana José Simeón Cañas"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["cananm23"]
+name = "Universidad Nacional Autónoma de Nicaragua sede Managua"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["catcrs23"]
+name = "Tecnológico de Costa Rica Sede Cartago"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["caucrp23"]
+name = "Universidad de Costa Rica Pacífico"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["cauncn23"]
+name = "Universidad Nacional Chorotega - Nicoya"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["caunco23"]
+name = "Universidad Nacional sede Coto"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["catcrl23"]
+name = "Tecnológico de Costa Rica sede Limón"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["caumgg23"]
+name = "Universidad Mariano Galvez de Guatemala Campus Chiquimulilla"
+premiacao = false
+contest = "Centro America"
+
+[[sedes]]
+codes = ["catcra23"]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+premiacao = false
+contest = "Centro America"
+
