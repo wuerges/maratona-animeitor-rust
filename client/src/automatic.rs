@@ -117,7 +117,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .build_and_open()
                     .expect("Open WebSocket"),
             );
-            orders.skip();
+            orders.skip().perform_cmd(reload());
         }
         Msg::Fetched(Err(e), _) => {
             log!("failed fetching contest: ", e);
