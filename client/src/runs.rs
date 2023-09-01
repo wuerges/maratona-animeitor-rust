@@ -102,8 +102,8 @@ fn get_answer(t: &data::Answer) -> &str {
     match t {
         data::Answer::Yes(_) => "answeryes",
         data::Answer::No => "answerno",
+        data::Answer::Unk => "answerno", // Unknown is X -> error without penalty
         data::Answer::Wait => "answerwait",
-        _ => "answererror",
     }
 }
 
