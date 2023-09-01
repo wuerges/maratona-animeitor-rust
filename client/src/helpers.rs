@@ -9,10 +9,6 @@ pub fn get_secret(url: &Url) -> String {
         .to_string()
 }
 
-pub fn get_url_filter(url: &Url) -> Option<Vec<String>> {
-    url.search().get("filter").cloned()
-}
-
 pub fn get_url_parameter(url: &Url, parameter: &str) -> Option<String> {
     url.search().get(parameter)?.first().cloned()
 }

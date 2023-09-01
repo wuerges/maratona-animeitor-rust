@@ -11,34 +11,51 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.skip().perform_cmd(fetch_all());
     orders.stream(streams::interval(1_000, || Msg::Reset));
     Model {
-        url_filter: get_url_filter(&url),
+        sede: get_sede(&url),
         runs_file: data::RunsFile::empty(),
         runs: Vec::new(),
         contest: data::ContestFile::dummy(),
+        config: data::configdata::ConfigContest::dummy(),
         ws: None,
         dirty: true,
     }
 }
 
 struct Model {
-    url_filter: Option<Vec<String>>,
+    sede: Option<String>,
     runs_file: data::RunsFile,
     runs: Vec<data::RunsPanelItem>,
     contest: data::ContestFile,
+    config: data::configdata::ConfigContest,
     ws: Option<WebSocket>,
     dirty: bool,
+}
+
+impl Model {
+    fn get_url_filter(&self) -> Option<Vec<String>> {
+        self.sede.as_ref().and_then(|sede| {
+            self.config
+                .get_sede_nome_sede(sede.as_str())
+                .as_ref()
+                .map(|s| s.codes.clone())
+        })
+    }
 }
 
 enum Msg {
     Reset,
     UrlChanged(subs::UrlChanged),
-    Fetched(fetch::Result<data::ContestFile>),
+    Fetched(
+        fetch::Result<data::ContestFile>,
+        fetch::Result<data::configdata::ConfigContest>,
+    ),
     RunUpdate(WebSocketMessage),
 }
 
 async fn fetch_all() -> Msg {
     let f = fetch_contest().await;
-    Msg::Fetched(f)
+    let cfg = fetch_config().await;
+    Msg::Fetched(f, cfg)
 }
 async fn reset() -> Msg {
     Msg::Reset
@@ -47,7 +64,7 @@ async fn reset() -> Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.url_filter = get_url_filter(&url);
+            model.sede = get_sede(&url);
             model.dirty = true;
             orders.skip().perform_cmd(reset());
         }
@@ -58,17 +75,20 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
             orders.skip();
         }
-        Msg::Fetched(Ok(contest)) => {
+        Msg::Fetched(Ok(contest), Ok(config)) => {
             model.contest = contest;
+            model.config = config;
             model.ws = Some(
                 WebSocket::builder(get_ws_url("/allruns_ws"), orders)
                     .on_message(Msg::RunUpdate)
                     .build_and_open()
                     .expect("Open WebSocket"),
             );
-            orders.skip();
+            model.dirty = true;
+            orders.skip().perform_cmd(reset());
         }
-        Msg::Fetched(Err(e)) => log!("fetched runs error!", e),
+        Msg::Fetched(Err(e), _) => log!("fetched runs error!", e),
+        Msg::Fetched(_, Err(e)) => log!("fetched config error!", e),
         Msg::Reset => {
             if model.dirty {
                 let mut mock = model.contest.clone();
@@ -76,7 +96,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 for r in &runs {
                     mock.apply_run(r);
                 }
-                mock.recalculate_placement(model.url_filter.as_ref())
+                mock.recalculate_placement(model.get_url_filter().as_ref())
                     .expect("Should recalculate placement");
 
                 runs.reverse();
@@ -120,7 +140,7 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         C!["runstable"],
         model.runs.iter().filter(
-            |r|data::check_filter_login(model.url_filter.as_ref(), &r.team_login)
+            |r|data::check_filter_login(model.get_url_filter().as_ref(), &r.team_login)
         ).take(30).enumerate().map({
             |(i, r)| {
                 let balao = std::format!("balao_{}", r.problem);
