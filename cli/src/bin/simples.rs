@@ -79,7 +79,7 @@ async fn main() -> eyre::Result<()> {
         )
         .get_matches();
 
-    println!("matches: {:?}", matches);
+    // println!("matches: {:?}", matches);
 
     let server_port: u16 = matches
         .value_of("port")
@@ -100,7 +100,7 @@ async fn main() -> eyre::Result<()> {
 
     let config = config::pack_contest_config(config_sedes);
 
-    let hostname = matches.value_of("host");
+    let hostname_opt = matches.value_of("host");
     let public_port = matches
         .value_of("public_port")
         .and_then(|port| port.parse::<u16>().ok());
@@ -110,27 +110,32 @@ async fn main() -> eyre::Result<()> {
         return Err(eyre::eyre!("path does not exists: {photos_path:?}"));
     }
 
-    println!("-> Runs em http://localhost:{}/runspanel.html", server_port);
+    let hostname = hostname_opt.unwrap_or("localhost");
+
     println!(
-        "-> Placar automatizado em http://localhost:{}/automatic.html",
-        server_port
-    );
-    println!("-> Timer em http://localhost:{}/timer.html", server_port);
-    println!(
-        "-> Painel geral em http://localhost:{}/everything.html",
-        server_port
+        "-> Runs em http://{}:{}/runspanel.html",
+        hostname, server_port
     );
     println!(
-        "-> Fotos dos times em http://localhost:{}/teams.html",
-        server_port
+        "-> Placar automatizado em http://{}:{}/automatic.html",
+        hostname, server_port
+    );
+    println!("-> Timer em http://{}:{}/timer.html", hostname, server_port);
+    println!(
+        "-> Painel geral em http://{}:{}/everything.html",
+        hostname, server_port
     );
     println!(
-        "-> Painel geral com sedes em http://localhost:{}/everything2.html",
-        server_port
+        "-> Fotos dos times em http://{}:{}/teams.html",
+        hostname, server_port
+    );
+    println!(
+        "-> Painel geral com sedes em http://{}:{}/everything2.html",
+        hostname, server_port
     );
     for (secret, sede) in config_secret.parameters.iter() {
         let mut url = Url::parse("http://localhost/reveleitor.html")?;
-        url.set_host(hostname).ok();
+        url.set_host(hostname_opt).ok();
         url.set_port(public_port).ok();
         url.query_pairs_mut()
             .append_pair("secret", secret)
