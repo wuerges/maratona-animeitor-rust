@@ -39,6 +39,7 @@ fn from_string_answer(t: &str, tim: i64) -> ServiceResult<Answer> {
     match t {
         "Y" => Ok(Answer::Yes(tim)),
         "N" => Ok(Answer::No),
+        "X" => Ok(Answer::Unk),
         "?" => Ok(Answer::Wait),
         _ => Err(Error::InvalidAnswer(t.to_string())),
     }
