@@ -41,10 +41,7 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
 }
 
 fn build_url_filter(model: &Model, sede: &configdata::Sede) -> String {
-    let mut search = vec![
-        ("sede", vec![&sede.name]),
-        ("filter", sede.codes.iter().collect()),
-    ];
+    let mut search = vec![("sede", vec![&sede.name])];
     if let Some(ref contest_name) = model.contest_name {
         search.push(("contest", vec![contest_name]));
     }
