@@ -10,7 +10,7 @@ contest = "Brasil"
 
 [[sedes]]
 name = "Região Norte"
-codes = ["pait23", "mtcu23", "acrb23", "papa23", "ropv23","amma23"]
+codes = ["pait23", "acrb23", "papa23", "ropv23","amma23"]
 premiacao = false
 vagas = 0
 contest = "Brasil"
@@ -24,7 +24,7 @@ contest = "Brasil"
 
 [[sedes]]
 name = "Região Centro-Oeste"
-codes = ["mscg23", "gogo23", "dfdf23"]
+codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
 premiacao = false
 vagas = 0
 contest = "Brasil"
