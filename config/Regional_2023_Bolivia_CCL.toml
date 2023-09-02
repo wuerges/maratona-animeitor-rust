@@ -1,0 +1,27 @@
+titulo = "ICPC Regionals CCL Bolivia"
+
+[[sedes]]
+codes = ["sobolp23ccl", "soboco23ccl", "sobosc23ccl"]
+name = "CCLBolivia"
+premiacao = false
+contest = "CCLBolivia"
+
+
+[[sedes]]
+codes = ["sobolp23ccl"]
+name = "CCL Bolivia 1"
+premiacao = false
+contest = "CCLBolivia"
+
+[[sedes]]
+codes = ["soboco23ccl"]
+name = "CCL Bolivia 1" 
+premiacao = false
+contest = "CCLBolivia"
+
+[[sedes]]
+codes = ["sobosc23ccl"]
+name = "CCL Bolivia 1"
+premiacao = false
+contest = "CCLBolivia"
+

@@ -1,0 +1,89 @@
+version: "3.7"
+services:
+  animeitor:
+    # image: animeitor
+    image: wuerges/animeitor:0.5.2
+    command: "--config $SEDES --secret $SECRET $BOCA_URL --port 8000 --public 8000 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8000:8000
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+# ./config/Regional_2023_Brasil.toml
+  animeitor-brasil:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Brasil.toml --secret $SECRET $BOCA_URL --port 8001 --public 80 --host animeitor.naquadah.com.br"
+    ports: 
+      - 80:8001
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+  animeitor-brasil-ccl:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Brasil_CCL.toml --secret $SECRET $BOCA_URL --port 8011 --public 8011 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8011:8011
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+# ./config/Regional_2023_Chile.toml
+  animeitor-chile:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Chile.toml --secret $SECRET $BOCA_URL --port 8002 --public 8002 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8002:8002
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+# ./config/Regional_2023_Mexico.toml
+  animeitor-mexico:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Mexico.toml --secret $SECRET $BOCA_URL --port 8003 --public 8003 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8003:8003
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+      
+# ./config/Regional_2023_Bolivia.toml
+  animeitor-bolivia:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Bolivia.toml --secret $SECRET $BOCA_URL --port 8004 --public 8004 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8004:8004
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+  animeitor-bolivia-ccl:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Bolivia_CCL.toml --secret $SECRET $BOCA_URL --port 8014 --public 8014 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8014:8014
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+# ./config/Regional_2023_Centro_America.toml  
+  animeitor-centro-america:
+    image: wuerges/animeitor:0.5.2
+    command: "--config ./config/Regional_2023_Centro_America.toml --secret $SECRET $BOCA_URL --port 8005 --public 8005 --host animeitor.naquadah.com.br"
+    ports: 
+      - 8005:8005
+    volumes:
+      - ./photos:/photos
+      - ./tests:/tests
+      - ./config:/config
+
+# ./config/Regional_2023_Secrets.toml
+# ./config/Regional_2023.toml
