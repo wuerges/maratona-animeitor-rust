@@ -43,6 +43,64 @@ premiacao = false
 vagas = 0
 contest = "Brasil"
 
+
+[[sedes]]
+name = "Supersede Norte"
+codes = ["pait23", "acrb23", "ropv23","amma23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Nordeste"
+codes = ["sesc23", "masl23", "ceju23", "maba23", "baju23", "alma23", "ceqx23" ]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Centro Oeste"
+codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Sul"
+codes = ["scfl23", "scch23", "rspa23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Minas"
+codes = ["mgmc23", "mgsj23", "mgud23", "mgvi23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Parana"
+codes = ["prcm23", "prcu23", "prto23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede RN"
+codes = ["rnna23", "rnpf23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+[[sedes]]
+name = "Supersede Sao Paulo"
+codes = ["spba23", "spta23"]
+premiacao = false
+vagas = 0
+contest = "Brasil"
+
+
 # :MS:Campo Grande
 [[sedes]]
 name = "Campo Grande"
