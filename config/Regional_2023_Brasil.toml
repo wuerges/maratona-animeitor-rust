@@ -81,7 +81,7 @@ contest = "Supersede RN"
 
 [[sedes]]
 name = "Supersede Sao Paulo"
-codes = ["spba23", "spta23"]
+codes = ["spbs23", "spta23"]
 premiacao = false
 contest = "Supersede Sao Paulo"
 
