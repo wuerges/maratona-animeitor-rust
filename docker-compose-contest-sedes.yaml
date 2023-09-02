@@ -2,7 +2,7 @@ version: "3.7"
 services:
   animeitor:
     # image: animeitor
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config $SEDES --secret $SECRET $BOCA_URL --port 8000 --public 8000 --host animeitor.naquadah.com.br"
     ports: 
       - 8000:8000
@@ -13,7 +13,7 @@ services:
 
 # ./config/Regional_2023_Brasil.toml
   animeitor-brasil:
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config ./config/Regional_2023_Brasil.toml --secret $SECRET $BOCA_URL --port 8001 --public 80 --host animeitor.naquadah.com.br"
     ports: 
       - 80:8001
@@ -34,7 +34,7 @@ services:
 
 # ./config/Regional_2023_Chile.toml
   animeitor-chile:
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config ./config/Regional_2023_Chile.toml --secret $SECRET $BOCA_URL --port 8002 --public 8002 --host animeitor.naquadah.com.br"
     ports: 
       - 8002:8002
@@ -45,7 +45,7 @@ services:
 
 # ./config/Regional_2023_Mexico.toml
   animeitor-mexico:
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config ./config/Regional_2023_Mexico.toml --secret $SECRET $BOCA_URL --port 8003 --public 8003 --host animeitor.naquadah.com.br"
     ports: 
       - 8003:8003
@@ -56,7 +56,7 @@ services:
       
 # ./config/Regional_2023_Bolivia.toml
   animeitor-bolivia:
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config ./config/Regional_2023_Bolivia.toml --secret $SECRET $BOCA_URL --port 8004 --public 8004 --host animeitor.naquadah.com.br"
     ports: 
       - 8004:8004
@@ -76,7 +76,7 @@ services:
 
 # ./config/Regional_2023_Centro_America.toml  
   animeitor-centro-america:
-    image: wuerges/animeitor:0.5.2
+    image: wuerges/animeitor:0.5.2-remove-ccl
     command: "--config ./config/Regional_2023_Centro_America.toml --secret $SECRET $BOCA_URL --port 8005 --public 8005 --host animeitor.naquadah.com.br"
     ports: 
       - 8005:8005
