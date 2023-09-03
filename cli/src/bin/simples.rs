@@ -4,7 +4,6 @@ use server::{config::ServerConfig, *};
 
 extern crate clap;
 use clap::{App, Arg};
-use url::Url;
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
@@ -40,22 +39,6 @@ async fn main() -> color_eyre::eyre::Result<()> {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("public_port")
-                .long("public")
-                .value_name("PUBLIC")
-                .help("Sets the public port for the server.")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("schools")
-                .short("s")
-                .long("schools")
-                .value_name("SCHOOLS")
-                .help("Sets a custom schools config file")
-                .default_value("config/Escolas.toml")
-                .takes_value(true),
-        )
-        .arg(
             Arg::with_name("port")
                 .short("p")
                 .long("port")
@@ -65,21 +48,12 @@ async fn main() -> color_eyre::eyre::Result<()> {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("photos_path")
-                .long("photos")
-                .help("Path for the team photos")
-                .value_name("PATH")
-                .takes_value(true),
-        )
-        .arg(
             Arg::with_name("URL")
                 .required(true)
                 .help("The webcast url from BOCA.")
                 .index(1),
         )
         .get_matches();
-
-    // println!("matches: {:?}", matches);
 
     let server_port: u16 = matches
         .value_of("port")
@@ -100,58 +74,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let config = config::pack_contest_config(config_sedes);
 
-    let hostname_opt = matches.value_of("host");
-    let public_port = matches
-        .value_of("public_port")
-        .and_then(|port| port.parse::<u16>().ok());
-
-    let photos_path = std::path::Path::new(matches.value_of("photos_path").unwrap_or("photos"));
-    if !photos_path.exists() {
-        return Err(color_eyre::eyre::eyre!(
-            "path does not exists: {photos_path:?}"
-        ));
-    }
-
-    let hostname = hostname_opt.unwrap_or("localhost");
-
-    println!(
-        "-> Runs em http://{}:{}/runspanel.html",
-        hostname, server_port
-    );
-    println!(
-        "-> Placar automatizado em http://{}:{}/automatic.html",
-        hostname, server_port
-    );
-    println!("-> Timer em http://{}:{}/timer.html", hostname, server_port);
-    println!(
-        "-> Painel geral em http://{}:{}/everything.html",
-        hostname, server_port
-    );
-    println!(
-        "-> Fotos dos times em http://{}:{}/teams.html",
-        hostname, server_port
-    );
-    println!(
-        "-> Painel geral com sedes em http://{}:{}/everything2.html",
-        hostname, server_port
-    );
-    for (secret, sede) in config_secret.parameters.iter() {
-        let mut url = Url::parse("http://localhost/reveleitor.html")?;
-        url.set_host(hostname_opt).ok();
-        url.set_port(public_port).ok();
-        url.query_pairs_mut()
-            .append_pair("secret", secret)
-            .append_pair("sede", &sede.name);
-
-        println!("-> {}", sede.name);
-        println!("    Reveleitor em {}", url.as_str());
-        println!("    Filters = {:?}", sede.codes);
-    }
-
-    let server_config = ServerConfig {
-        port: server_port,
-        photos_path,
-    };
+    let server_config = ServerConfig { port: server_port };
 
     println!("\nSetting up sentry guard");
     let _guard = sentry::setup();

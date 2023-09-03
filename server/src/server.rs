@@ -91,7 +91,7 @@ pub async fn serve_simple_contest(
     config: ConfigContest,
     boca_url: String,
     secrets: ConfigSecretPatterns,
-    server_config: ServerConfig<'_>,
+    server_config: ServerConfig,
 ) {
     let port = server_config.port;
 
