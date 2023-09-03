@@ -4,7 +4,7 @@ extern crate clap;
 use clap::{App, Arg};
 
 #[tokio::main]
-async fn main() -> eyre::Result<()> {
+async fn main() -> color_eyre::eyre::Result<()> {
     let matches = App::new("Golden model generator")
         .arg(Arg::with_name("WEBCAST").required(true))
         .get_matches();

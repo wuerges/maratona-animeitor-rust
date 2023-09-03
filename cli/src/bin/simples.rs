@@ -7,7 +7,7 @@ use clap::{App, Arg};
 use url::Url;
 
 #[tokio::main]
-async fn main() -> eyre::Result<()> {
+async fn main() -> color_eyre::eyre::Result<()> {
     let matches = App::new("Maratona Rustrimeitor Server")
         .version("0.1")
         .author("Emilio Wuerges. <wuerges@gmail.com>")
@@ -107,7 +107,9 @@ async fn main() -> eyre::Result<()> {
 
     let photos_path = std::path::Path::new(matches.value_of("photos_path").unwrap_or("photos"));
     if !photos_path.exists() {
-        return Err(eyre::eyre!("path does not exists: {photos_path:?}"));
+        return Err(color_eyre::eyre::eyre!(
+            "path does not exists: {photos_path:?}"
+        ));
     }
 
     let hostname = hostname_opt.unwrap_or("localhost");

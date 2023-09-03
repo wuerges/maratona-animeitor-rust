@@ -14,7 +14,7 @@ autometrics = { version = "0.2.4", features = [
 ] }
 aho-corasick = "0.7"
 clap = "2.33"
-eyre = "0.6"
+color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"
 hyper = { version = "0.14", features = ["client", "http2"] }

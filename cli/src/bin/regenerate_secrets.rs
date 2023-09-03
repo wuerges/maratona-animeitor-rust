@@ -18,7 +18,7 @@ fn shuffle_secrets(secrets: &mut ConfigSecret) {
     }
 }
 
-fn main() -> eyre::Result<()> {
+fn main() -> color_eyre::eyre::Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     for a in args.iter().skip(1) {
