@@ -12,6 +12,12 @@ Instale o docker, e:
 docker compose up --build
 ```
 
+Para visualizar as URLs cadastradas:
+
+```
+docker compose run printurls
+```
+
 # Linux
 
 No linux, o animeitor vai criar uma conexa para cada cliente, por isso deve-se aumentar o numero de descritores:
