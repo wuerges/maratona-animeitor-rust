@@ -11,7 +11,7 @@ services:
       - ./config:/config
 
     build: 
-      context: .
+      context: server
       args:
         - DOCKER_BUILDKIT=1
 
@@ -24,7 +24,7 @@ services:
     entrypoint: /printurls
 
     build: 
-      context: .
+      context: server
       args:
         - DOCKER_BUILDKIT=1
 
@@ -37,7 +37,6 @@ services:
       - ./photos:/usr/share/nginx/photos
 
     build: 
-      context: .
-      dockerfile: client.Dockerfile
+      context: client
       args:
         - URL_PREFIX=${URL_PREFIX}

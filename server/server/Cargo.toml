@@ -1,0 +1,32 @@
+[package]
+name = "server"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[features]
+default = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio.workspace = true
+warp.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+rand.workspace = true
+itertools.workspace = true
+toml.workspace = true
+futures.workspace = true
+html-escape.workspace = true
+parking_lot.workspace = true
+thiserror.workspace = true
+openssl.workspace = true
+sentry.workspace = true
+autometrics.workspace = true
+prometheus.workspace = true
+metrics.workspace = true
+metrics-prometheus.workspace = true
+
+service = { path = "../service" }
+data = { path = "../data" }

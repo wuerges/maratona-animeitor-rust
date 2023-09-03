@@ -1,32 +1,39 @@
-[package]
-name = "server"
-authors.workspace = true
-edition.workspace = true
-version.workspace = true
+[workspace]
+members = ["server", "data", "cli", "service"]
+resolver = "2"
 
-[features]
-default = []
+[workspace.package]
+version = "0.6.0"
+edition = "2021"
+authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace.dependencies]
+autometrics = { version = "0.2.4", features = [
+    "prometheus-exporter",
+    "metrics",
+] }
+aho-corasick = "0.7"
+clap = "2"
+color-eyre = "0.6"
+futures = "0.3"
+html-escape = "0.2"
+hyper = { version = "0.14", features = ["client", "http2"] }
+hyper-tls = "0.5"
+itertools = "0.10"
+metrics = "0.20"
+metrics-prometheus = "0.3"
+openssl = { version = "0.10", features = ["vendored"] }
+parking_lot = "0.12"
+prometheus = { version = "0.13", features = ["process"] }
+rand = "0.8"
+rust-embed = "6.6"
+thiserror = "1.0"
+toml = "0.7"
+sentry = "0.30"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.27", features = ["full"] }
+url = "2"
+warp = "0.3"
+zip = "0.6"
 
-[dependencies]
-tokio.workspace = true
-warp.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-rand.workspace = true
-itertools.workspace = true
-toml.workspace = true
-futures.workspace = true
-html-escape.workspace = true
-parking_lot.workspace = true
-thiserror.workspace = true
-openssl.workspace = true
-sentry.workspace = true
-autometrics.workspace = true
-prometheus.workspace = true
-metrics.workspace = true
-metrics-prometheus.workspace = true
-
-service = { path = "../service" }
-data = { path = "../data" }
