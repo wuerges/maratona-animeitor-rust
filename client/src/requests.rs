@@ -1,7 +1,7 @@
 use seed::prelude::*;
 
 pub fn url_prefix() -> &'static str {
-    option_env!("URL_PREFIX").unwrap_or("")
+    option_env!("URL_PREFIX").unwrap_or_default()
 }
 
 pub fn request(path: &str) -> Request {
@@ -38,18 +38,7 @@ pub async fn fetch_config() -> fetch::Result<data::configdata::ConfigContest> {
 }
 
 pub fn get_ws_url(path: &str) -> String {
-    let base_url = option_env!("URL_PREFIX").map_or(
-        {
-            web_sys::window()
-                .expect("Should have a window")
-                .location()
-                .href()
-                .expect("Should have a URL")
-        },
-        |v| v.to_string(),
-    );
-
-    let url = web_sys::Url::new(&base_url).expect("Location should be valid");
+    let url = web_sys::Url::new(url_prefix()).expect("Location should be valid");
     url.set_protocol("ws:");
     url.set_pathname(path);
     url.href()

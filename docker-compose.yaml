@@ -1,13 +1,12 @@
 version: "3.7"
 services:
   animeitor:
-    image: animeitor
+    image: wuerges/animeitor:latest
     # image: wuerges/animeitor:0.5.0
-    command: "--config $SEDES --secret $SECRET $BOCA_URL --port $HTTP_PORT --public $HTTP_PORT"
+    command: "--config $SEDES --secret $SECRET $BOCA_URL --port 8000"
     ports: 
-      - $HTTP_PORT:$HTTP_PORT
+      - 8000:8000
     volumes:
-      - ./photos:/photos
       - ./tests:/tests
       - ./config:/config
 
@@ -15,4 +14,17 @@ services:
       context: .
       args:
         - DOCKER_BUILDKIT=1
-        - HTTP_PORT=$HTTP_PORT
+
+  animeitor-client:
+    image: wuerges/animeitor-client:latest
+    # image: wuerges/animeitor-assets:0.5.0
+    ports: 
+      - 8080:80
+    volumes:
+      - ./photos:/usr/share/nginx/photos
+
+    build: 
+      context: .
+      dockerfile: client.Dockerfile
+      args:
+        - URL_PREFIX=http://localhost:8000
