@@ -37,6 +37,7 @@ services:
       - /server/photos:/usr/share/nginx/photos
 
     build: 
-      context: client
+      context: .
+      dockerfile: client.Dockerfile
       args:
         - URL_PREFIX=${URL_PREFIX}
