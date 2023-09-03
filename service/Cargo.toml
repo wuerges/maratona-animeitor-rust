@@ -5,17 +5,18 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-tokio = { version = "1.27", features = ["full"] }
-zip = "0.6"
-rand = "0.8"
-toml = "0.7"
-html-escape = "0.2"
-parking_lot = "0.12"
-hyper = { version = "0.14", features = ["client", "http2"] }
-hyper-tls = "0.5"
-data = { path = "../data" }
+tokio.workspace = true 
+zip.workspace = true 
+rand.workspace = true 
+toml.workspace = true 
+html-escape.workspace = true 
+parking_lot.workspace = true 
+hyper.workspace = true 
+hyper-tls.workspace = true 
 thiserror.workspace = true 
 serde.workspace = true 
 serde_json.workspace = true 
 itertools.workspace = true 
 futures.workspace = true 
+
+data = { path = "../data" }

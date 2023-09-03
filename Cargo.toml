@@ -30,3 +30,7 @@ autometrics = { version = "0.2.4", features = [
 prometheus = { version = "0.13.3", features = ["process"] }
 metrics = "0.20.1"
 metrics-prometheus = "0.3.1"
+zip = "0.6"
+hyper = { version = "0.14", features = ["client", "http2"] }
+hyper-tls = "0.5"
+data = { path = "../data" }
