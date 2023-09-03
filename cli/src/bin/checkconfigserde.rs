@@ -1,6 +1,6 @@
 use data::configdata::*;
 
-fn main() -> std::io::Result<()> {
+fn main() -> eyre::Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     for a in args.iter().skip(1) {
