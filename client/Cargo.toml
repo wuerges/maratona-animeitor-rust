@@ -1,10 +1,8 @@
 [package]
-version = "0.3.0"
 name = "client"
-repository = "https://github.com/seed-rs/seed-quickstart"
-authors = ["Emilio Wuerges <wuerges@gmail.com>"]
-description = "App Description"
-edition = "2021"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
 
 [lib]
 crate-type = ["cdylib"]
@@ -13,8 +11,8 @@ crate-type = ["cdylib"]
 wasm-bindgen-test = "0.3"
 
 [dependencies]
-seed = "~0.9.2"
-rand = "0.8"
+seed = "0.9"
+rand.workspace = true
 
 [profile.release]
 lto = true
@@ -27,4 +25,3 @@ wasm-opt = ['-Os']
 [dependencies.data]
 path = "../data"
 
-[workspace]
