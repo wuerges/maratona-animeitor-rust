@@ -1,8 +1,8 @@
 [package]
 name = "server"
-version = "0.3.0"
-authors = ["Emilio Wuerges <wuerges@gmail.com>"]
-edition = "2021"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
 
 [features]
 default = []
