@@ -14,7 +14,10 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS app
-COPY --from=build /src/target/release/simples /simples
+
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /src/target/release/simples /simples
+COPY --from=build /src/target/release/printurls /printurls
 
 ENTRYPOINT ["/simples"]

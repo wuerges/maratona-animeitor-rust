@@ -36,7 +36,7 @@ fn main() -> color_eyre::eyre::Result<()> {
                 .required(true)
                 .help("The url prefix for the animeitor server.")
                 .default_value("http://localhost:8080")
-                .index(1),
+                .takes_value(true),
         )
         .get_matches();
 
@@ -51,6 +51,15 @@ fn main() -> color_eyre::eyre::Result<()> {
     .get_patterns(&config_sedes);
 
     let url_prefix = matches.value_of("prefix").unwrap_or_default();
+
+    for (_secret, sede) in config_secret.parameters.iter() {
+        let mut url = Url::parse(&format!("{url_prefix}/everything2.html"))?;
+        url.query_pairs_mut().append_pair("sede", &sede.name);
+
+        println!("-> {}", sede.name);
+        println!("    Animeitor em {}", url.as_str());
+        println!("    Filters = {:?}", sede.codes);
+    }
 
     for (secret, sede) in config_secret.parameters.iter() {
         let mut url = Url::parse(&format!("{url_prefix}/reveleitor.html"))?;

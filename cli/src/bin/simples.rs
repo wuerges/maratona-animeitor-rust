@@ -12,10 +12,10 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .author("Emilio Wuerges. <wuerges@gmail.com>")
         .about("Runs the webserver hosting the rustrimeitor.")
         .arg(
-            Arg::with_name("config")
-                .short("c")
-                .long("config")
-                .value_name("CONFIG")
+            Arg::with_name("sedes")
+                .short("s")
+                .long("sedes")
+                .value_name("SEDES")
                 .help("Sets a custom config file")
                 .default_value("config/Default.toml")
                 .takes_value(true),
@@ -27,15 +27,6 @@ async fn main() -> color_eyre::eyre::Result<()> {
                 .value_name("SECRET")
                 .help("Sets the secret to the reveleitor url.")
                 .default_value("config/Secret.toml")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("host")
-                .short("h")
-                .long("host")
-                .value_name("HOST")
-                .help("Sets the hostname for the server.")
-                .default_value("localhost")
                 .takes_value(true),
         )
         .arg(
@@ -61,7 +52,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .unwrap_or(8000);
 
     let boca_url = matches.value_of("URL").expect("Expected an URL");
-    let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
+    let config_file = matches.value_of("sedes").unwrap_or("config/Default.toml");
 
     let config_sedes = parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
