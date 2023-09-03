@@ -1,4 +1,3 @@
-use crate::assets::ClientAssets;
 use crate::config::ServerConfig;
 use crate::dbupdate::spawn_db_update;
 use crate::membroadcast;
@@ -10,9 +9,7 @@ use crate::timer;
 use autometrics::autometrics;
 use data::configdata::ConfigContest;
 use data::configdata::ConfigSecretPatterns;
-use warp::filters::BoxedFilter;
 use warp::Rejection;
-use warp::Reply;
 
 use crate::errors::Error as CError;
 
@@ -103,27 +100,8 @@ pub async fn serve_simple_contest(
     let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url);
 
     let service_routes = serve_urlbase(config, shared_db, runs_tx, time_tx, secrets);
-    let asset_routes = contest_assets(server_config);
 
-    let all_routes = service_routes
-        .or(asset_routes)
-        .or(route_metrics())
-        .with(cors);
+    let all_routes = service_routes.or(route_metrics()).with(cors);
 
     warp::serve(all_routes).run(([0, 0, 0, 0], port)).await;
-}
-
-fn photos_route(photos_path: &std::path::Path) -> BoxedFilter<(impl Reply,)> {
-    warp::path("static")
-        .and(warp::path("assets"))
-        .and(warp::path("teams"))
-        .and(warp::fs::dir(photos_path.to_owned()))
-        .boxed()
-}
-
-fn contest_assets(
-    ServerConfig { photos_path, .. }: ServerConfig<'_>,
-) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-    let client_assets = warp_embed::embed(&ClientAssets);
-    photos_route(photos_path).or(client_assets).boxed()
 }

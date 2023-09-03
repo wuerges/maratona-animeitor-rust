@@ -1,4 +1,3 @@
-mod assets;
 pub mod config;
 mod dbupdate;
 mod errors;
