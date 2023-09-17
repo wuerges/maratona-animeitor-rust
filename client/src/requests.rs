@@ -1,7 +1,7 @@
 use seed::prelude::*;
 
 pub fn url_prefix() -> &'static str {
-    option_env!("URL_PREFIX").unwrap_or_default()
+    env!("URL_PREFIX")
 }
 
 pub fn request(path: &str) -> Request {
