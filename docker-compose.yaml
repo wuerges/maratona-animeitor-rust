@@ -2,7 +2,6 @@ version: "3.7"
 services:
   animeitor:
     image: wuerges/animeitor:latest
-    # image: wuerges/animeitor:0.5.0
     command: "--sedes ${SEDES} --secret ${SECRET} ${BOCA_URL} --port 8000"
     ports: 
       - 8000:8000
@@ -17,8 +16,7 @@ services:
 
   printurls:
     image: wuerges/animeitor:latest
-    # image: wuerges/animeitor:0.5.0
-    command: "--sedes ${SEDES} --secret ${SECRET} --prefix ${CLIENT_URL_PREFIX}"
+    command: "--sedes ${SEDES} --secret ${SECRET} --prefix http://localhost:9000"
     volumes:
       - ./config:/config
     entrypoint: /printurls
@@ -30,9 +28,8 @@ services:
 
   animeitor-client:
     image: wuerges/animeitor-client:latest
-    # image: wuerges/animeitor-assets:0.5.0
     ports: 
-      - ${CLIENT_HTTP_PORT}:80
+      - 9000:80
     volumes:
       - /server/photos:/usr/share/nginx/photos
 
@@ -40,4 +37,4 @@ services:
       context: .
       dockerfile: client.Dockerfile
       args:
-        - URL_PREFIX=${SERVER_URL_PREFIX}
+        - URL_PREFIX=http://localhost:8000
