@@ -25,5 +25,8 @@
     "sedes",
     "semcor",
   ],
-  "rust-analyzer.showUnlinkedFileNotification": false
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.cargo.extraEnv": {
+    "URL_PREFIX": "http://localhost:8000"
+  },
 }
