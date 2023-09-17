@@ -40,8 +40,8 @@ fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     }
 }
 
-fn build_url_filter(model: &Model, sede: &configdata::Sede) -> String {
-    let mut search = vec![("sede", vec![&sede.name])];
+fn build_url_filter(model: &Model, sede: &str) -> String {
+    let mut search = vec![("sede", vec![sede])];
     if let Some(ref contest_name) = model.contest_name {
         search.push(("contest", vec![contest_name]));
     }
@@ -67,7 +67,7 @@ fn view(model: &Model) -> Node<Msg> {
                     span![
                         C!["sedeslink"],
                         a![
-                            attrs! {At::Href=>build_url_filter(model, sede), At::Target=>"principal"},
+                            attrs! {At::Href=>build_url_filter(model, &sede.name), At::Target=>"principal"},
                             &sede.name
                         ],
                     ]

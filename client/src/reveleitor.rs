@@ -130,7 +130,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             model.opt_sede = model
                 .sede
                 .as_ref()
-                .and_then(|sede_name| config.get_sede_nome_sede(sede_name).cloned());
+                .and_then(|sede_name| config.get_sede_nome_sede(sede_name));
 
             let contest = match model.opt_sede.as_ref() {
                 Some(sede) => contest.filter_sede(sede),

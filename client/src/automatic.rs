@@ -81,7 +81,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                             contest.apply_run(r);
                         }
                         contest
-                            .recalculate_placement(sede_filter)
+                            .recalculate_placement(sede_filter.as_ref())
                             .expect("Should recalculate scores");
                         model.dirty = false;
                     } else {
@@ -132,7 +132,9 @@ fn view(model: &Model) -> Node<Msg> {
         .and_then(|sede| model.config.get_sede_nome_sede(sede));
     match model.contest {
         None => div!["Contest not ready yet!"],
-        Some(ref contest) => views::view_scoreboard(contest, &model.center, opt_sede, false),
+        Some(ref contest) => {
+            views::view_scoreboard(contest, &model.center, opt_sede.as_ref(), false)
+        }
     }
 }
 

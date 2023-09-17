@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::Team;
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
-pub struct Sede {
+pub struct SedeEntry {
     pub name: String,
     pub codes: Vec<String>,
     pub style: Option<String>,
@@ -16,17 +16,24 @@ pub struct Sede {
     pub contest: Option<String>,
 }
 
-impl Sede {
-    pub fn automata(&self) -> AhoCorasick {
-        AhoCorasick::new_auto_configured(&self.codes)
-    }
+#[derive(Debug)]
+pub struct Sede {
+    pub name: String,
+    pub style: Option<String>,
+    pub ouro: Option<usize>,
+    pub prata: Option<usize>,
+    pub bronze: Option<usize>,
+    pub contest: Option<String>,
+    automata: AhoCorasick,
+}
 
+impl Sede {
     pub fn team_belongs(&self, team: &Team) -> bool {
         self.team_belongs_str(&team.login)
     }
 
     pub fn team_belongs_str(&self, team_login: &str) -> bool {
-        self.automata().is_match(team_login)
+        self.automata.is_match(team_login)
     }
 
     pub fn premio(&self, p: usize) -> &str {
@@ -42,24 +49,38 @@ impl Sede {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ConfigContest {
-    pub sedes: Vec<Sede>,
+impl SedeEntry {
+    pub fn build(&self) -> Sede {
+        Sede {
+            name: self.name.clone(),
+            style: self.style.clone(),
+            automata: AhoCorasick::new_auto_configured(&self.codes),
+            ouro: self.ouro.clone(),
+            prata: self.prata.clone(),
+            bronze: self.bronze.clone(),
+            contest: self.contest.clone(),
+        }
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ConfigContest {
+    pub sedes: Vec<SedeEntry>,
+}
+
+#[derive(Debug)]
 pub struct ConfigSecretPatterns {
-    pub secrets: Box<HashMap<String, AhoCorasick>>,
-    pub parameters: Box<HashMap<String, Sede>>,
+    pub secrets: Box<HashMap<String, Sede>>,
+    pub parameters: Box<HashMap<String, SedeEntry>>,
 }
 
 impl ConfigSecretPatterns {
-    fn new(patterns: HashMap<String, Sede>) -> Self {
+    fn new(patterns: HashMap<String, SedeEntry>) -> Self {
         Self {
             secrets: Box::new(
                 patterns
                     .iter()
-                    .map(|(key, sede)| (key.clone(), sede.automata()))
+                    .map(|(key, sede)| (key.clone(), sede.build()))
                     .collect(),
             ),
             parameters: Box::new(patterns),
@@ -103,8 +124,11 @@ impl ConfigContest {
         Self { sedes: Vec::new() }
     }
 
-    pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
-        self.sedes.iter().find(|&sede| sede.name == name)
+    pub fn get_sede_nome_sede(&self, name: &str) -> Option<Sede> {
+        self.sedes
+            .iter()
+            .find(|&sede| sede.name == name)
+            .map(|s| s.build())
     }
 }
 
@@ -114,28 +138,88 @@ mod tests {
 
     #[test]
     fn test_config_patterns() {
-        let mut sede = Sede::default();
+        let mut sede = SedeEntry::default();
 
         sede.codes = ["teambr", "teammx"].into_iter().map(String::from).collect();
 
         let config = ConfigSecretPatterns::new(HashMap::from([("key".into(), sede)]));
 
-        assert!(config.secrets.get("key").unwrap().is_match("teambr$"));
-        assert!(config.secrets.get("key").unwrap().is_match("teammx$"));
-        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
-        assert!(config.secrets.get("key").unwrap().is_match("$teammx$"));
-        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
-        assert!(config.secrets.get("key").unwrap().is_match("$teammx"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("teambr$"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("teammx$"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$teammx$"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$teammx$"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$teammx"));
+        assert!(config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$teammx"));
 
-        assert!(!config.secrets.get("key").unwrap().is_match("tea#mbr$"));
-        assert!(!config.secrets.get("key").unwrap().is_match("tea#mmx$"));
-        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
-        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx$"));
-        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
-        assert!(!config.secrets.get("key").unwrap().is_match("$te#ammx"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("tea#mbr$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("tea#mmx$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$te#ammx$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$te#ammx$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$te#ammx"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$te#ammx"));
 
-        assert!(!config.secrets.get("key").unwrap().is_match("teamag"));
-        assert!(!config.secrets.get("key").unwrap().is_match("teamag$"));
-        assert!(!config.secrets.get("key").unwrap().is_match("$teamag$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("teamag"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("teamag$"));
+        assert!(!config
+            .secrets
+            .get("key")
+            .unwrap()
+            .team_belongs_str("$teamag$"));
     }
 }

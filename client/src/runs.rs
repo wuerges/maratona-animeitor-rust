@@ -33,7 +33,7 @@ struct Model {
 }
 
 impl Model {
-    fn get_sede(&self) -> Option<&Sede> {
+    fn get_sede(&self) -> Option<Sede> {
         self.sede
             .as_ref()
             .and_then(|sede| self.config.get_sede_nome_sede(sede.as_str()))
@@ -101,7 +101,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 for r in &runs {
                     mock.apply_run(r);
                 }
-                mock.recalculate_placement(model.get_sede())
+                mock.recalculate_placement(model.get_sede().as_ref())
                     .expect("Should recalculate placement");
 
                 runs.reverse();

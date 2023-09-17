@@ -1,7 +1,6 @@
 pub mod configdata;
 pub mod revelation;
 
-use aho_corasick::AhoCorasick;
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
@@ -275,13 +274,11 @@ impl ContestFile {
     }
 
     pub fn filter_sede(self, sede: &Sede) -> Self {
-        let automata = sede.automata();
-
         Self {
             teams: self
                 .teams
                 .into_iter()
-                .filter(|(login, _)| automata.is_match(login))
+                .filter(|(login, _t)| sede.team_belongs_str(&login))
                 .collect(),
             ..self
         }
@@ -314,10 +311,9 @@ impl ContestFile {
             if let Some(t) = self.teams.get_mut(v) {
                 t.placement = placement;
                 t.placement_global = placement_global;
-                if let Some(sede) = sede_filter {
-                    if sede.team_belongs(t) {
-                        placement += 1;
-                    }
+
+                if sede_filter.map(|s| s.team_belongs(t)).unwrap_or(true) {
+                    placement += 1;
                 }
                 placement_global += 1;
             }
@@ -481,19 +477,12 @@ impl RunsFile {
     }
 
     pub fn filter_sede(&self, sede: &Sede) -> Self {
-        let automata = sede.automata();
-
-        self.filter_team_patterns(&automata)
-    }
-
-    pub fn filter_team_patterns(&self, pattern_list: &AhoCorasick) -> Self {
         Self {
             runs: self
                 .runs
                 .iter()
                 .filter_map(|(key, value)| {
-                    pattern_list
-                        .is_match(&value.team_login)
+                    sede.team_belongs_str(&value.team_login)
                         .then_some((*key, value.clone()))
                 })
                 .collect(),
