@@ -63,7 +63,7 @@ impl TimerData {
 }
 
 impl Problem {
-    pub fn empty() -> Self {
+    fn empty() -> Self {
         Problem {
             solved: false,
             submissions: 0,
@@ -72,7 +72,8 @@ impl Problem {
             answers: Vec::new(),
         }
     }
-    pub fn add_run_problem(&mut self, answer: Answer) {
+
+    fn add_run_problem(&mut self, answer: Answer) {
         if self.solved {
             return;
         }
@@ -99,13 +100,13 @@ impl Problem {
         !self.solved && !self.answers.is_empty()
     }
 
-    pub fn add_run_frozen(&mut self, answer: Answer) {
+    fn add_run_frozen(&mut self, answer: Answer) {
         if answer != Answer::Wait {
             self.answers.push(answer)
         }
     }
 
-    pub fn reveal_run_frozen(&mut self) -> bool {
+    fn reveal_run_frozen(&mut self) -> bool {
         if self.wait() {
             let a = self.answers.remove(0);
             self.add_run_problem(a);
@@ -128,23 +129,15 @@ pub struct Team {
     pub problems: BTreeMap<String, Problem>,
 }
 
-impl Eq for Team {}
 impl PartialEq for Team {
     fn eq(&self, other: &Self) -> bool {
-        self.score() == other.score()
+        self.name == other.name
     }
 }
 
 impl PartialOrd for Team {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        // Some(self.score().cmp(&other.score()))
         self.score().partial_cmp(&other.score())
-    }
-}
-
-impl Ord for Team {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.score().cmp(&other.score())
     }
 }
 
@@ -160,7 +153,13 @@ pub struct Score {
 
 impl PartialOrd for Score {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(if self.solved != other.solved {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Score {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.solved != other.solved {
             other.solved.cmp(&self.solved)
         } else if self.penalty != other.penalty {
             self.penalty.cmp(&other.penalty)
@@ -168,13 +167,7 @@ impl PartialOrd for Score {
             self.max_solution_time.cmp(&other.max_solution_time)
         } else {
             self.team_login.cmp(&other.team_login)
-        })
-    }
-}
-
-impl Ord for Score {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        }
     }
 }
 
