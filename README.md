@@ -26,3 +26,16 @@ No linux, o animeitor vai criar uma conexa para cada cliente, por isso deve-se a
 ulimit -n unlimited
 ```
 
+# Environment Variables
+
+```
+# Path to the file that contains the secrets used as credentials for the Reveleitor.
+SECRET=/config/Regional_2023_Secrets.toml
+
+# Path to the file that describes the contest locations.
+SEDES=/config/Regional_2023.toml
+
+# Boca URL that will be pooled to get the contest state.
+# Can be either a file or an URL
+BOCA_URL=/tests/inputs/webcast-2023-1a-fase-final-prova.zip
+
