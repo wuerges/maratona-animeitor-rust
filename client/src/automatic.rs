@@ -1,3 +1,5 @@
+use data::configdata::Sede;
+use data::RunsFile;
 use seed::{prelude::*, *};
 
 use crate::helpers::*;
@@ -12,26 +14,59 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.stream(streams::interval(1_000, || Msg::Reload));
 
     Model {
-        center: None,
-        sede: get_sede(&url),
-        original: data::ContestFile::dummy(),
-        contest: None,
-        config: data::configdata::ConfigContest::dummy(),
-        runs: data::RunsFile::empty(),
+        runs: RunsFile::empty(),
+        state: ContestState::Unloaded {
+            sede: get_sede(&url),
+        },
         ws: None,
-        dirty: true,
     }
 }
 
 struct Model {
-    center: Option<String>,
-    sede: Option<String>,
-    original: data::ContestFile,
-    contest: Option<data::ContestFile>,
-    config: data::configdata::ConfigContest,
-    runs: data::RunsFile,
     ws: Option<WebSocket>,
+    runs: data::RunsFile,
+    state: ContestState,
+}
+
+struct LoadedContest {
+    center: Option<String>,
+    sede: Option<Sede>,
+    original: data::ContestFile,
+    contest: data::ContestFile,
+    config: data::configdata::ConfigContest,
     dirty: bool,
+}
+
+impl LoadedContest {
+    fn new(
+        sede_name: Option<String>,
+        contest: data::ContestFile,
+        config: data::configdata::ConfigContest,
+    ) -> Self {
+        let sede = sede_name.and_then(|name| config.get_sede_nome_sede(&name));
+        Self {
+            center: None,
+            sede,
+            original: contest.clone(),
+            contest,
+            config,
+            dirty: true,
+        }
+    }
+}
+
+enum ContestState {
+    Loaded(LoadedContest),
+    Unloaded { sede: Option<String> },
+}
+
+impl ContestState {
+    fn get_sede_name(&self) -> Option<String> {
+        match self {
+            ContestState::Loaded(loaded) => loaded.sede.as_ref().map(|s| s.name.clone()),
+            ContestState::Unloaded { sede } => sede.clone(),
+        }
+    }
 }
 
 enum Msg {
@@ -58,56 +93,60 @@ async fn reload() -> Msg {
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::UrlChanged(subs::UrlChanged(url)) => {
-            model.sede = get_sede(&url);
-            model.dirty = true;
-            orders.skip().perform_cmd(reload());
-        }
-        Msg::Reload => {
-            match model.contest.as_mut() {
-                None => {
-                    // retrying to fetch contest
-                    orders.perform_cmd(fetch_all());
+            let new_sede_name = get_sede(&url);
+            match &mut model.state {
+                ContestState::Loaded(state) => {
+                    state.sede =
+                        new_sede_name.and_then(|name| state.config.get_sede_nome_sede(&name));
+                    state.dirty = true;
+                    orders.skip().perform_cmd(reload());
                 }
-                Some(contest) => {
-                    // log!("reload!");
-                    let sede_filter = model
-                        .sede
-                        .as_ref()
-                        .and_then(|sede| model.config.get_sede_nome_sede(sede));
-                    if model.dirty {
-                        // log!("reload dirty!");
-                        *contest = model.original.clone();
-                        for r in &model.runs.sorted() {
-                            contest.apply_run(r);
-                        }
-                        contest
-                            .recalculate_placement(sede_filter.as_ref())
-                            .expect("Should recalculate scores");
-                        model.dirty = false;
-                    } else {
-                        // log!("reload clean!");
-                        orders.skip();
-                    }
-                }
+                ContestState::Unloaded { sede: sede_name } => *sede_name = new_sede_name,
             }
         }
+        Msg::Reload => match &mut model.state {
+            ContestState::Unloaded { .. } => (),
+            ContestState::Loaded(state) => {
+                if state.dirty {
+                    state.contest = state.original.clone();
+
+                    for r in model.runs.sorted() {
+                        state.contest.apply_run(&r);
+                    }
+                    state
+                        .contest
+                        .recalculate_placement(state.sede.as_ref())
+                        .expect("Should recalculate scores");
+                    state.dirty = false;
+                } else {
+                    orders.skip();
+                }
+            }
+        },
         Msg::RunUpdate(m) => match m.json::<data::RunTuple>() {
             Ok(run) => {
                 if model.runs.refresh_1(&run) {
-                    model.dirty = true;
+                    match &mut model.state {
+                        ContestState::Loaded(state) => {
+                            state.dirty = true;
+                        }
+                        ContestState::Unloaded { .. } => (),
+                    }
+                    orders.skip();
                 }
-                orders.skip();
             }
             Err(e) => {
                 log!("Websocket error: {}", e);
-                orders.perform_cmd(fetch_all());
+                orders.skip().perform_cmd(fetch_all());
             }
         },
         Msg::Fetched(Ok(contest), Ok(config)) => {
-            model.original = contest.clone();
-            model.contest = Some(contest);
-            model.config = config;
-            model.dirty = true;
+            model.state = ContestState::Loaded(LoadedContest::new(
+                model.state.get_sede_name(),
+                contest,
+                config,
+            ));
+
             model.ws = Some(
                 WebSocket::builder(get_ws_url("/allruns_ws"), orders)
                     .on_message(Msg::RunUpdate)
@@ -126,15 +165,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 }
 
 fn view(model: &Model) -> Node<Msg> {
-    let opt_sede = model
-        .sede
-        .as_ref()
-        .and_then(|sede| model.config.get_sede_nome_sede(sede));
-    match model.contest {
-        None => div!["Contest not ready yet!"],
-        Some(ref contest) => {
-            views::view_scoreboard(contest, &model.center, opt_sede.as_ref(), false)
+    match model.state {
+        ContestState::Loaded(ref state) => {
+            views::view_scoreboard(&state.contest, &state.center, state.sede.as_ref(), false)
         }
+        ContestState::Unloaded { .. } => div!["Contest not ready yet!"],
     }
 }
 
