@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
 
+use crate::Team;
+
 #[derive(Deserialize, Serialize, Debug, Clone, Default)]
 pub struct Sede {
     pub name: String,
@@ -17,6 +19,14 @@ pub struct Sede {
 impl Sede {
     pub fn automata(&self) -> AhoCorasick {
         AhoCorasick::new_auto_configured(&self.codes)
+    }
+
+    pub fn team_belongs(&self, team: &Team) -> bool {
+        self.team_belongs_str(&team.login)
+    }
+
+    pub fn team_belongs_str(&self, team_login: &str) -> bool {
+        self.automata().is_match(team_login)
     }
 
     pub fn premio(&self, p: usize) -> &str {

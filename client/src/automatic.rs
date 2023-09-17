@@ -70,13 +70,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 }
                 Some(contest) => {
                     // log!("reload!");
-                    let url_filter = model.sede.as_ref().and_then(|sede| {
-                        model
-                            .config
-                            .get_sede_nome_sede(sede)
-                            .as_ref()
-                            .map(|s| s.codes.clone())
-                    });
+                    let sede_filter = model
+                        .sede
+                        .as_ref()
+                        .and_then(|sede| model.config.get_sede_nome_sede(sede));
                     if model.dirty {
                         // log!("reload dirty!");
                         *contest = model.original.clone();
@@ -84,7 +81,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                             contest.apply_run(r);
                         }
                         contest
-                            .recalculate_placement(url_filter.as_ref())
+                            .recalculate_placement(sede_filter)
                             .expect("Should recalculate scores");
                         model.dirty = false;
                     } else {

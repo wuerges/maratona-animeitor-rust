@@ -94,7 +94,6 @@ pub fn view_scoreboard<T>(
     revelation: bool,
 ) -> Node<T> {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
-    let url_filter = sede.as_ref().map(|s| &s.codes);
 
     let n = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
@@ -102,7 +101,7 @@ pub fn view_scoreboard<T>(
         contest
             .teams
             .values()
-            .filter(|t| data::check_filter(url_filter, t))
+            .filter(|t| sede.map(|sede| sede.team_belongs(t)).unwrap_or(true))
             .map(|t| &t.placement),
     );
 
@@ -130,7 +129,7 @@ pub fn view_scoreboard<T>(
                 .map (|team| {
             let score = team.score();
             let p2 = team.placement;
-            let display = data::check_filter(url_filter, team);
+            let display = sede.map(|sede| sede.team_belongs(team)).unwrap_or(true);
             div![
                 C!["run_box"],
                 style!{St::Top => cell_top(p2, &p_center), St::ZIndex => -(p2 as i32)},

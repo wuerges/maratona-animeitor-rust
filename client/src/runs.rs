@@ -2,6 +2,7 @@ use crate::helpers::*;
 use crate::requests::*;
 use crate::views;
 
+use data::configdata::Sede;
 use seed::{prelude::*, *};
 
 extern crate rand;
@@ -32,13 +33,17 @@ struct Model {
 }
 
 impl Model {
-    fn get_url_filter(&self) -> Option<Vec<String>> {
-        self.sede.as_ref().and_then(|sede| {
-            self.config
-                .get_sede_nome_sede(sede.as_str())
-                .as_ref()
-                .map(|s| s.codes.clone())
-        })
+    fn get_sede(&self) -> Option<&Sede> {
+        self.sede
+            .as_ref()
+            .and_then(|sede| self.config.get_sede_nome_sede(sede.as_str()))
+    }
+
+    fn team_belongs_str(&self, team_login: &str) -> bool {
+        match self.get_sede() {
+            Some(sede) => sede.team_belongs_str(team_login),
+            None => true,
+        }
     }
 }
 
@@ -96,7 +101,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 for r in &runs {
                     mock.apply_run(r);
                 }
-                mock.recalculate_placement(model.get_url_filter().as_ref())
+                mock.recalculate_placement(model.get_sede())
                     .expect("Should recalculate placement");
 
                 runs.reverse();
@@ -140,7 +145,7 @@ fn view(model: &Model) -> Node<Msg> {
     div![
         C!["runstable"],
         model.runs.iter().filter(
-            |r|data::check_filter_login(model.get_url_filter().as_ref(), &r.team_login)
+            |r| model.team_belongs_str(&r.team_login)
         ).take(30).enumerate().map({
             |(i, r)| {
                 let balao = std::format!("balao_{}", r.problem);

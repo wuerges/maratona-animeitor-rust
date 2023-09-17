@@ -248,24 +248,6 @@ pub struct ContestFile {
 
 pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-pub fn check_filter(url_filter: Option<&Vec<String>>, t: &Team) -> bool {
-    check_filter_login(url_filter, &t.login)
-}
-
-pub fn check_filter_login(url_filter: Option<&Vec<String>>, t: &str) -> bool {
-    match url_filter {
-        None => true,
-        Some(tot) => {
-            for f in tot {
-                if t.contains(f) {
-                    return true;
-                }
-            }
-            false
-        }
-    }
-}
-
 impl ContestFile {
     pub fn new(
         contest_name: String,
@@ -315,7 +297,7 @@ impl ContestFile {
 
     pub fn recalculate_placement(
         &mut self,
-        url_filter: Option<&Vec<String>>,
+        sede_filter: Option<&Sede>,
     ) -> Result<(), ContestError> {
         let mut score_board = Vec::new();
         for (key, _) in self.teams.iter() {
@@ -332,8 +314,10 @@ impl ContestFile {
             if let Some(t) = self.teams.get_mut(v) {
                 t.placement = placement;
                 t.placement_global = placement_global;
-                if check_filter(url_filter, t) {
-                    placement += 1;
+                if let Some(sede) = sede_filter {
+                    if sede.team_belongs(t) {
+                        placement += 1;
+                    }
                 }
                 placement_global += 1;
             }
