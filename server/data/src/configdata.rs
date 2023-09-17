@@ -15,22 +15,6 @@ pub struct Sede {
     pub contest: Option<String>,
 }
 
-// [[teams]]
-// login="teambrsp066"
-// nome="Nome do Config"
-// foto="KLM.png"
-// musica="https://youtu.be/gdG4xbU8cZo"
-// comentario="Na foto: Prof. Acauan (Coach), Markus Kaul, Leandro Schillreff, Miller Raycell"
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct TeamEntry {
-    pub login: String,
-    pub nome: Option<String>,
-    pub foto: Option<String>,
-    pub musica: Option<String>,
-    pub comentario: Option<String>,
-}
-
 impl Sede {
     pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &str) -> bool {
         match url_filter {
