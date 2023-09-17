@@ -15,31 +15,8 @@ pub struct Sede {
 }
 
 impl Sede {
-    pub fn check_filter_login(url_filter: &Option<Vec<String>>, t: &str) -> bool {
-        match url_filter {
-            None => true,
-            Some(tot) => {
-                for f in tot {
-                    if t.contains(f) {
-                        return true;
-                    }
-                }
-                false
-            }
-        }
-    }
-
     pub fn automata(&self) -> AhoCorasick {
         AhoCorasick::new_auto_configured(&self.codes)
-    }
-
-    pub fn check_login(&self, t: &str) -> bool {
-        for f in &self.codes {
-            if t.contains(f) {
-                return true;
-            }
-        }
-        false
     }
 
     pub fn premio(&self, p: usize) -> &str {
@@ -114,18 +91,6 @@ impl ConfigSecret {
 impl ConfigContest {
     pub fn dummy() -> Self {
         Self { sedes: Vec::new() }
-    }
-
-    pub fn from_config(sedes: Vec<Sede>) -> Self {
-        Self { sedes }
-    }
-
-    pub fn new(sedes: Vec<Sede>) -> Self {
-        Self { sedes }
-    }
-
-    pub fn get_sede_team(&self, team: &str) -> Option<&Sede> {
-        self.sedes.iter().find(|&sede| sede.check_login(team))
     }
 
     pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
