@@ -1,4 +1,3 @@
-pub mod auth;
 pub mod configdata;
 pub mod revelation;
 
