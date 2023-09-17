@@ -8,7 +8,9 @@ style = "sede_exemplo"
 premiacao = false
 vagas = 5
 # Substring para casar times dessa sede
-codes = ["team"]
+# Somente times que contem esse substring pertencerao a sede
+# codes = ["team"] 
+codes = [""]
 ouro = 4
 prata = 8
 bronze = 12
