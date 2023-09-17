@@ -247,6 +247,19 @@ pub struct ContestFile {
 
 pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+pub trait BelongsToContest {
+    fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool;
+}
+
+impl BelongsToContest for Team {
+    fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool {
+        match sede {
+            Some(sede) => sede.team_belongs(self),
+            None => true,
+        }
+    }
+}
+
 impl ContestFile {
     pub fn new(
         contest_name: String,
@@ -312,7 +325,7 @@ impl ContestFile {
                 t.placement = placement;
                 t.placement_global = placement_global;
 
-                if sede_filter.map(|s| s.team_belongs(t)).unwrap_or(true) {
+                if t.belongs_to_contest(sede_filter) {
                     placement += 1;
                 }
                 placement_global += 1;

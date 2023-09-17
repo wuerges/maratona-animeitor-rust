@@ -1,5 +1,5 @@
 use data::configdata::Sede;
-use data::{ContestFile, TimerData};
+use data::{BelongsToContest, ContestFile, TimerData};
 use seed::{prelude::*, *};
 
 pub fn get_color(n: usize, sede: Option<&Sede>) -> &str {
@@ -101,7 +101,7 @@ pub fn view_scoreboard<T>(
         contest
             .teams
             .values()
-            .filter(|t| sede.map(|sede| sede.team_belongs(t)).unwrap_or(true))
+            .filter(|t| t.belongs_to_contest(sede))
             .map(|t| &t.placement),
     );
 
@@ -129,7 +129,7 @@ pub fn view_scoreboard<T>(
                 .map (|team| {
             let score = team.score();
             let p2 = team.placement;
-            let display = sede.map(|sede| sede.team_belongs(team)).unwrap_or(true);
+            let display = team.belongs_to_contest(sede);
             div![
                 C!["run_box"],
                 style!{St::Top => cell_top(p2, &p_center), St::ZIndex => -(p2 as i32)},
