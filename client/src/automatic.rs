@@ -12,6 +12,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
     orders.perform_cmd(fetch_all());
     orders.stream(streams::interval(1_000, || Msg::Reload));
+    orders.stream(streams::interval(1_000, || Msg::WsConnect));
 
     Model {
         runs: RunsFile::empty(),
@@ -20,6 +21,12 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         },
         ws: None,
     }
+}
+
+fn build_ws_connection(orders: &mut impl Orders<Msg>) -> Result<WebSocket, WebSocketError> {
+    WebSocket::builder(get_ws_url("/allruns_ws"), orders)
+        .on_message(Msg::RunUpdate)
+        .build_and_open()
 }
 
 struct Model {
@@ -73,6 +80,7 @@ enum Msg {
     UrlChanged(subs::UrlChanged),
     RunUpdate(WebSocketMessage),
     Reload,
+    WsConnect,
     Fetched(
         fetch::Result<data::ContestFile>,
         fetch::Result<data::configdata::ConfigContest>,
@@ -137,7 +145,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
             Err(e) => {
                 log!("Websocket error: {}", e);
-                orders.skip().perform_cmd(fetch_all());
+                model.ws = None;
             }
         },
         Msg::Fetched(Ok(contest), Ok(config)) => {
@@ -146,13 +154,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 contest,
                 config,
             ));
-
-            model.ws = Some(
-                WebSocket::builder(get_ws_url("/allruns_ws"), orders)
-                    .on_message(Msg::RunUpdate)
-                    .build_and_open()
-                    .expect("Open WebSocket"),
-            );
             orders.skip().perform_cmd(reload());
         }
         Msg::Fetched(Err(e), _) => {
@@ -160,6 +161,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Fetched(_, Err(e)) => {
             log!("failed fetching config: ", e);
+        }
+        Msg::WsConnect => {
+            if model.ws.is_none() {
+                match build_ws_connection(orders) {
+                    Ok(conn) => model.ws = Some(conn),
+                    Err(err) => log!("failed to connect websocket", err),
+                }
+            }
         }
     }
 }
