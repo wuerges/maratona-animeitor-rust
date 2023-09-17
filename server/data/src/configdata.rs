@@ -15,13 +15,6 @@ pub struct Sede {
     pub contest: Option<String>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct Escola {
-    pub name: String,
-    pub code: String,
-    pub logo: String,
-}
-
 // [[teams]]
 // login="teambrsp066"
 // nome="Nome do Config"
@@ -84,11 +77,6 @@ pub struct ConfigContest {
     pub sedes: Vec<Sede>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ConfigSedes {
-    pub sedes: Vec<Sede>,
-}
-
 #[derive(Debug, Clone)]
 pub struct ConfigSecretPatterns {
     pub secrets: Box<HashMap<String, AhoCorasick>>,
@@ -122,7 +110,7 @@ pub struct ConfigSecret {
 }
 
 impl ConfigSecret {
-    pub fn get_patterns(self, sedes: &ConfigSedes) -> ConfigSecretPatterns {
+    pub fn get_patterns(self, sedes: &ConfigContest) -> ConfigSecretPatterns {
         let salt = self.salt.unwrap_or_default();
         ConfigSecretPatterns::new(
             self.secrets
@@ -138,16 +126,6 @@ impl ConfigSecret {
                 .collect(),
         )
     }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ConfigEscolas {
-    pub escolas: Vec<Escola>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ConfigTeams {
-    pub teams: Vec<TeamEntry>,
 }
 
 impl ConfigContest {

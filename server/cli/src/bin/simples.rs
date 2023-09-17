@@ -54,16 +54,14 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let boca_url = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("sedes").unwrap_or("config/Default.toml");
 
-    let config_sedes = parse_config(std::path::Path::new(config_file))
+    let config = parse_config(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
 
     let config_secret = match matches.value_of("secret") {
         Some(path) => parse_config::<ConfigSecret>(std::path::Path::new(path))?,
         None => ConfigSecret::default(),
     }
-    .get_patterns(&config_sedes);
-
-    let config = config::pack_contest_config(config_sedes);
+    .get_patterns(&config);
 
     let server_config = ServerConfig { port: server_port };
 
