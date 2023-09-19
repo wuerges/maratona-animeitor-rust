@@ -42,6 +42,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             match m.json() {
                 Ok(data) => model.timer_data = data,
                 Err(error) => {
+                    model.socket = None;
+                    orders.skip();
                     log!("error parsing json", error);
                 }
             }
@@ -56,10 +58,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Close(e) => {
             log(e);
+            model.socket = None;
             orders.skip();
         }
         Msg::Error() => {
             log("websocket disconnection error");
+            model.socket = None;
             orders.skip();
         }
         Msg::Reconnect => {
