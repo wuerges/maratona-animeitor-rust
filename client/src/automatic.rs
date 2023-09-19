@@ -12,7 +12,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
     orders.subscribe(Msg::UrlChanged);
     orders.perform_cmd(fetch_all());
     orders.stream(streams::interval(1_000, || Msg::Reload));
-    orders.stream(streams::interval(1_000, || Msg::WsConnect));
+    orders.stream(streams::interval(1_000, || Msg::WsReconnect));
 
     Model {
         runs: RunsFile::empty(),
@@ -26,6 +26,8 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 fn build_ws_connection(orders: &mut impl Orders<Msg>) -> Result<WebSocket, WebSocketError> {
     WebSocket::builder(get_ws_url("/allruns_ws"), orders)
         .on_message(Msg::RunUpdate)
+        .on_close(Msg::WsClosed)
+        .on_error(Msg::WsError)
         .build_and_open()
 }
 
@@ -80,11 +82,13 @@ enum Msg {
     UrlChanged(subs::UrlChanged),
     RunUpdate(WebSocketMessage),
     Reload,
-    WsConnect,
+    WsReconnect,
     Fetched(
         fetch::Result<data::ContestFile>,
         fetch::Result<data::configdata::ConfigContest>,
     ),
+    WsClosed(CloseEvent),
+    WsError(),
 }
 
 async fn fetch_all() -> Msg {
@@ -92,10 +96,6 @@ async fn fetch_all() -> Msg {
     let cfg = fetch_config().await;
 
     Msg::Fetched(c, cfg)
-}
-
-async fn reload() -> Msg {
-    Msg::Reload
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
@@ -107,13 +107,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     state.sede =
                         new_sede_name.and_then(|name| state.config.get_sede_nome_sede(&name));
                     state.dirty = true;
-                    orders.skip().perform_cmd(reload());
                 }
-                ContestState::Unloaded { sede: sede_name } => *sede_name = new_sede_name,
+                ContestState::Unloaded { sede: sede_name } => {
+                    *sede_name = new_sede_name;
+                }
             }
+            orders.skip().send_msg(Msg::Reload);
         }
         Msg::Reload => match &mut model.state {
-            ContestState::Unloaded { .. } => (),
+            ContestState::Unloaded { .. } => {
+                orders.skip();
+            }
             ContestState::Loaded(state) => {
                 if state.dirty {
                     state.contest = state.original.clone();
@@ -121,54 +125,73 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     for r in model.runs.sorted() {
                         state.contest.apply_run(&r);
                     }
-                    state
-                        .contest
-                        .recalculate_placement(state.sede.as_ref())
-                        .expect("Should recalculate scores");
+                    match state.contest.recalculate_placement(state.sede.as_ref()) {
+                        Ok(()) => (),
+                        Err(error) => {
+                            log!("failed to recalculate placement", error);
+                            orders.skip().perform_cmd(fetch_all());
+                        }
+                    };
                     state.dirty = false;
                 } else {
                     orders.skip();
                 }
             }
         },
-        Msg::RunUpdate(m) => match m.json::<data::RunTuple>() {
-            Ok(run) => {
-                if model.runs.refresh_1(&run) {
-                    match &mut model.state {
-                        ContestState::Loaded(state) => {
-                            state.dirty = true;
+        Msg::RunUpdate(m) => {
+            orders.skip();
+
+            match m.json::<data::RunTuple>() {
+                Ok(run) => {
+                    if model.runs.refresh_1(&run) {
+                        match &mut model.state {
+                            ContestState::Loaded(state) => {
+                                state.dirty = true;
+                            }
+                            ContestState::Unloaded { .. } => (),
                         }
-                        ContestState::Unloaded { .. } => (),
                     }
-                    orders.skip();
+                }
+                Err(e) => {
+                    log!("Websocket error: {}", e);
+                    model.ws = None;
                 }
             }
-            Err(e) => {
-                log!("Websocket error: {}", e);
-                model.ws = None;
-            }
-        },
+        }
         Msg::Fetched(Ok(contest), Ok(config)) => {
             model.state = ContestState::Loaded(LoadedContest::new(
                 model.state.get_sede_name(),
                 contest,
                 config,
             ));
-            orders.skip().perform_cmd(reload());
+            orders.skip();
         }
         Msg::Fetched(Err(e), _) => {
             log!("failed fetching contest: ", e);
+            orders.skip();
         }
         Msg::Fetched(_, Err(e)) => {
             log!("failed fetching config: ", e);
+            orders.skip();
         }
-        Msg::WsConnect => {
+        Msg::WsReconnect => {
+            orders.skip();
             if model.ws.is_none() {
                 match build_ws_connection(orders) {
                     Ok(conn) => model.ws = Some(conn),
                     Err(err) => log!("failed to connect websocket", err),
                 }
             }
+        }
+        Msg::WsClosed(error) => {
+            log!("websocket closed", error);
+            orders.skip();
+            model.ws = None;
+        }
+        Msg::WsError() => {
+            log!("websocket error");
+            model.ws = None;
+            orders.skip();
         }
     }
 }
