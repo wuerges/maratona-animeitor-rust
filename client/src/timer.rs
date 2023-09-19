@@ -2,34 +2,36 @@ use crate::{requests, views};
 
 use seed::{prelude::*, *};
 
-fn open_websocket(orders: &mut impl Orders<Msg>) -> WebSocket {
+fn open_websocket(orders: &mut impl Orders<Msg>) -> Result<WebSocket, WebSocketError> {
     log("connecting...");
     WebSocket::builder(requests::get_ws_url("/timer"), orders)
         .on_message(Msg::TimerUpdate)
         .on_open(Msg::Open)
         .on_close(Msg::Close)
+        .on_error(Msg::Error)
         .build_and_open()
-        .expect("Open WebSocket")
 }
 
 fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
+    orders.stream(streams::interval(1_000, || Msg::Reconnect));
     Model {
         p_timer_data: data::TimerData::new(0, 1),
         timer_data: data::TimerData::fake(),
-        socket: open_websocket(orders),
+        socket: None,
     }
 }
 
 struct Model {
     p_timer_data: data::TimerData,
     timer_data: data::TimerData,
-    socket: WebSocket,
+    socket: Option<WebSocket>,
 }
 
 enum Msg {
     TimerUpdate(WebSocketMessage),
     Open(),
     Close(CloseEvent),
+    Error(),
     Reconnect,
 }
 
@@ -37,7 +39,12 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::TimerUpdate(m) => {
             model.p_timer_data = model.timer_data;
-            model.timer_data = m.json().expect("Message should have TimerData");
+            match m.json() {
+                Ok(data) => model.timer_data = data,
+                Err(error) => {
+                    log!("error parsing json", error);
+                }
+            }
 
             if model.timer_data == model.p_timer_data {
                 orders.skip();
@@ -45,13 +52,24 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Open() => {
             log("... connected!");
+            orders.skip();
         }
         Msg::Close(e) => {
             log(e);
-            orders.perform_cmd(cmds::timeout(5000, || Msg::Reconnect));
+            orders.skip();
+        }
+        Msg::Error() => {
+            log("websocket disconnection error");
+            orders.skip();
         }
         Msg::Reconnect => {
-            model.socket = open_websocket(orders);
+            if model.socket.is_none() {
+                match open_websocket(orders) {
+                    Ok(connected) => model.socket = Some(connected),
+                    Err(error) => log!("failed to reconnect", error),
+                }
+            }
+            orders.skip();
         }
     }
 }
