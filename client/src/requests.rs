@@ -43,3 +43,11 @@ pub fn get_ws_url(path: &str) -> String {
     url.set_pathname(path);
     url.href()
 }
+
+pub fn photos_prefix() -> &'static str {
+    env!("PHOTO_PREFIX")
+}
+
+pub fn team_photo_location(team_login: &str) -> String {
+    std::format!("{}/{}.webp", photos_prefix(), team_login)
+}

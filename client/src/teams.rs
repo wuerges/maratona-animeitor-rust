@@ -1,6 +1,6 @@
 use seed::{prelude::*, *};
 
-use crate::requests;
+use crate::requests::{self, team_photo_location};
 
 extern crate rand;
 
@@ -39,12 +39,18 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 }
 
-static FAKE: &str = "this.onerror=''; this.src='/static/assets/teams/fake.webp';";
+fn fake() -> String {
+    format!(
+        "this.onerror=''; this.src='{}';",
+        team_photo_location("fake")
+    )
+}
 
 fn view(model: &Model) -> Node<Msg> {
     match model.contest.as_ref() {
         None => div![span!["Contest is not ready yet!"],],
-        Some(contest) => div![id!["foto_container"],
+        Some(contest) => {
+            div![id!["foto_container"],
             contest.teams.iter().map(|(team_login, team_entry)| {
                 let foto_id = format!("foto_{}", team_login);
                 div![C!["foto"], id![foto_id],
@@ -54,12 +60,13 @@ fn view(model: &Model) -> Node<Msg> {
                     },
                     // div![C!["nomeTime"], &team_entry.name],
                     img![C!["foto_img"],
-                        attrs!{At::Src => std::format!("/static/assets/teams/{}.webp", team_login)},
-                        attrs!{At::OnError => FAKE}
+                        attrs!{At::Src => team_photo_location(team_login)},
+                        attrs!{At::OnError => fake()}
                     ],
                 ]
             }),
-        ],
+        ]
+        }
     }
 }
 

@@ -27,6 +27,7 @@
   ],
   "rust-analyzer.showUnlinkedFileNotification": false,
   "rust-analyzer.cargo.extraEnv": {
-    "URL_PREFIX": "http://localhost:8000"
+    "URL_PREFIX": "http://localhost:8000",
+    "PHOTOS_PREFIX": "http://localhost:8000/photos"
   },
 }
