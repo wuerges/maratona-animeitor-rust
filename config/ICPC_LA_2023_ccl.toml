@@ -1,10 +1,10 @@
 titulo = "ICPC Latin America Regional Contest"
 
 [[sedes]]
-name = "Latin America"
-contest = "Latin America"
+name = "Latin America CCL"
+contest = "Latin America CCL"
 premiacao = false
-codes = ["team"]
+codes = ["ccl"]
 ouro = 3
 prata = 6
 bronze = 10
@@ -12,10 +12,10 @@ bronze = 10
 #   Colombia  noco
 #   Venezuela  novz
 [[sedes]]
-name = "North"
-contest = "North"
+name = "North CCL"
+contest = "North CCL"
 premiacao = false
-codes = ["teamno"]
+codes = ["cclno"]
 
 # SOUTH
 #   Argentina  soar
@@ -23,18 +23,18 @@ codes = ["teamno"]
 #   Chile  soch
 #   Peru  sope
 [[sedes]]
-name = "South"
-contest = "South"
+name = "South CCL"
+contest = "South CCL"
 premiacao = false
-codes = ["teamso"]
+codes = ["cclso"]
 
 # BRASIL
 #   Brasil  brbr
 [[sedes]]
-name = "Brasil"
-contest = "Brasil"
+name = "Brasil CCL"
+contest = "Brasil CCL"
 premiacao = false
-codes = ["teambr"]
+codes = ["cclbr"]
 ouro = 3
 prata = 6
 bronze = 10
@@ -42,19 +42,19 @@ bronze = 10
 # MEXICO
 #   Mexico  mxmx
 [[sedes]]
-name = "Mexico"
-contest = "Mexico"
+name = "Mexico CCL"
+contest = "Mexico CCL"
 premiacao = false
-codes = ["teammx"]
+codes = ["cclmx"]
 
 # Central America
 #   Costa Rica  cacr
 #   El Salvador  cael
 [[sedes]]
-name = "Central America"
-contest = "Central America"
+name = "Central America CCL"
+contest = "Central America CCL"
 premiacao = false
-codes = ["teamca"]
+codes = ["cclca"]
 
 # Caribbean
 #   Cuba  cbcu
@@ -63,7 +63,7 @@ codes = ["teamca"]
 #   Trinidad and Tobago  cbtt
 #   Antigua and Barbuda  cbab
 [[sedes]]
-name = "Caribbean"
-contest = "Caribbean"
+name = "Caribbean CCL"
+contest = "Caribbean CCL"
 premiacao = false
-codes = ["teamcb"]
+codes = ["cclcb"]

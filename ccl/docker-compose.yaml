@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  animeitor:
+    image: wuerges/animeitor:latest
+    command: "--sedes ${SEDES} --secret ${SECRET} ${BOCA_URL} --port 8001"
+    ports:
+      - 8001:8001
+    volumes:
+      - ../tests:/tests
+      - ../config:/config
+
+    build:
+      context: ../server
+      args:
+        - DOCKER_BUILDKIT=1
+
+  printurls:
+    image: wuerges/animeitor:latest
+    command: "--sedes ${SEDES} --secret ${SECRET} --prefix http://localhost:9001"
+    volumes:
+      - ../config:/config
+    entrypoint: /printurls
+
+    build:
+      context: ../server
+      args:
+        - DOCKER_BUILDKIT=1
+
+  animeitor-client:
+    image: wuerges/animeitor-client-ccl:latest
+    ports:
+      - 9001:80
+    volumes:
+      - ../server/photos:/usr/share/nginx/photos
+
+    build:
+      context: ..
+      dockerfile: client.Dockerfile
+      args:
+        - URL_PREFIX=http://localhost:8001
