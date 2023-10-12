@@ -24,7 +24,7 @@ build-client-ccl:
 	docker build -f client.Dockerfile \
 		--build-arg "URL_PREFIX=http://animeitor.naquadah.com.br:8001" \
 		-t wuerges/animeitor-client-ccl .
-	docker tag wuerges/animeitor-client wuerges/animeitor-client:0.7.0
-	docker tag wuerges/animeitor-client wuerges/animeitor-client:latest
-	docker push wuerges/animeitor-client:0.7.0
-	docker push wuerges/animeitor-client:latest
+	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:0.7.0
+	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:latest
+	docker push wuerges/animeitor-client-ccl:0.7.0
+	docker push wuerges/animeitor-client-ccl:latest
