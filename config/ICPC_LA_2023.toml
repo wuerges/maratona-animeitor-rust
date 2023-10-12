@@ -1,0 +1,69 @@
+titulo = "ICPC Latin America Regional Contest"
+
+[[sedes]]
+name = "Latin America"
+premiacao = false
+codes = ["team"]
+contest = "Latin America"
+ouro = 3
+prata = 6
+bronze = 10
+# NORTH
+#   Colombia  noco
+#   Venezuela  novz
+[[sedes]]
+name = "North"
+premiacao = false
+codes = ["teamno"]
+contest = "Latin America"
+
+# SOUTH
+#   Argentina  soar
+#   Bolivia  sobo
+#   Chile  soch
+#   Peru  sope
+[[sedes]]
+name = "South"
+premiacao = false
+codes = ["teamso"]
+contest = "Latin America"
+
+# BRASIL
+#   Brasil  brbr
+[[sedes]]
+name = "Brasil"
+premiacao = false
+codes = ["teambr"]
+contest = "Latin America"
+ouro = 3
+prata = 6
+bronze = 10
+
+# MEXICO
+#   Mexico  mxmx
+[[sedes]]
+name = "Mexico"
+premiacao = false
+codes = ["teammx"]
+contest = "Latin America"
+
+# Central America
+#   Costa Rica  cacr
+#   El Salvador  cael
+[[sedes]]
+name = "Central America"
+premiacao = false
+codes = ["teamca"]
+contest = "Latin America"
+
+# Caribbean
+#   Cuba  cbcu
+#   Dominican Republic  cbdr
+#   Puerto Rico  cbpr
+#   Trinidad and Tobago  cbtt
+#   Antigua and Barbuda  cbab
+[[sedes]]
+name = "Caribbean"
+premiacao = false
+codes = ["teamcb"]
+contest = "Latin America"

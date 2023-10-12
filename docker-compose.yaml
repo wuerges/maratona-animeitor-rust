@@ -3,13 +3,13 @@ services:
   animeitor:
     image: wuerges/animeitor:latest
     command: "--sedes ${SEDES} --secret ${SECRET} ${BOCA_URL} --port 8000"
-    ports: 
+    ports:
       - 8000:8000
     volumes:
       - ./tests:/tests
       - ./config:/config
 
-    build: 
+    build:
       context: server
       args:
         - DOCKER_BUILDKIT=1
@@ -21,19 +21,19 @@ services:
       - ./config:/config
     entrypoint: /printurls
 
-    build: 
+    build:
       context: server
       args:
         - DOCKER_BUILDKIT=1
 
   animeitor-client:
     image: wuerges/animeitor-client:latest
-    ports: 
+    ports:
       - 9000:80
     volumes:
       - /server/photos:/usr/share/nginx/photos
 
-    build: 
+    build:
       context: .
       dockerfile: client.Dockerfile
       args:
