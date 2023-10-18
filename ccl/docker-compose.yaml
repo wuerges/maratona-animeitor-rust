@@ -31,7 +31,7 @@ services:
     ports:
       - 9001:80
     volumes:
-      - ../server/photos:/usr/share/nginx/photos
+      - ../server/photos:/usr/share/nginx/html/static/assets/teams
 
     build:
       context: ..
