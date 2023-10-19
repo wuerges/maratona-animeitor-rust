@@ -50,6 +50,7 @@ codes = ["teammx"]
 # Central America
 #   Costa Rica  cacr
 #   El Salvador  cael
+#   Guatemala  cagt
 [[sedes]]
 name = "Central America"
 contest = "Central America"
