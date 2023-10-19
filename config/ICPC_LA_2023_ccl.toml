@@ -1,4 +1,4 @@
-titulo = "ICPC Latin America Regional Contest"
+titulo = "ICPC Latin America Regional CCL Contest"
 
 [[sedes]]
 name = "Latin America CCL"
@@ -8,6 +8,7 @@ codes = ["ccl"]
 ouro = 3
 prata = 6
 bronze = 10
+
 # NORTH
 #   Colombia  noco
 #   Venezuela  novz
@@ -16,6 +17,18 @@ name = "North CCL"
 contest = "North CCL"
 premiacao = false
 codes = ["cclno"]
+
+[[sedes]]
+name = "Colombia CCL"
+contest = "North CCL"
+premiacao = false
+codes = ["cclnoco"]
+
+[[sedes]]
+name = "Venezuela CCL"
+contest = "North CCL"
+premiacao = false
+codes = ["cclnovz"]
 
 # SOUTH
 #   Argentina  soar
@@ -27,6 +40,31 @@ name = "South CCL"
 contest = "South CCL"
 premiacao = false
 codes = ["cclso"]
+
+[[sedes]]
+name = "Argentina CCL"
+contest = "South CCL"
+premiacao = false
+codes = ["cclsoar"]
+
+[[sedes]]
+name = "Bolivia CCL"
+contest = "South CCL"
+premiacao = false
+codes = ["cclsobo"]
+
+[[sedes]]
+name = "Chile CCL"
+contest = "South CCL"
+premiacao = false
+codes = ["cclsoch"]
+
+[[sedes]]
+name = "Peru CCL"
+contest = "South CCL"
+premiacao = false
+codes = ["cclsope"]
+
 
 # BRASIL
 #   Brasil  brbr
@@ -50,11 +88,31 @@ codes = ["cclmx"]
 # Central America
 #   Costa Rica  cacr
 #   El Salvador  cael
+#   Guatemala  cagt
 [[sedes]]
 name = "Central America CCL"
 contest = "Central America CCL"
 premiacao = false
 codes = ["cclca"]
+
+[[sedes]]
+name = "Costa Rica CCL"
+contest = "Central America CCL"
+premiacao = false
+codes = ["cclcacr"]
+
+[[sedes]]
+name = "El Salvador CCL"
+contest = "Central America CCL"
+premiacao = false
+codes = ["cclcael"]
+
+[[sedes]]
+name = "Guatemala CCL"
+contest = "Central America CCL"
+premiacao = false
+codes = ["cclcagt"]
+
 
 # Caribbean
 #   Cuba  cbcu
@@ -67,3 +125,33 @@ name = "Caribbean CCL"
 contest = "Caribbean CCL"
 premiacao = false
 codes = ["cclcb"]
+
+[[sedes]]
+name = "Cuba CCL"
+contest = "Caribbean CCL"
+premiacao = false
+codes = ["cclcbcu"]
+
+[[sedes]]
+name = "Dominican Republic CCL"
+contest = "Caribbean CCL"
+premiacao = false
+codes = ["cclcbdr"]
+
+[[sedes]]
+name = "Puerto Rico CCL"
+contest = "Caribbean CCL"
+premiacao = false
+codes = ["cclcbpr"]
+
+[[sedes]]
+name = "Trinidad and Tobago CCL"
+contest = "Caribbean CCL"
+premiacao = false
+codes = ["cclcbtt"]
+
+[[sedes]]
+name = "Antigua and Barbuda CCL"
+contest = "Caribbean CCL"
+premiacao = false
+codes = ["cclcbab"]
