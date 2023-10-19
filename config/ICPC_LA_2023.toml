@@ -8,6 +8,7 @@ codes = ["team"]
 ouro = 3
 prata = 6
 bronze = 10
+
 # NORTH
 #   Colombia  noco
 #   Venezuela  novz
@@ -16,6 +17,18 @@ name = "North"
 contest = "North"
 premiacao = false
 codes = ["teamno"]
+
+[[sedes]]
+name = "Colombia"
+contest = "North"
+premiacao = false
+codes = ["teamnoco"]
+
+[[sedes]]
+name = "Venezuela"
+contest = "North"
+premiacao = false
+codes = ["teamnovz"]
 
 # SOUTH
 #   Argentina  soar
@@ -27,6 +40,31 @@ name = "South"
 contest = "South"
 premiacao = false
 codes = ["teamso"]
+
+[[sedes]]
+name = "Argentina"
+contest = "South"
+premiacao = false
+codes = ["teamsoar"]
+
+[[sedes]]
+name = "Bolivia"
+contest = "South"
+premiacao = false
+codes = ["teamsobo"]
+
+[[sedes]]
+name = "Chile"
+contest = "South"
+premiacao = false
+codes = ["teamsoch"]
+
+[[sedes]]
+name = "Peru"
+contest = "South"
+premiacao = false
+codes = ["teamsope"]
+
 
 # BRASIL
 #   Brasil  brbr
@@ -57,6 +95,25 @@ contest = "Central America"
 premiacao = false
 codes = ["teamca"]
 
+[[sedes]]
+name = "Costa Rica"
+contest = "Central America"
+premiacao = false
+codes = ["teamcacr"]
+
+[[sedes]]
+name = "El Salvador"
+contest = "Central America"
+premiacao = false
+codes = ["teamcael"]
+
+[[sedes]]
+name = "Guatemala"
+contest = "Central America"
+premiacao = false
+codes = ["teamcagt"]
+
+
 # Caribbean
 #   Cuba  cbcu
 #   Dominican Republic  cbdr
@@ -68,3 +125,33 @@ name = "Caribbean"
 contest = "Caribbean"
 premiacao = false
 codes = ["teamcb"]
+
+[[sedes]]
+name = "Cuba"
+contest = "Caribbean"
+premiacao = false
+codes = ["teamcbcu"]
+
+[[sedes]]
+name = "Dominican Republic"
+contest = "Caribbean"
+premiacao = false
+codes = ["teamcbdr"]
+
+[[sedes]]
+name = "Puerto Rico"
+contest = "Caribbean"
+premiacao = false
+codes = ["teamcbpr"]
+
+[[sedes]]
+name = "Trinidad and Tobago"
+contest = "Caribbean"
+premiacao = false
+codes = ["teamcbtt"]
+
+[[sedes]]
+name = "Antigua and Barbuda"
+contest = "Caribbean"
+premiacao = false
+codes = ["teamcbab"]
