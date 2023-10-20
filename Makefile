@@ -13,8 +13,9 @@ build-server:
 
 build-client:
 	docker build -f client.Dockerfile \
+		--build-arg "REMOVE_CCL=1" \
 		--build-arg "URL_PREFIX=http://animeitor.naquadah.com.br:8000" \
-		--build-arg "PHOTO_PREFIX=http://animeitor.naquadah.com.br/static/assets/teams" \
+		--build-arg "PHOTO_PREFIX=https://photos.naquadah.com.br/photos" \
 		-t wuerges/animeitor-client .
 	docker tag wuerges/animeitor-client wuerges/animeitor-client:0.7.0
 	docker tag wuerges/animeitor-client wuerges/animeitor-client:latest
@@ -24,7 +25,7 @@ build-client:
 build-client-ccl:
 	docker build -f client.Dockerfile \
 		--build-arg "URL_PREFIX=http://animeitor.naquadah.com.br:8001" \
-		--build-arg "PHOTO_PREFIX=http://animeitor.naquadah.com.br/static/assets/teams" \
+		--build-arg "PHOTO_PREFIX=https://photos.naquadah.com.br/photos" \
 		-t wuerges/animeitor-client-ccl .
 	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:0.7.0
 	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:latest

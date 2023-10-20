@@ -108,7 +108,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 model.runs = runs
                     .into_iter()
-                    .map(|r| mock.build_panel_item(&r).expect("Expected a valid Run"))
+                    .filter_map(|r| mock.build_panel_item(&r).ok())
                     .collect();
 
                 model.dirty = false;

@@ -286,6 +286,17 @@ impl ContestFile {
         }
     }
 
+    pub fn remove_ccl(self) -> Self {
+        Self {
+            teams: self
+                .teams
+                .into_iter()
+                .filter(|(_k, v)| !v.login.contains("ccl"))
+                .collect(),
+            ..self
+        }
+    }
+
     pub fn filter_sede(self, sede: &Sede) -> Self {
         Self {
             teams: self
