@@ -8,7 +8,7 @@ use crate::secret;
 use crate::timer;
 use autometrics::autometrics;
 use data::configdata::ConfigContest;
-use data::configdata::ConfigSecretPatterns;
+use data::configdata::Secret;
 use warp::Rejection;
 
 use crate::errors::Error as CError;
@@ -49,7 +49,7 @@ fn serve_urlbase(
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    secrets: Arc<ConfigSecretPatterns>,
+    secrets: Arc<Secret>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let config = Arc::new(config);
     let config_file = warp::path("config")
@@ -88,7 +88,7 @@ async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Reje
 pub async fn serve_simple_contest(
     config: ConfigContest,
     boca_url: String,
-    secrets: ConfigSecretPatterns,
+    secrets: Secret,
     server_config: ServerConfig,
 ) {
     let port = server_config.port;

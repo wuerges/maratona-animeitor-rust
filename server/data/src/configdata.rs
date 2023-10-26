@@ -16,18 +16,18 @@ pub struct SedeEntry {
     pub contest: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sede {
-    pub name: String,
-    pub style: Option<String>,
-    pub ouro: Option<usize>,
-    pub prata: Option<usize>,
-    pub bronze: Option<usize>,
-    pub contest: Option<String>,
+    pub entry: SedeEntry,
+    contest: Option<Box<Sede>>,
     automata: AhoCorasick,
 }
 
 impl Sede {
+    pub fn contest(&self) -> Option<&Sede> {
+        self.contest.as_deref()
+    }
+
     pub fn team_belongs(&self, team: &Team) -> bool {
         self.team_belongs_str(&team.login)
     }
@@ -37,11 +37,11 @@ impl Sede {
     }
 
     pub fn premio(&self, p: usize) -> &str {
-        if p <= self.ouro.unwrap_or(0) {
+        if p <= self.entry.ouro.unwrap_or(0) {
             "ouro"
-        } else if p <= self.prata.unwrap_or(0) {
+        } else if p <= self.entry.prata.unwrap_or(0) {
             "prata"
-        } else if p <= self.bronze.unwrap_or(0) {
+        } else if p <= self.entry.bronze.unwrap_or(0) {
             "bronze"
         } else {
             "semcor"
@@ -50,41 +50,49 @@ impl Sede {
 }
 
 impl SedeEntry {
-    pub fn build(&self) -> Sede {
+    pub fn into_sede(&self, all_sedes: &HashMap<String, SedeEntry>) -> Sede {
         Sede {
-            name: self.name.clone(),
-            style: self.style.clone(),
+            entry: self.clone(),
             automata: AhoCorasick::new_auto_configured(&self.codes),
-            ouro: self.ouro.clone(),
-            prata: self.prata.clone(),
-            bronze: self.bronze.clone(),
-            contest: self.contest.clone(),
+            contest: self
+                .contest
+                .as_ref()
+                .and_then(|c| all_sedes.get(c))
+                .map(|s| Box::new(s.into_sede(&HashMap::new()))),
         }
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConfigContest {
     pub sedes: Vec<SedeEntry>,
 }
 
-#[derive(Debug)]
-pub struct ConfigSecretPatterns {
-    pub secrets: Box<HashMap<String, Sede>>,
-    pub parameters: Box<HashMap<String, SedeEntry>>,
+impl ConfigContest {
+    pub fn into_contest(self) -> Contest {
+        let entry_map: HashMap<String, SedeEntry> = self
+            .sedes
+            .into_iter()
+            .map(|sede| (sede.name.clone(), sede))
+            .collect();
+
+        Contest {
+            sedes: entry_map
+                .iter()
+                .map(|(name, entry)| (name.clone(), entry.into_sede(&entry_map)))
+                .collect(),
+        }
+    }
 }
 
-impl ConfigSecretPatterns {
-    fn new(patterns: HashMap<String, SedeEntry>) -> Self {
-        Self {
-            secrets: Box::new(
-                patterns
-                    .iter()
-                    .map(|(key, sede)| (key.clone(), sede.build()))
-                    .collect(),
-            ),
-            parameters: Box::new(patterns),
-        }
+#[derive(Debug)]
+pub struct Contest {
+    pub sedes: HashMap<String, Sede>,
+}
+
+impl Contest {
+    pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
+        self.sedes.get(name)
     }
 }
 
@@ -100,35 +108,37 @@ pub struct ConfigSecret {
     pub secrets: Vec<SedeSecret>,
 }
 
+#[derive(Debug)]
+pub struct Secret {
+    pub sedes_by_secret: HashMap<String, Sede>,
+}
+
+impl Secret {
+    pub fn get_sede_by_secret(&self, key: &str) -> Option<&Sede> {
+        self.sedes_by_secret.get(key)
+    }
+}
+
 impl ConfigSecret {
-    pub fn get_patterns(self, sedes: &ConfigContest) -> ConfigSecretPatterns {
+    pub fn into_secret(self, sedes: &Contest) -> Secret {
         let salt = self.salt.unwrap_or_default();
-        ConfigSecretPatterns::new(
-            self.secrets
-                .into_iter()
-                .filter_map(|sede_secret| {
-                    let complete = format!("{}{}", salt, &sede_secret.secret);
-                    sedes
-                        .sedes
-                        .iter()
-                        .find_map(|sede| (sede.name == sede_secret.name).then_some(sede))
-                        .map(|sede| (complete, sede.clone()))
-                })
-                .collect(),
-        )
+        let sedes_by_secret = self
+            .secrets
+            .into_iter()
+            .filter_map(|sede_secret| {
+                let complete = format!("{}{}", salt, &sede_secret.secret);
+                sedes
+                    .get_sede_nome_sede(&sede_secret.name)
+                    .map(|sede| (complete, sede.clone()))
+            })
+            .collect();
+        Secret { sedes_by_secret }
     }
 }
 
 impl ConfigContest {
     pub fn dummy() -> Self {
         Self { sedes: Vec::new() }
-    }
-
-    pub fn get_sede_nome_sede(&self, name: &str) -> Option<Sede> {
-        self.sedes
-            .iter()
-            .find(|&sede| sede.name == name)
-            .map(|s| s.build())
     }
 }
 
@@ -138,87 +148,84 @@ mod tests {
 
     #[test]
     fn test_config_patterns() {
-        let mut sede = SedeEntry::default();
+        let sede = SedeEntry {
+            name: "sede-name".into(),
+            codes: ["teambr", "teammx"].into_iter().map(String::from).collect(),
+            ..SedeEntry::default()
+        };
 
-        sede.codes = ["teambr", "teammx"].into_iter().map(String::from).collect();
+        let config_contest = ConfigContest { sedes: vec![sede] };
+        let contest = config_contest.into_contest();
 
-        let config = ConfigSecretPatterns::new(HashMap::from([("key".into(), sede)]));
+        let config_secret = ConfigSecret {
+            salt: None,
+            secrets: vec![SedeSecret {
+                name: "sede-name".into(),
+                secret: "key".into(),
+            }],
+        };
+        let secret = config_secret.into_secret(&contest);
 
-        assert!(config
-            .secrets
-            .get("key")
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
-            .team_belongs_str("teambr$"));
-        assert!(config
-            .secrets
-            .get("key")
+            .team_belongs_str("teambr$"),);
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("teammx$"));
-        assert!(config
-            .secrets
-            .get("key")
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$teammx$"));
-        assert!(config
-            .secrets
-            .get("key")
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$teammx$"));
-        assert!(config
-            .secrets
-            .get("key")
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$teammx"));
-        assert!(config
-            .secrets
-            .get("key")
+        assert!(secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$teammx"));
 
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("tea#mbr$"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("tea#mmx$"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$te#ammx$"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$te#ammx$"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$te#ammx"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$te#ammx"));
 
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("teamag"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("teamag$"));
-        assert!(!config
-            .secrets
-            .get("key")
+        assert!(!secret
+            .get_sede_by_secret("key")
             .unwrap()
             .team_belongs_str("$teamag$"));
     }

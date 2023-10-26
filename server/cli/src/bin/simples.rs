@@ -1,5 +1,5 @@
 use cli::parse_config;
-use data::configdata::ConfigSecret;
+use data::configdata::{ConfigContest, ConfigSecret};
 use server::{config::ServerConfig, *};
 
 extern crate clap;
@@ -54,14 +54,15 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let boca_url = matches.value_of("URL").expect("Expected an URL");
     let config_file = matches.value_of("sedes").unwrap_or("config/Default.toml");
 
-    let config = parse_config(std::path::Path::new(config_file))
+    let config = parse_config::<ConfigContest>(std::path::Path::new(config_file))
         .expect("Should be able to parse the config.");
+    let contest = config.clone().into_contest();
 
     let config_secret = match matches.value_of("secret") {
         Some(path) => parse_config::<ConfigSecret>(std::path::Path::new(path))?,
         None => ConfigSecret::default(),
     }
-    .get_patterns(&config);
+    .into_secret(&contest);
 
     let server_config = ServerConfig { port: server_port };
 

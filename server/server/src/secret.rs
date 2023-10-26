@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use autometrics::autometrics;
-use data::configdata::ConfigSecretPatterns;
+use data::configdata::Secret;
 use serde::Deserialize;
 use service::DB;
 use tokio::sync::Mutex;
@@ -11,10 +11,7 @@ use warp::{Filter, Rejection};
 use crate::errors::Error;
 use crate::routes::with_db;
 
-pub fn serve_all_runs_secret(
-    runs: Arc<Mutex<DB>>,
-    secrets: Arc<ConfigSecretPatterns>,
-) -> BoxedFilter<(String,)> {
+pub fn serve_all_runs_secret(runs: Arc<Mutex<DB>>, secrets: Arc<Secret>) -> BoxedFilter<(String,)> {
     with_db(runs)
         .and(warp::any().map(move || secrets.clone()))
         .and(warp::query::<SecretQuery>())
@@ -30,7 +27,7 @@ struct SecretQuery {
 #[autometrics]
 async fn serve_all_runs_secret_filter(
     runs: Arc<Mutex<DB>>,
-    secrets: Arc<ConfigSecretPatterns>,
+    secrets: Arc<Secret>,
     query: SecretQuery,
 ) -> Result<String, Rejection> {
     Ok(serve_all_runs_secret_service(runs, secrets, query).await?)
@@ -38,10 +35,13 @@ async fn serve_all_runs_secret_filter(
 
 async fn serve_all_runs_secret_service(
     runs: Arc<Mutex<DB>>,
-    secrets: Arc<ConfigSecretPatterns>,
+    secrets: Arc<Secret>,
     query: SecretQuery,
 ) -> Result<String, Error> {
-    match query.secret.and_then(|secret| secrets.secrets.get(&secret)) {
+    match query
+        .secret
+        .and_then(|secret| secrets.get_sede_by_secret(&secret))
+    {
         Some(sede) => {
             let db = runs.lock().await;
             Ok(serde_json::to_string(

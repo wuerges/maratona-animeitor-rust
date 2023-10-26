@@ -41,35 +41,36 @@ fn main() -> color_eyre::eyre::Result<()> {
         .get_matches();
 
     let config_file = matches.value_of("config").unwrap_or("config/Default.toml");
-    let config_sedes = parse_config(std::path::Path::new(config_file))
-        .expect("Should be able to parse the config.");
+    let config_sedes = parse_config::<ConfigContest>(std::path::Path::new(config_file))
+        .expect("Should be able to parse the config.")
+        .into_contest();
 
     let config_secret = match matches.value_of("secret") {
         Some(path) => parse_config::<ConfigSecret>(std::path::Path::new(path))?,
         None => ConfigSecret::default(),
     }
-    .get_patterns(&config_sedes);
+    .into_secret(&config_sedes);
 
     let url_prefix = matches.value_of("prefix").unwrap_or_default();
 
-    for (_secret, sede) in config_secret.parameters.iter() {
+    for (_secret, sede) in &config_sedes.sedes {
         let mut url = Url::parse(&format!("{url_prefix}/everything2.html"))?;
-        url.query_pairs_mut().append_pair("sede", &sede.name);
+        url.query_pairs_mut().append_pair("sede", &sede.entry.name);
 
-        println!("-> {}", sede.name);
+        println!("-> {}", sede.entry.name);
         println!("    Animeitor em {}", url.as_str());
-        println!("    Filters = {:?}", sede.codes);
+        println!("    Filters = {:?}", sede.entry.codes);
     }
 
-    for (secret, sede) in config_secret.parameters.iter() {
+    for (secret, sede) in &config_secret.sedes_by_secret {
         let mut url = Url::parse(&format!("{url_prefix}/reveleitor.html"))?;
         url.query_pairs_mut()
             .append_pair("secret", secret)
-            .append_pair("sede", &sede.name);
+            .append_pair("sede", &sede.entry.name);
 
-        println!("-> {}", sede.name);
+        println!("-> {}", sede.entry.name);
         println!("    Reveleitor em {}", url.as_str());
-        println!("    Filters = {:?}", sede.codes);
+        println!("    Filters = {:?}", sede.entry.codes);
     }
 
     Ok(())
