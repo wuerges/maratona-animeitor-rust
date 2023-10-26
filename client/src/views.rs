@@ -79,12 +79,12 @@ fn number_submissions(s: usize) -> Option<usize> {
 fn nome_sede(sede: Option<&Sede>) -> String {
     match sede {
         None => "Placar".to_string(),
-        Some(sede) => sede.name.clone(),
+        Some(sede) => sede.entry.name.clone(),
     }
 }
 
 fn estilo_sede(sede: Option<&Sede>) -> Option<&String> {
-    sede.and_then(|s| s.style.as_ref())
+    sede.and_then(|s| s.entry.style.as_ref())
 }
 
 pub fn view_scoreboard<T>(

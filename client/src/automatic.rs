@@ -42,7 +42,7 @@ struct LoadedContest {
     sede: Option<Sede>,
     original: data::ContestFile,
     contest: data::ContestFile,
-    config: data::configdata::ConfigContest,
+    config: data::configdata::Contest,
     dirty: bool,
 }
 
@@ -52,7 +52,10 @@ impl LoadedContest {
         contest: data::ContestFile,
         config: data::configdata::ConfigContest,
     ) -> Self {
-        let sede = sede_name.and_then(|name| config.get_sede_nome_sede(&name));
+        let config = config.into_contest();
+        let sede = sede_name
+            .and_then(|name| config.get_sede_nome_sede(&name))
+            .cloned();
         Self {
             center: None,
             sede,
@@ -72,7 +75,7 @@ enum ContestState {
 impl ContestState {
     fn get_sede_name(&self) -> Option<String> {
         match self {
-            ContestState::Loaded(loaded) => loaded.sede.as_ref().map(|s| s.name.clone()),
+            ContestState::Loaded(loaded) => loaded.sede.as_ref().map(|s| s.entry.name.clone()),
             ContestState::Unloaded { sede } => sede.clone(),
         }
     }
@@ -104,8 +107,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             let new_sede_name = get_sede(&url);
             match &mut model.state {
                 ContestState::Loaded(state) => {
-                    state.sede =
-                        new_sede_name.and_then(|name| state.config.get_sede_nome_sede(&name));
+                    state.sede = new_sede_name
+                        .and_then(|name| state.config.get_sede_nome_sede(&name).cloned());
                     state.dirty = true;
                 }
                 ContestState::Unloaded { sede: sede_name } => {

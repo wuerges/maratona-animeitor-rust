@@ -16,7 +16,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
         runs_file: data::RunsFile::empty(),
         runs: Vec::new(),
         contest: data::ContestFile::dummy(),
-        config: data::configdata::ConfigContest::dummy(),
+        config: data::configdata::ConfigContest::dummy().into_contest(),
         ws: None,
         dirty: true,
     }
@@ -27,7 +27,7 @@ struct Model {
     runs_file: data::RunsFile,
     runs: Vec<data::RunsPanelItem>,
     contest: data::ContestFile,
-    config: data::configdata::ConfigContest,
+    config: data::configdata::Contest,
     ws: Option<WebSocket>,
     dirty: bool,
 }
@@ -36,7 +36,7 @@ impl Model {
     fn get_sede(&self) -> Option<Sede> {
         self.sede
             .as_ref()
-            .and_then(|sede| self.config.get_sede_nome_sede(sede.as_str()))
+            .and_then(|sede| self.config.get_sede_nome_sede(sede.as_str()).cloned())
     }
 
     fn team_belongs_str(&self, team_login: &str) -> bool {
@@ -82,7 +82,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::Fetched(Ok(contest), Ok(config)) => {
             model.contest = contest;
-            model.config = config;
+            model.config = config.into_contest();
             model.ws = Some(
                 WebSocket::builder(get_ws_url("/allruns_ws"), orders)
                     .on_message(Msg::RunUpdate)
