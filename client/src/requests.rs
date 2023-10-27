@@ -1,7 +1,7 @@
 use seed::prelude::*;
 
 pub fn url_prefix() -> &'static str {
-    env!("URL_PREFIX")
+    option_env!("URL_PREFIX").unwrap_or_default()
 }
 
 pub fn must_remove_ccl() -> bool {
@@ -49,12 +49,11 @@ pub async fn fetch_config() -> fetch::Result<data::configdata::ConfigContest> {
 pub fn get_ws_url(path: &str) -> String {
     let url = web_sys::Url::new(url_prefix()).expect("Location should be valid");
     url.set_protocol("ws:");
-    url.set_pathname(path);
-    url.href()
+    format!("{}{}", url.href(), path)
 }
 
 pub fn photos_prefix() -> &'static str {
-    env!("PHOTO_PREFIX")
+    option_env!("PHOTO_PREFIX").unwrap_or_default()
 }
 
 pub fn team_photo_location(team_login: &str) -> String {
