@@ -9,16 +9,6 @@ This is the scoreboard used for South American ICPC contests.
 Install docker, and docker compose, then:
 
 ```
-docker compose up
-```
-
-The command above should work, since the images are available in docker hub.
-
-## Rebuilding
-
-If you make any changes Animeitor, you should rebuild the images yourself:
-
-```
 docker compose up --build
 ```
 
@@ -52,4 +42,10 @@ PUBLIC_HOST=localhost
 # This is the public port. This is set to `80` during the SBC Maratona.
 # `9000` is fine for local testing:
 PUBLIC_PORT=9000
+
 ```
+
+## Important!
+
+The public url is baked into the client.
+The docker client image must be rebuilt every time `PUBLIC_HOST` or `PUBLIC_PORT` change.
