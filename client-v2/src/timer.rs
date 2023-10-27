@@ -1,9 +1,7 @@
-use futures::StreamExt;
-use gloo_net::websocket::{futures::WebSocket, Message};
-use gloo_timers::future::TimeoutFuture;
-use leptos::{leptos_dom::logging::console_log, *};
+use leptos::*;
 use serde::Deserialize;
-use wasm_bindgen_futures::spawn_local;
+
+use crate::ws_component::create_websocket_signal;
 
 #[derive(Deserialize, Clone, PartialEq, Eq)]
 struct Timer {
@@ -21,36 +19,15 @@ impl Default for Timer {
     }
 }
 
-fn parse_timer<E: std::fmt::Debug>(ws_message: Option<Result<Message, E>>) -> Option<Timer> {
-    ws_message.and_then(|msg| {
-        msg.ok().and_then(|msg| match &msg {
-            Message::Text(txt) => serde_json::from_str(txt).ok(),
-            Message::Bytes(_) => None,
-        })
-    })
-}
-
 fn create_timer() -> ReadSignal<Timer> {
+    let timer_message = create_websocket_signal("ws://localhost:9000/api/timer", Timer::default());
+
     let (timer, set_timer) = create_signal(Timer::default());
 
-    spawn_local(async move {
-        loop {
-            match WebSocket::open("ws://localhost:9000/api/timer") {
-                Ok(ws) => {
-                    let (_, mut read) = ws.split();
-                    let mut prev = None;
-                    while let Some(next_timer) = parse_timer(read.next().await) {
-                        if !prev.as_ref().is_some_and(|p| p == &next_timer) {
-                            prev = Some(next_timer.clone());
-                            set_timer.set(next_timer);
-                        }
-                    }
-                    console_log("Timer websocket closed.");
-                }
-                Err(err) => console_log(&format!("Websocket error: {:?}", err)),
-            }
-            console_log("Wait 5 seconds to reconnect.");
-            TimeoutFuture::new(5_000).await;
+    create_effect(move |_| {
+        let next = timer_message.get();
+        if next != timer.get() {
+            set_timer.set(next);
         }
     });
 
