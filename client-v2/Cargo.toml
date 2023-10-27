@@ -7,3 +7,12 @@ edition = "2021"
 
 [dependencies]
 leptos = { version = "0.5.2", features = ["csr", "nightly"] }
+gloo-net = "0"
+wasm-bindgen-futures = "0.4.37"
+futures = "0.3.29"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dependencies.web-sys]
+features = ["WebSocket", "MessageEvent"]
+version = "0"

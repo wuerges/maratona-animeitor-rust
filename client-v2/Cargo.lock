@@ -225,7 +225,13 @@ dependencies = [
 name = "client-v2"
 version = "0.1.0"
 dependencies = [
+ "futures",
+ "gloo-net",
  "leptos",
+ "serde",
+ "serde_json",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
