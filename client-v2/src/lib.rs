@@ -1,3 +1,4 @@
 pub mod contest;
+mod request_signal;
 pub mod timer;
-mod ws_component;
+mod websocket_signal;

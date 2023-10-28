@@ -2,10 +2,10 @@ use leptos::*;
 
 use data::ContestFile;
 
-use crate::ws_component::create_websocket_signal;
+use crate::request_signal::create_request_signal;
 
 fn create_contest() -> ReadSignal<Option<ContestFile>> {
-    let contest_message = create_websocket_signal("ws://localhost:9000/api/contest", None);
+    let contest_message = create_request_signal("http://localhost:9000/api/contest", None);
 
     contest_message
 }
