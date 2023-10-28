@@ -40,14 +40,18 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
                     let (_, mut read) = ws.split();
                     loop {
                         match parse_message::<M>(read.next().await) {
-                            Ok(next_timer) => tx.send(next_timer).await.expect("stream broken"),
+                            Ok(next_timer) => {
+                                if let Err(err) = tx.send(next_timer).await {
+                                    console_error(&format!("unbounded channel timeout: {err:?}"));
+                                }
+                            }
                             Err(err) => {
                                 console_error(&format!("parse failed: {err:?}"));
                                 break;
                             }
                         }
                     }
-                    console_warn("Timer websocket closed.");
+                    console_warn(&format!("websocket closed: {url}"));
                 }
                 Err(err) => console_error(&format!("Websocket error: {:?}", err)),
             }
