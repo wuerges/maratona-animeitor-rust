@@ -17,7 +17,8 @@ fn create_runs() -> ReadSignal<RunsFile> {
         loop {
             TimeoutFuture::new(1_000).await;
             let next_chunk = messages_stream.next().await;
-            console_log(&format!("read next_chunk message: {next_chunk:?}"));
+            let size = next_chunk.as_ref().map(|v| v.len()).unwrap_or_default();
+            console_log(&format!("read next {size:?} runs"));
             if let Some(next_chunk) = next_chunk {
                 set_runs_file.update(|rf| {
                     for run_tuple in next_chunk.into_iter().filter_map(|x| x) {
