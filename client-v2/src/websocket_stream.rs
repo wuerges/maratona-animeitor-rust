@@ -1,10 +1,10 @@
-use futures::StreamExt;
+use futures::{
+    channel::mpsc::{self, UnboundedReceiver},
+    SinkExt, StreamExt,
+};
 use gloo_net::websocket::{futures::WebSocket, Message, WebSocketError};
 use gloo_timers::future::TimeoutFuture;
-use leptos::{
-    leptos_dom::logging::{console_error, console_log, console_warn},
-    prelude::*,
-};
+use leptos::leptos_dom::logging::{console_error, console_log, console_warn};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 
@@ -26,13 +26,11 @@ fn parse_message<M: for<'a> Deserialize<'a>>(
     })
 }
 
-pub fn create_websocket_signal<M: for<'a> Deserialize<'a> + Clone>(
+pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
     url: &str,
-    initial: M,
-) -> ReadSignal<M> {
-    let (message, set_message) = create_signal(initial);
-
+) -> UnboundedReceiver<M> {
     let url = url.to_string();
+    let (mut tx, rx) = mpsc::unbounded::<M>();
 
     spawn_local(async move {
         loop {
@@ -42,7 +40,7 @@ pub fn create_websocket_signal<M: for<'a> Deserialize<'a> + Clone>(
                     let (_, mut read) = ws.split();
                     loop {
                         match parse_message::<M>(read.next().await) {
-                            Ok(next_timer) => set_message.set(next_timer),
+                            Ok(next_timer) => tx.send(next_timer).await.expect("stream broken"),
                             Err(err) => {
                                 console_error(&format!("parse failed: {err:?}"));
                                 break;
@@ -58,5 +56,5 @@ pub fn create_websocket_signal<M: for<'a> Deserialize<'a> + Clone>(
         }
     });
 
-    message
+    rx
 }

@@ -2,10 +2,11 @@ use leptos::*;
 
 use data::TimerData;
 
-use crate::websocket_signal::create_websocket_signal;
+use crate::websocket_stream::create_websocket_stream;
 
 fn create_timer() -> ReadSignal<Option<TimerData>> {
-    let timer_message = create_websocket_signal("ws://localhost:9000/api/timer", None);
+    let timer_stream = create_websocket_stream("ws://localhost:9000/api/timer");
+    let timer_message = create_signal_from_stream(timer_stream);
 
     let (timer, set_timer) = create_signal(None);
 

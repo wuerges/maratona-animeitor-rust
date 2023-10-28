@@ -1,20 +1,14 @@
-use std::future::ready;
-
 use data::{RunTuple, RunsFile};
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
 use leptos::{leptos_dom::logging::console_log, prelude::*, *};
 
-use crate::websocket_signal::create_websocket_signal;
+use crate::websocket_stream::create_websocket_stream;
 
 fn create_runs() -> ReadSignal<RunsFile> {
-    let runs_message =
-        create_websocket_signal::<Option<RunTuple>>("ws://localhost:9000/api/allruns_ws", None);
+    let runs_message = create_websocket_stream::<RunTuple>("ws://localhost:9000/api/allruns_ws");
 
-    let mut messages_stream = runs_message
-        .to_stream()
-        .filter_map(|x| ready(x))
-        .ready_chunks(100_000);
+    let mut messages_stream = runs_message.ready_chunks(100_000);
 
     let (runs_file, set_runs_file) = create_signal::<RunsFile>(RunsFile::empty());
 

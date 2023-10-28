@@ -3,4 +3,4 @@ pub mod contest;
 mod request_signal;
 pub mod runs;
 pub mod timer;
-mod websocket_signal;
+mod websocket_stream;
