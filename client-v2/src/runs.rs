@@ -1,3 +1,5 @@
+use std::future::ready;
+
 use data::{RunTuple, RunsFile};
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
@@ -9,7 +11,10 @@ fn create_runs() -> ReadSignal<RunsFile> {
     let runs_message =
         create_websocket_signal::<Option<RunTuple>>("ws://localhost:9000/api/allruns_ws", None);
 
-    let mut messages_stream = runs_message.to_stream().ready_chunks(100_000);
+    let mut messages_stream = runs_message
+        .to_stream()
+        .filter_map(|x| ready(x))
+        .ready_chunks(100_000);
 
     let (runs_file, set_runs_file) = create_signal::<RunsFile>(RunsFile::empty());
 
@@ -21,7 +26,7 @@ fn create_runs() -> ReadSignal<RunsFile> {
             console_log(&format!("read next {size:?} runs"));
             if let Some(next_chunk) = next_chunk {
                 set_runs_file.update(|rf| {
-                    for run_tuple in next_chunk.into_iter().filter_map(|x| x) {
+                    for run_tuple in next_chunk {
                         rf.refresh_1(&run_tuple);
                     }
                 });
