@@ -1,15 +1,21 @@
 use leptos::*;
 
-use crate::api::create_contest;
+use crate::model::provide_contest;
 
 #[component]
 pub fn Contest() -> impl IntoView {
-    let contest = create_resource(|| (), |_| create_contest());
+    let (contest, panel) = provide_contest();
 
-    move || match contest.get() {
-        Some(contest) => view! {
-            <p> Contest!: "`"{format!("{:#?}", contest)}"'" </p>
-        },
-        None => view! {<p> Contest is none =/ </p>},
+    move || {
+        panel.with(|panel| {
+            contest.with(|contest| match contest {
+                Some(contest) => view! {
+                    <p> Panel!: "`"{format!("{:#?}", panel.iter().take(30).collect::<Vec<_>>())}"'" </p>
+                    <p> Contest!: "`"{format!("{:#?}", contest)}"'" </p>
+                }
+                .into_view(),
+                None => view! {<p> Contest is none =/ </p>}.into_view(),
+            })
+        })
     }
 }
