@@ -4,7 +4,7 @@ use crate::api::create_contest;
 
 #[component]
 pub fn Contest() -> impl IntoView {
-    let contest = create_contest();
+    let contest = create_resource(|| (), |_| create_contest());
 
     move || match contest.get() {
         Some(contest) => view! {
