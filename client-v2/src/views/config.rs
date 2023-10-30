@@ -1,14 +1,6 @@
 use leptos::*;
 
-use data::configdata::ConfigContest;
-
-use crate::request_signal::create_request_signal;
-
-fn create_config() -> ReadSignal<Option<ConfigContest>> {
-    let config_message = create_request_signal("http://localhost:9000/api/config", None);
-
-    config_message
-}
+use crate::api::create_config;
 
 #[component]
 pub fn Config() -> impl IntoView {
