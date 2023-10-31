@@ -1,5 +1,5 @@
 use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
-use futures::channel::mpsc::UnboundedReceiver;
+use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
 use leptos::*;
 
@@ -21,17 +21,19 @@ pub fn create_runs() -> UnboundedReceiver<RunTuple> {
     create_websocket_stream::<RunTuple>("ws://localhost:9000/api/allruns_ws")
 }
 
-pub fn create_timer() -> ReadSignal<Option<TimerData>> {
-    let timer_stream = create_websocket_stream("ws://localhost:9000/api/timer");
-    let timer_message = create_signal_from_stream(timer_stream);
+pub fn create_timer() -> ReadSignal<TimerData> {
+    let mut timer_stream = create_websocket_stream("ws://localhost:9000/api/timer");
 
-    let (timer, set_timer) = create_signal(None);
+    let (timer, set_timer) = create_signal(TimerData::fake());
 
-    create_effect(move |_| {
-        let next = timer_message.get();
-
-        if next.is_some() && next != timer.get() {
-            set_timer.set(next);
+    spawn_local(async move {
+        loop {
+            let next = timer_stream.next().await;
+            if let Some(next) = next {
+                if next != timer.get() {
+                    set_timer.set(next);
+                }
+            }
         }
     });
 
