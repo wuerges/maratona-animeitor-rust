@@ -31,7 +31,7 @@ pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
             let next = timer_stream.next().await;
             if let Some(next) = next {
                 set_timer.update(|(new, old)| {
-                    old = new;
+                    *old = *new;
                     *new = next;
                 });
             }
