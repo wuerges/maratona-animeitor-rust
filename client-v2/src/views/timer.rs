@@ -1,8 +1,6 @@
 use itertools::Itertools;
 use leptos::*;
 
-use data::TimerData;
-
 use crate::api::create_timer;
 
 fn f(n: i64) -> String {

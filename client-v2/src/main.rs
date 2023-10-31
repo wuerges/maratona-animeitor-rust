@@ -1,4 +1,4 @@
-use client_v2::views::{config::Config, contest::Contest, runs::Runs, timer::Timer};
+use client_v2::views::contest::Contest;
 use leptos::*;
 
 pub fn main() {
