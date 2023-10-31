@@ -21,18 +21,19 @@ pub fn create_runs() -> UnboundedReceiver<RunTuple> {
     create_websocket_stream::<RunTuple>("ws://localhost:9000/api/allruns_ws")
 }
 
-pub fn create_timer() -> ReadSignal<TimerData> {
-    let mut timer_stream = create_websocket_stream("ws://localhost:9000/api/timer");
+pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
+    let mut timer_stream = create_websocket_stream::<TimerData>("ws://localhost:9000/api/timer");
 
-    let (timer, set_timer) = create_signal(TimerData::fake());
+    let (timer, set_timer) = create_signal((TimerData::fake(), data::TimerData::new(0, 1)));
 
     spawn_local(async move {
         loop {
             let next = timer_stream.next().await;
             if let Some(next) = next {
-                if next != timer.get() {
-                    set_timer.set(next);
-                }
+                set_timer.update(|(new, old)| {
+                    old = new;
+                    *new = next;
+                });
             }
         }
     });

@@ -17,7 +17,7 @@ body {
   font-weight: 700;
 
   background-color: #000;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
 }
 
 :root {

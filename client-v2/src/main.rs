@@ -4,10 +4,10 @@ use leptos::*;
 pub fn main() {
     mount_to_body(|| {
         view! {
-            <Timer />
+            // <Timer />
             <Contest />
-            <Runs />
-            <Config />
+            // <Runs />
+            // <Config />
         }
     })
 }

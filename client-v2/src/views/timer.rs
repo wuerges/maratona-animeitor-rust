@@ -30,47 +30,19 @@ fn changed(a: i64, b: i64) -> &'static str {
 pub fn Timer() -> impl IntoView {
     let timer = create_timer();
 
-    let (ptime, set_ptime) = create_signal::<TimerData>(TimerData::fake());
-
-    // div![
-    //     C!["timer"],
-    //     frozen,
-    //     span![C!["hora", changed(hor(time), hor(ptime))], hor(time)],
-    //     span![C!["sep"], ":"],
-    //     span![C!["minuto", changed(min(time), min(ptime))], f(min(time))],
-    //     span![C!["sep"], ":"],
-    //     span![C!["segundo", changed(seg(time), seg(ptime))], f(seg(time))],
-    // ]
-
     move || {
-        let time_data = timer.get();
+        let (time_data, ptimer_data) = timer.get();
+        let time = time_data.current_time;
+        let ptime = ptimer_data.current_time;
         let frozen = time_data.is_frozen().then_some("frozen");
         view! {
             <div class={Some("timer").into_iter().chain(frozen).join(" ")}>
-                <span class="hora">{ hor(time_data.current_time)} </span>
+                <span class={["hora", changed(hor(time), hor(ptime))].join(" ")}>{ hor(time_data.current_time)} </span>
                 <span class="sep"> ":" </span>
-                <span class="minuto">{ f(min(time_data.current_time))} </span>
+                <span class={["minuto", changed(min(time), min(ptime))].join(" ")}>{ f(min(time_data.current_time))} </span>
                 <span class="sep"> ":" </span>
-                <span class="segundo">{ f(seg(time_data.current_time))} </span>
+                <span class={["segundo", changed(seg(time), seg(ptime))].join(" ")}>{ f(seg(time_data.current_time))} </span>
             </div>
         }
     }
-
-    // move || match timer.get() {
-    //     Some(time_data) => {
-    //         let time = time_data.current_time;
-    //         let ptime = ptime_data.current_time;
-
-    //         let frozen = if time_data.is_frozen() {
-    //             Some("frozen")
-    //         } else {
-    //             None
-    //         };
-
-    //         view! {
-
-    //         <p> Time?: "`"{current_time}/{score_freeze_time * 60}"'" </p>
-    //     }},
-    //     None => view! {<p> Timer is none =/ </p>},
-    // }
 }
