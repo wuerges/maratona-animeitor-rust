@@ -18,54 +18,6 @@ pub fn Contest() -> impl IntoView {
     }
 }
 
-// div![
-//         C!["runstable"],
-//         model.runs.iter().filter(
-//             |r| model.team_belongs_str(&r.team_login)
-//         ).take(30).enumerate().map({
-//             |(i, r)| {
-//                 let balao = std::format!("balao_{}", r.problem);
-//                 div![
-//                     C!["run"],
-//                     style! {
-//                         St::Top => format!("calc(var(--row-height) * {} + var(--root-top))", i),
-//                     },
-//                     div![
-//                         C!["cell", "colocacao", "quadrado", views::get_color(r.placement, None)],
-//                         r.placement
-//                     ],
-//                     div![
-//                         C!["cell", "time"],
-//                         div![C!["nomeEscola"], &r.escola],
-//                         div![C!["nomeTime"], &r.team_name],
-//                     ],
-//                     div![
-//                         C!["cell", "resposta", "quadrado", get_answer(&r.result)],
-//                         IF!(matches!(r.result, data::Answer::Yes(_)) =>
-//                         div![
-//                             img![
-//                                 C!["answer-img", balao],
-//                                 attrs!{At::Src => "/assets/balloon.svg"},
-//                             ],
-//                         ]),
-//                         img![
-//                             C!["answer-img"],
-//                             attrs!{At::Src => get_image(&r.result)},
-//                         ],
-//                         div![
-//                             C!["answer-text"],
-//                             &r.problem
-//                         ]
-//                     ],
-
-//                     attrs!{At::OnClick =>
-//                         std::format!("document.getElementById('foto_{}').style.display = 'block';", &r.team_login),
-//                     },
-//                 ]
-//             }
-//         })
-//     ]
-
 pub fn get_color(n: usize, sede: Option<&Sede>) -> &str {
     match sede {
         Some(sede) => sede.premio(n),
