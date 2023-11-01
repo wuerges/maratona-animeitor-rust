@@ -87,7 +87,6 @@ fn runs_panel(panel: &Vec<RunsPanelItem>) -> impl IntoView {
             }).collect_view()
         }
         </div>
-        <p> Panel!: "`"{format!("{:#?}", panel.iter().take(30).collect::<Vec<_>>())}"'" </p>
     }
 }
 
