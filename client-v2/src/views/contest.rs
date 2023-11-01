@@ -1,5 +1,4 @@
 use data::{configdata::Sede, ContestFile, RunsPanelItem};
-use itertools::Itertools;
 use leptos::*;
 
 use crate::{model::provide_contest, views::timer::Timer};
