@@ -104,7 +104,6 @@ fn get_answer(t: &data::Answer) -> &str {
 }
 
 fn runs_panel(panel: &Vec<RunsPanelItem>) -> impl IntoView {
-    // let panel_items = panel.iter().take(30).collect_vec();
     view! {
         <div class="runstable">
         {
@@ -126,7 +125,7 @@ fn runs_panel(panel: &Vec<RunsPanelItem>) -> impl IntoView {
                         <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
                             {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
                                 <div>
-                                    <img class={["answer-img", balao.as_str()].join(" ")} src="assets/ballon.svg" />
+                                    <img class={["answer-img", balao.as_str()].join(" ")} src="assets/balloon.svg" />
                                 </div>
                             })}
                             <img class="answer-img" src={get_image(&r.result)} />
