@@ -175,101 +175,6 @@ fn contest_panel(
     );
     let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
 
-    // pub fn view_scoreboard<T>(
-    //     contest: &ContestFile,
-    //     center: &Option<String>,
-    //     sede: Option<&Sede>,
-    //     revelation: bool,
-    // ) -> Node<T> {
-
-    //     div![
-    //         C!["runstable"],
-    //         div![
-    //             C!["run_box"],
-    //             style!{St::Top => cell_top(0, &p_center)},
-    //             div![
-    //                 id!["runheader"],
-    //                 C!["run"],
-    //                 div![
-    //                     C![
-    //                         "cell",
-    //                         "titulo",
-    //                         estilo_sede(sede)
-    //                     ],
-    //                     nome_sede(sede)
-    //                 ],
-    //                 all_problems.chars().map( |p| div![C!["cell", "problema", "quadrado"], p.to_string()])
-    //             ]
-    //         ],
-    //         contest.teams.values()
-    //                 .map (|team| {
-    //             let score = team.score();
-    //             let p2 = team.placement;
-    //             let display = team.belongs_to_contest(sede);
-    //             div![
-    //                 C!["run_box"],
-    //                 style!{St::Top => cell_top(p2, &p_center), St::ZIndex => -(p2 as i32)},
-    //                 div![
-    //                     IF!(!display => style!{St::Display => "none"}),
-    //                     id![&team.login],
-    //                     C!["run"],
-    //                     div![C!["run_prefix"],
-    //                         center_class(team.placement, &p_center),
-    //                         IF!(is_compressed => div![C!["cell", "colocacao", "quadrado", get_color(team.placement_global, None)], team.placement_global]),
-    //                         div![C!["cell", "colocacao", "quadrado", get_color(p2, sede)], p2],
-    //                         div![
-    //                             C!["cell", "time"],
-    //                             div![C!["nomeEscola"], &team.escola],
-    //                             div![C!["nomeTime"], &team.name,
-    //                             ],
-    //                             attrs!{At::OnClick =>
-    //                                 std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
-    //                             },
-    //                         ],
-    //                         div![
-    //                             C!["cell", "problema", "quadrado"],
-    //                             div![C!["cima"], score.solved],
-    //                             div![C!["baixo"], score.penalty],
-    //                         ],
-    //                     ],
-    //                     all_problems.char_indices().map( |(_prob_i, prob)| {
-    //                         match team.problems.get(&prob.to_string()) {
-
-    //                             None => div![C!["not-tried", "cell", "quadrado"], "-"],
-    //                             Some(prob_v) => {
-    //                                 if prob_v.solved {
-    //                                     let balao = std::format!("balao_{}", prob);
-    //                                     div![C!["accept", "cell", "quadrado"],
-    //                                         div![
-    //                                             C!["accept-img", balao],
-    //                                         ],
-    //                                         div![
-    //                                             C!["accept-text"],
-    //                                             "+",
-    //                                             number_submissions(prob_v.submissions),
-    //                                             br![],
-    //                                             prob_v.time_solved,
-    //                                         ],
-    //                                     ]
-    //                                 }
-    //                                 else {
-    //                                     let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
-    //                                     let cell_symbol = if prob_v.wait() {"?"} else {"X"};
-    //                                     div![
-    //                                         C![cell_type, "cell", "quadrado"],
-    //                                         div![C!["cima"], cell_symbol],
-    //                                         div![C!["baixo"], "(", prob_v.submissions, ")"],
-    //                                     ]
-    //                                 }
-    //                             },
-    //                         }
-    //                     })
-    //                 ]
-    //             ]
-    //         }),
-    //     ]
-    // }
-
     view! {
         <div class="runstable">
             <div class="run_box" style={format!("top: {}", cell_top(0, &p_center))}>
@@ -281,9 +186,69 @@ fn contest_panel(
                         <div class="cell problema quadrado">{p}</div>
                     }).collect_view()}
                 </div>
+                {contest.teams.values().map(|team| {
+                    let score = team.score();
+                    let p2 = team.placement;
+                    let display = team.belongs_to_contest(sede);
+
+                    view! {
+                        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(p2, &p_center), -(p2 as i32))}>
+                            <div class="run" style={(!display).then_some("display: none")} id={team.login.clone()}>
+                                <div class={center_class(team.placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
+                                    {is_compressed.then_some(view! {
+                                        <div class={[get_color(team.placement_global, None), "cell", "colocacao", "quadrado"].join(" ")}>
+                                            {team.placement_global}
+                                        </div>
+                                    })}
+                                    <div class={[get_color(p2, None), "cell", "colocacao", "quadrado"].join(" ")}>
+                                        {p2}
+                                    </div>
+                                    <div class="cell time">
+                                        <div class="nomeEscola">{team.escola.clone()}</div>
+                                        <div class="nomeTime">{team.name.clone()}</div>
+                                        // FIXME
+                                        // attrs!{At::OnClick =>
+                                        //     std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
+                                        // },
+                                    </div>
+                                    <div class="cell problema quadrado">
+                                        <div class="cima">{score.solved}</div>
+                                        <div class="baixo">{score.penalty}</div>
+                                    </div>
+                                </div>
+                                {all_problems.char_indices().map(|(_prob_i, prob)| {
+                                    match team.problems.get(&prob.to_string()) {
+                                        None => view! {<div class="not-tried cell quadrado"> - </div>},
+                                        Some(prob_v) => {
+                                            if prob_v.solved {
+                                                let balao = format!("balao_{}", prob);
+                                                view! {
+                                                    <div class="accept cell quadrado">
+                                                        <div class="accept-img">{balao}</div>
+                                                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
+                                                    </div>
+                                                }
+                                            }
+                                            else {
+                                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
+                                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
+
+                                                view! {
+                                                    <div class={format!("cell quadrado {}", cell_type)}>
+                                                        <div class="cima">{cell_symbol}</div>
+                                                        <div class="baixo">"("{prob_v.submissions}")"</div>
+                                                    </div>
+                                                }
+                                            }
+                                        },
+                                    }
+                                }).collect_view()}
+                            </div>
+                        </div>
+                    }
+                }).collect_view()}
             </div>
         </div>
-        <p> Contest!: "`"{format!("{:#?}", contest)}"'" </p>
     }
 }
 
