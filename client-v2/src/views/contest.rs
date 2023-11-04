@@ -224,7 +224,7 @@ fn contest_panel(
                                                 let balao = format!("balao_{}", prob);
                                                 view! {
                                                     <div class="accept cell quadrado">
-                                                        <div class="accept-img">{balao}</div>
+                                                        <div class=format!("accept-img {balao}")></div>
                                                         <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
                                                     </div>
                                                 }
