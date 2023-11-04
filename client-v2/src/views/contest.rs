@@ -55,6 +55,33 @@ fn get_answer(t: &data::Answer) -> &str {
     }
 }
 
+enum Color {
+    Red,
+    Gold,
+    Silver,
+    Bronze,
+    Green,
+    Yellow,
+}
+
+#[component]
+fn Square(children: Children, color: Color) -> impl IntoView {
+    let background_color = match color {
+        Color::Red => "red",
+        Color::Gold => "gold",
+        Color::Silver => "silver",
+        Color::Bronze => "bronze",
+        Color::Green => "green",
+        Color::Yellow => "yellow",
+    };
+
+    view! {
+        <div style=format!("background-color: {background_color}")>
+            {children()}
+        </div>
+    }
+}
+
 #[component]
 fn RunsPanel<'a>(items: &'a Vec<RunsPanelItem>) -> impl IntoView {
     view! {
@@ -66,8 +93,11 @@ fn RunsPanel<'a>(items: &'a Vec<RunsPanelItem>) -> impl IntoView {
                 let cor = get_color(r.placement, None);
                 let problem = r.problem.clone();
 
+                let placement = r.placement;
+
                 view! {
                     <div class="run" style={format!("top: {top}")}>
+                        <Square color=Color::Red>{placement}</Square>
                         <div class={["cell", "colocacao", "quadrado", cor].join(" ")}>
                             {r.placement}
                         </div>
