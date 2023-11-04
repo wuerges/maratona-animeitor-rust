@@ -9,11 +9,9 @@ pub fn Contest() -> impl IntoView {
     let (contest, panel) = provide_contest();
 
     move || {
-        panel.with(|panel| {
-            contest.with(|contest| match contest {
-                Some(contest) => everything(contest, panel).into_view(),
-                None => view! {<p> Contest is none =/ </p>}.into_view(),
-            })
+        contest.with(|contest| match contest {
+            Some(contest) => everything(contest, panel).into_view(),
+            None => view! {<p> Contest is none =/ </p>}.into_view(),
         })
     }
 }
@@ -55,40 +53,43 @@ fn get_answer(t: &data::Answer) -> &str {
     }
 }
 
-fn runs_panel(panel: &Vec<RunsPanelItem>) -> impl IntoView {
-    view! {
-        <div class="runstable">
-        {
-            panel.iter().take(30).enumerate().map(|(i, r)| {
-                let balao = format!("balao_{}", r.problem);
-                let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-                let cor = get_color(r.placement, None);
-                let problem = r.problem.clone();
+#[component]
+fn RunsPanel(panel: ReadSignal<Vec<RunsPanelItem>>) -> impl IntoView {
+    panel.with(|panel|
+        view! {
+            <div class="runstable">
+            {
+                panel.iter().take(30).enumerate().map(|(i, r)| {
+                    let balao = format!("balao_{}", r.problem);
+                    let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
+                    let cor = get_color(r.placement, None);
+                    let problem = r.problem.clone();
 
-                view! {
-                    <div class="run" style={format!("top: {top}")}>
-                        <div class={["cell", "colocacao", "quadrado", cor].join(" ")}>
-                            {r.placement}
+                    view! {
+                        <div class="run" style={format!("top: {top}")}>
+                            <div class={["cell", "colocacao", "quadrado", cor].join(" ")}>
+                                {r.placement}
+                            </div>
+                            <div class={["cell", "time"].join(" ")}>
+                                <div class="nomeEscola">{&r.escola}</div>
+                                <div class="nomeTIme">{&r.team_name}</div>
+                            </div>
+                            <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
+                                {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
+                                    <div>
+                                        <img class={["answer-img", balao.as_str()].join(" ")} src="assets/balloon.svg" />
+                                    </div>
+                                })}
+                                <img class="answer-img" src={get_image(&r.result)} />
+                                <div class="answer-text">{problem}</div>
+                            </div>
                         </div>
-                        <div class={["cell", "time"].join(" ")}>
-                            <div class="nomeEscola">{&r.escola}</div>
-                            <div class="nomeTIme">{&r.team_name}</div>
-                        </div>
-                        <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
-                            {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
-                                <div>
-                                    <img class={["answer-img", balao.as_str()].join(" ")} src="assets/balloon.svg" />
-                                </div>
-                            })}
-                            <img class="answer-img" src={get_image(&r.result)} />
-                            <div class="answer-text">{problem}</div>
-                        </div>
-                    </div>
-                }
-            }).collect_view()
+                    }
+                }).collect_view()
+            }
+            </div>
         }
-        </div>
-    }
+    )
 }
 
 use std::collections::BTreeMap;
@@ -252,7 +253,7 @@ fn contest_panel(
     }
 }
 
-pub fn everything(contest: &ContestFile, panel: &Vec<RunsPanelItem>) -> impl IntoView {
+pub fn everything(contest: &ContestFile, panel: ReadSignal<Vec<RunsPanelItem>>) -> impl IntoView {
     view! {
         <body style="height: 1px">
             <div style="display: flex; width: 320px;">
@@ -260,7 +261,7 @@ pub fn everything(contest: &ContestFile, panel: &Vec<RunsPanelItem>) -> impl Int
                     // <Sedes />
                     <Timer />
                     <div class="submission-title"> Últimas Submissões </div>
-                    {runs_panel(panel)}
+                    <RunsPanel panel />
                 </div>
                 <div class="automatic" style="margin-left: 8px;">
                     {contest_panel(contest, None, None, false)}
