@@ -76,7 +76,10 @@ fn Square(children: Children, color: Color) -> impl IntoView {
     };
 
     view! {
-        <div style=format!("background-color: {background_color}")>
+        <div
+            style:background-color=background_color
+            class="cell quadrado"
+        >
             {children()}
         </div>
     }
