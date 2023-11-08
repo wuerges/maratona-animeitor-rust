@@ -32,6 +32,16 @@ pub struct Sede {
     automata: AhoCorasick,
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
+pub enum Color {
+    Red,
+    Gold,
+    Silver,
+    Bronze,
+    Green,
+    Yellow,
+}
+
 impl Sede {
     pub fn contest(&self) -> Option<&Sede> {
         self.contest.as_deref()
@@ -45,15 +55,15 @@ impl Sede {
         self.automata.is_match(team_login)
     }
 
-    pub fn premio(&self, p: usize) -> &str {
+    pub fn premio(&self, p: usize) -> Option<Color> {
         if p <= self.entry.ouro.unwrap_or(0) {
-            "ouro"
+            Some(Color::Gold)
         } else if p <= self.entry.prata.unwrap_or(0) {
-            "prata"
+            Some(Color::Silver)
         } else if p <= self.entry.bronze.unwrap_or(0) {
-            "bronze"
+            Some(Color::Bronze)
         } else {
-            "semcor"
+            None
         }
     }
 }

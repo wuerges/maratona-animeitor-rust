@@ -1,4 +1,7 @@
-use data::{configdata::Sede, BelongsToContest, ContestFile, RunsPanelItem};
+use data::{
+    configdata::{Color, Sede},
+    BelongsToContest, ContestFile, RunsPanelItem,
+};
 use itertools::Itertools;
 use leptos::*;
 
@@ -18,20 +21,20 @@ pub fn Contest() -> impl IntoView {
     }
 }
 
-pub fn get_color(n: usize, sede: Option<&Sede>) -> &str {
+pub fn get_color(n: usize, sede: Option<&Sede>) -> Option<Color> {
     match sede {
         Some(sede) => sede.premio(n),
         None => {
             if n == 0 {
-                "vermelho"
+                Some(Color::Red)
             } else if n <= 4 {
-                "ouro"
+                Some(Color::Gold)
             } else if n <= 8 {
-                "prata"
+                Some(Color::Silver)
             } else if n <= 12 {
-                "bronze"
+                Some(Color::Bronze)
             } else {
-                "semcor"
+                None
             }
         }
     }
@@ -55,30 +58,29 @@ fn get_answer(t: &data::Answer) -> &str {
     }
 }
 
-enum Color {
-    Red,
-    Gold,
-    Silver,
-    Bronze,
-    Green,
-    Yellow,
+fn get_class(color: Color) -> &'static str {
+    match color {
+        Color::Red => "vermelho",
+        Color::Gold => "ouro",
+        Color::Silver => "prata",
+        Color::Bronze => "bronze",
+        Color::Green => "verde",
+        Color::Yellow => "amarelo",
+    }
 }
 
 #[component]
-fn Placement(placement: usize, #[prop(optional)] color: Option<Color>) -> impl IntoView {
-    let background_color = color.map(|color| match color {
-        Color::Red => "red",
-        Color::Gold => "gold",
-        Color::Silver => "silver",
-        Color::Bronze => "bronze",
-        Color::Green => "green",
-        Color::Yellow => "yellow",
-    });
+fn Placement<'a>(
+    placement: usize,
+    #[prop(optional_no_strip)] sede: Option<&'a Sede>,
+) -> impl IntoView {
+    let color = get_color(placement, sede);
+    let background_color = color.map(get_class).unwrap_or_default();
 
     view! {
         <div
-            style:background-color=background_color
-            class="cell quadrado colocacao"
+            // style:background-color=background_color
+            class=format!("cell quadrado colocacao {background_color}")
         >
             {placement}
         </div>
@@ -86,24 +88,21 @@ fn Placement(placement: usize, #[prop(optional)] color: Option<Color>) -> impl I
 }
 
 #[component]
-fn RunsPanel<'a>(items: &'a Vec<RunsPanelItem>) -> impl IntoView {
+fn RunsPanel<'a>(
+    items: &'a Vec<RunsPanelItem>,
+    #[prop(optional)] sede: Option<&'a Sede>,
+) -> impl IntoView {
     view! {
         <div class="runstable">
         {
             items.iter().take(30).enumerate().map(|(i, r)| {
                 let balao = format!("balao_{}", r.problem);
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-                let cor = get_color(r.placement, None);
                 let problem = r.problem.clone();
-
-                let placement = r.placement;
 
                 view! {
                     <div class="run" style={format!("top: {top}")}>
-                        <Placement placement />
-                        <div class={["cell", "colocacao", "quadrado", cor].join(" ")}>
-                            {r.placement}
-                        </div>
+                        <Placement placement={r.placement} sede />
                         <div class={["cell", "time"].join(" ")}>
                             <div class="nomeEscola">{&r.escola}</div>
                             <div class="nomeTIme">{&r.team_name}</div>
@@ -231,13 +230,9 @@ fn ContestPanel<'a>(
                             <div class="run" style={(!display).then_some("display: none")} id={team.login.clone()}>
                                 <div class={center_class(team.placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
                                     {is_compressed.then_some(view! {
-                                        <div class={[get_color(team.placement_global, None), "cell", "colocacao", "quadrado"].join(" ")}>
-                                            {team.placement_global}
-                                        </div>
+                                        <Placement placement={team.placement_global} />
                                     })}
-                                    <div class={[get_color(p2, None), "cell", "colocacao", "quadrado"].join(" ")}>
-                                        {p2}
-                                    </div>
+                                    <Placement placement={p2} />
                                     <div class="cell time">
                                         <div class="nomeEscola">{team.escola.clone()}</div>
                                         <div class="nomeTime">{team.name.clone()}</div>
