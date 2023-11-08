@@ -65,7 +65,7 @@ enum Color {
 }
 
 #[component]
-fn Placement(children: Children, #[prop(optional)] color: Option<Color>) -> impl IntoView {
+fn Placement(placement: usize, #[prop(optional)] color: Option<Color>) -> impl IntoView {
     let background_color = color.map(|color| match color {
         Color::Red => "red",
         Color::Gold => "gold",
@@ -80,7 +80,7 @@ fn Placement(children: Children, #[prop(optional)] color: Option<Color>) -> impl
             style:background-color=background_color
             class="cell quadrado colocacao"
         >
-            {children()}
+            {placement}
         </div>
     }
 }
@@ -100,7 +100,7 @@ fn RunsPanel<'a>(items: &'a Vec<RunsPanelItem>) -> impl IntoView {
 
                 view! {
                     <div class="run" style={format!("top: {top}")}>
-                        <Placement>{placement}</Placement>
+                        <Placement placement />
                         <div class={["cell", "colocacao", "quadrado", cor].join(" ")}>
                             {r.placement}
                         </div>
