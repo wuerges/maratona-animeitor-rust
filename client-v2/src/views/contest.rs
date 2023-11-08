@@ -1,6 +1,6 @@
 use data::{
     configdata::{Color, Sede},
-    BelongsToContest, ContestFile, RunsPanelItem,
+    BelongsToContest, ContestFile, RunsPanelItem, Team,
 };
 use itertools::Itertools;
 use leptos::*;
@@ -88,7 +88,7 @@ fn Placement<'a>(
 }
 
 #[component]
-fn Team(escola: String, name: String) -> impl IntoView {
+fn TeamName(escola: String, name: String) -> impl IntoView {
     view! {
         <div class="cell time">
             <div class="nomeEscola">{escola}</div>
@@ -113,7 +113,7 @@ fn RunsPanel<'a>(
                 view! {
                     <div class="run" style:top={top} >
                         <Placement placement={r.placement} sede />
-                        <Team escola={r.escola.clone()} name={r.team_name.clone()} />
+                        <TeamName escola={r.escola.clone()} name={r.team_name.clone()} />
                         <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
                             {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
                                 <div>
@@ -198,6 +198,61 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
+fn ContestPanelLine<'a>(
+    display: bool,
+    is_compressed: bool,
+    p_center: Option<usize>,
+    team: &'a Team,
+    all_problems: &'static str,
+) -> impl IntoView {
+    let score = team.score();
+    view! {
+        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(team.placement, &p_center), -(team.placement as i32))}>
+            <div class="run" style={(!display).then_some("display: none")} id={team.login.clone()}>
+                <div class={center_class(team.placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
+                    {is_compressed.then_some(view! {
+                        <Placement placement={team.placement_global} />
+                    })}
+                    <Placement placement={team.placement} />
+                    <TeamName escola={team.escola.clone()} name={team.name.clone()} />
+                    <div class="cell problema quadrado">
+                        <div class="cima">{score.solved}</div>
+                        <div class="baixo">{score.penalty}</div>
+                    </div>
+                </div>
+                {all_problems.char_indices().map(|(_prob_i, prob)| {
+                    match team.problems.get(&prob.to_string()) {
+                        None => view! {<div class="not-tried cell quadrado"> - </div>},
+                        Some(prob_v) => {
+                            if prob_v.solved {
+                                let balao = format!("balao_{}", prob);
+                                view! {
+                                    <div class="accept cell quadrado">
+                                        <div class=format!("accept-img {balao}")></div>
+                                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
+                                    </div>
+                                }
+                            }
+                            else {
+                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
+                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
+
+                                view! {
+                                    <div class={format!("cell quadrado {}", cell_type)}>
+                                        <div class="cima">{cell_symbol}</div>
+                                        <div class="baixo">"("{prob_v.submissions}")"</div>
+                                    </div>
+                                }
+                            }
+                        },
+                    }
+                }).collect_view()}
+            </div>
+        </div>
+    }
+}
+
+#[component]
 fn ContestPanel<'a>(
     contest: &'a ContestFile,
     center: Option<String>,
@@ -228,53 +283,11 @@ fn ContestPanel<'a>(
                     }).collect_view()}
                 </div>
                 {contest.teams.values().map(|team| {
-                    let score = team.score();
-                    let p2 = team.placement;
                     let display = team.belongs_to_contest(sede);
 
-                    view! {
-                        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(p2, &p_center), -(p2 as i32))}>
-                            <div class="run" style={(!display).then_some("display: none")} id={team.login.clone()}>
-                                <div class={center_class(team.placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
-                                    {is_compressed.then_some(view! {
-                                        <Placement placement={team.placement_global} />
-                                    })}
-                                    <Placement placement={p2} />
-                                    <Team escola={team.escola.clone()} name={team.name.clone()} />
-                                    <div class="cell problema quadrado">
-                                        <div class="cima">{score.solved}</div>
-                                        <div class="baixo">{score.penalty}</div>
-                                    </div>
-                                </div>
-                                {all_problems.char_indices().map(|(_prob_i, prob)| {
-                                    match team.problems.get(&prob.to_string()) {
-                                        None => view! {<div class="not-tried cell quadrado"> - </div>},
-                                        Some(prob_v) => {
-                                            if prob_v.solved {
-                                                let balao = format!("balao_{}", prob);
-                                                view! {
-                                                    <div class="accept cell quadrado">
-                                                        <div class=format!("accept-img {balao}")></div>
-                                                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
-                                                    </div>
-                                                }
-                                            }
-                                            else {
-                                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
-                                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
 
-                                                view! {
-                                                    <div class={format!("cell quadrado {}", cell_type)}>
-                                                        <div class="cima">{cell_symbol}</div>
-                                                        <div class="baixo">"("{prob_v.submissions}")"</div>
-                                                    </div>
-                                                }
-                                            }
-                                        },
-                                    }
-                                }).collect_view()}
-                            </div>
-                        </div>
+                    view! {
+                        <ContestPanelLine display is_compressed p_center team all_problems />
                     }
                 }).collect_view()}
             </div>
