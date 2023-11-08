@@ -88,6 +88,16 @@ fn Placement<'a>(
 }
 
 #[component]
+fn Team(escola: String, name: String) -> impl IntoView {
+    view! {
+        <div class="cell time">
+            <div class="nomeEscola">{escola}</div>
+            <div class="nomeTIme">{name}</div>
+        </div>
+    }
+}
+
+#[component]
 fn RunsPanel<'a>(
     items: &'a Vec<RunsPanelItem>,
     #[prop(optional)] sede: Option<&'a Sede>,
@@ -103,10 +113,7 @@ fn RunsPanel<'a>(
                 view! {
                     <div class="run" style={format!("top: {top}")}>
                         <Placement placement={r.placement} sede />
-                        <div class={["cell", "time"].join(" ")}>
-                            <div class="nomeEscola">{&r.escola}</div>
-                            <div class="nomeTIme">{&r.team_name}</div>
-                        </div>
+                        <Team escola={r.escola.clone()} name={r.team_name.clone()} />
                         <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
                             {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
                                 <div>
