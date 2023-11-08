@@ -240,14 +240,7 @@ fn ContestPanel<'a>(
                                         <Placement placement={team.placement_global} />
                                     })}
                                     <Placement placement={p2} />
-                                    <div class="cell time">
-                                        <div class="nomeEscola">{team.escola.clone()}</div>
-                                        <div class="nomeTime">{team.name.clone()}</div>
-                                        // FIXME
-                                        // attrs!{At::OnClick =>
-                                        //     std::format!("document.getElementById('foto_{}').style.display = 'block';", &team.login),
-                                        // },
-                                    </div>
+                                    <Team escola={team.escola.clone()} name={team.name.clone()} />
                                     <div class="cell problema quadrado">
                                         <div class="cima">{score.solved}</div>
                                         <div class="baixo">{score.penalty}</div>
