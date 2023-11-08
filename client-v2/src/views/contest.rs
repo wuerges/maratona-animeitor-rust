@@ -218,7 +218,7 @@ fn ContestPanel<'a>(
 
     view! {
         <div class="runstable">
-            <div class="run_box" style={format!("top: {}", cell_top(0, &p_center))}>
+            <div class="run_box" style:top={cell_top(0, &p_center)}>
                 <div id="runheader" class="run">
                     <div class={estilo_sede(sede).iter().chain(&["cell", "titulo"]).join(" ")}>
                         {nome_sede(sede).to_string()}
