@@ -111,7 +111,7 @@ fn RunsPanel<'a>(
                 let problem = r.problem.clone();
 
                 view! {
-                    <div class="run" style={format!("top: {top}")}>
+                    <div class="run" style:top={top} >
                         <Placement placement={r.placement} sede />
                         <Team escola={r.escola.clone()} name={r.team_name.clone()} />
                         <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
