@@ -6,12 +6,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
 use thiserror::Error;
+use utoipa::ToSchema;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema)]
+/// The judge answer to a submission.
 pub enum Answer {
+    /// Accepted, with the time of the submission.
     Yes(i64),
+    /// Rejected.
     No,
+    /// Waiting to be judged.
     Wait,
+    /// Unknown.
     Unk,
 }
 
@@ -29,18 +35,27 @@ impl fmt::Display for Answer {
 
 pub type TimeFile = i64;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema)]
+/// A problem in the scoreboard.
 pub struct Problem {
+    /// Was the problem solved?
     pub solved: bool,
+    /// How many submissions?
     pub submissions: usize,
+    /// How much penalty in total?
     pub penalty: i64,
+    /// When was it solved?
     pub time_solved: i64,
+    /// What were the judges answers to this problem for this team?
     pub answers: Vec<Answer>,
 }
 
 #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+/// Timer state
 pub struct TimerData {
+    /// Current time.
     pub current_time: TimeFile,
+    /// Scoreboard freeze time.
     pub score_freeze_time: TimeFile,
 }
 
@@ -118,13 +133,20 @@ impl Problem {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+/// A team in the contest.
 pub struct Team {
+    /// BOCA's login.
     pub login: String,
+    /// The school of the team.
     pub escola: String,
+    /// The name of the team.
     pub name: String,
+    /// Placement in the site.
     pub placement: usize,
+    /// Global placement across all sites.
     pub placement_global: usize,
+    /// State of the problems that the team is solving.
     pub problems: BTreeMap<String, Problem>,
 }
 
@@ -233,15 +255,24 @@ impl Team {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+/// A contest serialized in the api response.
 pub struct ContestFile {
+    /// Name of the contest.
     pub contest_name: String,
+    /// Map of the teams.
     pub teams: BTreeMap<String, Team>,
+    /// Current contest time.
     pub current_time: i64,
+    /// Maximum time (contest ends).
     pub maximum_time: i64,
+    /// Time that score gets frozen.
     pub score_freeze_time: i64,
+    /// Penalty per wrong answer.
     pub penalty_per_wrong_answer: i64,
+    /// Score board. (Not used by animaitor).
     pub score_board: Vec<String>,
+    /// Number of problems in the contest.
     pub number_problems: usize,
 }
 
@@ -402,11 +433,17 @@ impl ContestFile {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+/// A submission being judged.
 pub struct RunTuple {
+    /// Id of submission.
     pub id: i64,
+    /// Time of the submision.
     pub time: i64,
+    /// The team login.
     pub team_login: String,
+    /// The problem letter.
     pub prob: String,
+    /// The answer for this submission.
     pub answer: Answer,
 }
 
