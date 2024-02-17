@@ -432,7 +432,7 @@ impl ContestFile {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema)]
 /// A submission being judged.
 pub struct RunTuple {
     /// Id of submission.

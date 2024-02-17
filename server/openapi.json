@@ -13,6 +13,53 @@
     "version": "0.7.0"
   },
   "paths": {
+    "/allruns_ws": {
+      "get": {
+        "tags": [
+          "crate"
+        ],
+        "summary": "Returns all runs as a websocket connection.",
+        "description": "Returns all runs as a websocket connection.\nAPI description is not exact, because response is a websocket connection.",
+        "operationId": "get_allruns_ws",
+        "responses": {
+          "200": {
+            "description": "WEBSOCKET: Get constest runs in a websocket connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RunTuple"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "tags": [
+          "crate"
+        ],
+        "summary": "Gets the contest description.",
+        "description": "Gets the contest description.",
+        "operationId": "get_config_file",
+        "responses": {
+          "200": {
+            "description": "Contest site configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfigContest"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/contest": {
       "get": {
         "tags": [
@@ -188,6 +235,40 @@
             "type": "integer",
             "format": "int64",
             "description": "When was it solved?"
+          }
+        }
+      },
+      "RunTuple": {
+        "type": "object",
+        "description": "A submission being judged.",
+        "required": [
+          "id",
+          "time",
+          "team_login",
+          "prob",
+          "answer"
+        ],
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/Answer"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Id of submission."
+          },
+          "prob": {
+            "type": "string",
+            "description": "The problem letter."
+          },
+          "team_login": {
+            "type": "string",
+            "description": "The team login."
+          },
+          "time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Time of the submision."
           }
         }
       },
