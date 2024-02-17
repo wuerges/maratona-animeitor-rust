@@ -3,6 +3,7 @@ name = "server"
 authors.workspace = true
 edition.workspace = true
 version.workspace = true
+description = "Maratona Animeitor API"
 
 [features]
 default = []

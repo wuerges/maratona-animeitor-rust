@@ -3,6 +3,7 @@ mod dbupdate;
 mod errors;
 mod membroadcast;
 pub mod metrics;
+pub mod openapi;
 mod routes;
 mod runs;
 mod secret;

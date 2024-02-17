@@ -1,0 +1,223 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "server",
+    "description": "Maratona Animeitor API",
+    "contact": {
+      "name": "Emilio Wuerges",
+      "email": "wuerges@gmail.com"
+    },
+    "license": {
+      "name": ""
+    },
+    "version": "0.7.0"
+  },
+  "paths": {
+    "/contest": {
+      "get": {
+        "tags": [
+          "animeitor_api"
+        ],
+        "summary": "Gets the contest description.",
+        "description": "Gets the contest description.",
+        "operationId": "get_contest_file",
+        "responses": {
+          "200": {
+            "description": "Contest description",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestFile"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Answer": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "Yes"
+            ],
+            "properties": {
+              "Yes": {
+                "type": "integer",
+                "format": "int64",
+                "description": "Accepted, with the time of the submission."
+              }
+            }
+          },
+          {
+            "type": "string",
+            "description": "Rejected.",
+            "enum": [
+              "No"
+            ]
+          },
+          {
+            "type": "string",
+            "description": "Waiting to be judged.",
+            "enum": [
+              "Wait"
+            ]
+          },
+          {
+            "type": "string",
+            "description": "Unknown.",
+            "enum": [
+              "Unk"
+            ]
+          }
+        ],
+        "description": "The judge answer to a submission."
+      },
+      "ContestFile": {
+        "type": "object",
+        "description": "A contest serialized in the api response.",
+        "required": [
+          "contest_name",
+          "teams",
+          "current_time",
+          "maximum_time",
+          "score_freeze_time",
+          "penalty_per_wrong_answer",
+          "score_board",
+          "number_problems"
+        ],
+        "properties": {
+          "contest_name": {
+            "type": "string",
+            "description": "Name of the contest."
+          },
+          "current_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Current contest time."
+          },
+          "maximum_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum time (contest ends)."
+          },
+          "number_problems": {
+            "type": "integer",
+            "description": "Number of problems in the contest.",
+            "minimum": 0
+          },
+          "penalty_per_wrong_answer": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Penalty per wrong answer."
+          },
+          "score_board": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Score board. (Not used by animaitor)."
+          },
+          "score_freeze_time": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Time that score gets frozen."
+          },
+          "teams": {
+            "type": "object",
+            "description": "Map of the teams.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Team"
+            }
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "description": "A problem in the scoreboard.",
+        "required": [
+          "solved",
+          "submissions",
+          "penalty",
+          "time_solved",
+          "answers"
+        ],
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Answer"
+            },
+            "description": "What were the judges answers to this problem for this team?"
+          },
+          "penalty": {
+            "type": "integer",
+            "format": "int64",
+            "description": "How much penalty in total?"
+          },
+          "solved": {
+            "type": "boolean",
+            "description": "Was the problem solved?"
+          },
+          "submissions": {
+            "type": "integer",
+            "description": "How many submissions?",
+            "minimum": 0
+          },
+          "time_solved": {
+            "type": "integer",
+            "format": "int64",
+            "description": "When was it solved?"
+          }
+        }
+      },
+      "Team": {
+        "type": "object",
+        "description": "A team in the contest.",
+        "required": [
+          "login",
+          "escola",
+          "name",
+          "placement",
+          "placement_global",
+          "problems"
+        ],
+        "properties": {
+          "escola": {
+            "type": "string",
+            "description": "The school of the team."
+          },
+          "login": {
+            "type": "string",
+            "description": "BOCA's login."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the team."
+          },
+          "placement": {
+            "type": "integer",
+            "description": "Placement in the site.",
+            "minimum": 0
+          },
+          "placement_global": {
+            "type": "integer",
+            "description": "Global placement across all sites.",
+            "minimum": 0
+          },
+          "problems": {
+            "type": "object",
+            "description": "State of the problems that the team is solving.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    }
+  }
+}
