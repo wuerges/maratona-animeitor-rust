@@ -3,7 +3,7 @@ titulo = "ICPC Regionals - 1st phase"
 # CHILE
 [[sedes]]
 name = "Chile"
-codes = [ "chsaud23","chrauo23","chcouc23","chsaut23","chcoud23","chtauc23"]
+codes = ["chsaud23", "chrauo23", "chcouc23", "chsaut23", "chcoud23", "chtauc23"]
 premiacao = false
 contest = "Chile"
 

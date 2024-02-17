@@ -15,7 +15,7 @@ contest = "CCLBolivia"
 
 [[sedes]]
 codes = ["soboco23ccl"]
-name = "CCL Bolivia 1" 
+name = "CCL Bolivia 1"
 premiacao = false
 contest = "CCLBolivia"
 
@@ -24,4 +24,3 @@ codes = ["sobosc23ccl"]
 name = "CCL Bolivia 1"
 premiacao = false
 contest = "CCLBolivia"
-

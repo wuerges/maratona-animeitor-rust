@@ -9,8 +9,8 @@ authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 
 [workspace.dependencies]
 autometrics = { version = "0.2.4", features = [
-    "prometheus-exporter",
-    "metrics",
+  "prometheus-exporter",
+  "metrics",
 ] }
 aho-corasick = "0.7"
 clap = "2"
@@ -36,4 +36,5 @@ tokio = { version = "1.27", features = ["full"] }
 url = "2"
 warp = "0.3"
 zip = "0.6"
-
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

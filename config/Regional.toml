@@ -1,202 +1,187 @@
 titulo = "Maratona de Programação da SBC - 1ª fase"
 
 [[sedes]]
-name="Acre"
-codes=["teambrac"]
-premiacao=false
-vagas=0
+name = "Acre"
+codes = ["teambrac"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Alagoas"
-codes=["teambral"]
-premiacao=false
-vagas=0
+name = "Alagoas"
+codes = ["teambral"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Amazonas"
-codes=["teambram"]
-premiacao=true
-vagas=1
+name = "Amazonas"
+codes = ["teambram"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Amapá"
-codes=["teambrap"]
-premiacao=true
-vagas=1
+name = "Amapá"
+codes = ["teambrap"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Bahia"
-codes=["teambrba"]
-premiacao=true
-vagas=2
+name = "Bahia"
+codes = ["teambrba"]
+premiacao = true
+vagas = 2
 
 [[sedes]]
-name="Ceará"
-codes=["teambrce"]
-premiacao=true
-vagas=3
+name = "Ceará"
+codes = ["teambrce"]
+premiacao = true
+vagas = 3
 
 [[sedes]]
-name="Distrito Federal"
-codes=["teambrdf"]
-premiacao=true
-vagas=1
+name = "Distrito Federal"
+codes = ["teambrdf"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Espírito Santo"
-codes=["teambres"]
-premiacao=true
-vagas=1
+name = "Espírito Santo"
+codes = ["teambres"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Goiás"
-codes=["teambrgo"]
-premiacao=true
-vagas=1
+name = "Goiás"
+codes = ["teambrgo"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Maranhão"
-codes=["teambrma"]
-premiacao=false
-vagas=0
+name = "Maranhão"
+codes = ["teambrma"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Minas Gerais"
-codes=["teambrmg"]
-premiacao=true
-vagas=6
+name = "Minas Gerais"
+codes = ["teambrmg"]
+premiacao = true
+vagas = 6
 
 [[sedes]]
-name="Mato Grosso do Sul"
-codes=["teambrms"]
-premiacao=false
-vagas=0
+name = "Mato Grosso do Sul"
+codes = ["teambrms"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Mato Grosso"
-codes=["teambrmt"]
-premiacao=false
-vagas=0
+name = "Mato Grosso"
+codes = ["teambrmt"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Pará"
-codes=["teambrpa"]
-premiacao=false
-vagas=0
+name = "Pará"
+codes = ["teambrpa"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Paraíba"
-codes=["teambrpb"]
-premiacao=true
-vagas=1
+name = "Paraíba"
+codes = ["teambrpb"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Pernambuco"
-codes=["teambrpe"]
-premiacao=false
-vagas=0
+name = "Pernambuco"
+codes = ["teambrpe"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Piauí"
-codes=["teambrpi"]
-premiacao=false
-vagas=0
+name = "Piauí"
+codes = ["teambrpi"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Paraná"
-codes=["teambrpr"]
-premiacao=true
-vagas=2
+name = "Paraná"
+codes = ["teambrpr"]
+premiacao = true
+vagas = 2
 
 [[sedes]]
-name="Rio de Janeiro"
-codes=["teambrrj"]
-premiacao=true
-vagas=2
+name = "Rio de Janeiro"
+codes = ["teambrrj"]
+premiacao = true
+vagas = 2
 
 [[sedes]]
-name="Rio Grande do Norte"
-codes=["teambrrn"]
-premiacao=false
-vagas=0
+name = "Rio Grande do Norte"
+codes = ["teambrrn"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Rondônia"
-codes=["teambrro"]
-premiacao=false
-vagas=0
+name = "Rondônia"
+codes = ["teambrro"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Roraima"
-codes=["teambrrr"]
-premiacao=false
-vagas=0
+name = "Roraima"
+codes = ["teambrrr"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Rio Grande do Sul"
-codes=["teambrrs"]
-premiacao=true
-vagas=1
+name = "Rio Grande do Sul"
+codes = ["teambrrs"]
+premiacao = true
+vagas = 1
 
 [[sedes]]
-name="Santa Catarina"
-codes=["teambrsc"]
-premiacao=true
-vagas=3
+name = "Santa Catarina"
+codes = ["teambrsc"]
+premiacao = true
+vagas = 3
 
 [[sedes]]
-name="Sergipe"
-codes=["teambrse"]
-premiacao=false
-vagas=0
+name = "Sergipe"
+codes = ["teambrse"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="São Paulo"
-codes=["teambrsp"]
-premiacao=true
-vagas=8
+name = "São Paulo"
+codes = ["teambrsp"]
+premiacao = true
+vagas = 8
 
 [[sedes]]
-name="Tocantins"
-codes=["teambrto"]
-premiacao=false
-vagas=0
+name = "Tocantins"
+codes = ["teambrto"]
+premiacao = false
+vagas = 0
 
 [[sedes]]
-name="Supersede Centro-Oeste"
-premiacao=true
-vagas=1
-codes=[
-  "teambrmt",
-  "teambrms",
-]
+name = "Supersede Centro-Oeste"
+premiacao = true
+vagas = 1
+codes = ["teambrmt", "teambrms"]
 
 [[sedes]]
-name="Supersede Nordeste"
-premiacao=true
-vagas=2
-codes=[
-  "teambral",
-  "teambrma",
-  "teambrpe",
-  "teambrrn",
-  "teambrse",
-]
+name = "Supersede Nordeste"
+premiacao = true
+vagas = 2
+codes = ["teambral", "teambrma", "teambrpe", "teambrrn", "teambrse"]
 
 [[sedes]]
-name="Supersede Norte"
-premiacao=true
-vagas=2
-codes=[
-  "teambrac",
-  "teambrpa",
-  "teambrro",
-  "teambrrr",
-  "teambrto",
-]
+name = "Supersede Norte"
+premiacao = true
+vagas = 2
+codes = ["teambrac", "teambrpa", "teambrro", "teambrrr", "teambrto"]
 
 [[sedes]]
-name="Brasil"
-codes=["teambr"]
-premiacao=false
-vagas=0
+name = "Brasil"
+codes = ["teambr"]
+premiacao = false
+vagas = 0

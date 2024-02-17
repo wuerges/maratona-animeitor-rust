@@ -4,7 +4,22 @@ titulo = "ICPC Regionals - 1st phase"
 name = "Bolivia"
 contest = "Bolivia"
 premiacao = false
-codes = [ "sobolp23", "soboco23", "sobota23", "sobotr23", "sobosc23", "sobocb23", "sobobe23", "soboor23", "soboya23", "sobotu23", "soboea23", "soboll23", "sobopo23", "sobosu23"]
+codes = [
+  "sobolp23",
+  "soboco23",
+  "sobota23",
+  "sobotr23",
+  "sobosc23",
+  "sobocb23",
+  "sobobe23",
+  "soboor23",
+  "soboya23",
+  "sobotu23",
+  "soboea23",
+  "soboll23",
+  "sobopo23",
+  "sobosu23",
+]
 
 [[sedes]]
 name = "La Paz"
@@ -89,4 +104,3 @@ name = "Sucre"
 codes = ["sobosu23"]
 premiacao = false
 contest = "Bolivia"
-

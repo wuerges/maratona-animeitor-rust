@@ -3,19 +3,80 @@ titulo = "Maratona de Programação da SBC - 1ª fase"
 
 [[sedes]]
 name = "Brasil"
-codes = ["pait23", "mtcu23", "acrb23", "papa23", "ropv23","amma23", "peol23", "sesc23", "masl23","pite23","ceju23","pbcg23","rnna23","maba23","baju23","cefo23", "basa23", "rnpf23","alma23", "ceqx23" , "mscg23", "gogo23", "dfdf23", "mgmc23", "mgti23", "spba23", "spta23", "mgsj23","mgbh23","spso23","mgud23", "spbs23", "rjrj23", "spsp23", "mgub23", "mgsr23", "mgvi23", "mgvi23" , "scfl23", "prcm23", "prcu23", "scch23", "rsij23", "prto23", "rspa23"]
+codes = [
+  "pait23",
+  "mtcu23",
+  "acrb23",
+  "papa23",
+  "ropv23",
+  "amma23",
+  "peol23",
+  "sesc23",
+  "masl23",
+  "pite23",
+  "ceju23",
+  "pbcg23",
+  "rnna23",
+  "maba23",
+  "baju23",
+  "cefo23",
+  "basa23",
+  "rnpf23",
+  "alma23",
+  "ceqx23",
+  "mscg23",
+  "gogo23",
+  "dfdf23",
+  "mgmc23",
+  "mgti23",
+  "spba23",
+  "spta23",
+  "mgsj23",
+  "mgbh23",
+  "spso23",
+  "mgud23",
+  "spbs23",
+  "rjrj23",
+  "spsp23",
+  "mgub23",
+  "mgsr23",
+  "mgvi23",
+  "mgvi23",
+  "scfl23",
+  "prcm23",
+  "prcu23",
+  "scch23",
+  "rsij23",
+  "prto23",
+  "rspa23",
+]
 premiacao = false
 contest = "Brasil"
 
 [[sedes]]
 name = "Região Norte"
-codes = ["pait23", "acrb23", "papa23", "ropv23","amma23"]
+codes = ["pait23", "acrb23", "papa23", "ropv23", "amma23"]
 premiacao = false
 contest = "Região Norte"
 
 [[sedes]]
 name = "Região Nordeste"
-codes = ["peol23", "sesc23", "masl23","pite23","ceju23","pbcg23","rnna23","maba23","baju23","cefo23", "basa23", "rnpf23","alma23", "ceqx23" ]
+codes = [
+  "peol23",
+  "sesc23",
+  "masl23",
+  "pite23",
+  "ceju23",
+  "pbcg23",
+  "rnna23",
+  "maba23",
+  "baju23",
+  "cefo23",
+  "basa23",
+  "rnpf23",
+  "alma23",
+  "ceqx23",
+]
 premiacao = false
 contest = "Região Nordeste"
 
@@ -27,25 +88,41 @@ contest = "Região Centro-Oeste"
 
 [[sedes]]
 name = "Região Sudeste"
-codes = ["mgmc23", "mgti23", "spba23", "spta23", "mgsj23","mgbh23","spso23","mgud23", "spbs23", "rjrj23", "spsp23", "mgub23", "mgsr23", "mgvi23", "mgvi23" ]
+codes = [
+  "mgmc23",
+  "mgti23",
+  "spba23",
+  "spta23",
+  "mgsj23",
+  "mgbh23",
+  "spso23",
+  "mgud23",
+  "spbs23",
+  "rjrj23",
+  "spsp23",
+  "mgub23",
+  "mgsr23",
+  "mgvi23",
+  "mgvi23",
+]
 premiacao = false
 contest = "Região Sudeste"
 
 [[sedes]]
 name = "Região Sul"
-codes = ["scfl23", "prcm23", "prcu23", "scch23", "rsij23", "prto23", "rspa23"  ]
+codes = ["scfl23", "prcm23", "prcu23", "scch23", "rsij23", "prto23", "rspa23"]
 premiacao = false
 contest = "Região Sul"
 
 [[sedes]]
 name = "Supersede Norte"
-codes = ["pait23", "acrb23", "ropv23","amma23"]
+codes = ["pait23", "acrb23", "ropv23", "amma23"]
 premiacao = false
 contest = "Supersede Norte"
 
 [[sedes]]
 name = "Supersede Nordeste"
-codes = ["sesc23", "masl23", "ceju23", "maba23", "baju23", "alma23", "ceqx23" ]
+codes = ["sesc23", "masl23", "ceju23", "maba23", "baju23", "alma23", "ceqx23"]
 premiacao = false
 contest = "Supersede Nordeste"
 
@@ -436,4 +513,3 @@ name = "Porto Alegre"
 codes = ["rspa23"]
 contest = "Porto Alegre"
 premiacao = false
-

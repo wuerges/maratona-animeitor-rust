@@ -3,7 +3,20 @@ titulo = "ICPC Regionals - 1st phase"
 #Centro America
 
 [[sedes]]
-codes = ["caurlq23","caufla23","cacrsp23","caujsc23","cananm23","catcrs23","caucrp23","cauncn23","caunco23","catcrl23","caumgg23","catcra23"]
+codes = [
+  "caurlq23",
+  "caufla23",
+  "cacrsp23",
+  "caujsc23",
+  "cananm23",
+  "catcrs23",
+  "caucrp23",
+  "cauncn23",
+  "caunco23",
+  "catcrl23",
+  "caumgg23",
+  "catcra23",
+]
 name = "Centro America"
 premiacao = false
 contest = "Centro America"
@@ -80,4 +93,3 @@ codes = ["catcra23"]
 name = "Tecnológico de Costa Rica Sede Alajuela"
 premiacao = false
 contest = "Centro America"
-
