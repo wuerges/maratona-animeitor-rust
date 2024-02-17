@@ -5,6 +5,7 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
+utoipa.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

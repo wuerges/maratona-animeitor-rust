@@ -29,6 +29,7 @@ metrics.workspace = true
 metrics-prometheus.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+utoipa.workspace = true
 
 service = { path = "../service" }
 data = { path = "../data" }
