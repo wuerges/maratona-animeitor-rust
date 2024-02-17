@@ -1,4 +1,4 @@
-FROM rust:1.72.0-bookworm AS build-client
+FROM rust:1-bookworm AS build-client
 
 RUN cargo install wasm-pack
 

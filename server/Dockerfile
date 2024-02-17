@@ -1,4 +1,4 @@
-FROM rust:1.72.0-bookworm AS build-base
+FROM rust:1 AS build-base
 
 RUN cargo install cargo-chef
 WORKDIR /src
