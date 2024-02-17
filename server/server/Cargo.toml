@@ -27,6 +27,8 @@ autometrics.workspace = true
 prometheus.workspace = true
 metrics.workspace = true
 metrics-prometheus.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 service = { path = "../service" }
 data = { path = "../data" }
