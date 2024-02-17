@@ -4,9 +4,15 @@ use server::{config::ServerConfig, *};
 
 extern crate clap;
 use clap::{App, Arg};
+use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
+    tracing_subscriber::FmtSubscriber::builder()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish()
+        .init();
+
     let matches = App::new("Maratona Rustrimeitor Server")
         .version("0.1")
         .author("Emilio Wuerges. <wuerges@gmail.com>")
