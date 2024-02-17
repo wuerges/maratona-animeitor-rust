@@ -71,6 +71,13 @@ async fn serve_runs(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     Ok(serde_json::to_string(&*db.latest()).map_err(CError::SerializationError)?)
 }
 
+#[utoipa::path(
+    get,
+    path = "/contest",
+    responses(
+        (status = 200, description = "Contest description", body = ContestFile),
+    ),
+)]
 #[autometrics]
 async fn serve_contest_file(runs: Arc<Mutex<DB>>) -> Result<String, Rejection> {
     let db = runs.lock().await;
