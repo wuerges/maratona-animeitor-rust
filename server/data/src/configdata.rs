@@ -2,17 +2,26 @@ use std::collections::HashMap;
 
 use aho_corasick::AhoCorasick;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::Team;
 
-#[derive(Deserialize, Serialize, Debug, Clone, Default)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema)]
+/// A site entry.
 pub struct SedeEntry {
+    /// Site name.
     pub name: String,
+    /// Site codes, using in filtering groups of sites.
     pub codes: Vec<String>,
+    /// Style of the site (For CSS)
     pub style: Option<String>,
+    /// Golden medal position.
     pub ouro: Option<usize>,
+    /// Silver medal position.
     pub prata: Option<usize>,
+    /// Bronze medal position.
     pub bronze: Option<usize>,
+    /// Contest that owns this site.
     pub contest: Option<String>,
 }
 
@@ -63,8 +72,10 @@ impl SedeEntry {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, ToSchema)]
+/// Site configuration for contest.
 pub struct ConfigContest {
+    /// A site entry.
     pub sedes: Vec<SedeEntry>,
 }
 

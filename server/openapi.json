@@ -16,7 +16,7 @@
     "/contest": {
       "get": {
         "tags": [
-          "animeitor_api"
+          "crate"
         ],
         "summary": "Gets the contest description.",
         "description": "Gets the contest description.",
@@ -76,6 +76,22 @@
           }
         ],
         "description": "The judge answer to a submission."
+      },
+      "ConfigContest": {
+        "type": "object",
+        "description": "Site configuration for contest.",
+        "required": [
+          "sedes"
+        ],
+        "properties": {
+          "sedes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SedeEntry"
+            },
+            "description": "A site entry."
+          }
+        }
       },
       "ContestFile": {
         "type": "object",
@@ -172,6 +188,55 @@
             "type": "integer",
             "format": "int64",
             "description": "When was it solved?"
+          }
+        }
+      },
+      "SedeEntry": {
+        "type": "object",
+        "description": "A site entry.",
+        "required": [
+          "name",
+          "codes"
+        ],
+        "properties": {
+          "bronze": {
+            "type": "integer",
+            "description": "Bronze medal position.",
+            "nullable": true,
+            "minimum": 0
+          },
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Site codes, using in filtering groups of sites."
+          },
+          "contest": {
+            "type": "string",
+            "description": "Contest that owns this site.",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Site name."
+          },
+          "ouro": {
+            "type": "integer",
+            "description": "Golden medal position.",
+            "nullable": true,
+            "minimum": 0
+          },
+          "prata": {
+            "type": "integer",
+            "description": "Silver medal position.",
+            "nullable": true,
+            "minimum": 0
+          },
+          "style": {
+            "type": "string",
+            "description": "Style of the site (For CSS)",
+            "nullable": true
           }
         }
       },

@@ -1,10 +1,13 @@
-use data::*;
+use data::{
+    configdata::{ConfigContest, SedeEntry},
+    *,
+};
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
 #[openapi(
     paths(get_contest_file),
-    components(schemas(ContestFile, Team, Problem, Answer))
+    components(schemas(ContestFile, Team, Problem, Answer, ConfigContest, SedeEntry))
 )]
 /// Animeitor api description.
 pub struct ApiDoc;
@@ -21,7 +24,16 @@ impl ApiDoc {
         responses(
             (status = 200, description = "Contest description", body = ContestFile),
         ),
-        tag = "animeitor_api"
     )]
 /// Gets the contest description.
 pub fn get_contest_file() {}
+
+#[utoipa::path(
+        get,
+        path = "/config",
+        responses(
+            (status = 200, description = "Contest site configuration", body = ConfigContest),
+        ),
+    )]
+/// Gets the contest description.
+pub fn get_config_file() {}
