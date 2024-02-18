@@ -2,6 +2,7 @@ use clap::Parser;
 use cli::SimpleArgs;
 use server::{config::ServerConfig, *};
 
+use service::volume::Volume;
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Parser)]
@@ -17,6 +18,9 @@ struct SimpleParser {
 
     /// The webcast url from BOCA.
     url: String,
+
+    #[clap(short = 'v', long)]
+    volume: Vec<Volume>,
 }
 
 #[tokio::main]
@@ -26,7 +30,12 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .finish()
         .init();
 
-    let SimpleParser { args, port, url } = SimpleParser::parse();
+    let SimpleParser {
+        args,
+        port,
+        url,
+        volume: volumes,
+    } = SimpleParser::parse();
 
     let (config_contest, _, config_secret) = args.into_contest_and_secret()?;
 
@@ -37,7 +46,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let _autometrics = metrics::setup();
 
     tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(config_contest, url, config_secret, server_config).await;
+    serve_simple_contest(config_contest, url, config_secret, server_config, volumes).await;
 
     Ok(())
 }

@@ -9,6 +9,7 @@ use crate::timer;
 use autometrics::autometrics;
 use data::configdata::ConfigContest;
 use data::configdata::Secret;
+use service::volume::Volume;
 use warp::Rejection;
 
 use crate::errors::Error as CError;
@@ -90,6 +91,7 @@ pub async fn serve_simple_contest(
     boca_url: String,
     secrets: Secret,
     server_config: ServerConfig,
+    _volumes: Vec<Volume>,
 ) {
     let port = server_config.port;
 
