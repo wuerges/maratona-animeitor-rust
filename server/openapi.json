@@ -10,14 +10,12 @@
     "license": {
       "name": ""
     },
-    "version": "0.7.0"
+    "version": "0.12.0"
   },
   "paths": {
     "/allruns_ws": {
       "get": {
-        "tags": [
-          "crate"
-        ],
+        "tags": ["crate"],
         "summary": "Returns all runs as a websocket connection.",
         "description": "Returns all runs as a websocket connection.\nAPI description is not exact, because response is a websocket connection.",
         "operationId": "get_allruns_ws",
@@ -40,9 +38,7 @@
     },
     "/config": {
       "get": {
-        "tags": [
-          "crate"
-        ],
+        "tags": ["crate"],
         "summary": "Gets the contest description.",
         "description": "Gets the contest description.",
         "operationId": "get_config_file",
@@ -62,9 +58,7 @@
     },
     "/contest": {
       "get": {
-        "tags": [
-          "crate"
-        ],
+        "tags": ["crate"],
         "summary": "Gets the contest description.",
         "description": "Gets the contest description.",
         "operationId": "get_contest_file",
@@ -89,9 +83,7 @@
         "oneOf": [
           {
             "type": "object",
-            "required": [
-              "Yes"
-            ],
+            "required": ["Yes"],
             "properties": {
               "Yes": {
                 "type": "integer",
@@ -103,23 +95,17 @@
           {
             "type": "string",
             "description": "Rejected.",
-            "enum": [
-              "No"
-            ]
+            "enum": ["No"]
           },
           {
             "type": "string",
             "description": "Waiting to be judged.",
-            "enum": [
-              "Wait"
-            ]
+            "enum": ["Wait"]
           },
           {
             "type": "string",
             "description": "Unknown.",
-            "enum": [
-              "Unk"
-            ]
+            "enum": ["Unk"]
           }
         ],
         "description": "The judge answer to a submission."
@@ -127,9 +113,7 @@
       "ConfigContest": {
         "type": "object",
         "description": "Site configuration for contest.",
-        "required": [
-          "sedes"
-        ],
+        "required": ["sedes"],
         "properties": {
           "sedes": {
             "type": "array",
@@ -241,13 +225,7 @@
       "RunTuple": {
         "type": "object",
         "description": "A submission being judged.",
-        "required": [
-          "id",
-          "time",
-          "team_login",
-          "prob",
-          "answer"
-        ],
+        "required": ["id", "time", "team_login", "prob", "answer"],
         "properties": {
           "answer": {
             "$ref": "#/components/schemas/Answer"
@@ -275,10 +253,7 @@
       "SedeEntry": {
         "type": "object",
         "description": "A site entry.",
-        "required": [
-          "name",
-          "codes"
-        ],
+        "required": ["name", "codes"],
         "properties": {
           "bronze": {
             "type": "integer",

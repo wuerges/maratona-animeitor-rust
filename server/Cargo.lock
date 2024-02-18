@@ -265,7 +265,7 @@ dependencies = [
 
 [[package]]
 name = "cli"
-version = "0.7.0"
+version = "0.12.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -429,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "0.7.0"
+version = "0.12.0"
 dependencies = [
  "aho-corasick 0.7.20",
  "quickcheck",
@@ -1642,7 +1642,7 @@ dependencies = [
 
 [[package]]
 name = "raw-cpuid"
-version = "10.7.0"
+version = "10.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c297679cb867470fa8c9f67dbba74a78d78e3e98d7cf2b08d6d71540f797332"
 dependencies = [
@@ -2033,7 +2033,7 @@ dependencies = [
 
 [[package]]
 name = "server"
-version = "0.7.0"
+version = "0.12.0"
 dependencies = [
  "autometrics",
  "data",
@@ -2061,7 +2061,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "0.7.0"
+version = "0.12.0"
 dependencies = [
  "data",
  "futures",

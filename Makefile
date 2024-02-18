@@ -6,9 +6,9 @@ all:
 build-server:
 	docker build \
 		-t wuerges/animeitor server
-	docker tag wuerges/animeitor wuerges/animeitor:0.7.0
+	docker tag wuerges/animeitor wuerges/animeitor:0.12.0
 	docker tag wuerges/animeitor wuerges/animeitor:latest
-	docker push wuerges/animeitor:0.7.0
+	docker push wuerges/animeitor:0.12.0
 	docker push wuerges/animeitor:latest
 
 build-client:
@@ -17,9 +17,9 @@ build-client:
 		--build-arg "URL_PREFIX=http://animeitor.naquadah.com.br:8000" \
 		--build-arg "PHOTO_PREFIX=https://photos.naquadah.com.br/photos" \
 		-t wuerges/animeitor-client .
-	docker tag wuerges/animeitor-client wuerges/animeitor-client:0.7.0
+	docker tag wuerges/animeitor-client wuerges/animeitor-client:0.12.0
 	docker tag wuerges/animeitor-client wuerges/animeitor-client:latest
-	docker push wuerges/animeitor-client:0.7.0
+	docker push wuerges/animeitor-client:0.12.0
 	docker push wuerges/animeitor-client:latest
 
 build-client-ccl:
@@ -27,7 +27,7 @@ build-client-ccl:
 		--build-arg "URL_PREFIX=http://animeitor.naquadah.com.br:8001" \
 		--build-arg "PHOTO_PREFIX=https://photos.naquadah.com.br/photos" \
 		-t wuerges/animeitor-client-ccl .
-	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:0.7.0
+	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:0.12.0
 	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:latest
-	docker push wuerges/animeitor-client-ccl:0.7.0
+	docker push wuerges/animeitor-client-ccl:0.12.0
 	docker push wuerges/animeitor-client-ccl:latest
