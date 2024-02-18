@@ -2,6 +2,7 @@ all:
 	@echo build-server
 	@echo build-client
 	@echo build-client-ccl
+	@echo run-standalone
 
 build-server:
 	docker build \
@@ -32,8 +33,10 @@ build-client-ccl:
 	docker push wuerges/animeitor-client-ccl:0.12.0
 	docker push wuerges/animeitor-client-ccl:latest
 
+BOCA_URL ?= ../tests/inputs/webcast_jones.zip
+
 run-standalone:
 	@echo recompiling client...
 	( cd client && REMOVE_CCL=0 wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
 	@echo running server...
-	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ../tests/inputs/webcast_jones.zip )
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ${BOCA_URL} )
