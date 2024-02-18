@@ -20,6 +20,10 @@ struct SimpleParser {
     url: String,
 
     #[clap(short = 'v', long)]
+    /// Maps a local FOLDER to a remote PATH.
+    /// Can be used multiple times.
+    ///
+    /// Expected format: FOLDER:PATH
     volume: Vec<Volume>,
 }
 
