@@ -3,8 +3,9 @@ use crate::{requests, views};
 use seed::{prelude::*, *};
 
 fn open_websocket(orders: &mut impl Orders<Msg>) -> Result<WebSocket, WebSocketError> {
-    log("connecting...");
-    WebSocket::builder(requests::get_ws_url("/timer"), orders)
+    let url = requests::get_ws_url("/timer");
+    log(format!("connecting: {url}"));
+    WebSocket::builder(url, orders)
         .on_message(Msg::TimerUpdate)
         .on_open(Msg::Open)
         .on_close(Msg::Close)
