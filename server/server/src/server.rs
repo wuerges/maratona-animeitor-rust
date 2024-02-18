@@ -5,6 +5,7 @@ use crate::metrics::route_metrics;
 use crate::routes;
 use crate::runs;
 use crate::secret;
+use crate::static_routes::serve_static_routes;
 use crate::timer;
 use autometrics::autometrics;
 use data::configdata::ConfigContest;
@@ -91,7 +92,7 @@ pub async fn serve_simple_contest(
     boca_url: String,
     secrets: Secret,
     server_config: ServerConfig,
-    _volumes: Vec<Volume>,
+    volumes: Vec<Volume>,
 ) {
     let port = server_config.port;
 
@@ -107,7 +108,12 @@ pub async fn serve_simple_contest(
         secrets.into(),
     ));
 
-    let all_routes = service_routes.or(route_metrics()).with(cors);
+    let static_routes = serve_static_routes(volumes);
+
+    let all_routes = service_routes
+        .or(route_metrics())
+        .or(static_routes)
+        .with(cors);
 
     warp::serve(all_routes).run(([0, 0, 0, 0], port)).await;
 }

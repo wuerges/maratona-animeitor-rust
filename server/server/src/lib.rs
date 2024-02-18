@@ -9,6 +9,7 @@ mod runs;
 mod secret;
 pub mod sentry;
 mod server;
+mod static_routes;
 mod timer;
 
 pub use self::server::serve_simple_contest;
