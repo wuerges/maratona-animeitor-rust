@@ -1,21 +1,15 @@
 use clap::Parser;
-use cli::parse_config;
-use color_eyre::Section;
-use data::configdata::{ConfigContest, ConfigSecret};
+use cli::SimpleArgs;
 use server::{config::ServerConfig, *};
 
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
-#[derive(clap::Args)]
-
-struct SimpleArgs {
-    #[clap(short = 's', long, default_value = "config/Default.toml")]
-    /// Sets a custom config file
-    sedes: String,
-
-    #[clap(short = 'x', long)]
-    /// Sets a custom config file
-    secret: Option<String>,
+#[derive(Parser)]
+#[command(version, about, long_about = None)]
+/// Maratona Rustrimeitor Server
+struct SimpleParser {
+    #[clap(flatten)]
+    args: SimpleArgs,
 
     #[clap(short = 'p', long, default_value = "8000")]
     /// The TCP port to host the server
@@ -25,14 +19,6 @@ struct SimpleArgs {
     url: String,
 }
 
-#[derive(Parser)]
-#[command(version, about, long_about = None)]
-/// Maratona Rustrimeitor Server
-struct SimpleParser {
-    #[clap(flatten)]
-    args: SimpleArgs,
-}
-
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
     tracing_subscriber::FmtSubscriber::builder()
@@ -40,26 +26,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .finish()
         .init();
 
-    let simple = SimpleParser::parse();
+    let SimpleParser { args, port, url } = SimpleParser::parse();
 
-    let SimpleArgs {
-        sedes,
-        secret,
-        port,
-        url,
-    } = simple.args;
-
-    let config = parse_config::<ConfigContest>(std::path::Path::new(&sedes))
-        .map_err(|e| e.with_note(|| "Should be able to parse the config."))?;
-
-    let contest = config.clone().into_contest();
-
-    let config_secret = match secret {
-        Some(secret) => parse_config::<ConfigSecret>(std::path::Path::new(&secret))
-            .map_err(|e| e.with_note(|| "Should be able to parse secret file."))?,
-        None => ConfigSecret::default(),
-    }
-    .into_secret(&contest);
+    let (config_contest, _, config_secret) = args.into_contest_and_secret()?;
 
     let server_config = ServerConfig { port };
 
@@ -68,7 +37,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let _autometrics = metrics::setup();
 
     tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(config, url, config_secret, server_config).await;
+    serve_simple_contest(config_contest, url, config_secret, server_config).await;
 
     Ok(())
 }
