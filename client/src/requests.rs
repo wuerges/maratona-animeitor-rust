@@ -1,7 +1,17 @@
-use seed::prelude::*;
+use seed::{error, prelude::*};
 
-pub fn url_prefix() -> &'static str {
-    option_env!("URL_PREFIX").unwrap_or_default()
+pub fn url_prefix() -> String {
+    match option_env!("URL_PREFIX") {
+        Some(prefix) => prefix.to_string(),
+        None => match web_sys::window().map(|w| w.origin()) {
+            Some(origin) => format!("{origin}/api"),
+            None => {
+                let default_url = "http://0.0.0.0/api".to_string();
+                error!("could not guess an origin, using default:", default_url);
+                default_url
+            }
+        },
+    }
 }
 
 pub fn must_remove_ccl() -> bool {
@@ -47,7 +57,7 @@ pub async fn fetch_config() -> fetch::Result<data::configdata::ConfigContest> {
 }
 
 pub fn get_ws_url(path: &str) -> String {
-    let url = web_sys::Url::new(url_prefix()).expect("Location should be valid");
+    let url = web_sys::Url::new(&url_prefix()).expect("Location should be valid");
     url.set_protocol("ws:");
     format!("{}{}", url.href(), path)
 }
