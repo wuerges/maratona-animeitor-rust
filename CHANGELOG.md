@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+- Update clap from 2 to 4. Changed command line parsing.
+
 ## [0.12.0]
 
 ### Added
