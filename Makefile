@@ -31,3 +31,9 @@ build-client-ccl:
 	docker tag wuerges/animeitor-client-ccl wuerges/animeitor-client-ccl:latest
 	docker push wuerges/animeitor-client-ccl:0.12.0
 	docker push wuerges/animeitor-client-ccl:latest
+
+run-standalone:
+	@echo recompiling client...
+	( cd client && REMOVE_CCL=0 URL_PREFIX=/api wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
+	@echo running server...
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ../tests/inputs/webcast_jones.zip )

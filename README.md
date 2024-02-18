@@ -45,6 +45,14 @@ PUBLIC_PORT=9000
 
 ```
 
+# Run without docker
+
+The `Makefile` has an example of how to run animeitor without docker:
+
+```
+make run_standalone
+```
+
 ## Important!
 
 The public url is baked into the client.
