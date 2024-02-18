@@ -25,7 +25,7 @@ struct SecretQuery {
 }
 
 #[autometrics]
-#[tracing::instrument(skip(runs))]
+#[tracing::instrument(skip(runs, secrets))]
 async fn serve_all_runs_secret_filter(
     runs: Arc<Mutex<DB>>,
     secrets: Arc<Secret>,
@@ -34,7 +34,7 @@ async fn serve_all_runs_secret_filter(
     Ok(serve_all_runs_secret_service(runs, secrets, query).await?)
 }
 
-#[tracing::instrument(skip(runs), err)]
+#[tracing::instrument(skip(runs, secrets), err)]
 async fn serve_all_runs_secret_service(
     runs: Arc<Mutex<DB>>,
     secrets: Arc<Secret>,
