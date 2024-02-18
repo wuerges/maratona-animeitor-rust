@@ -20,7 +20,7 @@ impl ApiDoc {
 
 #[utoipa::path(
         get,
-        path = "/contest",
+        path = "/api/contest",
         responses(
             (status = 200, description = "Contest description", body = ContestFile),
         ),
@@ -30,7 +30,7 @@ pub fn get_contest_file() {}
 
 #[utoipa::path(
         get,
-        path = "/config",
+        path = "/api/config",
         responses(
             (status = 200, description = "Contest site configuration", body = ConfigContest),
         ),
@@ -40,9 +40,9 @@ pub fn get_config_file() {}
 
 #[utoipa::path(
         get,
-        path = "/allruns_ws",
+        path = "/api/allruns_ws",
         responses(
-            (status = 200, description = "WEBSOCKET: Get constest runs in a websocket connection", body = Vec<RunTuple>),
+            (status = 200, description = "WEBSOCKET: Get contest runs in a websocket connection", body = Vec<RunTuple>),
         ),
     )]
 /// Returns all runs as a websocket connection.

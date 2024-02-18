@@ -4,6 +4,7 @@ use serde::Deserialize;
 
 pub mod test_revelation;
 
+#[tracing::instrument(err)]
 fn parse_config<T>(path: &std::path::Path) -> color_eyre::eyre::Result<T>
 where
     T: for<'a> Deserialize<'a>,
@@ -15,7 +16,7 @@ where
     Ok(config)
 }
 
-#[derive(clap::Args)]
+#[derive(clap::Args, Debug)]
 
 pub struct SimpleArgs {
     #[clap(short = 's', long, default_value = "config/Default.toml")]
@@ -28,6 +29,7 @@ pub struct SimpleArgs {
 }
 
 impl SimpleArgs {
+    #[tracing::instrument(err)]
     pub fn into_contest_and_secret(
         self,
     ) -> color_eyre::eyre::Result<(ConfigContest, Contest, Secret)> {

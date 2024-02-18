@@ -99,7 +99,13 @@ pub async fn serve_simple_contest(
 
     let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url);
 
-    let service_routes = serve_urlbase(config, shared_db, runs_tx, time_tx, secrets.into());
+    let service_routes = warp::path("api").and(serve_urlbase(
+        config,
+        shared_db,
+        runs_tx,
+        time_tx,
+        secrets.into(),
+    ));
 
     let all_routes = service_routes.or(route_metrics()).with(cors);
 

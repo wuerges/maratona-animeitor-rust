@@ -41,7 +41,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let server_config = ServerConfig { port };
 
-    println!("\nSetting up sentry guard");
+    tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
     let _autometrics = metrics::setup();
 
