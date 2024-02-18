@@ -1,18 +1,21 @@
+use clap::Parser;
 use cli::test_revelation;
 
-extern crate clap;
-use clap::{App, Arg};
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+/// Golden model generator
+struct Args {
+    /// Webcast file
+    webcast: String,
+}
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
-    let matches = App::new("Golden model generator")
-        .arg(Arg::with_name("WEBCAST").required(true))
-        .get_matches();
-    let input_file = matches
-        .value_of("WEBCAST")
-        .expect("Expected webcast parameter");
-    for result in test_revelation::build_revelation(input_file).await? {
+    let args = Args::parse();
+
+    for result in test_revelation::build_revelation(&args.webcast).await? {
         println!("{}", result);
     }
+
     Ok(())
 }
