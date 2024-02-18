@@ -28,8 +28,10 @@ pub fn serve_static_routes(mut volumes: Vec<Volume>) -> BoxedFilter<(File,)> {
     }
 }
 
-fn serve_volume(volume: Volume) -> BoxedFilter<(File,)> {
-    warp::path(volume.path)
-        .and(warp::fs::dir(volume.folder))
-        .boxed()
+fn serve_volume(Volume { folder, path }: Volume) -> BoxedFilter<(File,)> {
+    if path.is_empty() {
+        warp::fs::dir(folder).boxed()
+    } else {
+        warp::path(path).and(warp::fs::dir(folder)).boxed()
+    }
 }
