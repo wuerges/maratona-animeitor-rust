@@ -41,14 +41,19 @@ run-standalone:
 	@echo running server...
 	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ${BOCA_URL} )
 
-build-for-prog-americas:
-	@echo recompiling client...
-	( cd client && REMOVE_CCL=0 PHOTO_PREFIX=https://photos.naquadah.com.br/photos wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
-
-build-for-prog-americas-background-transparent:
+build-client-prog-americas:
 	@echo recompiling client...
 	( cd client && REMOVE_CCL=0 PHOTO_PREFIX=https://photos.naquadah.com.br/photos wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
 
 run-server-prog-americas:
 	@echo running server...
 	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/americas.toml --secret ../config/americas_secret.toml  ${BOCA_URL} )
+
+build-server-musl-mac:
+	@echo running server...
+	( cd server && TARGET_CC=x86_64-linux-musl-gcc cargo build --release --target x86_64-unknown-linux-musl )
+
+build-server-musl-linux:
+	@echo running server...
+	# ( cd server && TARGET_CC=musl-gcc TARGET_LINKER=musl-gcc cargo build --release --target x86_64-unknown-linux-musl )
+	( cd server && cargo build --release --target x86_64-unknown-linux-musl )
