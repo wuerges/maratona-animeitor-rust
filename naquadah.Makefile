@@ -1,3 +1,7 @@
+all:
+	@echo prog-americas-print-urls
+	@echo prog-americas-run-server
+
 prog-americas-print-urls:
 	RUST_LOG=info ./printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix http://localhost:8000
 
