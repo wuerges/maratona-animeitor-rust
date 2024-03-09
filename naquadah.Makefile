@@ -3,7 +3,7 @@ all:
 	@echo prog-americas-run-server
 
 PREFIX ?= http://animeitor.naquadah.com.br
-BOCA_URL ?= ./tests/inputs/2a_fase_2022-23/global.zip
+BOCA_URL ?= ./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 
 prog-americas-print-urls:
 	RUST_LOG=info ./printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix ${PREFIX}
