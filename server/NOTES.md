@@ -42,17 +42,27 @@ Add this to `.cargo/config`:
 linker = "x86_64-linux-musl-gcc"
 ```
 
-# NGINX ws configuration
+# NGINX https reverse proxy configuration
+
+1. Install nginx with the default configuration.
+2. Install the certbot certificate:
 
 ```
-##
+
+sudo certbot --nginx
+
+```
+
+3. Setup HTTPS reverse proxy:
+
+```
 server {
-    listen [::]:443 ssl ipv6only=on; # managed by Certbot
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/animeitor.naquadah.com.br/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/animeitor.naquadah.com.br/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+listen [::]:443 ssl ipv6only=on; # managed by Certbot
+listen 443 ssl; # managed by Certbot
+ssl_certificate /etc/letsencrypt/live/animeitor.naquadah.com.br/fullchain.pem; # managed by Certbot
+ssl_certificate_key /etc/letsencrypt/live/animeitor.naquadah.com.br/privkey.pem; # managed by Certbot
+include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
     location / {
         proxy_pass http://animeitor.naquadah.com.br;
@@ -71,5 +81,7 @@ server {
         proxy_read_timeout 1200s;
 
     }
+
 }
+
 ```
