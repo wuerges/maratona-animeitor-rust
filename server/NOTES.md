@@ -41,3 +41,35 @@ Add this to `.cargo/config`:
 [target.x86_64-unknown-linux-musl]
 linker = "x86_64-linux-musl-gcc"
 ```
+
+# NGINX ws configuration
+
+```
+##
+server {
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/animeitor.naquadah.com.br/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/animeitor.naquadah.com.br/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    location / {
+        proxy_pass http://animeitor.naquadah.com.br;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        # websocket upgrade
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        # proxy_set_header Host $host;
+
+        # websocket timeouts:
+        proxy_read_timeout 1200s;
+
+    }
+}
+```
