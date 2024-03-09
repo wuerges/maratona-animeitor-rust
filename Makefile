@@ -64,6 +64,7 @@ prog-americas-sync-server:
 	rsync -v server/target/x86_64-unknown-linux-musl/release/printurls ew@animeitor.naquadah.com.br:printurls
 	rsync -v config ew@animeitor.naquadah.com.br:config
 	rsync -v tests ew@animeitor.naquadah.com.br:tests
+	rsync -v naquadah.Makefile ew@animeitor.naquadah.com.br:naquadah.Makefile
 
 prog-americas-print-urls:
 	RUST_LOG=info ./server/target/release/printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix http://localhost:8000
