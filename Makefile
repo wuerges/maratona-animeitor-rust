@@ -48,7 +48,9 @@ prog-americas-build-client:
 prog-americas-sync-client:
 	rsync -av client/www/ ew@animeitor.naquadah.com.br:www
 	rsync -av client/www/ ew@animeitor.naquadah.com.br:www-transparent
+	rsync -av client/www/ ew@animeitor.naquadah.com.br:www-chroma
 	rsync -v client/www/static/styles-transparent.css ew@animeitor.naquadah.com.br:www-transparent/static/styles.css
+	rsync -v client/www/static/styles-chroma.css ew@animeitor.naquadah.com.br:www-chroma/static/styles.css
 
 prog-americas-debug-server:
 	@echo running server...
@@ -72,4 +74,4 @@ prog-americas-print-urls:
 	RUST_LOG=info ./server/target/release/printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix http://localhost:8000
 
 prog-americas-run-server:
-	RUST_LOG=info ./server/target/release/simples --sedes ./config/americas.toml --secret ./config/americas_secret.toml -v ./www/:  -v ./www-transparent/:  ${BOCA_URL}
+	RUST_LOG=info ./server/target/release/simples --sedes ./config/americas.toml --secret ./config/americas_secret.toml -v ./www/: -v ./www-transparent/webcast: -v ./www-transparent/chroma: ${BOCA_URL}
