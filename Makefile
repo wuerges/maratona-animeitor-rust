@@ -40,3 +40,15 @@ run-standalone:
 	( cd client && REMOVE_CCL=0 wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
 	@echo running server...
 	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ${BOCA_URL} )
+
+build-for-prog-americas:
+	@echo recompiling client...
+	( cd client && REMOVE_CCL=0 PHOTO_PREFIX=https://photos.naquadah.com.br/photos wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
+
+build-for-prog-americas-background-transparent:
+	@echo recompiling client...
+	( cd client && REMOVE_CCL=0 PHOTO_PREFIX=https://photos.naquadah.com.br/photos wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
+
+run-server-prog-americas:
+	@echo running server...
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/americas.toml --secret ../config/americas_secret.toml  ${BOCA_URL} )
