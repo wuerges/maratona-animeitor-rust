@@ -58,10 +58,12 @@ prog-americas-debug-server:
 prog-americas-build-server:
 	@echo building the server
 	( cd server && cargo build --release --target x86_64-unknown-linux-musl )
+
 prog-americas-sync-server:
 	rsync -v server/target/x86_64-unknown-linux-musl/release/simples ew@animeitor.naquadah.com.br:simples
 	rsync -v server/target/x86_64-unknown-linux-musl/release/printurls ew@animeitor.naquadah.com.br:printurls
-
+	rsync -v config ew@animeitor.naquadah.com.br:config
+	rsync -v tests ew@animeitor.naquadah.com.br:tests
 
 prog-americas-print-urls:
 	RUST_LOG=info ./server/target/release/printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix http://localhost:8000
