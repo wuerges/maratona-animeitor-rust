@@ -41,19 +41,30 @@ run-standalone:
 	@echo running server...
 	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml  ${BOCA_URL} )
 
-build-client-prog-americas:
+prog-americas-build-client:
 	@echo recompiling client...
 	( cd client && REMOVE_CCL=0 PHOTO_PREFIX=https://photos.naquadah.com.br/photos wasm-pack build . --release --out-dir www/pkg --target web --out-name package )
 
-run-server-prog-americas:
+prog-americas-sync-client:
+	rsync -av client/www/ ew@animeitor.naquadah.com.br:www
+	rsync -av client/www/ ew@animeitor.naquadah.com.br:www-transparent
+	rsync -v client/www/static/styles-transparent.css ew@animeitor.naquadah.com.br:www-transparent/static/styles-transparent.css
+
+prog-americas-debug-server:
 	@echo running server...
 	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/americas.toml --secret ../config/americas_secret.toml  ${BOCA_URL} )
 
-build-server-musl-mac:
-	@echo running server...
-	( cd server && TARGET_CC=x86_64-linux-musl-gcc cargo build --release --target x86_64-unknown-linux-musl )
 
-build-server-musl-linux:
-	@echo running server...
-	# ( cd server && TARGET_CC=musl-gcc TARGET_LINKER=musl-gcc cargo build --release --target x86_64-unknown-linux-musl )
+prog-americas-build-server:
+	@echo building the server
 	( cd server && cargo build --release --target x86_64-unknown-linux-musl )
+prog-americas-sync-server:
+	rsync -v server/target/x86_64-unknown-linux-musl/release/simples ew@animeitor.naquadah.com.br:simples
+	rsync -v server/target/x86_64-unknown-linux-musl/release/printurls ew@animeitor.naquadah.com.br:printurls
+
+
+prog-americas-print-urls:
+	RUST_LOG=info ./server/target/release/printurls --sedes ./config/americas.toml --secret ./config/americas_secret.toml --prefix http://localhost:8000
+
+prog-americas-run-server:
+	RUST_LOG=info ./server/target/release/simples --sedes ./config/americas.toml --secret ./config/americas_secret.toml -v ./www/:  -v ./www-transparent/:  ${BOCA_URL}
