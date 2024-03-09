@@ -62,8 +62,8 @@ prog-americas-build-server:
 prog-americas-sync-server:
 	rsync -v server/target/x86_64-unknown-linux-musl/release/simples ew@animeitor.naquadah.com.br:simples
 	rsync -v server/target/x86_64-unknown-linux-musl/release/printurls ew@animeitor.naquadah.com.br:printurls
-	rsync -av config ew@animeitor.naquadah.com.br:config
-	rsync -av tests ew@animeitor.naquadah.com.br:tests
+	rsync -av config/ ew@animeitor.naquadah.com.br:config
+	rsync -av tests/ ew@animeitor.naquadah.com.br:tests
 	rsync -v naquadah.Makefile ew@animeitor.naquadah.com.br:naquadah.Makefile
 
 prog-americas-print-urls:
