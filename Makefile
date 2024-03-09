@@ -48,7 +48,7 @@ prog-americas-build-client:
 prog-americas-sync-client:
 	rsync -av client/www/ ew@animeitor.naquadah.com.br:www
 	rsync -av client/www/ ew@animeitor.naquadah.com.br:www-transparent
-	rsync -v client/www/static/styles-transparent.css ew@animeitor.naquadah.com.br:www-transparent/static/styles-transparent.css
+	rsync -v client/www/static/styles-transparent.css ew@animeitor.naquadah.com.br:www-transparent/static/styles.css
 
 prog-americas-debug-server:
 	@echo running server...
