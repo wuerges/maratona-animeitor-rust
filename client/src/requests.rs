@@ -1,5 +1,13 @@
 use seed::{error, prelude::*};
 
+fn ws_protocol() -> &'static str {
+    if url_prefix().starts_with("https://") {
+        "wss:"
+    } else {
+        "ws:"
+    }
+}
+
 pub fn url_prefix() -> String {
     match option_env!("URL_PREFIX") {
         Some(prefix) => prefix.to_string(),
@@ -58,7 +66,7 @@ pub async fn fetch_config() -> fetch::Result<data::configdata::ConfigContest> {
 
 pub fn get_ws_url(path: &str) -> String {
     let url = web_sys::Url::new(&url_prefix()).expect("Location should be valid");
-    url.set_protocol("ws:");
+    url.set_protocol(ws_protocol());
     format!("{}{}", url.href(), path)
 }
 
