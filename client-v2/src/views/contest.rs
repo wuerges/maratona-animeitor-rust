@@ -198,6 +198,33 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
+fn Problem<'a>(prob: char, team: &'a Team) -> impl IntoView {
+    match team.problems.get(&prob.to_string()) {
+        None => view! {<div class="not-tried cell quadrado"> - </div>},
+        Some(prob_v) => {
+            if prob_v.solved {
+                let balao = format!("balao_{}", prob);
+                view! {
+                    <div class="accept cell quadrado">
+                        <div class=format!("accept-img {balao}")></div>
+                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
+                    </div>
+                }
+            } else {
+                let cell_type = if prob_v.wait() { "inqueue" } else { "unsolved" };
+                let cell_symbol = if prob_v.wait() { "?" } else { "X" };
+
+                view! {
+                    <div class={format!("cell quadrado {}", cell_type)}>
+                        <div class="cima">{cell_symbol}</div>
+                        <div class="baixo">"("{prob_v.submissions}")"</div>
+                    </div>
+                }
+            }
+        }
+    }
+}
+#[component]
 fn ContestPanelLine<'a>(
     display: bool,
     is_compressed: bool,
@@ -221,31 +248,7 @@ fn ContestPanelLine<'a>(
                     </div>
                 </div>
                 {all_problems.char_indices().map(|(_prob_i, prob)| {
-                    match team.problems.get(&prob.to_string()) {
-                        None => view! {<div class="not-tried cell quadrado"> - </div>},
-                        Some(prob_v) => {
-                            if prob_v.solved {
-                                let balao = format!("balao_{}", prob);
-                                view! {
-                                    <div class="accept cell quadrado">
-                                        <div class=format!("accept-img {balao}")></div>
-                                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
-                                    </div>
-                                }
-                            }
-                            else {
-                                let cell_type = if prob_v.wait() {"inqueue"} else {"unsolved"};
-                                let cell_symbol = if prob_v.wait() {"?"} else {"X"};
-
-                                view! {
-                                    <div class={format!("cell quadrado {}", cell_type)}>
-                                        <div class="cima">{cell_symbol}</div>
-                                        <div class="baixo">"("{prob_v.submissions}")"</div>
-                                    </div>
-                                }
-                            }
-                        },
-                    }
+                    view! { <Problem prob team /> }
                 }).collect_view()}
             </div>
         </div>
