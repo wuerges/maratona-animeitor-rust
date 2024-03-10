@@ -3,6 +3,7 @@ pub mod revelation;
 
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
+use std::cmp::{Eq, Ordering};
 use std::collections::{btree_map, BTreeMap};
 use std::fmt;
 use thiserror::Error;
@@ -161,8 +162,6 @@ impl PartialOrd for Team {
         self.score().partial_cmp(&other.score())
     }
 }
-
-use std::cmp::{Eq, Ord, Ordering};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Score {
