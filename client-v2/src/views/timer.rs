@@ -1,7 +1,6 @@
+use data::TimerData;
 use itertools::Itertools;
 use leptos::*;
-
-use crate::api::create_timer;
 
 fn f(n: i64) -> String {
     format!("{:0>2}", n)
@@ -25,9 +24,7 @@ fn changed(a: i64, b: i64) -> &'static str {
 }
 
 #[component]
-pub fn Timer() -> impl IntoView {
-    let timer = create_timer();
-
+pub fn Timer(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
     move || {
         let (time_data, ptimer_data) = timer.get();
         let time = time_data.current_time;
