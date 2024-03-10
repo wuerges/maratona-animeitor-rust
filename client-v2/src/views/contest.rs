@@ -253,6 +253,21 @@ fn ContestPanelLine<'a>(
 }
 
 #[component]
+fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) -> impl IntoView {
+    view! {
+        <div id="runheader" class="run">
+            <div class={estilo_sede(sede).iter().chain(&["cell", "titulo"]).join(" ")}>
+                {nome_sede(sede).to_string()}
+            </div>
+            {all_problems.chars().map(|p| view! {
+                <div class="cell problema quadrado">{p}</div>
+            }).collect_view()}
+        </div>
+
+    }
+}
+
+#[component]
 fn ContestPanel<'a>(
     contest: &'a ContestFile,
     center: Option<String>,
@@ -260,7 +275,7 @@ fn ContestPanel<'a>(
     revelation: bool,
 ) -> impl IntoView {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
-    let n = contest.number_problems;
+    let n: usize = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
     let compressed_ = compress_placement(
         contest
@@ -274,14 +289,7 @@ fn ContestPanel<'a>(
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
-                <div id="runheader" class="run">
-                    <div class={estilo_sede(sede).iter().chain(&["cell", "titulo"]).join(" ")}>
-                        {nome_sede(sede).to_string()}
-                    </div>
-                    {all_problems.chars().map(|p| view! {
-                        <div class="cell problema quadrado">{p}</div>
-                    }).collect_view()}
-                </div>
+                <ContestPanelHeader sede all_problems />
                 {contest.teams.values().map(|team| {
                     let display = team.belongs_to_contest(sede);
 
