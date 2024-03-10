@@ -12,11 +12,15 @@ pub fn Contest(
     contest: ReadSignal<Option<ContestFile>>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
+    sede: ReadSignal<Option<Sede>>,
 ) -> impl IntoView {
     move || {
         panel_items.with(|panel_items| {
             contest.with(|contest| match contest {
-                Some(contest) => view! { <Everything contest panel_items timer /> }.into_view(),
+                Some(contest) => sede.with(|sede| {
+                    let sede = sede.as_ref();
+                    view! { <Everything contest panel_items timer sede /> }.into_view()
+                }),
                 None => view! {<p> Contest is none =/ </p>}.into_view(),
             })
         })
@@ -313,6 +317,7 @@ pub fn Everything<'a>(
     contest: &'a ContestFile,
     panel_items: &'a Vec<RunsPanelItem>,
     timer: ReadSignal<(TimerData, TimerData)>,
+    sede: Option<&'a Sede>,
 ) -> impl IntoView {
     view! {
         <body style="height: 1px">
@@ -324,7 +329,7 @@ pub fn Everything<'a>(
                     <RunsPanel items=panel_items />
                 </div>
                 <div class="automatic" style="margin-left: 8px;">
-                    <ContestPanel contest center=None sede=None revelation=false />
+                    <ContestPanel contest center=None sede revelation=false />
                 </div>
             </div>
         </body>

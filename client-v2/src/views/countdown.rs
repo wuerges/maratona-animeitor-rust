@@ -1,4 +1,4 @@
-use leptos::{component, view, IntoView, SignalGet};
+use leptos::{component, create_signal, view, IntoView, SignalGet};
 
 use crate::{api::create_timer, model::provide_contest, views::contest::Contest};
 
@@ -17,8 +17,9 @@ pub fn Countdown() -> impl IntoView {
                 <Timer timer />
             }
         } else {
+            let (get_sede, _set_sede) = create_signal(None);
             view! {
-                <Contest contest panel_items timer />
+                <Contest contest panel_items timer sede=get_sede />
             }
         }
     }
