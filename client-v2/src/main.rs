@@ -1,11 +1,10 @@
-use client_v2::views::contest::Contest;
+use client_v2::views::countdown::Countdown;
 use leptos::*;
 
 pub fn main() {
     mount_to_body(|| {
         view! {
-            // <Timer />
-            <Contest />
+            <Countdown />
             // <Runs />
             // <Config />
         }

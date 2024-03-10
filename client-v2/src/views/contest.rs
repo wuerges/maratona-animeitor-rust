@@ -1,20 +1,22 @@
 use data::{
     configdata::{Color, Sede},
-    BelongsToContest, ContestFile, RunsPanelItem, Team,
+    BelongsToContest, ContestFile, RunsPanelItem, Team, TimerData,
 };
 use itertools::Itertools;
 use leptos::*;
 
-use crate::{model::provide_contest, views::timer::Timer};
+use crate::views::timer::Timer;
 
 #[component]
-pub fn Contest() -> impl IntoView {
-    let (contest, panel_items) = provide_contest();
-
+pub fn Contest(
+    contest: ReadSignal<Option<ContestFile>>,
+    panel_items: ReadSignal<Vec<RunsPanelItem>>,
+    timer: ReadSignal<(TimerData, TimerData)>,
+) -> impl IntoView {
     move || {
         panel_items.with(|panel_items| {
             contest.with(|contest| match contest {
-                Some(contest) => view! { <Everything contest panel_items /> }.into_view(),
+                Some(contest) => view! { <Everything contest panel_items timer /> }.into_view(),
                 None => view! {<p> Contest is none =/ </p>}.into_view(),
             })
         })
@@ -310,13 +312,14 @@ fn ContestPanel<'a>(
 pub fn Everything<'a>(
     contest: &'a ContestFile,
     panel_items: &'a Vec<RunsPanelItem>,
+    timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
     view! {
         <body style="height: 1px">
             <div style="display: flex; width: 320px;">
                 <div style="display: flex; flex-direction: column; width: 320px;">
                     // <Sedes />
-                    <Timer />
+                    <Timer timer />
                     <div class="submission-title"> Últimas Submissões </div>
                     <RunsPanel items=panel_items />
                 </div>
