@@ -1,9 +1,9 @@
 use data::configdata::ConfigContest;
-use leptos::{component, view, CollectView, IntoView, ReadSignal, Signal, SignalGet, SignalWith};
+use leptos::*;
 
 #[component]
 pub fn Navigation(
-    config_contest: Signal<Option<ConfigContest>>,
+    config_contest: Resource<(), ConfigContest>,
     contest_name: ReadSignal<Option<String>>,
 ) -> impl IntoView {
     move || {
