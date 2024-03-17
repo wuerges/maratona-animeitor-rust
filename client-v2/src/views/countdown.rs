@@ -26,16 +26,17 @@ pub fn Countdown() -> impl IntoView {
             }
             .into_view()
         } else {
-            let (get_sede, _set_sede) = create_signal(None);
+            // let (get_sede, _set_sede) = create_signal(None);
             view! {
                 <Navigation config_contest contest_name />
-                // <Router>
-                //     <Route path="/" view= || view!{
-                        <Contest contest panel_items timer sede=get_sede />
-                //     } />
-                //     // <Route path="/sedes/:sede_name" view=UserProfile/>
-                //     <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
-                // </Router>
+                <Router>
+                    <Route path="/" view=|| view!{
+                        <p> yay </p>
+                        // <Contest contest panel_items timer sede=get_sede />
+                    } />
+                // //     // <Route path="/sedes/:sede_name" view=UserProfile/>
+                    <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
+                </Router>
             }
             .into_view()
         }
