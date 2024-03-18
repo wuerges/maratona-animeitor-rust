@@ -20,7 +20,7 @@ pub fn Navigation(
                         {sedes.map(|sede| {
                             view! {
                                 <span class="sedeslink">
-                                    <a href="/sede"> {&sede.name} </a>
+                                    <a href=format!("/sedes/{}", sede.name)> {&sede.name} </a>
                                 </span>
                             }
                         }).collect_view()}
