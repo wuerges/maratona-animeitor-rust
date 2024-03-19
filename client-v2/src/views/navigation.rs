@@ -1,5 +1,15 @@
-use data::configdata::ConfigContest;
+use data::configdata::{ConfigContest, SedeEntry};
 use leptos::*;
+use leptos_router::*;
+
+#[component]
+fn Sede(sede: SedeEntry) -> impl IntoView {
+    view! {
+        <span class="sedeslink">
+            <A href=format!("/sedes/{}", sede.name)> {sede.name} </A>
+        </span>
+    }
+}
 
 #[component]
 pub fn Navigation(
@@ -14,15 +24,10 @@ pub fn Navigation(
                     .sedes
                     .iter()
                     .filter(|sede| contest_name.is_none() || contest_name == sede.contest);
-
                 view! {
                     <div class="sedesnavigation">
-                        {sedes.map(|sede| {
-                            view! {
-                                <span class="sedeslink">
-                                    <a href=format!("/sedes/{}", sede.name)> {&sede.name} </a>
-                                </span>
-                            }
+                        {sedes.cloned().map(|sede| {
+                            view!{<Sede sede />}
                         }).collect_view()}
                     </div>
                 }
