@@ -85,6 +85,8 @@ impl SedeEntry {
 #[derive(Serialize, Deserialize, Debug, Clone, ToSchema)]
 /// Site configuration for contest.
 pub struct ConfigContest {
+    /// The contest title.
+    pub titulo: String,
     /// A site entry.
     pub sedes: Vec<SedeEntry>,
 }
