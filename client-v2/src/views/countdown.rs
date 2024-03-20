@@ -33,7 +33,7 @@ fn ProvideSede(
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
     // let params = use_params::<SedeParam>();
-    let (get_sede, _set_sede) = create_signal(None);
+    // let (get_sede, _set_sede) = create_signal(None);
 
     // match params.with(move |p| p.map(|sede| sede.name.clone())) {
     //     Ok(sede) => match sede {
@@ -47,7 +47,14 @@ fn ProvideSede(
     //     Err(_) => todo!(),
     // }
 
-    view! {  <Contest contest panel_items timer sede=get_sede /> }
+    move || {
+        let contest = contest.get();
+        let panel_items = panel_items.get();
+        match contest {
+            Some(contest) => view! {  <Contest contest panel_items timer sede=None /> }.into_view(),
+            None => view! { <p> loading contest </p> }.into_view(),
+        }
+    }
 }
 
 #[component]
@@ -76,7 +83,7 @@ pub fn Countdown() -> impl IntoView {
                             <ProvideSede contest panel_items timer config_contest />
                         } />
                     </Route>
-                    <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
+                    // <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
         </Router>
     }

@@ -7,26 +7,6 @@ use leptos::*;
 
 use crate::views::timer::Timer;
 
-#[component]
-pub fn Contest(
-    contest: ReadSignal<Option<ContestFile>>,
-    panel_items: ReadSignal<Vec<RunsPanelItem>>,
-    timer: ReadSignal<(TimerData, TimerData)>,
-    sede: ReadSignal<Option<Sede>>,
-) -> impl IntoView {
-    move || {
-        panel_items.with(|panel_items| {
-            contest.with(|contest| match contest {
-                Some(contest) => sede.with(|sede| {
-                    let sede = sede.as_ref();
-                    view! { <Everything contest panel_items timer sede /> }.into_view()
-                }),
-                None => view! {<p> Contest is none =/ </p>}.into_view(),
-            })
-        })
-    }
-}
-
 pub fn get_color(n: usize, sede: Option<&Sede>) -> Option<Color> {
     match sede {
         Some(sede) => sede.premio(n),
@@ -104,10 +84,7 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
 }
 
 #[component]
-fn RunsPanel<'a>(
-    items: &'a Vec<RunsPanelItem>,
-    #[prop(optional)] sede: Option<&'a Sede>,
-) -> impl IntoView {
+fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) -> impl IntoView {
     view! {
         <div class="runstable">
         {
@@ -118,7 +95,7 @@ fn RunsPanel<'a>(
 
                 view! {
                     <div class="run" style:top={top} >
-                        <Placement placement={r.placement} sede />
+                        <Placement placement={r.placement} sede=sede.as_ref() />
                         <TeamName escola={r.escola.clone()} name={r.team_name.clone()} />
                         <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
                             {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
@@ -277,10 +254,10 @@ fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) ->
 }
 
 #[component]
-fn ContestPanel<'a>(
-    contest: &'a ContestFile,
+fn ContestPanel(
+    contest: ContestFile,
     center: Option<String>,
-    sede: Option<&'a Sede>,
+    sede: Option<Sede>,
     revelation: bool,
 ) -> impl IntoView {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
@@ -290,7 +267,7 @@ fn ContestPanel<'a>(
         contest
             .teams
             .values()
-            .filter(|t| t.belongs_to_contest(sede))
+            .filter(|t| t.belongs_to_contest(sede.as_ref()))
             .map(|t| &t.placement),
     );
     let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
@@ -298,9 +275,9 @@ fn ContestPanel<'a>(
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
-                <ContestPanelHeader sede all_problems />
+                <ContestPanelHeader sede=sede.as_ref() all_problems />
                 {contest.teams.values().map(|team| {
-                    let display = team.belongs_to_contest(sede);
+                    let display = team.belongs_to_contest(sede.as_ref());
 
 
                     view! {
@@ -313,11 +290,11 @@ fn ContestPanel<'a>(
 }
 
 #[component]
-pub fn Everything<'a>(
-    contest: &'a ContestFile,
-    panel_items: &'a Vec<RunsPanelItem>,
+pub fn Contest(
+    contest: ContestFile,
+    panel_items: Vec<RunsPanelItem>,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede: Option<&'a Sede>,
+    sede: Option<Sede>,
 ) -> impl IntoView {
     view! {
         <body style="height: 1px">

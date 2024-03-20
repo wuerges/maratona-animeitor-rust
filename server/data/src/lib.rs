@@ -476,7 +476,7 @@ impl RunTuple {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RunsPanelItem {
     pub id: i64,
     pub placement: usize,
