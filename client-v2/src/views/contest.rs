@@ -305,7 +305,7 @@ pub fn Contest(
     contest: ReadSignal<Option<ContestFile>>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede: Option<Sede>,
+    #[prop(optional)] sede: Option<Sede>,
 ) -> impl IntoView {
     move || {
         let contest = contest.get();

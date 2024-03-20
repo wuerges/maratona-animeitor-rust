@@ -34,18 +34,20 @@ fn ProvideSede(
 ) -> impl IntoView {
     move || {
         let params = use_params::<SedeParam>();
-        let sede = params.get().unwrap().name;
-        let config_contest = config_contest.get();
 
-        match (sede, config_contest) {
-            (Some(sede), Some(config)) => {
-                let config = config.into_contest();
-                let sede = config.get_sede_nome_sede(&sede).cloned();
-
-                view! {  <Contest contest panel_items timer sede /> }.into_view()
-            }
-            (sede, None) => view! { <p> sede={sede}, config=None </p> }.into_view(),
-            (sede, Some(_)) => view! { <p> sede={sede}, config=Some(config) </p> }.into_view(),
+        view! {
+            <Suspense fallback=|| view! { <p> Loading config... </p> }>
+                {move || {config_contest.get().map(|config| {
+                    let config = config.into_contest();
+                    let sede = params.get().ok().and_then(|s| s.name);
+                    sede.and_then(|sede| {
+                        let sede = config.get_sede_nome_sede(&sede).cloned();
+                        sede.map(|sede| {
+                            view! {  <Contest contest panel_items timer sede /> }.into_view()
+                        })
+                    }).unwrap_or(view!{ <p> Failed to match site </p> }.into_view())
+                })}}
+            </Suspense>
         }
     }
 }
@@ -66,7 +68,7 @@ pub fn Countdown() -> impl IntoView {
             </Show>
             <Routes>
                     <Route path="/" view= move || view!{
-                        <Contest contest panel_items timer sede=None />
+                        <Contest contest panel_items timer />
                     }/>
                     <Route path="/:name" view=move || view!{
                         <ProvideSede contest panel_items timer config_contest />
