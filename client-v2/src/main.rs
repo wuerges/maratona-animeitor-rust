@@ -1,10 +1,10 @@
-use client_v2::views::countdown::Countdown;
+use client_v2::views::sedes::Sedes;
 use leptos::*;
 
 pub fn main() {
     mount_to_body(|| {
         view! {
-            <Countdown />
+            <Sedes />
             // <Runs />
             // <Config />
         }

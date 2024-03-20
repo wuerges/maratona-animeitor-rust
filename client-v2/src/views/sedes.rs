@@ -69,7 +69,7 @@ fn ProvideSede(
 }
 
 #[component]
-pub fn Countdown() -> impl IntoView {
+pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
     let (contest, panel_items) = provide_contest();
     let config_contest = create_local_resource(|| (), |()| create_config());
