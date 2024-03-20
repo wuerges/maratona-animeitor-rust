@@ -20,7 +20,7 @@ impl IsNegative for (TimerData, TimerData) {
     }
 }
 
-#[derive(Params, PartialEq, Eq)]
+#[derive(Params, PartialEq, Eq, Clone)]
 struct SedeParam {
     name: Option<String>,
 }
@@ -32,22 +32,22 @@ fn ProvideSede(
     config_contest: Resource<(), ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
-    // let params = use_params::<SedeParam>();
-    // let (get_sede, _set_sede) = create_signal(None);
+    move || {
+        let params = use_params::<SedeParam>();
+        let sede = params.get().unwrap().name;
+        let config_contest = config_contest.get();
 
-    // match params.with(move |p| p.map(|sede| sede.name.clone())) {
-    //     Ok(sede) => match sede {
-    //         Some(sede) => {
-    //             let sede = config_contest.map(|x| x.into_contest().get_sede_nome_sede(&sede));
-    //         }
-    //         None => {
-    //             todo!()
-    //         }
-    //     },
-    //     Err(_) => todo!(),
-    // }
+        match (sede, config_contest) {
+            (Some(sede), Some(config)) => {
+                let config = config.into_contest();
+                let sede = config.get_sede_nome_sede(&sede).cloned();
 
-    view! {  <Contest contest panel_items timer sede=None /> }
+                view! {  <Contest contest panel_items timer sede /> }.into_view()
+            }
+            (sede, None) => view! { <p> sede={sede}, config=None </p> }.into_view(),
+            (sede, Some(_)) => view! { <p> sede={sede}, config=Some(config) </p> }.into_view(),
+        }
+    }
 }
 
 #[component]
@@ -69,7 +69,7 @@ pub fn Countdown() -> impl IntoView {
                     <Route path="/" view= move || view!{
                         <Contest contest panel_items timer sede=None />
                     }/>
-                    <Route path="/sedes/:sede" view=move || view!{
+                    <Route path="/:name" view=move || view!{
                         <ProvideSede contest panel_items timer config_contest />
                     } />
                     <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
