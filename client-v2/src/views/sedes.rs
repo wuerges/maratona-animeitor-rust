@@ -69,6 +69,17 @@ fn ProvideSede(
 }
 
 #[component]
+pub fn Countdown(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
+    move || {
+        if !timer.get().is_negative() {
+            let navigate = use_navigate();
+            navigate("/", Default::default());
+        }
+        view! { <Timer timer /> }
+    }
+}
+
+#[component]
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
     let (contest, panel_items) = provide_contest();
@@ -76,20 +87,17 @@ pub fn Sedes() -> impl IntoView {
 
     view! {
         <Router>
-            <Show when=move || timer.get().is_negative()>
-                <Timer timer />
-            </Show>
-            <Show when=move || !timer.get().is_negative()>
-                <Navigation config_contest />
-            </Show>
             <Routes>
-                    <Route path="/" view= move || view!{
-                        <Contest contest panel_items timer />
-                    }/>
-                    <Route path="/:name" view=move || view!{
-                        <ProvideSede contest panel_items timer config_contest />
-                    } />
-                    <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
+                <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
+                <Route path="/" view= move || view!{
+                    <Navigation config_contest />
+                    <Contest contest panel_items timer />
+                }/>
+                <Route path="/:name" view=move || view!{
+                    <Navigation config_contest />
+                    <ProvideSede contest panel_items timer config_contest />
+                } />
+                <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
         </Router>
     }
