@@ -69,6 +69,34 @@ fn ProvideSede(
 }
 
 #[component]
+fn Reveleitor(contest: ReadSignal<Option<ContestFile>>, sede: Sede) -> impl IntoView {
+    todo!()
+}
+
+#[component]
+fn ConfiguredReveleitor(
+    contest: ReadSignal<Option<ContestFile>>,
+    config_contest: Resource<(), ConfigContest>,
+) -> impl IntoView {
+    let r = move || {
+        config_contest.get().map(|config| {
+            let sede = use_configured_sede(config);
+            match sede {
+                Some(sede) => view! { <Reveleitor contest sede /> }.into_view(),
+                None => view! { <p> Failed to match site </p> }.into_view(),
+            }
+        })
+    };
+    move || {
+        view! {
+            <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
+                {r}
+            </Suspense>
+        }
+    }
+}
+
+#[component]
 pub fn Countdown(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
     move || {
         if !timer.get().is_negative() {
@@ -89,6 +117,7 @@ pub fn Sedes() -> impl IntoView {
         <Router>
             <Routes>
                 <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
+                <Route path="/reveleitor/:sede" view=move|| view!{ <ConfiguredReveleitor contest config_contest/> } />
                 <Route path="/" view= move || view!{
                     <Navigation config_contest />
                     <Contest contest panel_items timer />
