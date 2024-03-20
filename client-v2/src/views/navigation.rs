@@ -6,35 +6,33 @@ use leptos_router::*;
 fn Sede(sede: SedeEntry) -> impl IntoView {
     view! {
         <span class="sedeslink">
-            <A href=sede.name.clone()> {sede.name} </A>
+        <A href=sede.name.clone()> {sede.name} </A>
         </span>
     }
 }
 
 #[component]
-pub fn Navigation(
-    config_contest: Resource<(), ConfigContest>,
-    contest_name: ReadSignal<Option<String>>,
-) -> impl IntoView {
+pub fn Navigation(config_contest: Resource<(), ConfigContest>) -> impl IntoView {
     move || {
-        config_contest.with(|contest| match contest {
-            Some(contest) => {
-                let contest_name = contest_name.get();
-                let sedes = contest
-                    .sedes
-                    .iter()
-                    .filter(|sede| contest_name.is_none() || contest_name == sede.contest);
-                view! {
-                    <div class="sedesnavigation">
-                        {sedes.cloned().map(|sede| {
-                            view!{<Sede sede />}
-                        }).collect_view()}
-                    </div>
-                }
-            }
-            None => {
-                view! {<div> No contest selected </div>}
-            }
-        })
+        view! {
+            <div class="sedesnavigation">
+                <Suspense
+                    fallback=||view! {<p> Loading... </p> }
+                >
+                    {move || {
+                        config_contest.get().map(|contest| {
+                            contest
+                            .sedes
+                            .iter()
+                            .cloned()
+                            .map(|sede| {
+                                view! {<Sede sede />}
+                            })
+                            .collect_view()
+                        })
+                    }}
+                </Suspense>
+            </div>
+        }
     }
 }

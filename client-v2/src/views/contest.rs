@@ -323,7 +323,6 @@ pub fn Contest(
             <body style="height: 1px">
                 <div style="display: flex; width: 320px;">
                     <div style="display: flex; flex-direction: column; width: 320px;">
-                        // <Sedes />
                         <Timer timer />
                         <div class="submission-title"> Últimas Submissões </div>
                         <RunsPanel items=panel_items />

@@ -55,7 +55,6 @@ pub fn Countdown() -> impl IntoView {
     let timer = create_timer();
     let (contest, panel_items) = provide_contest();
     let config_contest = create_local_resource(|| (), |()| create_config());
-    let (contest_name, set_contest_name) = create_signal(None);
 
     view! {
         <Router>
@@ -63,7 +62,7 @@ pub fn Countdown() -> impl IntoView {
                 <Timer timer />
             </Show>
             <Show when=move || !timer.get().is_negative()>
-                <Navigation config_contest contest_name />
+                <Navigation config_contest />
             </Show>
             <Routes>
                     <Route path="/" view= move || view!{

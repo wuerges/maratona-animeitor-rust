@@ -100,6 +100,7 @@ impl ConfigContest {
             .collect();
 
         Contest {
+            titulo: self.titulo,
             sedes: entry_map
                 .iter()
                 .map(|(name, entry)| (name.clone(), entry.into_sede(&entry_map)))
@@ -111,6 +112,7 @@ impl ConfigContest {
 #[derive(Debug)]
 pub struct Contest {
     pub sedes: HashMap<String, Sede>,
+    pub titulo: String,
 }
 
 impl Contest {
@@ -161,7 +163,10 @@ impl ConfigSecret {
 
 impl ConfigContest {
     pub fn dummy() -> Self {
-        Self { sedes: Vec::new() }
+        Self {
+            sedes: Vec::new(),
+            titulo: "Dummy".to_string(),
+        }
     }
 }
 
@@ -177,7 +182,10 @@ mod tests {
             ..SedeEntry::default()
         };
 
-        let config_contest = ConfigContest { sedes: vec![sede] };
+        let config_contest = ConfigContest {
+            sedes: vec![sede],
+            titulo: "test".to_string(),
+        };
         let contest = config_contest.into_contest();
 
         let config_secret = ConfigSecret {
