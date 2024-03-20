@@ -254,10 +254,10 @@ fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) ->
 }
 
 #[component]
-fn ContestPanel(
+fn ContestPanel<'a>(
     contest: ContestFile,
     center: Option<String>,
-    sede: Option<Sede>,
+    sede: Option<&'a Sede>,
     revelation: bool,
 ) -> impl IntoView {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
@@ -267,7 +267,7 @@ fn ContestPanel(
         contest
             .teams
             .values()
-            .filter(|t| t.belongs_to_contest(sede.as_ref()))
+            .filter(|t| t.belongs_to_contest(sede))
             .map(|t| &t.placement),
     );
     let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
@@ -275,9 +275,9 @@ fn ContestPanel(
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
-                <ContestPanelHeader sede=sede.as_ref() all_problems />
+                <ContestPanelHeader sede=sede all_problems />
                 {contest.teams.values().map(|team| {
-                    let display = team.belongs_to_contest(sede.as_ref());
+                    let display = team.belongs_to_contest(sede);
 
 
                     view! {
@@ -291,24 +291,36 @@ fn ContestPanel(
 
 #[component]
 pub fn Contest(
-    contest: ContestFile,
-    panel_items: Vec<RunsPanelItem>,
+    contest: ReadSignal<Option<ContestFile>>,
+    panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede: Option<Sede>,
 ) -> impl IntoView {
-    view! {
-        <body style="height: 1px">
-            <div style="display: flex; width: 320px;">
-                <div style="display: flex; flex-direction: column; width: 320px;">
-                    // <Sedes />
-                    <Timer timer />
-                    <div class="submission-title"> Últimas Submissões </div>
-                    <RunsPanel items=panel_items />
+    move || {
+        let contest = contest.get();
+        let panel_items = panel_items.get();
+
+        let contest_panel = match contest {
+            Some(contest) => {
+                view! { <ContestPanel contest center=None sede=sede.as_ref() revelation=false /> }
+                    .into_view()
+            }
+            None => view! { <p> loading contest </p> }.into_view(),
+        };
+        view! {
+            <body style="height: 1px">
+                <div style="display: flex; width: 320px;">
+                    <div style="display: flex; flex-direction: column; width: 320px;">
+                        // <Sedes />
+                        <Timer timer />
+                        <div class="submission-title"> Últimas Submissões </div>
+                        <RunsPanel items=panel_items />
+                    </div>
+                    <div class="automatic" style="margin-left: 8px;">
+                        {contest_panel}
+                    </div>
                 </div>
-                <div class="automatic" style="margin-left: 8px;">
-                    <ContestPanel contest center=None sede revelation=false />
-                </div>
-            </div>
-        </body>
+            </body>
+        }
     }
 }

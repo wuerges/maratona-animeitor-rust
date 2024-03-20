@@ -47,14 +47,7 @@ fn ProvideSede(
     //     Err(_) => todo!(),
     // }
 
-    move || {
-        let contest = contest.get();
-        let panel_items = panel_items.get();
-        match contest {
-            Some(contest) => view! {  <Contest contest panel_items timer sede=None /> }.into_view(),
-            None => view! { <p> loading contest </p> }.into_view(),
-        }
-    }
+    view! {  <Contest contest panel_items timer sede=None /> }
 }
 
 #[component]
@@ -74,16 +67,12 @@ pub fn Countdown() -> impl IntoView {
             </Show>
             <Routes>
                     <Route path="/" view= move || view!{
-                        <ProvideSede contest panel_items timer config_contest />
+                        <Contest contest panel_items timer sede=None />
                     }/>
-                    <Route path="/sedes" view= move || view!{
+                    <Route path="/sedes/:sede" view=move || view!{
                         <ProvideSede contest panel_items timer config_contest />
-                    } >
-                        <Route path=":id" view= move || view!{
-                            <ProvideSede contest panel_items timer config_contest />
-                        } />
-                    </Route>
-                    // <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
+                    } />
+                    <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
         </Router>
     }
