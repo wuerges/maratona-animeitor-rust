@@ -290,6 +290,17 @@ fn ContestPanel<'a>(
 }
 
 #[component]
+fn EmptyContestPanel<'a>(sede: Option<&'a Sede>) -> impl IntoView {
+    view! {
+        <div class="runstable">
+            <div class="run_box" style:top={cell_top(0, &None)}>
+                <ContestPanelHeader sede=sede all_problems="" />
+            </div>
+        </div>
+    }
+}
+
+#[component]
 pub fn Contest(
     contest: ReadSignal<Option<ContestFile>>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
@@ -305,7 +316,8 @@ pub fn Contest(
                 view! { <ContestPanel contest center=None sede=sede.as_ref() revelation=false /> }
                     .into_view()
             }
-            None => view! { <p> loading contest </p> }.into_view(),
+            None => view! { <EmptyContestPanel sede=sede.as_ref() /> <p> loading contest </p> }
+                .into_view(),
         };
         view! {
             <body style="height: 1px">
