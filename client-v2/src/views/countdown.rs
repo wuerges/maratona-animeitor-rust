@@ -1,5 +1,8 @@
-use data::{configdata::ConfigContest, ContestFile, RunsPanelItem, TimerData};
-use leptos::*;
+use data::{
+    configdata::{ConfigContest, Sede},
+    ContestFile, RunsPanelItem, TimerData,
+};
+use leptos::{logging::log, *};
 use leptos_router::*;
 
 use crate::{
@@ -25,6 +28,21 @@ struct SedeParam {
     name: Option<String>,
 }
 
+fn use_sede_param() -> Option<String> {
+    let params = use_params::<SedeParam>()
+        .get()
+        .inspect_err(|e| log!("{}", e))
+        .ok()?;
+    params.name
+}
+
+fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
+    let config = config.into_contest();
+    let name = use_sede_param()?;
+    let sede = config.get_sede_nome_sede(&name)?;
+    Some(sede.clone())
+}
+
 #[component]
 fn ProvideSede(
     contest: ReadSignal<Option<ContestFile>>,
@@ -33,19 +51,18 @@ fn ProvideSede(
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
     move || {
-        let params = use_params::<SedeParam>();
-
         view! {
             <Suspense fallback=|| view! { <p> Loading config... </p> }>
                 {move || {config_contest.get().map(|config| {
-                    let config = config.into_contest();
-                    let sede = params.get().ok().and_then(|s| s.name);
-                    sede.and_then(|sede| {
-                        let sede = config.get_sede_nome_sede(&sede).cloned();
-                        sede.map(|sede| {
-                            view! {  <Contest contest panel_items timer sede /> }.into_view()
-                        })
-                    }).unwrap_or(view!{ <p> Failed to match site </p> }.into_view())
+                    let sede = use_configured_sede(config);
+                    match sede {
+                        Some(sede) =>
+                        view! {  <Contest contest panel_items timer sede /> }.into_view()
+                        ,
+                        None =>
+                        view!{ <p> Failed to match site </p> }.into_view()
+                        ,
+                    }
                 })}}
             </Suspense>
         }
