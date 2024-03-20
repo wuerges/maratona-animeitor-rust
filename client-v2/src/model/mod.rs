@@ -60,29 +60,3 @@ pub fn provide_contest() -> (
 
     (contest_signal, runs_panel_signal)
 }
-
-pub fn provide_runs() -> ReadSignal<RunsFile> {
-    let runs_message = create_runs();
-
-    let mut messages_stream = runs_message.ready_chunks(100_000);
-
-    let (runs_file, set_runs_file) = create_signal::<RunsFile>(RunsFile::empty());
-
-    spawn_local(async move {
-        loop {
-            TimeoutFuture::new(1_000).await;
-            let next_chunk = messages_stream.next().await;
-            let size = next_chunk.as_ref().map(|v| v.len()).unwrap_or_default();
-            leptos_dom::logging::console_log(&format!("read next {size:?} runs"));
-            if let Some(next_chunk) = next_chunk {
-                set_runs_file.update(|rf| {
-                    for run_tuple in next_chunk {
-                        rf.refresh_1(&run_tuple);
-                    }
-                });
-            }
-        }
-    });
-
-    runs_file
-}
