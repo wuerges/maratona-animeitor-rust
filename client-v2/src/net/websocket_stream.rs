@@ -46,7 +46,15 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
                                 }
                             }
                             Err(err) => {
-                                console_error(&format!("parse failed: {err:?}"));
+                                match err {
+                                    Error::Serde(err) => {
+                                        console_error(&format!("failed parsing response: {err:?}"))
+                                    }
+                                    Error::WebSocket(err) => {
+                                        console_error(&format!("websocket error: {err:?}"))
+                                    }
+                                    Error::EmptyMessage => console_error(&format!("empty message")),
+                                }
                                 break;
                             }
                         }

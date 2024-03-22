@@ -27,7 +27,12 @@ pub async fn create_request<M: for<'a> Deserialize<'a> + Serialize + Clone>(url:
                 return message;
             }
             Err(error) => {
-                console_error(&format!("failed to load contest: {error:?}"));
+                match error {
+                    Error::Gloo(gloo) => console_error(&format!("network error: {gloo:?}")),
+                    Error::Serde(serde) => {
+                        console_error(&format!("failed to parse response: {serde:?}"))
+                    }
+                }
                 console_log("Wait 5 seconds to reconnect.");
                 TimeoutFuture::new(5_000).await;
             }
