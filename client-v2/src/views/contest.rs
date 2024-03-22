@@ -26,24 +26,6 @@ pub fn get_color(n: usize, sede: Option<&Sede>) -> Option<Color> {
     }
 }
 
-fn get_image(t: &data::Answer) -> &'static str {
-    match t {
-        data::Answer::Yes(_) => "assets/balloon-border.svg",
-        data::Answer::No => "assets/no.svg",
-        data::Answer::Wait => "assets/question.svg",
-        _ => "assets/question.svg",
-    }
-}
-
-fn get_answer(t: &data::Answer) -> &str {
-    match t {
-        data::Answer::Yes(_) => "answeryes",
-        data::Answer::No => "answerno",
-        data::Answer::Unk => "answerno", // Unknown is X -> error without penalty
-        data::Answer::Wait => "answerwait",
-    }
-}
-
 fn get_class(color: Color) -> &'static str {
     match color {
         Color::Red => "vermelho",
@@ -97,15 +79,33 @@ fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) ->
                     <div class="run" style:top={top} >
                         <Placement placement={r.placement} sede=sede.as_ref() />
                         <TeamName escola={r.escola.clone()} name={r.team_name.clone()} />
-                        <div class={["cell", "resposta", "quadrado", get_answer(&r.result)].join(" ")}>
-                            {matches!(r.result, data::Answer::Yes(_)).then_some(view! {
-                                <div>
-                                    <img class={["answer-img", balao.as_str()].join(" ")} src="assets/balloon.svg" />
+                        {match r.result {
+                            data::Answer::Yes(_) =>
+                            view!{
+                                <div class="accept cell quadrado">
+                                    <div class="accept-text-run cell-content">{problem}</div>
+                                    <div class=format!("accept-img-run {balao}")></div>
                                 </div>
-                            })}
-                            <img class="answer-img" src={get_image(&r.result)} />
-                            <div class="answer-text">{problem}</div>
-                        </div>
+                            },
+                            data::Answer::No => view!{
+                                <div class="unsolved cell quadrado">
+                                    <div class="accept-text-run cell-content">{problem}</div>
+                                    <div class="no-img-run"></div>
+                                </div>
+                            },
+                            data::Answer::Wait => view!{
+                                <div class="inqueue cell quadrado">
+                                    <div class="accept-text-run cell-content">{problem}</div>
+                                    <div class="wait-img-run"></div>
+                                </div>
+                            },
+                            data::Answer::Unk => view!{
+                                <div class="inqueue cell quadrado">
+                                    <div class="accept-text-run cell-content">{problem}</div>
+                                    <div class="unk-img-run"></div>
+                                </div>
+                            },
+                        }}
                     </div>
                 }
             }).collect_view()
@@ -190,7 +190,9 @@ fn Problem<'a>(prob: char, team: &'a Team) -> impl IntoView {
                 view! {
                     <div class="accept cell quadrado">
                         <div class=format!("accept-img {balao}")></div>
-                        <div class="accept-text">+{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}</div>
+                        <div class="accept-text cell-content">
+                            +{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}
+                        </div>
                     </div>
                 }
             } else {

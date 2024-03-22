@@ -79,12 +79,20 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-align: center;
   background-color: #4F5B62;
   margin: 1px;
   border-radius: 5px;
   border-style: solid;
   border-width: 1px;
   border-color: #555;
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .quadrado {
@@ -119,17 +127,63 @@ body {
   background-color: transparent;
 }
 
+.no-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  content: url("assets/no.svg");
+  background-color: transparent;
+}
+
+.wait-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  content: url("assets/gear.svg");
+  background-color: transparent;
+}
+
+.accept-img-run {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  background-size: cover;
+  content: url("assets/balao2.svg");
+  background-color: transparent;
+}
+
+.no-img-run {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  background-size: cover;
+  content: url("assets/no.svg");
+  background-color: transparent;
+}
+
+.wait-img-run {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  background-size: cover;
+  content: url("assets/gear.svg");
+  background-color: transparent;
+}
+
 .not-tried {
   text-align: center;
   background-color: #4F5B62;
 }
 
 .unsolved {
-  text-align: center;
+  position: relative;
   background-color: #573a41;
 }
 
 .inqueue {
+  position: relative;
   text-align: center;
   animation: blinkingBackground 2s;
   background-color: #F4D03F;
@@ -140,13 +194,26 @@ body {
 /* Top right text */
 .accept-text {
   position: absolute;
+  z-index: 10000;
   width: 100%;
   height: 100%;
   text-align: center;
   font-weight: 700;
   font-size: 15px;
   color: white;
-  position: relative;
+  text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
+}
+
+.accept-text-run {
+  position: absolute;
+  z-index: 10000;
+  left: 50%;
+  width: 50%;
+  height: 50%;
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: white;
   text-shadow: 0px 1px 2px #000, 0px -1px 2px #000, 1px 0px 2px #000, -1px 0px 2px #000;
 }
 
