@@ -193,7 +193,7 @@ body {
 }
 .titulo.sede_la {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
-  content:url(/static/assets/titulo-icpc.svg);
+  /* content:url(assets/titulo-icpc.svg); */
   font-size: 24px;
 }
 
