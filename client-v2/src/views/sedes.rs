@@ -96,12 +96,16 @@ fn ConfiguredReveleitor(
     }
 }
 
+fn use_navigate_to_sedes() {
+    let navigate = use_navigate();
+    navigate("/sedes", Default::default());
+}
+
 #[component]
 pub fn Countdown(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
     move || {
         if !timer.get().is_negative() {
-            let navigate = use_navigate();
-            navigate("/", Default::default());
+            use_navigate_to_sedes();
         }
         view! { <Timer timer /> }
     }
@@ -114,18 +118,23 @@ pub fn Sedes() -> impl IntoView {
     let config_contest = create_local_resource(|| (), |()| create_config());
 
     view! {
-        <Router>
+        <Router trailing_slash=TrailingSlash::Redirect >
             <Routes>
-                <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
-                <Route path="/reveleitor/:sede" view=move|| view!{ <ConfiguredReveleitor contest config_contest/> } />
-                <Route path="/" view= move || view!{
+                <Route path="/sedes" view= move || view!{
                     <Navigation config_contest />
                     <Contest contest panel_items timer />
                 }/>
-                <Route path="/:name" view=move || view!{
+                <Route path="/sedes" view= move || view!{
                     <Navigation config_contest />
-                    <ProvideSede contest panel_items timer config_contest />
-                } />
+                    <Outlet />
+                }>
+                    <Route path=":name" view=move || view!{
+                        <ProvideSede contest panel_items timer config_contest />
+                    } />
+                </Route>
+                <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
+                <Route path="/reveleitor/:name" view=move|| view!{ <ConfiguredReveleitor contest config_contest/> } />
+                <Route path="/" view=|| use_navigate_to_sedes() />
                 <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
         </Router>
