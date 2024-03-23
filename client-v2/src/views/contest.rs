@@ -316,18 +316,18 @@ pub fn Contest(
                 .into_view(),
         };
         view! {
-            <body style="height: 1px">
-                <div style="display: flex; width: 320px;">
-                    <div style="display: flex; flex-direction: column; width: 320px;">
-                        <Timer timer />
-                        <div class="submission-title"> Últimas Submissões </div>
-                        <RunsPanel items=panel_items />
+                <body style="height: 1px">
+                    <div style="display: flex; width: 320px;">
+                        <div style="display: flex; flex-direction: column; width: 320px;">
+                            <Timer timer />
+                            <div class="submission-title"> Últimas Submissões </div>
+                            <RunsPanel items=panel_items />
+                        </div>
+                        <div class="automatic" style="margin-left: 8px;">
+                            {contest_panel}
+                        </div>
                     </div>
-                    <div class="automatic" style="margin-left: 8px;">
-                        {contest_panel}
-                    </div>
-                </div>
-            </body>
+                </body>
         }
     }
 }

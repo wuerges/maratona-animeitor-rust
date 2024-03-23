@@ -59,12 +59,11 @@ fn ProvideSede(
             }
         })
     };
-    move || {
-        view! {
-            <Suspense fallback=|| view! { <p> Loading config... </p> }>
-                {content}
-            </Suspense>
-        }
+
+    view! {
+        <Suspense fallback=|| view! { <p> Loading config... </p> }>
+            {content}
+        </Suspense>
     }
 }
 
@@ -79,12 +78,10 @@ fn ConfiguredReveleitor(config_contest: Resource<(), ConfigContest>) -> impl Int
             }
         })
     };
-    move || {
-        view! {
-            <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
-                {r}
-            </Suspense>
-        }
+    view! {
+        <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
+            {r}
+        </Suspense>
     }
 }
 
