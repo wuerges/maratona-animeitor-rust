@@ -66,12 +66,43 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
 }
 
 #[component]
+fn RunResult<'run>(problem: String, answer: &'run data::Answer) -> impl IntoView {
+    let balao = format!("balao_{}", problem);
+    view! {
+        <div class="cell quadrado">{problem}</div>
+        {match answer {
+            data::Answer::Yes(time) => view! {
+                <div class="accept cell quadrado">
+                    <div class=format!("accept-img {balao}") />
+                    <div class="accept-text cell-content">{*time}</div>
+                </div>
+            },
+            data::Answer::No => view! {
+                <div class="unsolved cell quadrado cell-content">
+                    <div class="no-img-run" />
+                </div>
+            },
+            data::Answer::Wait => view! {
+                <div class="inqueue cell quadrado cell-content">
+                    <div class="wait-img-run" />
+                </div>
+            },
+            data::Answer::Unk => view! {
+                <div class="inqueue cell quadrado cell-content">
+                    <div class="unk-img-run" />
+                </div>
+            },
+        }}
+    }
+}
+
+#[component]
 fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) -> impl IntoView {
     view! {
         <div class="runstable">
         {
             items.iter().take(30).enumerate().map(|(i, r)| {
-                let balao = format!("balao_{}", r.problem);
+
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
                 let problem = r.problem.clone();
 
@@ -79,33 +110,7 @@ fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) ->
                     <div class="run" style:top={top} >
                         <Placement placement={r.placement} sede=sede.as_ref() />
                         <TeamName escola={r.escola.clone()} name={r.team_name.clone()} />
-                        {match r.result {
-                            data::Answer::Yes(_) =>
-                            view!{
-                                <div class="accept cell quadrado">
-                                    <div class="accept-text-run cell-content">{problem}</div>
-                                    <div class=format!("accept-img-run {balao}")></div>
-                                </div>
-                            },
-                            data::Answer::No => view!{
-                                <div class="unsolved cell quadrado">
-                                    <div class="accept-text-run cell-content">{problem}</div>
-                                    <div class="no-img-run"></div>
-                                </div>
-                            },
-                            data::Answer::Wait => view!{
-                                <div class="inqueue cell quadrado">
-                                    <div class="accept-text-run cell-content">{problem}</div>
-                                    <div class="wait-img-run"></div>
-                                </div>
-                            },
-                            data::Answer::Unk => view!{
-                                <div class="inqueue cell quadrado">
-                                    <div class="accept-text-run cell-content">{problem}</div>
-                                    <div class="unk-img-run"></div>
-                                </div>
-                            },
-                        }}
+                        <RunResult problem answer={&r.result} />
                     </div>
                 }
             }).collect_view()
