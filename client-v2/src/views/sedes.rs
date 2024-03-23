@@ -69,10 +69,7 @@ fn ProvideSede(
 }
 
 #[component]
-fn ConfiguredReveleitor(
-    contest: ReadSignal<Option<ContestFile>>,
-    config_contest: Resource<(), ConfigContest>,
-) -> impl IntoView {
+fn ConfiguredReveleitor(config_contest: Resource<(), ConfigContest>) -> impl IntoView {
     let r = move || {
         config_contest.get().map(|config| {
             let sede = use_configured_sede(config);
@@ -128,7 +125,7 @@ pub fn Sedes() -> impl IntoView {
                     } />
                 </Route>
                 <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
-                <Route path="/reveleitor/:name" view=move|| view!{ <ConfiguredReveleitor contest config_contest/> } />
+                <Route path="/reveleitor/:name" view=move|| view!{ <ConfiguredReveleitor config_contest/> } />
                 <Route path="/" view=|| use_navigate_to_sedes() />
                 <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
             </Routes>
