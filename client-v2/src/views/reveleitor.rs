@@ -1,25 +1,21 @@
-use data::{
-    configdata::{ConfigContest, Sede},
-    revelation::RevelationDriver,
-    ContestError, ContestFile, RunsFile,
-};
+use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
 
 use crate::{
-    api::{create_config, create_contest, create_secret_runs},
+    api::{create_contest, create_secret_runs},
     views::contest::ContestPanel,
 };
 
 #[derive(Debug)]
 pub struct State {
-    started: bool,
+    is_started: bool,
     driver: RevelationDriver,
 }
 
 impl State {
     fn new(contest: ContestFile, runs: RunsFile) -> Option<Self> {
         Some(Self {
-            started: false,
+            is_started: false,
             driver: RevelationDriver::new(contest, runs)
                 .inspect_err(|err| error!("failed creating revelation: {err:?}"))
                 .ok()?,
@@ -27,6 +23,7 @@ impl State {
     }
 
     fn step_forward(&mut self) {
+        self.is_started = true;
         self.driver
             .reveal_step()
             .inspect_err(|err| error!("failed step: {err:?}"))
@@ -34,6 +31,7 @@ impl State {
     }
 
     fn step_back(&mut self) {
+        self.is_started = true;
         self.driver
             .back_one()
             .inspect_err(|err| error!("failed step: {err:?}"))
@@ -41,6 +39,7 @@ impl State {
     }
 
     fn reveal_top_n(&mut self, n: usize) {
+        self.is_started = true;
         self.driver.restart();
         self.driver
             .reveal_top_n(n)
@@ -48,17 +47,29 @@ impl State {
             .ok();
     }
 
+    fn reveal_all(&mut self) {
+        self.driver
+            .reveal_top_n(0)
+            .inspect_err(|err| error!("failed step: {err:?}"))
+            .ok();
+        self.is_started = false;
+    }
+
     fn reset(&mut self) {
+        self.is_started = false;
         self.driver.restart();
     }
 }
 
 #[component]
-pub fn RevelationPanel(driver: ReadSignal<State>, sede: Sede) -> impl IntoView {
+pub fn RevelationPanel(state: ReadSignal<State>, sede: Sede) -> impl IntoView {
     move || {
-        driver.with(|driver| {
-            let contest = driver.driver.contest().clone();
-            let center = driver.driver.peek().cloned();
+        state.with(|state| {
+            let contest = state.driver.contest().clone();
+            let center = state
+                .is_started
+                .then_some(state.driver.peek().cloned())
+                .flatten();
 
             view! { <ContestPanel contest center sede=Some(&sede)/> }
         })
@@ -66,36 +77,33 @@ pub fn RevelationPanel(driver: ReadSignal<State>, sede: Sede) -> impl IntoView {
 }
 
 #[component]
-pub fn Control(driver: WriteSignal<State>) -> impl IntoView {
+pub fn Control(state: WriteSignal<State>) -> impl IntoView {
     view! {
         <div class="commandpanel">
-            <button on:click=move |_| { driver.update(|d| d.step_back())}>
+            <button on:click=move |_| { state.update(|d| d.step_back())}>
                 {"←"}
             </button>
-            <button on:click=move |_| { driver.update(|d| d.step_forward())}>
+            <button on:click=move |_| { state.update(|d| d.step_forward())}>
                 {"→"}
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reveal_top_n(100))}>
+            <button on:click=move |_| { state.update(|d| d.reveal_top_n(100))}>
                 Top 100
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reveal_top_n(50))}>
+            <button on:click=move |_| { state.update(|d| d.reveal_top_n(50))}>
                 Top 50
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reveal_top_n(30))}>
+            <button on:click=move |_| { state.update(|d| d.reveal_top_n(30))}>
                 Top 30
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reveal_top_n(10))}>
+            <button on:click=move |_| { state.update(|d| d.reveal_top_n(10))}>
                 Top 10
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reveal_top_n(0))}>
+            <button on:click=move |_| { state.update(|d| d.reveal_all())}>
                 All
             </button>
-            <button on:click=move |_| { driver.update(|d| d.reset())}>
+            <button on:click=move |_| { state.update(|d| d.reset())}>
                 Reset
             </button>
-            <div>
-                Times: {0}
-            </div>
         </div>
     }
 }
@@ -109,8 +117,8 @@ pub fn Revelation(sede: Sede, runs_file: RunsFile, contest: ContestFile) -> impl
             let (get_driver, set_driver) = create_signal(driver);
 
             view! {
-                <Control driver=set_driver />
-                <RevelationPanel driver=get_driver sede=sede.clone() />
+                <Control state=set_driver />
+                <RevelationPanel state=get_driver sede=sede.clone() />
             }
         })
     }
