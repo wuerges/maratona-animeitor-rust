@@ -245,13 +245,20 @@ fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) ->
     }
 }
 
+fn find_center(center: &str, teams: &[&Team]) -> Option<usize> {
+    teams
+        .iter()
+        .find_position(|team| team.login == center)
+        .map(|p| p.0 + 1)
+}
+
 #[component]
-fn ContestPanel<'a>(
+pub fn ContestPanel<'a>(
     contest: ContestFile,
     center: Option<String>,
     sede: Option<&'a Sede>,
 ) -> impl IntoView {
-    let p_center = center.as_ref().map(|s| contest.teams[s].placement);
+    // let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let n: usize = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
     let is_compressed = contest
@@ -263,13 +270,16 @@ fn ContestPanel<'a>(
         .teams
         .values()
         .filter(|team| team.belongs_to_contest(sede))
-        .sorted_by_cached_key(|team| team.score());
+        .sorted_by_cached_key(|team| team.score())
+        .collect_vec();
+
+    let p_center = center.and_then(|center| find_center(&center, &teams));
 
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
                 <ContestPanelHeader sede=sede all_problems />
-                {teams.enumerate().map(|(i, team)| {
+                {teams.iter().enumerate().map(|(i, team)| {
                     view! {
                         <ContestPanelLine is_compressed i p_center team all_problems />
                     }
