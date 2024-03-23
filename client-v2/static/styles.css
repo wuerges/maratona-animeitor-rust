@@ -147,8 +147,8 @@ body {
 
 .accept-img-run {
   position: absolute;
-  width: 50%;
-  height: 50%;
+  width: 80%;
+  height: 80%;
   background-size: cover;
   content: url("assets/balao2.svg");
   background-color: transparent;
@@ -156,8 +156,8 @@ body {
 
 .no-img-run {
   position: absolute;
-  width: 50%;
-  height: 50%;
+  width: 80%;
+  height: 80%;
   background-size: cover;
   content: url("assets/no.svg");
   background-color: transparent;
@@ -165,8 +165,8 @@ body {
 
 .wait-img-run {
   position: absolute;
-  width: 50%;
-  height: 50%;
+  width: 80%;
+  height: 80%;
   background-size: cover;
   content: url("assets/gear.svg");
   background-color: transparent;
