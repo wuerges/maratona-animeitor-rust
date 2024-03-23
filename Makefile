@@ -33,7 +33,8 @@ build-client-ccl:
 	docker push wuerges/animeitor-client-ccl:0.12.0
 	docker push wuerges/animeitor-client-ccl:latest
 
-BOCA_URL ?= ../tests/inputs/webcast_jones.zip
+# BOCA_URL ?= ../tests/inputs/webcast_jones.zip
+BOCA_URL ?= ../tests/inputs/pda-2024/pda-2024.zip
 
 run-standalone:
 	@echo recompiling client...
