@@ -77,7 +77,7 @@ fn ConfiguredReveleitor(
         config_contest.get().map(|config| {
             let sede = use_configured_sede(config);
             match sede {
-                Some(sede) => view! { <Reveleitor contest sede /> }.into_view(),
+                Some(sede) => view! { <Reveleitor sede /> }.into_view(),
                 None => view! { <p> Failed to match site </p> }.into_view(),
             }
         })

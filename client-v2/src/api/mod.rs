@@ -21,6 +21,13 @@ pub fn create_runs() -> UnboundedReceiver<RunTuple> {
     create_websocket_stream::<RunTuple>("ws://localhost:8000/api/allruns_ws")
 }
 
+pub async fn create_secret_runs(secret: &str) -> data::RunsFile {
+    create_request(&format!(
+        "http://localhost:8000/api/allruns_secret?secret={secret}"
+    ))
+    .await
+}
+
 pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
     let mut timer_stream = create_websocket_stream::<TimerData>("ws://localhost:8000/api/timer");
 
