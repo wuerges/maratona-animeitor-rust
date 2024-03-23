@@ -45,7 +45,7 @@ fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
 
 #[component]
 fn ProvideSede(
-    contest: ReadSignal<Option<ContestFile>>,
+    contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     config_contest: Resource<(), ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,

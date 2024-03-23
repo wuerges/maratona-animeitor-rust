@@ -3,7 +3,7 @@ use data::{
     BelongsToContest, ContestFile, RunsPanelItem, Team, TimerData,
 };
 use itertools::Itertools;
-use leptos::*;
+use leptos::{logging::log, *};
 
 use crate::views::timer::Timer;
 
@@ -196,20 +196,21 @@ fn Problem<'a>(prob: char, team: &'a Team) -> impl IntoView {
     }
 }
 #[component]
-fn ContestPanelLine<'a>(
-    is_compressed: bool,
+fn ContestPanelLine(
+    is_compressed: Signal<bool>,
     i: usize,
     p_center: Option<usize>,
-    team: &'a Team,
-    all_problems: &'static str,
+    team: Team,
+    all_problems: Signal<&'static str>,
 ) -> impl IntoView {
+    log!("line refresh");
     let score = team.score();
     let local_placement = i + 1;
     view! {
         <div class="run_box" id={team.login.clone()} style={format!("top: {}; z-index: {};", cell_top(local_placement, &p_center), -((local_placement) as i32))}>
             <div class="run">
                 <div class={center_class(local_placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
-                    {is_compressed.then_some(view! {
+                    {move || is_compressed.get().then_some(view! {
                         <Placement placement={team.placement_global} />
                     })}
                     <Placement placement={local_placement} />
@@ -219,8 +220,8 @@ fn ContestPanelLine<'a>(
                         <div class="baixo">{score.penalty}</div>
                     </div>
                 </div>
-                {all_problems.char_indices().map(|(_prob_i, prob)| {
-                    view! { <Problem prob team /> }
+                {move || all_problems.get().char_indices().map(|(_prob_i, prob)| {
+                    view! { <Problem prob team=&team /> }
                 }).collect_view()}
             </div>
         </div>
@@ -228,17 +229,20 @@ fn ContestPanelLine<'a>(
 }
 
 #[component]
-fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) -> impl IntoView {
+fn ContestPanelHeader<'a>(
+    sede: Option<&'a Sede>,
+    all_problems: Signal<&'static str>,
+) -> impl IntoView {
+    log!("header refresh");
     view! {
         <div id="runheader" class="run">
             <div class={estilo_sede(sede).iter().chain(&["cell", "titulo"]).join(" ")}>
                 {nome_sede(sede).to_string()}
             </div>
-            {all_problems.chars().map(|p| view! {
+            {move || all_problems.get().chars().map(|p| view! {
                 <div class="cell problema quadrado">{p}</div>
             }).collect_view()}
         </div>
-
     }
 }
 
@@ -251,25 +255,30 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
 
 #[component]
 pub fn ContestPanel(
-    contest: ContestFile,
+    contest: Signal<ContestFile>,
     center: Signal<Option<String>>,
     sede: Option<Sede>,
 ) -> impl IntoView {
+    log!("contest panel refresh");
     // let p_center = center.as_ref().map(|s| contest.teams[s].placement);
-    let n: usize = contest.number_problems;
-    let all_problems = &data::PROBLEM_LETTERS[..n];
-    let is_compressed = contest
-        .teams
-        .values()
-        .any(|team| !team.belongs_to_contest(sede.as_ref()));
+    let n: Signal<usize> = Signal::derive(move || contest.get().number_problems);
+    let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
+    let cloned_sede = sede.clone();
+    let is_compressed = Signal::derive(move || {
+        contest
+            .get()
+            .teams
+            .values()
+            .any(|team| !team.belongs_to_contest(cloned_sede.as_ref()))
+    });
 
-    let sede_teams = sede.clone();
+    let cloned_sede = sede.clone();
     let teams = Signal::derive(move || {
         contest
-            .clone()
+            .get()
             .teams
             .into_values()
-            .filter(|team| team.belongs_to_contest(sede_teams.as_ref()))
+            .filter(|team| team.belongs_to_contest(cloned_sede.as_ref()))
             .sorted_by_cached_key(|team| team.score())
             .collect_vec()
     });
@@ -282,12 +291,11 @@ pub fn ContestPanel(
 
     view! {
         <div class="runstable">
-            {move || view!{
-                <div class="run_box" style:top={cell_top(0, &p_center.get())}>
-                    <ContestPanelHeader sede=sede.as_ref() all_problems />
-                </div>
-            }}
-            {move || teams.get().iter().enumerate().map(|(i, team)| {
+            <div class="run_box" style:top={move || cell_top(0, &p_center.get())}>
+                <ContestPanelHeader sede=sede.as_ref() all_problems />
+            </div>
+
+            {move || teams.get().into_iter().enumerate().map(|(i, team)| {
                 view! {
                     <ContestPanelLine is_compressed i p_center=p_center.get() team all_problems />
                 }
@@ -301,7 +309,7 @@ fn EmptyContestPanel<'a>(sede: Option<&'a Sede>) -> impl IntoView {
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &None)}>
-                <ContestPanelHeader sede=sede all_problems="" />
+                <ContestPanelHeader sede=sede all_problems=create_signal("").0.into() />
             </div>
         </div>
     }
@@ -309,38 +317,27 @@ fn EmptyContestPanel<'a>(sede: Option<&'a Sede>) -> impl IntoView {
 
 #[component]
 pub fn Contest(
-    contest: ReadSignal<Option<ContestFile>>,
+    contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
     #[prop(optional)] sede: Option<Sede>,
 ) -> impl IntoView {
-    move || {
-        let contest = contest.get();
-        let panel_items = panel_items.get();
+    let panel_items = panel_items.get();
 
-        let (center, _) = create_signal(None);
+    let (center, _) = create_signal(None);
 
-        let contest_panel = match contest {
-            Some(contest) => {
-                view! { <ContestPanel contest center=center.into() sede=sede.clone() /> }
-                    .into_view()
-            }
-            None => view! { <EmptyContestPanel sede=sede.as_ref() /> <p> loading contest </p> }
-                .into_view(),
-        };
-        view! {
-                <body style="height: 1px">
-                    <div style="display: flex; width: 320px;">
-                        <div style="display: flex; flex-direction: column; width: 320px;">
-                            <Timer timer />
-                            <div class="submission-title"> Últimas Submissões </div>
-                            <RunsPanel items=panel_items />
-                        </div>
-                        <div class="automatic" style="margin-left: 8px;">
-                            {contest_panel}
-                        </div>
-                    </div>
-                </body>
-        }
+    view! {
+        <body style="height: 1px">
+            <div style="display: flex; width: 320px;">
+                <div style="display: flex; flex-direction: column; width: 320px;">
+                    <Timer timer />
+                    <div class="submission-title"> Últimas Submissões </div>
+                    <RunsPanel items=panel_items />
+                </div>
+                <div class="automatic" style="margin-left: 8px;">
+                    <ContestPanel contest center=center.into() sede=sede.clone() />
+                </div>
+            </div>
+        </body>
     }
 }

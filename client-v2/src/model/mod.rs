@@ -5,11 +5,8 @@ use leptos::*;
 
 use crate::api::{create_contest, create_runs};
 
-pub fn provide_contest() -> (
-    ReadSignal<Option<ContestFile>>,
-    ReadSignal<Vec<RunsPanelItem>>,
-) {
-    let (contest_signal, set_contest_signal) = create_signal::<Option<ContestFile>>(None);
+pub fn provide_contest() -> (Signal<ContestFile>, ReadSignal<Vec<RunsPanelItem>>) {
+    let (contest_signal, set_contest_signal) = create_signal::<ContestFile>(ContestFile::dummy());
     let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
 
     spawn_local(async move {
@@ -52,11 +49,11 @@ pub fn provide_contest() -> (
                             .filter_map(|r| fresh_contest.build_panel_item(&r).ok())
                             .collect(),
                     );
-                    set_contest_signal.set(Some(fresh_contest));
+                    set_contest_signal.set(fresh_contest);
                 }
             }
         }
     });
 
-    (contest_signal, runs_panel_signal)
+    (contest_signal.into(), runs_panel_signal)
 }
