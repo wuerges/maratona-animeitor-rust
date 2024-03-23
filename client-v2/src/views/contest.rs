@@ -160,10 +160,7 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
             if p < 9 {
                 format!("calc(var(--row-height) * {} + var(--root-top))", i)
             } else {
-                format!(
-                    "calc(var(--row-height) * {} + var(--root-top-center))",
-                    (i - p)
-                )
+                format!("calc(var(--row-height) * {} + var(--root-top))", i + 9 - p)
             }
         }
     }
@@ -279,12 +276,12 @@ pub fn ContestPanel<'a>(
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
                 <ContestPanelHeader sede=sede all_problems />
-                {teams.iter().enumerate().map(|(i, team)| {
-                    view! {
-                        <ContestPanelLine is_compressed i p_center team all_problems />
-                    }
-                }).collect_view()}
             </div>
+            {teams.iter().enumerate().map(|(i, team)| {
+                view! {
+                    <ContestPanelLine is_compressed i p_center team all_problems />
+                }
+            }).collect_view()}
         </div>
     }
 }
