@@ -119,22 +119,6 @@ fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) ->
     }
 }
 
-use std::collections::BTreeMap;
-fn compress_placement<'a, I>(plac: I) -> BTreeMap<usize, usize>
-where
-    I: Iterator<Item = &'a usize>,
-{
-    let mut v: Vec<_> = plac.collect();
-    v.sort();
-
-    let mut ret = BTreeMap::new();
-
-    for (i, e) in v.iter().enumerate() {
-        *ret.entry(**e).or_default() = i;
-    }
-    ret
-}
-
 fn center_class(p: usize, center: &Option<usize>) -> std::option::Option<&str> {
     match center {
         None => None,
@@ -216,21 +200,22 @@ fn Problem<'a>(prob: char, team: &'a Team) -> impl IntoView {
 }
 #[component]
 fn ContestPanelLine<'a>(
-    display: bool,
     is_compressed: bool,
+    i: usize,
     p_center: Option<usize>,
     team: &'a Team,
     all_problems: &'static str,
 ) -> impl IntoView {
     let score = team.score();
+    let local_placement = i + 1;
     view! {
-        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(team.placement, &p_center), -(team.placement as i32))}>
-            <div class="run" style={(!display).then_some("display: none")} id={team.login.clone()}>
+        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(local_placement, &p_center), -((local_placement) as i32))}>
+            <div class="run" id={team.login.clone()}>
                 <div class={center_class(team.placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
                     {is_compressed.then_some(view! {
                         <Placement placement={team.placement_global} />
                     })}
-                    <Placement placement={team.placement} />
+                    <Placement placement={local_placement} />
                     <TeamName escola={team.escola.clone()} name={team.name.clone()} />
                     <div class="cell problema quadrado">
                         <div class="cima">{score.solved}</div>
@@ -265,30 +250,28 @@ fn ContestPanel<'a>(
     contest: ContestFile,
     center: Option<String>,
     sede: Option<&'a Sede>,
-    revelation: bool,
 ) -> impl IntoView {
     let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let n: usize = contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
-    let compressed_ = compress_placement(
-        contest
-            .teams
-            .values()
-            .filter(|t| t.belongs_to_contest(sede))
-            .map(|t| &t.placement),
-    );
-    let is_compressed = !revelation && (compressed_.len() < contest.teams.len());
+    let is_compressed = contest
+        .teams
+        .values()
+        .any(|team| !team.belongs_to_contest(sede));
+
+    let teams = contest
+        .teams
+        .values()
+        .filter(|team| team.belongs_to_contest(sede))
+        .sorted_by_cached_key(|team| team.score());
 
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &p_center)}>
                 <ContestPanelHeader sede=sede all_problems />
-                {contest.teams.values().map(|team| {
-                    let display = team.belongs_to_contest(sede);
-
-
+                {teams.enumerate().map(|(i, team)| {
                     view! {
-                        <ContestPanelLine display is_compressed p_center team all_problems />
+                        <ContestPanelLine is_compressed i p_center team all_problems />
                     }
                 }).collect_view()}
             </div>
@@ -320,8 +303,7 @@ pub fn Contest(
 
         let contest_panel = match contest {
             Some(contest) => {
-                view! { <ContestPanel contest center=None sede=sede.as_ref() revelation=false /> }
-                    .into_view()
+                view! { <ContestPanel contest center=None sede=sede.as_ref() /> }.into_view()
             }
             None => view! { <EmptyContestPanel sede=sede.as_ref() /> <p> loading contest </p> }
                 .into_view(),
