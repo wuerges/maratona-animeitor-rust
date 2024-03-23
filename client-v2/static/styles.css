@@ -38,6 +38,11 @@ body {
   width: 310px;
 } */
 
+.revelationpanel {
+  position: relative;
+  top: 40px;
+}
+
 .run {
   width: 100%;
   position: absolute;

@@ -118,7 +118,9 @@ pub fn Revelation(sede: Sede, runs_file: RunsFile, contest: ContestFile) -> impl
 
             view! {
                 <Control state=set_driver />
-                <RevelationPanel state=get_driver sede=sede.clone() />
+                <div class="revelationpanel">
+                    <RevelationPanel state=get_driver sede=sede.clone() />
+                </div>
             }
         })
     }
