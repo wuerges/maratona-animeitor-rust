@@ -11,7 +11,7 @@ use crate::{
     views::{contest::Contest, navigation::Navigation},
 };
 
-use super::timer::Timer;
+use super::{reveleitor::Reveleitor, timer::Timer};
 
 trait IsNegative {
     fn is_negative(&self) -> bool;
@@ -66,11 +66,6 @@ fn ProvideSede(
             </Suspense>
         }
     }
-}
-
-#[component]
-fn Reveleitor(contest: ReadSignal<Option<ContestFile>>, sede: Sede) -> impl IntoView {
-    todo!()
 }
 
 #[component]
