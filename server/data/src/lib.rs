@@ -9,7 +9,7 @@ use std::fmt;
 use thiserror::Error;
 use utoipa::ToSchema;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema, Hash)]
 /// The judge answer to a submission.
 pub enum Answer {
     /// Accepted, with the time of the submission.
@@ -36,7 +36,7 @@ impl fmt::Display for Answer {
 
 pub type TimeFile = i64;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema, Hash)]
 /// A problem in the scoreboard.
 pub struct Problem {
     /// Was the problem solved?
@@ -134,7 +134,7 @@ impl Problem {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash)]
 /// A team in the contest.
 pub struct Team {
     /// BOCA's login.
@@ -151,19 +151,13 @@ pub struct Team {
     pub problems: BTreeMap<String, Problem>,
 }
 
-impl PartialEq for Team {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
-    }
-}
-
 impl PartialOrd for Team {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.score().partial_cmp(&other.score())
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Hash)]
 pub struct Score {
     pub solved: usize,
     pub penalty: i64,
