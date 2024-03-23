@@ -206,8 +206,8 @@ fn ContestPanelLine<'a>(
     let score = team.score();
     let local_placement = i + 1;
     view! {
-        <div class="run_box" style={format!("top: {}; zIndex: {};", cell_top(local_placement, &p_center), -((local_placement) as i32))}>
-            <div class="run" id={team.login.clone()}>
+        <div class="run_box" id={team.login.clone()} style={format!("top: {}; z-index: {};", cell_top(local_placement, &p_center), -((local_placement) as i32))}>
+            <div class="run">
                 <div class={center_class(local_placement, &p_center).iter().chain(&["run_prefix"]).join(" ")}>
                     {is_compressed.then_some(view! {
                         <Placement placement={team.placement_global} />
