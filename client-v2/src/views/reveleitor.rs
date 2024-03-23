@@ -64,14 +64,15 @@ impl State {
 #[component]
 pub fn RevelationPanel(state: ReadSignal<State>, sede: Sede) -> impl IntoView {
     move || {
+        let center = Signal::derive(move || {
+            state
+                .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
+                .flatten()
+        });
         state.with(|state| {
             let contest = state.driver.contest().clone();
-            let center = state
-                .is_started
-                .then_some(state.driver.peek().cloned())
-                .flatten();
 
-            view! { <ContestPanel contest center sede=Some(&sede)/> }
+            view! { <ContestPanel contest center sede=Some(sede.clone())/> }
         })
     }
 }

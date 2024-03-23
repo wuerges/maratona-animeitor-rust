@@ -242,7 +242,7 @@ fn ContestPanelHeader<'a>(sede: Option<&'a Sede>, all_problems: &'static str) ->
     }
 }
 
-fn find_center(center: &str, teams: &[&Team]) -> Option<usize> {
+fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
     teams
         .iter()
         .find_position(|team| team.login == center)
@@ -250,10 +250,10 @@ fn find_center(center: &str, teams: &[&Team]) -> Option<usize> {
 }
 
 #[component]
-pub fn ContestPanel<'a>(
+pub fn ContestPanel(
     contest: ContestFile,
-    center: Option<String>,
-    sede: Option<&'a Sede>,
+    center: Signal<Option<String>>,
+    sede: Option<Sede>,
 ) -> impl IntoView {
     // let p_center = center.as_ref().map(|s| contest.teams[s].placement);
     let n: usize = contest.number_problems;
@@ -261,25 +261,35 @@ pub fn ContestPanel<'a>(
     let is_compressed = contest
         .teams
         .values()
-        .any(|team| !team.belongs_to_contest(sede));
+        .any(|team| !team.belongs_to_contest(sede.as_ref()));
 
-    let teams = contest
-        .teams
-        .values()
-        .filter(|team| team.belongs_to_contest(sede))
-        .sorted_by_cached_key(|team| team.score())
-        .collect_vec();
+    let sede_teams = sede.clone();
+    let teams = Signal::derive(move || {
+        contest
+            .clone()
+            .teams
+            .into_values()
+            .filter(|team| team.belongs_to_contest(sede_teams.as_ref()))
+            .sorted_by_cached_key(|team| team.score())
+            .collect_vec()
+    });
 
-    let p_center = center.and_then(|center| find_center(&center, &teams));
+    let p_center = Signal::derive(move || {
+        center
+            .get()
+            .and_then(|center| find_center(&center, &teams.get()))
+    });
 
     view! {
         <div class="runstable">
-            <div class="run_box" style:top={cell_top(0, &p_center)}>
-                <ContestPanelHeader sede=sede all_problems />
-            </div>
-            {teams.iter().enumerate().map(|(i, team)| {
+            {move || view!{
+                <div class="run_box" style:top={cell_top(0, &p_center.get())}>
+                    <ContestPanelHeader sede=sede.as_ref() all_problems />
+                </div>
+            }}
+            {move || teams.get().iter().enumerate().map(|(i, team)| {
                 view! {
-                    <ContestPanelLine is_compressed i p_center team all_problems />
+                    <ContestPanelLine is_compressed i p_center=p_center.get() team all_problems />
                 }
             }).collect_view()}
         </div>
@@ -308,9 +318,12 @@ pub fn Contest(
         let contest = contest.get();
         let panel_items = panel_items.get();
 
+        let (center, _) = create_signal(None);
+
         let contest_panel = match contest {
             Some(contest) => {
-                view! { <ContestPanel contest center=None sede=sede.as_ref() /> }.into_view()
+                view! { <ContestPanel contest center=center.into() sede=sede.clone() /> }
+                    .into_view()
             }
             None => view! { <EmptyContestPanel sede=sede.as_ref() /> <p> loading contest </p> }
                 .into_view(),
