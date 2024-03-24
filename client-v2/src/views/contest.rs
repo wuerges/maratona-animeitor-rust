@@ -306,13 +306,12 @@ pub fn ContestPanel(
                 .map(|(i, _)| i)
                 .collect_vec();
 
-            let mut r = ps.clone();
-
-            for (u, v) in ps.iter().enumerate() {
-                r[*v] = u;
-            }
-
-            r
+            ps.into_iter()
+                .enumerate()
+                .map(|(u, v)| (v, u))
+                .sorted()
+                .map(|(_, v)| v)
+                .collect_vec()
         })
     });
 
