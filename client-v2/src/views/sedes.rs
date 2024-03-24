@@ -50,21 +50,13 @@ fn ProvideSede(
     config_contest: Resource<(), ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
-    let content = move || {
-        config_contest.get().map(|config| {
-            let sede = use_configured_sede(config);
-            match sede {
-                Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
-                None => view! { <p> Failed to match site </p> }.into_view(),
-            }
-        })
-    };
-
-    view! {
-        <Suspense fallback=|| view! { <p> Loading config... </p> }>
-            {content}
-        </Suspense>
-    }
+    config_contest.get().map(|config| {
+        let sede = use_configured_sede(config);
+        match sede {
+            Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
+            None => view! { <p> Failed to match site </p> }.into_view(),
+        }
+    })
 }
 
 #[component]
@@ -103,7 +95,7 @@ pub fn Countdown(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
 #[component]
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
-    let (contest, panel_items) = provide_contest();
+    let contest_and_panel = create_local_resource(|| (), |()| provide_contest());
     let config_contest = create_local_resource(|| (), |()| create_config());
 
     view! {
@@ -111,14 +103,18 @@ pub fn Sedes() -> impl IntoView {
             <Routes>
                 <Route path="/sedes" view= move || view!{
                     <Navigation config_contest />
-                    <Contest contest panel_items timer />
+                    <Suspense fallback=|| view! { <p> Loading contest... </p> }>
+                        {move || contest_and_panel.get().map(|(contest, panel_items)| view!{ <Contest contest panel_items timer /> })}
+                    </Suspense>
                 }/>
                 <Route path="/sedes" view= move || view!{
                     <Navigation config_contest />
                     <Outlet />
                 }>
                     <Route path=":name" view=move || view!{
-                        <ProvideSede contest panel_items timer config_contest />
+                        <Suspense fallback=|| view! { <p> Loading contest... </p> }>
+                            {move || contest_and_panel.get().map(|(contest, panel_items)| view!{ <ProvideSede contest panel_items timer config_contest /> })}
+                        </Suspense>
                     } />
                 </Route>
                 <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
