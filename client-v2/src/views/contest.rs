@@ -170,33 +170,44 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 
 #[component]
 fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
-    move || {
-        team.with(|team| match team.problems.get(&prob.to_string()) {
-            None => view! {<div class="not-tried cell quadrado"> - </div>},
-            Some(prob_v) => {
-                if prob_v.solved {
-                    let balao = format!("balao_{}", prob);
-                    view! {
-                        <div class="accept cell quadrado">
+    let problem =
+        Signal::derive(move || team.with(move |t| t.problems.get(&prob.to_string()).cloned()));
+    view! {
+
+            <div class={move || match problem.get() {
+                Some(p) => if p.solved {
+                    "accept cell quadrado".to_string()
+                } else {
+                    let cell_type = if p.wait() { "inqueue"} else { "unsolved" };
+                    format!("cell quadrado {cell_type}")
+                },
+                None => "not-tried cell quadrado".to_string(),
+            }}>
+            {move || match problem.get() {
+                Some(p) => {
+                    (if p.solved {
+                        let balao = format!("balao_{}", prob);
+                        view! {
                             <div class=format!("accept-img {balao}")></div>
                             <div class="accept-text cell-content">
-                                +{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}
+                                +{number_submissions(p.submissions)}<br />{p.time_solved}
                             </div>
-                        </div>
-                    }
-                } else {
-                    let cell_type = if prob_v.wait() { "inqueue" } else { "unsolved" };
-                    let cell_symbol = if prob_v.wait() { "?" } else { "X" };
+                        }
+                    } else {
+                        let cell_symbol = if p.wait() { "?" } else { "X" };
 
-                    view! {
-                        <div class={format!("cell quadrado {}", cell_type)}>
+                        view! {
                             <div class="cima">{cell_symbol}</div>
-                            <div class="baixo">"("{prob_v.submissions}")"</div>
-                        </div>
-                    }
-                }
-            }
-        })
+                            <div class="baixo">"("{p.submissions}")"</div>
+                        }
+                    }).into_view()
+
+                },
+                None => {
+                    {"-"}.into_view()
+                },
+            }}
+            </div>
     }
 }
 
