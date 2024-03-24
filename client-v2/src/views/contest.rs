@@ -328,11 +328,10 @@ pub fn ContestPanel(
     let p_center = Signal::derive(move || {
         center.get().and_then(|center| {
             teams.with(|teams| {
-                placements
-                    .get()
+                teams
                     .iter()
-                    .find_position(|i| teams[**i].login == center)
-                    .map(|p| p.0)
+                    .find_position(|t| t.login == center)
+                    .map(|p| p.0 + 1)
             })
         })
     });
@@ -340,7 +339,7 @@ pub fn ContestPanel(
     view! {
         <div class="runstable">
             <div class="run_box" style:top={move || {
-                log!("center {:?}", center.get());
+                log!("center {:?} {:?}", center.get(), p_center.get());
                 cell_top(0, &p_center.get())}}>
                 <ContestPanelHeader sede=sede.as_ref() all_problems />
             </div>
