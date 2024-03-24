@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use data::{
     configdata::{Color, Sede},
     BelongsToContest, ContestFile, RunsPanelItem, Team, TimerData,
