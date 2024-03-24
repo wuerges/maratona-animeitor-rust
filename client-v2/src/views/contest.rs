@@ -171,8 +171,8 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
-fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
-    move || match team.get().problems.get(&prob.to_string()) {
+fn Problem<'t>(prob: char, team: &'t Team) -> impl IntoView {
+    match team.problems.get(&prob.to_string()) {
         None => view! {<div class="not-tried cell quadrado"> - </div>},
         Some(prob_v) => {
             if prob_v.solved {
@@ -199,42 +199,45 @@ fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
         }
     }
 }
+
 #[component]
 fn ContestPanelLine(
     is_compressed: Signal<bool>,
     local_placement: Signal<usize>,
     p_center: Signal<Option<usize>>,
-    static_team: Team,
-    signal_team: Signal<Team>,
+    team: Signal<Team>,
     all_problems: Signal<&'static str>,
 ) -> impl IntoView {
     log!("line refresh");
     view! {
-        <div class="run_box" id={static_team.login} style=format!(
+        <div class="run_box" id={move || team.with(|t| t.login.clone())} style=format!(
             "top: {}; z-index: {};",
             cell_top(local_placement.get(), &p_center.get()),
             -((local_placement.get()) as i32)
         )>
             <div class="run">
-                <div class={move || center_class(local_placement.get(), &p_center.get()).iter().chain(&["run_prefix"]).join(" ")}>
-                    {move || is_compressed.get().then_some(view! {
-                        <Placement placement={static_team.placement_global.into()} />
-                    })}
-                    <Placement placement=local_placement.into() />
-                    <TeamName escola={static_team.escola.clone()} name={static_team.name.clone()} />
-                    <div class="cell problema quadrado">
-                        {move || {
-                            let score = signal_team.get().score();
-                            view! {
-                                <div class="cima">{score.solved}</div>
-                                <div class="baixo">{score.penalty}</div>
-                            }
-                        }}
-                    </div>
-                </div>
-                {move || all_problems.get().char_indices().map(|(_prob_i, prob)| {
-                    view! { <Problem prob team=signal_team /> }
-                }).collect_view()}
+                {move || {
+                    team.with(|t| {
+                        let is_compressed = is_compressed.get();
+                        let score = t.score();
+                        view!{
+                            <div class={center_class(local_placement.get(), &p_center.get()).iter().chain(&["run_prefix"]).join(" ")}>
+                                {is_compressed.then_some(view! {
+                                    <Placement placement={(move || team.with(|t| t.placement_global)).into_signal().into()} />
+                                })}
+                                <Placement placement=local_placement.into() />
+                                <TeamName escola=t.escola.clone() name=t.name.clone() />
+                                <div class="cell problema quadrado">
+                                    <div class="cima">{score.solved}</div>
+                                    <div class="baixo">{score.penalty}</div>
+                                </div>
+                            </div>
+                            {all_problems.get().char_indices().map(|(_prob_i, prob)| {
+                                view! { <Problem prob team=t /> }
+                            }).collect_view()}
+                        }
+                    })
+                }}
             </div>
         </div>
     }
@@ -332,9 +335,9 @@ pub fn ContestPanel(
                     let move_team = team.login.clone();
                     let local_placement = Signal::derive(move || *placements.get().get(&move_team).unwrap());
                     let move_team = team.login.clone();
-                    let signal_team = Signal::derive(move || team_map.get().get(&move_team).unwrap().clone());
+                    let team = Signal::derive(move || team_map.get().get(&move_team).unwrap().clone());
                     view!{
-                        <ContestPanelLine is_compressed local_placement p_center static_team=team signal_team all_problems />
+                        <ContestPanelLine is_compressed local_placement p_center team all_problems />
                     }
                 }}
             />
