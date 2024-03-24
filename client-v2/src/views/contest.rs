@@ -172,32 +172,34 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 
 #[component]
 fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
-    team.with(|team| match team.problems.get(&prob.to_string()) {
-        None => view! {<div class="not-tried cell quadrado"> - </div>},
-        Some(prob_v) => {
-            if prob_v.solved {
-                let balao = format!("balao_{}", prob);
-                view! {
-                    <div class="accept cell quadrado">
-                        <div class=format!("accept-img {balao}")></div>
-                        <div class="accept-text cell-content">
-                            +{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}
+    move || {
+        team.with(|team| match team.problems.get(&prob.to_string()) {
+            None => view! {<div class="not-tried cell quadrado"> - </div>},
+            Some(prob_v) => {
+                if prob_v.solved {
+                    let balao = format!("balao_{}", prob);
+                    view! {
+                        <div class="accept cell quadrado">
+                            <div class=format!("accept-img {balao}")></div>
+                            <div class="accept-text cell-content">
+                                +{number_submissions(prob_v.submissions)}<br />{prob_v.time_solved}
+                            </div>
                         </div>
-                    </div>
-                }
-            } else {
-                let cell_type = if prob_v.wait() { "inqueue" } else { "unsolved" };
-                let cell_symbol = if prob_v.wait() { "?" } else { "X" };
+                    }
+                } else {
+                    let cell_type = if prob_v.wait() { "inqueue" } else { "unsolved" };
+                    let cell_symbol = if prob_v.wait() { "?" } else { "X" };
 
-                view! {
-                    <div class={format!("cell quadrado {}", cell_type)}>
-                        <div class="cima">{cell_symbol}</div>
-                        <div class="baixo">"("{prob_v.submissions}")"</div>
-                    </div>
+                    view! {
+                        <div class={format!("cell quadrado {}", cell_type)}>
+                            <div class="cima">{cell_symbol}</div>
+                            <div class="baixo">"("{prob_v.submissions}")"</div>
+                        </div>
+                    }
                 }
             }
-        }
-    })
+        })
+    }
 }
 
 #[component]
@@ -209,9 +211,6 @@ fn ContestPanelLine(
     all_problems: Signal<&'static str>,
 ) -> impl IntoView {
     log!("line refresh");
-    let team_value = team.get();
-    let is_compressed = is_compressed.get();
-    let score = team_value.score();
 
     view! {
         <div class="run_box" id={move || team.with(|t| t.login.clone())} style={move || format!(
@@ -220,24 +219,27 @@ fn ContestPanelLine(
             -((local_placement.get()) as i32)
         )}>
             <div class="run">
-                {
-                    move || view!{
-                        <div class={center_class(local_placement.get(), &p_center.get()).iter().chain(&["run_prefix"]).join(" ")}>
-                            {is_compressed.then_some(view! {
-                                <Placement placement={(move || team_value.placement_global).into_signal().into()} />
-                            })}
-                            <Placement placement=local_placement.into() />
-                            <TeamName escola=team_value.escola.clone() name=team_value.name.clone() />
-                            <div class="cell problema quadrado">
-                                <div class="cima">{score.solved}</div>
-                                <div class="baixo">{score.penalty}</div>
-                            </div>
+            {move || {
+                let team_value = team.get();
+                let is_compressed = is_compressed.get();
+                let score = team_value.score();
+                view!{
+                    <div class={center_class(local_placement.get(), &p_center.get()).iter().chain(&["run_prefix"]).join(" ")}>
+                        {is_compressed.then_some(view! {
+                            <Placement placement={(move || team_value.placement_global).into_signal().into()} />
+                        })}
+                        <Placement placement=local_placement.into() />
+                        <TeamName escola=team_value.escola.clone() name=team_value.name.clone() />
+                        <div class="cell problema quadrado">
+                            <div class="cima">{score.solved}</div>
+                            <div class="baixo">{score.penalty}</div>
                         </div>
-                        {all_problems.get().char_indices().map(|(_prob_i, prob)| {
-                            view! { <Problem prob team /> }
-                        }).collect_view()}
-                    }
+                    </div>
+                    {move || all_problems.get().char_indices().map(|(_prob_i, prob)| {
+                        view! { <Problem prob team /> }
+                    }).collect_view()}
                 }
+            }}
             </div>
         </div>
     }
