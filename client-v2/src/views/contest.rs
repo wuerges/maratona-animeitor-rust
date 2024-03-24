@@ -238,7 +238,7 @@ fn ContestPanelLine(
                             <Placement placement={(move || team_value.placement_global).into_signal().into()} />
                         })}
                         <Placement placement=local_placement.into() />
-                        <TeamName escola=team_value.escola.clone() name=team_value.name.clone() />
+                        <TeamName escola=team_value.escola.clone() name=team_value.login.clone() />
                         <div class="cell problema quadrado">
                             <div class="cima">{score.solved}</div>
                             <div class="baixo">{score.penalty}</div>
@@ -304,7 +304,6 @@ pub fn ContestPanel(
             .teams
             .into_values()
             .filter(|team| team.belongs_to_contest(cloned_sede.as_ref()))
-            // .sorted_by_cached_key(|team| team.score())
             .collect_vec()
     });
 
@@ -313,7 +312,7 @@ pub fn ContestPanel(
             let ps = ts
                 .iter()
                 .enumerate()
-                .sorted_by_cached_key(|(_, t)| t.score())
+                .sorted_by_cached_key(|(_, t)| t.placement_global)
                 .map(|(i, _)| i)
                 .collect_vec();
 
@@ -328,8 +327,13 @@ pub fn ContestPanel(
 
     let p_center = Signal::derive(move || {
         center.get().and_then(|center| {
-            let c = find_center(&center, &teams.get());
-            c.map(|c| placements.get()[c] + 1)
+            teams.with(|teams| {
+                placements
+                    .get()
+                    .iter()
+                    .find_position(|i| teams[**i].login == center)
+                    .map(|p| p.0)
+            })
         })
     });
 
