@@ -299,21 +299,35 @@ pub fn ContestPanel(
 
     let placements = Signal::derive(move || {
         teams.with(|ts| {
-            (0..ts.len())
-                .sorted_by_cached_key(|i| ts[*i].score())
-                .collect_vec()
+            let ps = ts
+                .iter()
+                .enumerate()
+                .sorted_by_cached_key(|(_, t)| t.score())
+                .map(|(i, _)| i)
+                .collect_vec();
+
+            let mut r = ps.clone();
+
+            for (u, v) in ps.iter().enumerate() {
+                r[*v] = u;
+            }
+
+            r
         })
     });
 
     let p_center = Signal::derive(move || {
-        center
-            .get()
-            .and_then(|center| find_center(&center, &teams.get()))
+        center.get().and_then(|center| {
+            let c = find_center(&center, &teams.get());
+            c.map(|c| placements.get()[c] + 1)
+        })
     });
 
     view! {
         <div class="runstable">
-            <div class="run_box" style:top={move || cell_top(0, &p_center.get())}>
+            <div class="run_box" style:top={move || {
+                log!("center {:?}", center.get());
+                cell_top(0, &p_center.get())}}>
                 <ContestPanelHeader sede=sede.as_ref() all_problems />
             </div>
 
