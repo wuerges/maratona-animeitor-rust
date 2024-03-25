@@ -326,13 +326,10 @@ pub fn ContestPanel(
     });
 
     let p_center = Signal::derive(move || {
-        center.get().and_then(|center| {
-            teams.with(|teams| {
-                teams
-                    .iter()
-                    .find_position(|t| t.login == center)
-                    .map(|p| placements.with(|ps| ps[p.0] + 1))
-            })
+        with!(|center, teams, placements| {
+            center
+                .as_ref()
+                .and_then(|center| find_center(&center, teams).map(|c| placements[c] + 1))
         })
     });
 
