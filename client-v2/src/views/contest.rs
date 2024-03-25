@@ -238,7 +238,7 @@ fn ContestPanelLine(
                             <Placement placement={(move || team_value.placement_global).into_signal().into()} />
                         })}
                         <Placement placement=local_placement.into() />
-                        <TeamName escola=team_value.escola.clone() name=team_value.login.clone() />
+                        <TeamName escola=team_value.escola.clone() name=team_value.name.clone() />
                         <div class="cell problema quadrado">
                             <div class="cima">{score.solved}</div>
                             <div class="baixo">{score.penalty}</div>
