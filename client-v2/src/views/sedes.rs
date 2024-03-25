@@ -2,7 +2,7 @@ use data::{
     configdata::{ConfigContest, Sede},
     ContestFile, RunsPanelItem, TimerData,
 };
-use leptos::{logging::log, *};
+use leptos::{logging::*, *};
 use leptos_router::*;
 
 use crate::{
@@ -23,22 +23,23 @@ impl IsNegative for (TimerData, TimerData) {
     }
 }
 
-#[derive(Params, PartialEq, Eq, Clone)]
-struct SedeParam {
-    name: Option<String>,
+#[derive(Params, PartialEq, Eq, Clone, Debug)]
+struct LocalParams {
+    sede: Option<String>,
+    secret: Option<String>,
 }
 
-fn use_sede_param() -> Option<String> {
-    let params = use_params::<SedeParam>()
+fn use_local_params() -> Option<LocalParams> {
+    let params = use_query::<LocalParams>()
         .get()
         .inspect_err(|e| log!("{}", e))
         .ok()?;
-    params.name
+    Some(params)
 }
 
 fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
     let config = config.into_contest();
-    let name = use_sede_param()?;
+    let name = use_local_params()?.sede?;
     let sede = config.get_sede_nome_sede(&name)?;
     Some(sede.clone())
 }
@@ -64,7 +65,7 @@ fn ProvideSede(
 #[component]
 fn ConfiguredReveleitor(config_contest: Resource<(), ConfigContest>) -> impl IntoView {
     let r = move || {
-        config_contest.get().map(|config| {
+        config_contest.get().map(move |config| {
             let sede = use_configured_sede(config);
             match sede {
                 Some(sede) => view! { <Reveleitor sede /> }.into_view(),
@@ -79,50 +80,41 @@ fn ConfiguredReveleitor(config_contest: Resource<(), ConfigContest>) -> impl Int
     }
 }
 
-fn use_navigate_to_sedes() {
-    let navigate = use_navigate();
-    navigate("/sedes", Default::default());
-}
-
-#[component]
-pub fn Countdown(timer: ReadSignal<(TimerData, TimerData)>) -> impl IntoView {
-    move || {
-        if !timer.get().is_negative() {
-            use_navigate_to_sedes();
-        }
-        view! { <Timer timer /> }
-    }
-}
-
 #[component]
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
     let contest_and_panel = create_local_resource(|| (), |()| provide_contest());
     let config_contest = create_local_resource(|| (), |()| create_config());
 
-    view! {
-        <Router trailing_slash=TrailingSlash::Redirect >
-            <Routes>
-                <Route path="/sedes" view= move || view!{
-                    <Navigation config_contest />
-                    <Suspense fallback=|| view! { <p> Loading contest... </p> }>
-                        {move || contest_and_panel.get().map(|(contest, panel_items)| view!{ <Contest contest panel_items timer /> })}
-                    </Suspense>
-                }/>
-                <Route path="/sedes" view= move || view!{
-                    <Navigation config_contest />
-                    <Outlet />
-                }>
-                    <Route path=":name" view=move || view!{
+    let root = move || {
+        // if timer.get().is_negative() {
+        //     view! { <Timer timer /> }.into_view()
+        // } else {
+        match use_local_params() {
+            None => {
+                error!("failed loading params");
+                view! {<p> Failed loading params </p> }.into_view()
+            }
+            Some(params) => {
+                log!("loaded params: {:?}", params);
+                match params.secret {
+                    Some(secret) => view! { <ConfiguredReveleitor config_contest/> }.into_view(),
+                    None => view! {
+                        <Navigation config_contest />
                         <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                             {move || contest_and_panel.get().map(|(contest, panel_items)| view!{ <ProvideSede contest panel_items timer config_contest /> })}
                         </Suspense>
-                    } />
-                </Route>
-                <Route path="/countdown" view=move|| view!{ <Countdown timer/> } />
-                <Route path="/reveleitor/:name" view=move|| view!{ <ConfiguredReveleitor config_contest/> } />
-                <Route path="/" view=|| use_navigate_to_sedes() />
-                <Route path="/*any" view=|| view! { <h1>"Not Found"</h1> }/>
+                    }.into_view(),
+                }
+            }
+        }
+        // }
+    };
+
+    view! {
+        <Router>
+            <Routes>
+                <Route path="*any" view=move || root />
             </Routes>
         </Router>
     }
