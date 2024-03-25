@@ -78,6 +78,17 @@ pub fn RevelationPanel(state: ReadSignal<State>, sede: Sede) -> impl IntoView {
 
 #[component]
 pub fn Control(state: WriteSignal<State>) -> impl IntoView {
+    let handle = window_event_listener(ev::keydown, move |ev| {
+        // ev is typed as KeyboardEvent automatically,
+        // so .code() can be called
+        match ev.code().as_str() {
+            "ArrowLeft" => state.update(|d| d.step_back()),
+            "ArrowRight" => state.update(|d| d.step_forward()),
+            "Backspace" => state.update(|d| d.reset()),
+            code => log!("ev code: {code}"),
+        }
+    });
+    on_cleanup(move || handle.remove());
     view! {
         <div class="commandpanel">
             <button on:click=move |_| { state.update(|d| d.step_back())}>
