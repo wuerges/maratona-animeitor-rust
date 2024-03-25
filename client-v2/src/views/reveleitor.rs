@@ -158,8 +158,14 @@ pub fn Revelation(sede: Sede, runs_file: RunsFile, contest: ContestFile) -> impl
 }
 
 #[component]
-pub fn Reveleitor(sede: Sede) -> impl IntoView {
-    let all_runs = create_local_resource(|| (), |()| create_secret_runs("saltsecret"));
+pub fn Reveleitor(sede: Sede, secret: String) -> impl IntoView {
+    let all_runs = create_local_resource(
+        || (),
+        move |()| {
+            let secret = secret.clone();
+            create_secret_runs(secret)
+        },
+    );
     let contest = create_local_resource(|| (), |()| create_contest());
 
     move || match (all_runs.get(), contest.get()) {

@@ -1,7 +1,10 @@
 use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
-use leptos::{logging::warn, *};
+use leptos::{
+    logging::{log, warn},
+    *,
+};
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
 
@@ -79,10 +82,10 @@ pub fn create_runs() -> UnboundedReceiver<RunTuple> {
     create_websocket_stream::<RunTuple>(&ws("allruns_ws"))
 }
 
-pub async fn create_secret_runs(secret: &str) -> data::RunsFile {
+pub async fn create_secret_runs(secret: String) -> data::RunsFile {
     let mut url = url_prefix();
     url.push_str("/allruns_secret?secret=");
-    url.push_str(secret);
+    url.push_str(secret.as_str());
 
     create_request(&url).await
 }
