@@ -46,9 +46,7 @@ impl State {
 
     fn jump_team_back(&mut self) {
         let n = self.driver.len();
-        if n > 1 {
-            self.reveal_top_n(n + 1)
-        }
+        self.reveal_top_n(n + 1)
     }
 
     fn step_back(&mut self) {
@@ -112,6 +110,12 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
             </button>
             <button on:click=move |_| { state.update(|d| d.step_forward())}>
                 {"→"}
+            </button>
+            <button on:click=move |_| { state.update(|d| d.jump_team_forward())}>
+                {"↑"}
+            </button>
+            <button on:click=move |_| { state.update(|d| d.jump_team_back())}>
+                {"↓"}
             </button>
             <button on:click=move |_| { state.update(|d| d.reveal_top_n(100))}>
                 Top 100
