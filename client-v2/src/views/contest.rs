@@ -244,11 +244,17 @@ fn ContestPanelLine(
                             <div class="baixo">{score.penalty}</div>
                         </div>
                     </div>
-                    {move || all_problems.get().char_indices().map(|(_prob_i, prob)| {
-                        view! { <Problem prob team /> }
-                    }).collect_view()}
                 }
             }}
+            <For
+                each=move || all_problems.get().char_indices()
+                key=|(_, prob)| *prob
+                children={move |(_, prob)| {
+                    view! {
+                        <Problem prob team />
+                    }
+                }}
+            />
             </div>
         </div>
     }
