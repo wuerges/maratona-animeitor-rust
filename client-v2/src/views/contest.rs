@@ -331,7 +331,7 @@ pub fn ContestPanel(
                 teams
                     .iter()
                     .find_position(|t| t.login == center)
-                    .map(|p| p.0 + 1)
+                    .map(|p| placements.with(|ps| ps[p.0] + 1))
             })
         })
     });

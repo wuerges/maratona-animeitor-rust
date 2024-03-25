@@ -23,11 +23,14 @@ impl State {
     }
 
     fn step_forward(&mut self) {
-        self.is_started = true;
-        self.driver
-            .reveal_step()
-            .inspect_err(|err| error!("failed step: {err:?}"))
-            .ok();
+        if self.is_started {
+            self.driver
+                .reveal_step()
+                .inspect_err(|err| error!("failed step: {err:?}"))
+                .ok();
+        } else {
+            self.is_started = true;
+        }
     }
 
     fn step_back(&mut self) {
