@@ -50,13 +50,15 @@ fn ProvideSede(
     config_contest: Resource<(), ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
-    config_contest.get().map(|config| {
-        let sede = use_configured_sede(config);
-        match sede {
-            Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
-            None => view! { <p> Failed to match site </p> }.into_view(),
-        }
-    })
+    move || {
+        config_contest.get().map(|config| {
+            let sede = use_configured_sede(config);
+            match sede {
+                Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
+                None => view! { <p> Failed to match site </p> }.into_view(),
+            }
+        })
+    }
 }
 
 #[component]

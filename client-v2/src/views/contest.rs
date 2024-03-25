@@ -68,15 +68,15 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
 }
 
 #[component]
-fn RunResult<'run>(problem: String, answer: &'run data::Answer) -> impl IntoView {
+fn RunResult(problem: String, answer: Signal<data::Answer>) -> impl IntoView {
     let balao = format!("balao_{}", problem);
     view! {
         <div class="cell quadrado">{problem}</div>
-        {match answer {
+        {move || match answer.get() {
             data::Answer::Yes(time) => view! {
                 <div class="accept cell quadrado">
                     <div class=format!("accept-img {balao}") />
-                    <div class="accept-text cell-content">{*time}</div>
+                    <div class="accept-text cell-content">{time}</div>
                 </div>
             },
             data::Answer::No => view! {
@@ -99,24 +99,28 @@ fn RunResult<'run>(problem: String, answer: &'run data::Answer) -> impl IntoView
 }
 
 #[component]
-fn RunsPanel(items: Vec<RunsPanelItem>, #[prop(optional)] sede: Option<Sede>) -> impl IntoView {
+fn RunsPanel(
+    items: Signal<Vec<RunsPanelItem>>,
+    #[prop(optional)] sede: Option<Sede>,
+) -> impl IntoView {
     view! {
         <div class="runstable">
-        {
-            items.iter().take(30).enumerate().map(|(i, r)| {
-
+        <For
+            each=move || items.get().into_iter().take(30).enumerate()
+            key=|(_, r)| r.id
+            children={move |(i, o)| {
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-                let problem = r.problem.clone();
+                let result = Signal::derive(move || items.get()[i].result.clone());
 
                 view! {
                     <div class="run" style:top={top} >
-                        <Placement placement={r.placement.into()} sede=sede.clone() />
-                        <TeamName escola={r.escola.clone()} name={r.team_name.clone()} />
-                        <RunResult problem answer={&r.result} />
+                        <Placement placement={o.placement.into()} sede=sede.clone() />
+                        <TeamName escola={o.escola.clone()} name={o.team_name.clone()} />
+                        <RunResult problem=o.problem.clone() answer=result />
                     </div>
                 }
-            }).collect_view()
-        }
+            }}
+        />
         </div>
     }
 }
@@ -381,8 +385,6 @@ pub fn Contest(
     timer: ReadSignal<(TimerData, TimerData)>,
     #[prop(optional)] sede: Option<Sede>,
 ) -> impl IntoView {
-    let panel_items = panel_items.get();
-
     let (center, _) = create_signal(None);
 
     view! {
@@ -391,7 +393,7 @@ pub fn Contest(
                 <div style="display: flex; flex-direction: column; width: 320px;">
                     <Timer timer />
                     <div class="submission-title"> Últimas Submissões </div>
-                    <RunsPanel items=panel_items />
+                    <RunsPanel items=panel_items.into() />
                 </div>
                 <div class="automatic" style="margin-left: 8px;">
                     <ContestPanel contest center=center.into() sede=sede.clone() />

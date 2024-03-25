@@ -1,12 +1,13 @@
 use data::{ContestFile, RunsFile, RunsPanelItem};
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
-use leptos::*;
+use leptos::{logging::log, *};
 
 use crate::api::{create_contest, create_runs};
 
 pub async fn provide_contest() -> (Signal<ContestFile>, ReadSignal<Vec<RunsPanelItem>>) {
     let original_contest_file = create_contest().await;
+    log!("fetched original contest");
     let (contest_signal, set_contest_signal) =
         create_signal::<ContestFile>(original_contest_file.clone());
     let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
@@ -56,5 +57,6 @@ pub async fn provide_contest() -> (Signal<ContestFile>, ReadSignal<Vec<RunsPanel
         }
     });
 
+    log!("provided contest");
     (contest_signal.into(), runs_panel_signal)
 }
