@@ -276,7 +276,7 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
     teams
         .iter()
         .find_position(|team| team.login == center)
-        .map(|p| p.0 + 1)
+        .map(|p| p.0)
 }
 
 #[component]
