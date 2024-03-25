@@ -23,7 +23,7 @@ impl State {
     }
 
     fn step_forward(&mut self) {
-        if self.is_started {
+        if self.is_started && self.driver.len() > 0 {
             self.driver
                 .reveal_step()
                 .inspect_err(|err| error!("failed step: {err:?}"))
