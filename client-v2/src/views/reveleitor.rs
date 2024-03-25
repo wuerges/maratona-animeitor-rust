@@ -33,6 +33,24 @@ impl State {
         }
     }
 
+    fn jump_team_forward(&mut self) {
+        if self.is_started {
+            self.driver
+                .jump_team_forward()
+                .inspect_err(|err| error!("failed jumping: {err:?}"))
+                .ok();
+        } else {
+            self.is_started = true
+        }
+    }
+
+    fn jump_team_back(&mut self) {
+        let n = self.driver.len();
+        if n > 1 {
+            self.reveal_top_n(n + 1)
+        }
+    }
+
     fn step_back(&mut self) {
         self.is_started = true;
         self.driver
@@ -78,15 +96,13 @@ pub fn RevelationPanel(state: ReadSignal<State>, sede: Sede) -> impl IntoView {
 
 #[component]
 pub fn Control(state: WriteSignal<State>) -> impl IntoView {
-    let handle = window_event_listener(ev::keydown, move |ev| {
-        // ev is typed as KeyboardEvent automatically,
-        // so .code() can be called
-        match ev.code().as_str() {
-            "ArrowLeft" => state.update(|d| d.step_back()),
-            "ArrowRight" => state.update(|d| d.step_forward()),
-            "Backspace" => state.update(|d| d.reset()),
-            code => log!("ev code: {code}"),
-        }
+    let handle = window_event_listener(ev::keydown, move |ev| match ev.code().as_str() {
+        "ArrowLeft" => state.update(|d| d.step_back()),
+        "ArrowRight" => state.update(|d| d.step_forward()),
+        "ArrowUp" => state.update(|d| d.jump_team_forward()),
+        "ArrowDown" => state.update(|d| d.jump_team_back()),
+        "Backspace" => state.update(|d| d.reset()),
+        code => log!("ev code: {code}"),
     });
     on_cleanup(move || handle.remove());
     view! {

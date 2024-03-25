@@ -44,6 +44,17 @@ impl RevelationDriver {
         Ok(())
     }
 
+    pub fn jump_team_forward(&mut self) -> Result<(), ContestError> {
+        if let Some(center) = self.peek().cloned() {
+            while self.peek().is_some_and(|c| c == &center) {
+                self.revelation.apply_one_run_from_queue();
+                self.step += 1;
+            }
+            self.revelation.contest.recalculate_placement_no_filter()?;
+        }
+        Ok(())
+    }
+
     pub fn contest(&self) -> &ContestFile {
         &self.revelation.contest
     }
