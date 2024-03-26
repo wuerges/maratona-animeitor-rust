@@ -6,7 +6,7 @@ use leptos_router::*;
 fn Sede(sede: SedeEntry) -> impl IntoView {
     view! {
         <span class="sedeslink">
-        <A href=sede.name.clone()> {sede.name} </A>
+            <A href=format!("?sede={}",sede.name)> {sede.name} </A>
         </span>
     }
 }
