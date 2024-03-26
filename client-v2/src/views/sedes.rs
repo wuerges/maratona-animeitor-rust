@@ -91,18 +91,20 @@ pub fn Sedes() -> impl IntoView {
     let contest_and_panel = create_local_resource(|| (), |()| provide_contest());
     let config_contest = create_local_resource(|| (), |()| create_config());
 
+    let negative_memo = create_memo(move |_| timer.get().is_negative());
+
     let root = move || {
-        // if timer.get().is_negative() {
-        //     view! { <Timer timer /> }.into_view()
-        // } else {
-        match use_local_params() {
-            None => {
-                error!("failed loading params");
-                view! {<p> Failed loading params </p> }.into_view()
-            }
-            Some(params) => {
-                log!("loaded params: {:?}", params);
-                match params.secret {
+        if negative_memo.get() {
+            view! { <Timer timer /> }.into_view()
+        } else {
+            match use_local_params() {
+                None => {
+                    error!("failed loading params");
+                    view! {<p> Failed loading params </p> }.into_view()
+                }
+                Some(params) => {
+                    log!("loaded params: {:?}", params);
+                    match params.secret {
                     Some(secret) => view! { <ConfiguredReveleitor config_contest secret/> }.into_view(),
                     None => view! {
                         <Navigation config_contest />
@@ -111,9 +113,9 @@ pub fn Sedes() -> impl IntoView {
                         </Suspense>
                     }.into_view(),
                 }
+                }
             }
         }
-        // }
     };
 
     view! {
