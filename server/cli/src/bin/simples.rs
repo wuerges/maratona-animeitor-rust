@@ -50,7 +50,14 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let _autometrics = metrics::setup();
 
     tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(config_contest, url, config_secret, server_config, volumes).await;
+    serve_simple_contest(
+        [("test".to_string(), config_contest)].into_iter().collect(),
+        url,
+        config_secret,
+        server_config,
+        volumes,
+    )
+    .await;
 
     Ok(())
 }

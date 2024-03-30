@@ -2,6 +2,7 @@ use crate::config::ServerConfig;
 use crate::dbupdate::spawn_db_update;
 use crate::membroadcast;
 use crate::metrics::route_metrics;
+use crate::or_many::OrMany;
 use crate::routes;
 use crate::runs;
 use crate::secret;
@@ -17,6 +18,7 @@ use crate::errors::Error as CError;
 
 use service::DB;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use tokio::sync::broadcast;
@@ -47,24 +49,36 @@ fn route_contest_public_data(
 }
 
 fn serve_urlbase(
-    config: ConfigContest,
+    config_map: HashMap<String, ConfigContest>,
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
     secrets: Arc<Secret>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
-    let config = Arc::new(config);
-    let config_file = warp::path("config")
-        .and(warp::any().map(move || config.clone()))
-        .and_then(serve_contest_config);
+    let routes = config_map
+        .into_iter()
+        .map(|(config_path, config)| {
+            let config = Arc::new(config);
+            let config_file = warp::path("config")
+                .and(warp::any().map(move || config.clone()))
+                .and_then(serve_contest_config);
 
-    let all_runs_secret =
-        warp::path("allruns_secret").and(secret::serve_all_runs_secret(shared_db.clone(), secrets));
+            let all_runs_secret = warp::path("allruns_secret").and(secret::serve_all_runs_secret(
+                shared_db.clone(),
+                secrets.clone(),
+            ));
 
-    route_contest_public_data(shared_db, runs_tx, time_tx)
-        .or(config_file)
-        .or(all_runs_secret)
-        .boxed()
+            warp::path(config_path)
+                .and(
+                    route_contest_public_data(shared_db.clone(), runs_tx.clone(), time_tx.clone())
+                        .or(config_file)
+                        .or(all_runs_secret),
+                )
+                .boxed()
+        })
+        .collect_or();
+
+    warp::path("file").and(routes).boxed()
 }
 
 #[autometrics]
@@ -88,7 +102,7 @@ async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Reje
 }
 
 pub async fn serve_simple_contest(
-    config: ConfigContest,
+    config: HashMap<String, ConfigContest>,
     boca_url: String,
     secrets: Secret,
     server_config: ServerConfig,

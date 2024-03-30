@@ -1,14 +1,12 @@
 use warp::{filters::BoxedFilter, reply::Reply, Filter};
 
 #[tracing::instrument(skip(into_iter))]
-pub fn or_many<F, I, T, R>(into_iter: I) -> BoxedFilter<(R,)>
+pub fn or_many<I, R>(into_iter: I) -> BoxedFilter<(R,)>
 where
-    F: Filter + Send + Sync,
-    F::Extract: Send,
     I: IntoIterator<Item = BoxedFilter<(R,)>>,
-    R: Reply,
+    R: Reply + 'static,
 {
-    let iter = into_iter.into_iter();
+    let mut iter = into_iter.into_iter();
     let first = iter.next();
 
     match first {
@@ -19,5 +17,24 @@ where
         None => warp::any()
             .and_then(|| async { Err(warp::reject::not_found()) })
             .boxed(),
+    }
+}
+
+pub trait OrMany<R> {
+    fn collect_or(self) -> BoxedFilter<(R,)>
+    where
+        R: Reply;
+}
+
+impl<I, R> OrMany<R> for I
+where
+    I: IntoIterator<Item = BoxedFilter<(R,)>>,
+    R: Reply + 'static,
+{
+    fn collect_or(self) -> BoxedFilter<(R,)>
+    where
+        R: Reply,
+    {
+        or_many::<I, R>(self)
     }
 }
