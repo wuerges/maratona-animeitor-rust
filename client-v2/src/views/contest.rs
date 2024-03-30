@@ -98,27 +98,30 @@ fn RunResult(problem: String, answer: Signal<data::Answer>) -> impl IntoView {
     }
 }
 
+fn take_30(
+    items: Vec<RunsPanelItem>,
+    sede: Option<Sede>,
+) -> impl IntoIterator<Item = (usize, RunsPanelItem)> {
+    items
+        .into_iter()
+        .filter(move |p| {
+            sede.is_none()
+                || sede
+                    .as_ref()
+                    .is_some_and(|s| s.team_belongs_str(&p.team_login))
+        })
+        .take(30)
+        .enumerate()
+}
+
 #[component]
 fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Option<Sede>) -> impl IntoView {
     let sede_move = sede.clone();
-    let take_30 = move || {
-        let sede_move = sede_move.clone();
-        items
-            .get()
-            .into_iter()
-            .filter(move |p| {
-                sede_move.is_none()
-                    || sede_move
-                        .as_ref()
-                        .is_some_and(|s| s.team_belongs_str(&p.team_login))
-            })
-            .take(30)
-            .enumerate()
-    };
+
     view! {
         <div class="runstable">
         <For
-        each=take_30
+        each=move || take_30(items.get(), sede_move.clone())
         key=|(_, r)| r.id
         children={move |(i, o)| {
                 let sede = sede.clone();
