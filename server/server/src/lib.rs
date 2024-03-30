@@ -4,6 +4,7 @@ mod errors;
 mod membroadcast;
 pub mod metrics;
 pub mod openapi;
+pub mod or_many;
 mod routes;
 mod runs;
 mod secret;
