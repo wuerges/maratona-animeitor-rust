@@ -48,17 +48,13 @@ fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
 fn ProvideSede(
     contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
-    config_contest: Resource<(), ConfigContest>,
+    config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
 ) -> impl IntoView {
-    move || {
-        config_contest.get().map(|config| {
-            let sede = use_configured_sede(config);
-            match sede {
-                Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
-                None => view! { <p> Failed to match site </p> }.into_view(),
-            }
-        })
+    let sede = use_configured_sede(config_contest);
+    match sede {
+        Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
+        None => view! { <p> Failed to match site </p> }.into_view(),
     }
 }
 
@@ -109,7 +105,7 @@ pub fn Sedes() -> impl IntoView {
                     None => view! {
                         <Navigation config_contest />
                         <Suspense fallback=|| view! { <p> Loading contest... </p> }>
-                            {move || contest_and_panel.get().map(|(contest, panel_items)| view!{ <ProvideSede contest panel_items timer config_contest /> })}
+                            {move || contest_and_panel.get().map(|(contest, config_contest, panel_items)| view!{ <ProvideSede contest panel_items timer config_contest /> })}
                         </Suspense>
                     }.into_view(),
                 }
