@@ -99,16 +99,29 @@ fn RunResult(problem: String, answer: Signal<data::Answer>) -> impl IntoView {
 }
 
 #[component]
-fn RunsPanel(
-    items: Signal<Vec<RunsPanelItem>>,
-    #[prop(optional)] sede: Option<Sede>,
-) -> impl IntoView {
+fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Option<Sede>) -> impl IntoView {
+    let sede_move = sede.clone();
+    let take_30 = move || {
+        let sede_move = sede_move.clone();
+        items
+            .get()
+            .into_iter()
+            .filter(move |p| {
+                sede_move.is_none()
+                    || sede_move
+                        .as_ref()
+                        .is_some_and(|s| s.team_belongs_str(&p.team_login))
+            })
+            .take(30)
+            .enumerate()
+    };
     view! {
         <div class="runstable">
         <For
-            each=move || items.get().into_iter().take(30).enumerate()
-            key=|(_, r)| r.id
-            children={move |(i, o)| {
+        each=take_30
+        key=|(_, r)| r.id
+        children={move |(i, o)| {
+                let sede = sede.clone();
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
                 let result = Signal::derive(move || items.get()[i].result.clone());
 
@@ -393,7 +406,7 @@ pub fn Contest(
                 <div style="display: flex; flex-direction: column; width: 320px;">
                     <Timer timer />
                     <div class="submission-title"> Últimas Submissões </div>
-                    <RunsPanel items=panel_items.into() />
+                    <RunsPanel items=panel_items.into() sede=sede.clone() />
                 </div>
                 <div class="automatic" style="margin-left: 8px;">
                     <ContestPanel contest center=center.into() sede=sede.clone() />
