@@ -123,6 +123,7 @@ pub struct ConfigSecret {
 
 #[derive(Debug)]
 pub struct Secret {
+    /// A map where the key is a shared secret, and the sede is a contest site
     pub sedes_by_secret: HashMap<String, Sede>,
 }
 
