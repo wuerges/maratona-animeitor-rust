@@ -74,7 +74,7 @@ impl SedeEntry {
 /// Site configuration for contest.
 pub struct ConfigContest {
     /// The contest title.
-    pub titulo: String,
+    pub titulo: SedeEntry,
     /// A site entry.
     pub sedes: Vec<SedeEntry>,
 }
@@ -88,7 +88,7 @@ impl ConfigContest {
             .collect();
 
         Contest {
-            titulo: self.titulo,
+            titulo: self.titulo.into_sede(),
             sedes: entry_map
                 .iter()
                 .map(|(name, entry)| (name.clone(), entry.into_sede()))
@@ -100,7 +100,7 @@ impl ConfigContest {
 #[derive(Debug)]
 pub struct Contest {
     pub sedes: HashMap<String, Sede>,
-    pub titulo: String,
+    pub titulo: Sede,
 }
 
 impl Contest {
@@ -149,15 +149,6 @@ impl ConfigSecret {
     }
 }
 
-impl ConfigContest {
-    pub fn dummy() -> Self {
-        Self {
-            sedes: Vec::new(),
-            titulo: "Dummy".to_string(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,7 +163,10 @@ mod tests {
 
         let config_contest = ConfigContest {
             sedes: vec![sede],
-            titulo: "test".to_string(),
+            titulo: SedeEntry {
+                name: "dummy".to_string(),
+                ..SedeEntry::default()
+            },
         };
         let contest = config_contest.into_contest();
 
