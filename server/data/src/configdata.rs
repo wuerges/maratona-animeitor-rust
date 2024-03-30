@@ -21,14 +21,11 @@ pub struct SedeEntry {
     pub prata: Option<usize>,
     /// Bronze medal position.
     pub bronze: Option<usize>,
-    /// Contest that owns this site.
-    pub contest: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Sede {
     pub entry: SedeEntry,
-    contest: Option<Box<Sede>>,
     automata: AhoCorasick,
 }
 
@@ -43,10 +40,6 @@ pub enum Color {
 }
 
 impl Sede {
-    pub fn contest(&self) -> Option<&Sede> {
-        self.contest.as_deref()
-    }
-
     pub fn team_belongs(&self, team: &Team) -> bool {
         self.team_belongs_str(&team.login)
     }
@@ -69,15 +62,10 @@ impl Sede {
 }
 
 impl SedeEntry {
-    pub fn into_sede(&self, all_sedes: &HashMap<String, SedeEntry>) -> Sede {
+    pub fn into_sede(&self) -> Sede {
         Sede {
             entry: self.clone(),
             automata: AhoCorasick::new_auto_configured(&self.codes),
-            contest: self
-                .contest
-                .as_ref()
-                .and_then(|c| all_sedes.get(c))
-                .map(|s| Box::new(s.into_sede(&HashMap::new()))),
         }
     }
 }
@@ -103,7 +91,7 @@ impl ConfigContest {
             titulo: self.titulo,
             sedes: entry_map
                 .iter()
-                .map(|(name, entry)| (name.clone(), entry.into_sede(&entry_map)))
+                .map(|(name, entry)| (name.clone(), entry.into_sede()))
                 .collect(),
         }
     }
