@@ -531,11 +531,6 @@ impl RunsFile {
         )
     }
 
-    pub fn filter_teams(&mut self, teams: &BTreeMap<String, Team>) {
-        let runs = &mut self.runs;
-        runs.retain(|&_, run| teams.contains_key(&run.team_login));
-    }
-
     pub fn filter_sede(&self, sede: &Sede) -> Self {
         Self {
             runs: self

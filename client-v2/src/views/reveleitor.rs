@@ -13,10 +13,10 @@ pub struct State {
 }
 
 impl State {
-    fn new(contest: ContestFile, runs: RunsFile) -> Option<Self> {
+    fn new(contest: ContestFile, runs: RunsFile, sede: &Sede) -> Option<Self> {
         Some(Self {
             is_started: false,
-            driver: RevelationDriver::new(contest, runs)
+            driver: RevelationDriver::new(contest, runs, sede)
                 .inspect_err(|err| error!("failed creating revelation: {err:?}"))
                 .ok()?,
         })
@@ -142,8 +142,8 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 #[component]
 pub fn Revelation(sede: Sede, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
     move || {
-        let sub_contest = contest.clone().filter_sede(&sede);
-        let driver = State::new(sub_contest, runs_file.clone());
+        let contest = contest.clone();
+        let driver = State::new(contest, runs_file.clone(), &sede);
         driver.map(|driver| {
             let (get_driver, set_driver) = create_signal(driver);
 
