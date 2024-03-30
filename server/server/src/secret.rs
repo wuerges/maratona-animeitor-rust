@@ -9,13 +9,11 @@ use warp::filters::BoxedFilter;
 use warp::{Filter, Rejection};
 
 use crate::errors::Error;
-use crate::routes::with_db;
 
 pub fn serve_all_runs_secret(runs: Arc<Mutex<DB>>, secrets: Arc<Secret>) -> BoxedFilter<(String,)> {
-    with_db(runs)
-        .and(warp::any().map(move || secrets.clone()))
+    warp::any()
         .and(warp::query::<SecretQuery>())
-        .and_then(serve_all_runs_secret_filter)
+        .and_then(move |query| serve_all_runs_secret_filter(runs.clone(), secrets.clone(), query))
         .boxed()
 }
 
