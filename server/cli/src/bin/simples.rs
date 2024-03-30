@@ -41,7 +41,12 @@ async fn main() -> color_eyre::eyre::Result<()> {
         volume: volumes,
     } = SimpleParser::parse();
 
-    let (config_contest, _, config_secret) = args.into_contest_and_secret()?;
+    let map = args.into_contest_and_secret()?;
+
+    let complete = map
+        .into_iter()
+        .map(|(name, (config, _, secret))| (name, (config, secret)))
+        .collect();
 
     let server_config = ServerConfig { port };
 
@@ -51,9 +56,8 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     tracing::info!("\nMaratona Rustreimator rodando!");
     serve_simple_contest(
-        [("test".to_string(), config_contest)].into_iter().collect(),
+        complete,
         url,
-        config_secret,
         server_config,
         volumes.into_iter().map(|x| x.into_inner()).collect(),
     )

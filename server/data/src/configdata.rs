@@ -117,7 +117,6 @@ pub struct SedeSecret {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ConfigSecret {
-    pub salt: Option<String>,
     pub secrets: Vec<SedeSecret>,
 }
 
@@ -134,11 +133,11 @@ impl Secret {
 }
 
 impl ConfigSecret {
-    pub fn into_secret(self, sedes: &Contest) -> Secret {
-        let salt = self.salt.unwrap_or_default();
+    pub fn into_secret(&self, salt: Option<String>, sedes: &Contest) -> Secret {
+        let salt = salt.unwrap_or_default();
         let sedes_by_secret = self
             .secrets
-            .into_iter()
+            .iter()
             .filter_map(|sede_secret| {
                 let complete = format!("{}{}", salt, &sede_secret.secret);
                 sedes
@@ -172,13 +171,12 @@ mod tests {
         let contest = config_contest.into_contest();
 
         let config_secret = ConfigSecret {
-            salt: None,
             secrets: vec![SedeSecret {
                 name: "sede-name".into(),
                 secret: "key".into(),
             }],
         };
-        let secret = config_secret.into_secret(&contest);
+        let secret = config_secret.into_secret(None, &contest);
 
         assert!(secret
             .get_sede_by_secret("key")

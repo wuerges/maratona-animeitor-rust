@@ -49,23 +49,23 @@ fn route_contest_public_data(
 }
 
 fn serve_urlbase(
-    config_map: HashMap<String, ConfigContest>,
+    config_map: HashMap<String, (ConfigContest, Secret)>,
     shared_db: Arc<Mutex<DB>>,
     runs_tx: Arc<membroadcast::Sender<data::RunTuple>>,
     time_tx: broadcast::Sender<data::TimerData>,
-    secrets: Arc<Secret>,
 ) -> warp::filters::BoxedFilter<(impl warp::Reply,)> {
     let routes = config_map
         .into_iter()
-        .map(|(config_path, config)| {
+        .map(|(config_path, (config, secret))| {
             let config = Arc::new(config);
+            let secret = Arc::new(secret);
             let config_file = warp::path("config")
                 .and(warp::any().map(move || config.clone()))
                 .and_then(serve_contest_config);
 
             let all_runs_secret = warp::path("allruns_secret").and(secret::serve_all_runs_secret(
                 shared_db.clone(),
-                secrets.clone(),
+                secret.clone(),
             ));
 
             warp::path(config_path)
@@ -102,9 +102,8 @@ async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Reje
 }
 
 pub async fn serve_simple_contest(
-    config: HashMap<String, ConfigContest>,
+    config: HashMap<String, (ConfigContest, Secret)>,
     boca_url: String,
-    secrets: Secret,
     server_config: ServerConfig,
     volumes: Vec<Volume>,
 ) {
@@ -114,13 +113,7 @@ pub async fn serve_simple_contest(
 
     let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url);
 
-    let service_routes = warp::path("api").and(serve_urlbase(
-        config,
-        shared_db,
-        runs_tx,
-        time_tx,
-        secrets.into(),
-    ));
+    let service_routes = warp::path("api").and(serve_urlbase(config, shared_db, runs_tx, time_tx));
 
     let static_routes = serve_static_routes(volumes);
 
