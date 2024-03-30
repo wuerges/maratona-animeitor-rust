@@ -78,7 +78,7 @@ fn serve_urlbase(
         })
         .collect_or();
 
-    warp::path("file").and(routes).boxed()
+    warp::path("files").and(routes).boxed()
 }
 
 #[autometrics]
