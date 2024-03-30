@@ -493,6 +493,9 @@ pub struct RunsFile {
     runs: BTreeMap<i64, RunTuple>,
 }
 
+#[derive(Debug, Clone)]
+pub struct RunsFileContest(RunsFile);
+
 impl RunsFile {
     pub fn empty() -> Self {
         Self {
@@ -536,17 +539,10 @@ impl RunsFile {
         runs.retain(|&_, run| contest.teams.contains_key(&run.team_login));
     }
 
-    pub fn filter_sede(&self, sede: &Sede) -> Self {
-        Self {
-            runs: self
-                .runs
-                .iter()
-                .filter_map(|(key, value)| {
-                    sede.team_belongs_str(&value.team_login)
-                        .then_some((*key, value.clone()))
-                })
-                .collect(),
-        }
+    pub fn into_runs_sede(&self, contest: &ContestFile) -> RunsFileContest {
+        let mut runs = self.clone();
+        runs.filter_teams(contest);
+        RunsFileContest(runs)
     }
 
     pub fn refresh_1(&mut self, t: &RunTuple) -> bool {
