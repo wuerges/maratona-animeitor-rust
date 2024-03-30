@@ -199,7 +199,7 @@ impl DB {
         self.time_file = time;
         self.contest_file_begin = contest;
 
-        runs.filter_teams(&self.contest_file_begin.teams);
+        runs.filter_teams(&self.contest_file_begin);
         let runs_frozen = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
 
         let fresh = self.run_file.refresh(runs_frozen.sorted());

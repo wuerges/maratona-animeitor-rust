@@ -14,9 +14,10 @@ pub struct State {
 
 impl State {
     fn new(contest: ContestFile, runs: RunsFile, sede: &Sede) -> Option<Self> {
+        let sub_contest = contest.filter_sede(sede);
         Some(Self {
             is_started: false,
-            driver: RevelationDriver::new(contest, runs, sede)
+            driver: RevelationDriver::new(sub_contest, runs)
                 .inspect_err(|err| error!("failed creating revelation: {err:?}"))
                 .ok()?,
         })

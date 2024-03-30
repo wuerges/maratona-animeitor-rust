@@ -17,8 +17,9 @@ pub struct RevelationDriver {
 }
 
 impl RevelationDriver {
-    pub fn new(contest: ContestFile, runs: RunsFile, sede: &Sede) -> Result<Self, ContestError> {
-        let mut revelation = Revelation::new(contest.filter_sede(sede), runs.filter_sede(sede));
+    pub fn new(contest: ContestFile, mut runs: RunsFile) -> Result<Self, ContestError> {
+        runs.filter_teams(&contest);
+        let mut revelation = Revelation::new(contest, runs);
         revelation.apply_all_runs_before_frozen()?;
 
         Ok(Self {
