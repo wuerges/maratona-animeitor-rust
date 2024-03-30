@@ -5,7 +5,7 @@ use std::collections::BinaryHeap;
 #[derive(Debug, Clone)]
 struct Revelation {
     contest: ContestFile,
-    runs: RunsFile,
+    runs: RunsFileContest,
     runs_queue: RunsQueue,
 }
 
@@ -17,8 +17,8 @@ pub struct RevelationDriver {
 }
 
 impl RevelationDriver {
-    pub fn new(contest: ContestFile, mut runs: RunsFile) -> Result<Self, ContestError> {
-        runs.filter_teams(&contest);
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Result<Self, ContestError> {
+        let runs = runs.into_runs_sede(&contest);
         let mut revelation = Revelation::new(contest, runs);
         revelation.apply_all_runs_before_frozen()?;
 
@@ -87,7 +87,7 @@ impl RevelationDriver {
 }
 
 impl Revelation {
-    fn new(contest: ContestFile, runs: RunsFile) -> Self {
+    fn new(contest: ContestFile, runs: RunsFileContest) -> Self {
         Self {
             contest,
             runs,
@@ -96,11 +96,11 @@ impl Revelation {
     }
 
     fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
-        for run in &self.runs.sorted() {
+        for run in self.runs.as_ref().sorted() {
             if run.time < self.contest.score_freeze_time {
-                self.contest.apply_run(run);
+                self.contest.apply_run(&run);
             } else {
-                self.contest.apply_run_frozen(run);
+                self.contest.apply_run_frozen(&run);
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);

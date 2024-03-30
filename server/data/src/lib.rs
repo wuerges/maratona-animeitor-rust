@@ -496,6 +496,12 @@ pub struct RunsFile {
 #[derive(Debug, Clone)]
 pub struct RunsFileContest(RunsFile);
 
+impl AsRef<RunsFile> for RunsFileContest {
+    fn as_ref(&self) -> &RunsFile {
+        &self.0
+    }
+}
+
 impl RunsFile {
     pub fn empty() -> Self {
         Self {
@@ -532,6 +538,19 @@ impl RunsFile {
                 .filter(|r| r.time < frozen_time)
                 .collect(),
         )
+    }
+
+    pub fn filter_sede(&self, sede: &Sede) -> Self {
+        Self {
+            runs: self
+                .runs
+                .iter()
+                .filter_map(|(key, value)| {
+                    sede.team_belongs_str(&value.team_login)
+                        .then_some((*key, value.clone()))
+                })
+                .collect(),
+        }
     }
 
     pub fn filter_teams(&mut self, contest: &ContestFile) {
