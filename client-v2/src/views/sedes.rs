@@ -60,7 +60,14 @@ fn ProvideSede(
 
 #[component]
 fn ConfiguredReveleitor(
-    config_contest: Resource<(), ConfigContest>,
+    config_contest: Resource<
+        (),
+        (
+            Signal<ContestFile>,
+            ConfigContest,
+            ReadSignal<Vec<RunsPanelItem>>,
+        ),
+    >,
     secret: String,
 ) -> impl IntoView {
     view! {
@@ -69,10 +76,10 @@ fn ConfiguredReveleitor(
             let secret = secret.clone();
             move || {
                 let secret = secret.clone();
-                config_contest.get().map(move |config| {
+                config_contest.get().map(move |(contest,config,_)| {
                     let sede = use_configured_sede(config);
                     match sede {
-                        Some(sede) => view! { <Reveleitor sede secret /> }.into_view(),
+                        Some(sede) => view! { <Reveleitor sede secret contest /> }.into_view(),
                         None => view! { <p> Failed to match site </p> }.into_view(),
                     }
                 })
@@ -101,7 +108,7 @@ pub fn Sedes() -> impl IntoView {
                 Some(params) => {
                     log!("loaded params: {:?}", params);
                     match params.secret {
-                    Some(secret) => view! { <ConfiguredReveleitor config_contest secret/> }.into_view(),
+                    Some(secret) => view! { <ConfiguredReveleitor config_contest=contest_and_panel secret/> }.into_view(),
                     None => view! {
                         <Navigation config_contest />
                         <Suspense fallback=|| view! { <p> Loading contest... </p> }>

@@ -1,10 +1,7 @@
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
 
-use crate::{
-    api::{create_contest, create_secret_runs},
-    views::contest::ContestPanel,
-};
+use crate::{api::create_secret_runs, views::contest::ContestPanel};
 
 #[derive(Debug)]
 pub struct State {
@@ -159,7 +156,7 @@ pub fn Revelation(sede: Sede, runs_file: RunsFile, contest: ContestFile) -> impl
 }
 
 #[component]
-pub fn Reveleitor(sede: Sede, secret: String) -> impl IntoView {
+pub fn Reveleitor(sede: Sede, secret: String, contest: Signal<ContestFile>) -> impl IntoView {
     let all_runs = create_local_resource(
         || (),
         move |()| {
@@ -167,10 +164,9 @@ pub fn Reveleitor(sede: Sede, secret: String) -> impl IntoView {
             create_secret_runs(secret)
         },
     );
-    let contest = create_local_resource(|| (), |()| create_contest());
 
     move || match (all_runs.get(), contest.get()) {
-        (Some(runs_file), Some(contest)) => {
+        (Some(runs_file), contest) => {
             Some(view! { <Revelation sede=sede.clone() runs_file contest /> })
         }
         _ => None,
