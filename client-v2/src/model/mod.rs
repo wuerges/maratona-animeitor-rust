@@ -12,6 +12,7 @@ pub async fn provide_contest() -> (
 ) {
     let original_contest_file = create_contest().await;
     let config = create_config().await;
+    let original_contest_file = original_contest_file.filter_sede(&config.titulo.into_sede());
 
     log!("fetched original contest");
     let (contest_signal, set_contest_signal) =

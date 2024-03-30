@@ -1,4 +1,6 @@
-titulo = "Contest Exemplo"
+[titulo]
+name = "Contest Exemplo"
+codes = [""]
 
 [[sedes]]
 # Nome da sede, usado no basic_secret.toml
