@@ -2,7 +2,7 @@ use clap::Parser;
 use cli::SimpleArgs;
 use server::{config::ServerConfig, *};
 
-use service::volume::Volume;
+use service::{pair_arg::FromPairArg, volume::Volume};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Parser)]
@@ -24,7 +24,7 @@ struct SimpleParser {
     /// Can be used multiple times.
     ///
     /// Expected format: FOLDER:PATH
-    volume: Vec<Volume>,
+    volume: Vec<FromPairArg<Volume>>,
 }
 
 #[tokio::main]
@@ -55,7 +55,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         url,
         config_secret,
         server_config,
-        volumes,
+        volumes.into_iter().map(|x| x.into_inner()).collect(),
     )
     .await;
 
