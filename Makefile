@@ -59,7 +59,7 @@ prog-americas-debug-server:
 
 debug-server:
 	@echo running server...
-	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml --secret ../config/basic_secret.toml ../tests/inputs/webcast_jones.zip )
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml:debug --secret ../config/basic_secret.toml ../tests/inputs/webcast_jones.zip )
 
 
 prog-americas-build-server:
