@@ -39,9 +39,13 @@ fn use_local_params() -> Option<LocalParams> {
 
 fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
     let config = config.into_contest();
-    let name = use_local_params()?.sede?;
-    let sede = config.get_sede_nome_sede(&name)?;
-    Some(sede.clone())
+    Some(match use_local_params()?.sede {
+        Some(name) => {
+            let sede = config.get_sede_nome_sede(&name)?;
+            sede.clone()
+        }
+        None => config.titulo,
+    })
 }
 
 #[component]
