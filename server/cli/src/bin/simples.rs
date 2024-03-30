@@ -41,12 +41,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         volume: volumes,
     } = SimpleParser::parse();
 
-    let map = args.into_contest_and_secret()?;
-
-    let complete = map
-        .into_iter()
-        .map(|(name, (config, _, secret))| (name, (config, secret)))
-        .collect();
+    let complete = args.into_contest_and_secret()?;
 
     let server_config = ServerConfig { port };
 
