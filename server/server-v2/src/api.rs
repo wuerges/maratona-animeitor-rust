@@ -1,7 +1,7 @@
 use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
-use tracing::{debug, info, warn, Level};
+use tracing::{debug, warn, Level};
 
 use crate::app_data::AppData;
 
@@ -32,7 +32,7 @@ async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -
 #[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
 async fn get_timer(
     data: web::Data<AppData>,
-    sede_config: web::Path<String>,
+    _sede_config: web::Path<String>,
     req: HttpRequest,
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
