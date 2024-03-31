@@ -14,10 +14,7 @@ use tokio::sync::{broadcast, Mutex};
 
 #[get("/files/{sede_config}/contest")]
 #[autometrics]
-async fn serve_contest_file(
-    data: web::Data<Data>,
-    sede_config: web::Path<String>,
-) -> impl Responder {
+async fn get_contest(data: web::Data<Data>, sede_config: web::Path<String>) -> impl Responder {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -58,7 +55,7 @@ pub async fn serve_config(
                 time_tx: time_tx.clone(),
                 config: config.clone(),
             }))
-            .service(web::scope("api").service(serve_contest_file))
+            .service(web::scope("api").service(get_contest))
     })
     .bind(("0.0.0.0", port))?
     .run()
