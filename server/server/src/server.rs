@@ -1,4 +1,3 @@
-use crate::config::ServerConfig;
 use crate::dbupdate::spawn_db_update;
 use crate::membroadcast;
 use crate::metrics::route_metrics;
@@ -13,7 +12,7 @@ use data::configdata::Contest;
 use data::configdata::Secret;
 use data::configdata::Sede;
 use itertools::Itertools;
-use service::volume::Volume;
+use service::app_config::AppConfig;
 use warp::Rejection;
 
 use crate::errors::Error as CError;
@@ -121,10 +120,12 @@ async fn serve_contest_config(config: Arc<ConfigContest>) -> Result<String, Reje
 }
 
 pub async fn serve_simple_contest(
-    config: HashMap<String, (ConfigContest, Contest, Secret)>,
-    boca_url: String,
-    server_config: ServerConfig,
-    volumes: Vec<Volume>,
+    AppConfig {
+        config,
+        boca_url,
+        server_config,
+        volumes,
+    }: AppConfig,
 ) {
     let port = server_config.port;
 

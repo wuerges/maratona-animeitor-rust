@@ -1,8 +1,8 @@
 use clap::Parser;
 use cli::SimpleArgs;
-use server::{config::ServerConfig, *};
+use server::*;
 
-use service::{pair_arg::FromPairArg, volume::Volume};
+use service::{app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, volume::Volume};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Parser)]
@@ -43,20 +43,21 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let complete = args.into_contest_and_secret()?;
 
-    let server_config = ServerConfig { port };
+    let server_config = HttpConfig { port };
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
     let _autometrics = metrics::setup();
 
-    tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(
-        complete,
-        url,
+    let app_config = AppConfig {
+        config: complete,
+        boca_url: url,
         server_config,
-        volumes.into_iter().map(|x| x.into_inner()).collect(),
-    )
-    .await;
+        volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
+    };
+
+    tracing::info!("\nMaratona Rustreimator rodando!");
+    serve_simple_contest(app_config).await;
 
     Ok(())
 }
