@@ -58,7 +58,7 @@ pub async fn serve_config(
                 time_tx: time_tx.clone(),
                 config: config.clone(),
             }))
-            .service(serve_contest_file)
+            .service(web::scope("api").service(serve_contest_file))
     })
     .bind(("0.0.0.0", port))?
     .run()
