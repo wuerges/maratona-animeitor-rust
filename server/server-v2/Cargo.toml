@@ -8,6 +8,8 @@ authors.workspace = true
 
 [dependencies]
 actix-web = "4.5"
+actix-ws = "0.2"
+tracing-actix-web = "0.7"
 toml.workspace = true
 serde.workspace = true
 serde_json.workspace = true

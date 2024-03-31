@@ -9,6 +9,7 @@ use app_data::AppData;
 use service::{
     app_config::AppConfig, dbupdate_v2::spawn_db_update, errors::ServiceResult, http::HttpConfig,
 };
+use tracing_actix_web::TracingLogger;
 
 pub async fn serve_config(
     AppConfig {
@@ -23,6 +24,7 @@ pub async fn serve_config(
 
     Ok(HttpServer::new(move || {
         App::new()
+            .wrap(TracingLogger::default())
             .app_data(web::Data::new(AppData {
                 shared_db: shared_db.clone(),
                 runs_tx: runs_tx.clone(),
