@@ -3,9 +3,8 @@ use crate::errors::CResult;
 use std::sync::Arc;
 use std::time::Instant;
 
-use crate::membroadcast;
 use metrics::{counter, histogram};
-use service::DB;
+use service::{membroadcast, DB};
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
 
