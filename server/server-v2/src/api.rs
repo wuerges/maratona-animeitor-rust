@@ -6,7 +6,7 @@ use tracing::{debug, warn, Level};
 use crate::app_data::AppData;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service((get_contest, get_timer, get_config));
+    cfg.service((get_contest, get_timer, get_config, get_allruns_ws));
 }
 
 #[get("/files/{sede_config}/contest")]
@@ -39,6 +39,54 @@ async fn get_config(data: web::Data<AppData>, sede_config: web::Path<String>) ->
     match data.config.get(&*sede_config) {
         Some((config, _, _)) => HttpResponse::Ok().json(config),
         None => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[get("/files/{sede_config}/allruns_ws")]
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
+async fn get_allruns_ws(
+    data: web::Data<AppData>,
+    sede_config: web::Path<String>,
+    req: HttpRequest,
+    body: web::Payload,
+) -> Result<HttpResponse, Error> {
+    let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
+    let mut runs_rx = data.runs_tx.subscribe();
+
+    let sede = data
+        .config
+        .get(&*sede_config)
+        .map(|(_config, contest, _secret)| contest.titulo.clone());
+
+    match sede {
+        None => Ok(HttpResponse::Forbidden().finish()),
+        Some(sede) => {
+            actix_web::rt::spawn(async move {
+                loop {
+                    match runs_rx.recv().await {
+                        Ok(r) => {
+                            if sede.team_belongs_str(&r.team_login) {
+                                match serde_json::to_string(&r) {
+                                    Ok(text) => {
+                                        if let Err(Closed) = session.text(text).await {
+                                            debug!("ws connection closed");
+                                            break;
+                                        }
+                                    }
+                                    Err(err) => warn!(?err, "failed serializing run"),
+                                }
+                            }
+                        }
+                        Err(err) => {
+                            warn!(?err, "recv failed");
+                            break;
+                        }
+                    }
+                }
+            });
+            Ok(response)
+        }
     }
 }
 
