@@ -1,12 +1,19 @@
 use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
+use serde::Deserialize;
 use tracing::{debug, warn, Level};
 
 use crate::app_data::AppData;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service((get_contest, get_timer, get_config, get_allruns_ws));
+    cfg.service((
+        get_contest,
+        get_timer,
+        get_config,
+        get_allruns_ws,
+        get_allruns_secret,
+    ));
 }
 
 #[get("/files/{sede_config}/contest")]
@@ -39,6 +46,38 @@ async fn get_config(data: web::Data<AppData>, sede_config: web::Path<String>) ->
     match data.config.get(&*sede_config) {
         Some((config, _, _)) => HttpResponse::Ok().json(config),
         None => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct SecretQuery {
+    secret: String,
+}
+
+#[get("/files/{sede_config}/allruns_secret")]
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
+async fn get_allruns_secret(
+    data: web::Data<AppData>,
+    sede_config: web::Path<String>,
+    query: web::Query<SecretQuery>,
+) -> impl Responder {
+    let sede = data
+        .config
+        .get(&*sede_config)
+        .map(|(_, _, s)| s.get_sede_by_secret(&query.secret).cloned())
+        .flatten();
+
+    match sede {
+        None => HttpResponse::Forbidden().finish(),
+        Some(sede) => {
+            let db = data.shared_db.lock().await;
+            if db.time_file < 0 {
+                HttpResponse::Forbidden().finish()
+            } else {
+                HttpResponse::Ok().json(db.run_file_secret.filter_sede(&sede))
+            }
+        }
     }
 }
 
