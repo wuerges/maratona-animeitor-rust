@@ -2440,6 +2440,7 @@ name = "server-v2"
 version = "0.12.0"
 dependencies = [
  "actix-web",
+ "autometrics",
  "color-eyre",
  "data",
  "serde",
