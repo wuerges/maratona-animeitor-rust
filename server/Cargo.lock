@@ -561,6 +561,7 @@ dependencies = [
  "serde",
  "serde_json",
  "server",
+ "server-v2",
  "service",
  "tokio",
  "toml",

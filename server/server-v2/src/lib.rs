@@ -23,7 +23,7 @@ async fn serve_contest_file(
         return HttpResponse::Forbidden().finish();
     }
 
-    match data.config.get(sede_config.as_ref()) {
+    match data.config.get(&*sede_config) {
         Some((_, contest, _)) => {
             let result = db.contest_file_begin.clone().filter_sede(&contest.titulo);
             HttpResponse::Ok().json(result)
@@ -52,15 +52,15 @@ pub async fn serve_config(
 
     Ok(HttpServer::new(move || {
         App::new()
-            .app_data(Data {
+            .app_data(web::Data::new(Data {
                 shared_db: shared_db.clone(),
                 runs_tx: runs_tx.clone(),
                 time_tx: time_tx.clone(),
                 config: config.clone(),
-            })
+            }))
             .service(serve_contest_file)
     })
-    .bind(("127.0.0.1", port))?
+    .bind(("0.0.0.0", port))?
     .run()
     .await?)
 }

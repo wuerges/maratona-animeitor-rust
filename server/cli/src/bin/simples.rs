@@ -1,5 +1,8 @@
+use std::str::FromStr;
+
 use clap::Parser;
 use cli::SimpleArgs;
+use color_eyre::eyre::eyre;
 use server::*;
 
 use service::{
@@ -27,6 +30,28 @@ struct SimpleParser {
     ///
     /// Expected format: FOLDER:PATH
     volume: Vec<FromPairArg<Volume>>,
+
+    #[clap(long)]
+    server_version: Option<Version>,
+}
+
+#[derive(Default, Debug, Clone)]
+enum Version {
+    #[default]
+    V1,
+    V2,
+}
+
+impl FromStr for Version {
+    type Err = color_eyre::eyre::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "v1" => Ok(Version::V1),
+            "v2" => Ok(Version::V2),
+            _ => Err(eyre!("unknown version: {s}")),
+        }
+    }
 }
 
 #[tokio::main]
@@ -41,6 +66,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         port,
         url,
         volume: volumes,
+        server_version,
     } = SimpleParser::parse();
 
     let complete = args.into_contest_and_secret()?;
@@ -59,7 +85,13 @@ async fn main() -> color_eyre::eyre::Result<()> {
     };
 
     tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(app_config).await;
+
+    tracing::info!("Server listening on port: {}", port);
+
+    match server_version.unwrap_or_default() {
+        Version::V1 => serve_simple_contest(app_config).await,
+        Version::V2 => server_v2::serve_config(app_config).await?,
+    }
 
     Ok(())
 }
