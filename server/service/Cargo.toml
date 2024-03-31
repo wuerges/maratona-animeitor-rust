@@ -19,5 +19,7 @@ serde_json.workspace = true
 itertools.workspace = true
 futures.workspace = true
 sentry.workspace = true
+metrics.workspace = true
+futures-signals = "0.3"
 
 data = { path = "../data" }

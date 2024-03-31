@@ -1,5 +1,5 @@
 use parking_lot::RwLock;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::Arc};
 use tokio::sync::broadcast;
 
 pub struct Receiver<T: Clone> {
@@ -29,16 +29,17 @@ impl<T: Clone> Receiver<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct Sender<T: Clone> {
     tx: broadcast::Sender<T>,
-    messages: RwLock<Vec<T>>,
+    messages: Arc<RwLock<Vec<T>>>,
 }
 
 impl<T: Clone> Sender<T> {
     fn new(tx: broadcast::Sender<T>) -> Self {
         Self {
             tx,
-            messages: RwLock::new(Vec::new()),
+            messages: Arc::new(RwLock::new(Vec::new())),
         }
     }
 

@@ -1,5 +1,6 @@
 pub mod app_config;
 mod dataio;
+pub mod dbupdate_v2;
 pub mod errors;
 pub mod http;
 pub mod membroadcast;
