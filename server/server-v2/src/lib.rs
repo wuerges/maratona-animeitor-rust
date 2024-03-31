@@ -3,6 +3,7 @@ mod app_data;
 
 use std::sync::Arc;
 
+use actix_cors::Cors;
 use actix_web::*;
 use app_data::AppData;
 
@@ -25,6 +26,7 @@ pub async fn serve_config(
     Ok(HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(Cors::permissive())
             .app_data(web::Data::new(AppData {
                 shared_db: shared_db.clone(),
                 runs_tx: runs_tx.clone(),
