@@ -23,7 +23,6 @@ html-escape.workspace = true
 parking_lot.workspace = true
 thiserror.workspace = true
 openssl.workspace = true
-sentry.workspace = true
 autometrics.workspace = true
 prometheus.workspace = true
 metrics.workspace = true

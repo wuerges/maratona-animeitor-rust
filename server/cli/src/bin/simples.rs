@@ -2,7 +2,9 @@ use clap::Parser;
 use cli::SimpleArgs;
 use server::*;
 
-use service::{app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, volume::Volume};
+use service::{
+    app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, sentry, volume::Volume,
+};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Parser)]

@@ -18,5 +18,6 @@ serde.workspace = true
 serde_json.workspace = true
 itertools.workspace = true
 futures.workspace = true
+sentry.workspace = true
 
 data = { path = "../data" }

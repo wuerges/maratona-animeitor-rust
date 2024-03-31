@@ -5,7 +5,6 @@ pub mod openapi;
 pub mod or_many;
 mod runs;
 mod secret;
-pub mod sentry;
 mod server;
 mod static_routes;
 mod timer;
