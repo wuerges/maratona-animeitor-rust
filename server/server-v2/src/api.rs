@@ -1,7 +1,7 @@
 use actix_web::*;
-use actix_ws::{CloseReason, Closed};
+use actix_ws::Closed;
 use autometrics::autometrics;
-use tracing::{info, warn};
+use tracing::{debug, info, warn, Level};
 
 use crate::app_data::AppData;
 
@@ -11,7 +11,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
 #[get("/files/{sede_config}/contest")]
 #[autometrics]
-#[tracing::instrument(skip(data))]
+#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -> impl Responder {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
@@ -29,7 +29,7 @@ async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -
 
 #[get("/files/{sede_config}/timer")]
 #[autometrics]
-#[tracing::instrument(skip(data, body))]
+#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
 async fn get_timer(
     data: web::Data<AppData>,
     sede_config: web::Path<String>,
@@ -45,7 +45,7 @@ async fn get_timer(
                 Ok(time) => match serde_json::to_string(&time) {
                     Ok(text) => {
                         if let Err(Closed) = session.text(text).await {
-                            info!("ws connection closed");
+                            debug!("ws connection closed");
                             break;
                         }
                     }
