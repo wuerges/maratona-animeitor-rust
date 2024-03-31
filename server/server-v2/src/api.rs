@@ -6,7 +6,7 @@ use tracing::{debug, warn, Level};
 use crate::app_data::AppData;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service((get_contest, get_timer));
+    cfg.service((get_contest, get_timer, get_config));
 }
 
 #[get("/files/{sede_config}/contest")]
@@ -23,6 +23,21 @@ async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -
             let result = db.contest_file_begin.clone().filter_sede(&contest.titulo);
             HttpResponse::Ok().json(result)
         }
+        None => HttpResponse::NotFound().finish(),
+    }
+}
+
+#[get("/files/{sede_config}/config")]
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
+async fn get_config(data: web::Data<AppData>, sede_config: web::Path<String>) -> impl Responder {
+    let db = data.shared_db.lock().await;
+    if db.time_file < 0 {
+        return HttpResponse::Forbidden().finish();
+    }
+
+    match data.config.get(&*sede_config) {
+        Some((config, _, _)) => HttpResponse::Ok().json(config),
         None => HttpResponse::NotFound().finish(),
     }
 }
