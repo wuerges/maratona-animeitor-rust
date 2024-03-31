@@ -55,17 +55,25 @@ async fn get_timer(
     let mut time_rx = data.time_tx.subscribe();
 
     actix_web::rt::spawn(async move {
+        let mut previous = None;
         loop {
             match time_rx.recv().await {
-                Ok(time) => match serde_json::to_string(&time) {
-                    Ok(text) => {
-                        if let Err(Closed) = session.text(text).await {
-                            debug!("ws connection closed");
-                            break;
-                        }
+                Ok(time) => {
+                    if previous.is_some_and(|x| x == time) {
+                        continue;
                     }
-                    Err(err) => warn!(?err, "failed serializing time"),
-                },
+                    previous = Some(time);
+
+                    match serde_json::to_string(&time) {
+                        Ok(text) => {
+                            if let Err(Closed) = session.text(text).await {
+                                debug!("ws connection closed");
+                                break;
+                            }
+                        }
+                        Err(err) => warn!(?err, "failed serializing time"),
+                    }
+                }
                 Err(err) => {
                     warn!(?err, "recv failed");
                     break;
