@@ -2468,7 +2468,6 @@ dependencies = [
  "serde_json",
  "service",
  "tokio",
- "tokio-stream",
  "toml",
  "tracing",
  "tracing-actix-web",
@@ -2772,7 +2771,6 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
- "tokio-util",
 ]
 
 [[package]]
