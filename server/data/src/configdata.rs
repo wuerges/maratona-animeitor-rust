@@ -76,13 +76,14 @@ pub struct ConfigContest {
     /// The contest title.
     pub titulo: SedeEntry,
     /// A site entry.
-    pub sedes: Vec<SedeEntry>,
+    pub sedes: Option<Vec<SedeEntry>>,
 }
 
 impl ConfigContest {
     pub fn into_contest(self) -> Contest {
         let entry_map: HashMap<String, SedeEntry> = self
             .sedes
+            .unwrap_or_default()
             .into_iter()
             .map(|sede| (sede.name.clone(), sede))
             .collect();
@@ -105,6 +106,9 @@ pub struct Contest {
 
 impl Contest {
     pub fn get_sede_nome_sede(&self, name: &str) -> Option<&Sede> {
+        if self.titulo.entry.name == name {
+            return Some(&self.titulo);
+        }
         self.sedes.get(name)
     }
 }

@@ -1,18 +1,21 @@
 [titulo]
 name = "Contest Exemplo"
 codes = [""]
+ouro = 1
+prata = 2
+bronze = 3
 
-[[sedes]]
-# Nome da sede, usado no basic_secret.toml
-name = "Sede Exemplo"
-# Estilo da sede, para customizar o CSS
-style = "sede_exemplo"
-premiacao = false
-vagas = 5
-# Substring para casar times dessa sede
-# Somente times que contem esse substring pertencerao a sede
-# codes = ["team"]
-codes = [""]
-ouro = 4
-prata = 8
-bronze = 12
+# [[sedes]]
+# # Nome da sede, usado no basic_secret.toml
+# name = "Sede Exemplo"
+# # Estilo da sede, para customizar o CSS
+# style = "sede_exemplo"
+# premiacao = false
+# vagas = 5
+# # Substring para casar times dessa sede
+# # Somente times que contem esse substring pertencerao a sede
+# # codes = ["team"]
+# codes = [""]
+# ouro = 4
+# prata = 8
+# bronze = 12

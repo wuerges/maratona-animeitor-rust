@@ -22,7 +22,7 @@ pub fn Navigation(config_contest: Resource<(), ConfigContest>) -> impl IntoView 
                     {move || {
                         config_contest.get().map(|contest| {
                             contest
-                            .sedes
+                            .sedes.unwrap_or_default()
                             .iter()
                             .cloned()
                             .map(|sede| {
