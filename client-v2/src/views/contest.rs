@@ -1,29 +1,14 @@
 use data::{
     configdata::{Color, Sede},
-    BelongsToContest, ContestFile, RunsPanelItem, Team, TimerData,
+    ContestFile, RunsPanelItem, Team, TimerData,
 };
 use itertools::Itertools;
 use leptos::{logging::log, *};
 
 use crate::views::timer::Timer;
 
-pub fn get_color(n: usize, sede: Option<&Sede>) -> Option<Color> {
-    match sede {
-        Some(sede) => sede.premio(n),
-        None => {
-            if n == 0 {
-                Some(Color::Red)
-            } else if n <= 4 {
-                Some(Color::Gold)
-            } else if n <= 8 {
-                Some(Color::Silver)
-            } else if n <= 12 {
-                Some(Color::Bronze)
-            } else {
-                None
-            }
-        }
-    }
+pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {
+    sede.premio(n)
 }
 
 fn get_class(color: Color) -> &'static str {
@@ -38,12 +23,9 @@ fn get_class(color: Color) -> &'static str {
 }
 
 #[component]
-fn Placement(
-    placement: MaybeSignal<usize>,
-    #[prop(optional_no_strip)] sede: Option<Sede>,
-) -> impl IntoView {
+fn Placement(placement: MaybeSignal<usize>, sede: Box<Sede>) -> impl IntoView {
     move || {
-        let color = get_color(placement.get(), sede.as_ref());
+        let color = get_color(placement.get(), &sede);
         let background_color = color.map(get_class).unwrap_or_default();
 
         view! {
@@ -100,22 +82,17 @@ fn RunResult(problem: String, answer: Signal<data::Answer>) -> impl IntoView {
 
 fn take_30(
     items: Vec<RunsPanelItem>,
-    sede: Option<Sede>,
+    sede: Box<Sede>,
 ) -> impl IntoIterator<Item = (usize, RunsPanelItem)> {
     items
         .into_iter()
-        .filter(move |p| {
-            sede.is_none()
-                || sede
-                    .as_ref()
-                    .is_some_and(|s| s.team_belongs_str(&p.team_login))
-        })
+        .filter(move |p| sede.team_belongs_str(&p.team_login))
         .take(30)
         .enumerate()
 }
 
 #[component]
-fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Option<Sede>) -> impl IntoView {
+fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Box<Sede>) -> impl IntoView {
     let sede_move = sede.clone();
 
     view! {
@@ -162,15 +139,12 @@ fn number_submissions(s: usize) -> Option<usize> {
     }
 }
 
-fn nome_sede(sede: Option<&Sede>) -> &str {
-    match sede {
-        None => "Placar",
-        Some(sede) => sede.entry.name.as_str(),
-    }
+fn nome_sede(sede: &Sede) -> &str {
+    sede.entry.name.as_str()
 }
 
-fn estilo_sede(sede: Option<&Sede>) -> Option<&str> {
-    sede.and_then(|s| s.entry.style.as_deref())
+fn estilo_sede(sede: &Sede) -> Option<&str> {
+    sede.entry.style.as_deref()
 }
 
 fn cell_top(i: usize, center: &Option<usize>) -> String {
@@ -238,6 +212,7 @@ fn ContestPanelLine(
     p_center: Signal<Option<usize>>,
     team: Signal<Team>,
     all_problems: Signal<&'static str>,
+    sede: Box<Sede>,
 ) -> impl IntoView {
     log!("line refresh");
 
@@ -255,9 +230,9 @@ fn ContestPanelLine(
                 view!{
                     <div class={center_class(local_placement.get(), &p_center.get()).iter().chain(&["run_prefix"]).join(" ")}>
                         {is_compressed.then_some(view! {
-                            <Placement placement={(move || team_value.placement_global).into_signal().into()} />
+                            <Placement placement={(move || team_value.placement_global).into_signal().into()} sede=sede.clone() />
                         })}
-                        <Placement placement=local_placement.into() />
+                        <Placement placement=local_placement.into() sede=sede.clone() />
                         <TeamName escola=team_value.escola.clone() name=team_value.name.clone() />
                         <div class="cell problema quadrado">
                             <div class="cima">{score.solved}</div>
@@ -281,10 +256,7 @@ fn ContestPanelLine(
 }
 
 #[component]
-fn ContestPanelHeader<'a>(
-    sede: Option<&'a Sede>,
-    all_problems: Signal<&'static str>,
-) -> impl IntoView {
+fn ContestPanelHeader<'a>(sede: &'a Sede, all_problems: Signal<&'static str>) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
@@ -309,7 +281,7 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
 pub fn ContestPanel(
     contest: Signal<ContestFile>,
     center: Signal<Option<String>>,
-    sede: Option<Sede>,
+    sede: Box<Sede>,
 ) -> impl IntoView {
     log!("contest panel refresh");
     let n: Signal<usize> = Signal::derive(move || contest.get().number_problems);
@@ -320,7 +292,7 @@ pub fn ContestPanel(
             .get()
             .teams
             .values()
-            .any(|team| !team.belongs_to_contest(cloned_sede.as_ref()))
+            .any(|team| !cloned_sede.team_belongs(team))
     });
 
     let cloned_sede = sede.clone();
@@ -329,7 +301,7 @@ pub fn ContestPanel(
             .get()
             .teams
             .into_values()
-            .filter(|team| team.belongs_to_contest(cloned_sede.as_ref()))
+            .filter(|team| cloned_sede.team_belongs(team))
             .collect_vec()
     });
 
@@ -364,7 +336,7 @@ pub fn ContestPanel(
             <div class="run_box" style:top={move || {
                 log!("center {:?} {:?}", center.get(), p_center.get());
                 cell_top(0, &p_center.get())}}>
-                <ContestPanelHeader sede=sede.as_ref() all_problems />
+                <ContestPanelHeader sede=&sede all_problems />
             </div>
 
             <For
@@ -375,7 +347,7 @@ pub fn ContestPanel(
                     let team = Signal::derive(move || teams.with(|ts| ts[i].clone()));
 
                     view!{
-                        <ContestPanelLine is_compressed local_placement p_center team all_problems />
+                        <ContestPanelLine is_compressed local_placement p_center team all_problems sede=sede.clone() />
                     }
                 }}
             />
@@ -384,11 +356,11 @@ pub fn ContestPanel(
 }
 
 #[component]
-fn EmptyContestPanel<'a>(sede: Option<&'a Sede>) -> impl IntoView {
+fn EmptyContestPanel<'a>(sede: &'a Sede) -> impl IntoView {
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &None)}>
-                <ContestPanelHeader sede=sede all_problems=create_signal("").0.into() />
+                <ContestPanelHeader sede all_problems=create_signal("").0.into() />
             </div>
         </div>
     }
@@ -399,7 +371,7 @@ pub fn Contest(
     contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
-    #[prop(optional)] sede: Option<Sede>,
+    sede: Box<Sede>,
 ) -> impl IntoView {
     let (center, _) = create_signal(None);
 

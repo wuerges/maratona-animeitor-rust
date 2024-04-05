@@ -37,15 +37,12 @@ fn use_local_params() -> Option<LocalParams> {
     Some(params)
 }
 
-fn use_configured_sede(config: ConfigContest) -> Option<Sede> {
+fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sede {
     let config = config.into_contest();
-    Some(match use_local_params()?.sede {
-        Some(name) => {
-            let sede = config.get_sede_nome_sede(&name)?;
-            sede.clone()
-        }
-        None => config.titulo,
-    })
+    sede_param
+        .and_then(|sede| config.get_sede_nome_sede(&sede))
+        .cloned()
+        .unwrap_or(config.titulo)
 }
 
 #[component]
@@ -54,12 +51,10 @@ fn ProvideSede(
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
+    sede_param: Option<String>,
 ) -> impl IntoView {
-    let sede = use_configured_sede(config_contest);
-    match sede {
-        Some(sede) => view! { <Contest contest panel_items timer sede /> }.into_view(),
-        None => view! { <p> Failed to match site </p> }.into_view(),
-    }
+    let sede = Box::new(use_configured_sede(config_contest, sede_param));
+    view! { <Contest contest panel_items timer sede /> }
 }
 
 #[component]
@@ -73,19 +68,19 @@ fn ConfiguredReveleitor(
         ),
     >,
     secret: String,
+    sede_param: Option<String>,
 ) -> impl IntoView {
     view! {
         <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
         {
             let secret = secret.clone();
+            let sede_param = sede_param.clone();
             move || {
+                let sede_param = sede_param.clone();
                 let secret = secret.clone();
                 config_contest.get().map(move |(contest,config,_)| {
-                    let sede = use_configured_sede(config);
-                    match sede {
-                        Some(sede) => view! { <Reveleitor sede secret contest /> }.into_view(),
-                        None => view! { <p> Failed to match site </p> }.into_view(),
-                    }
+                    let sede = Box::new(use_configured_sede(config,sede_param));
+                    view! { <Reveleitor sede secret contest /> }.into_view()
                 })
             }}
         </Suspense>
@@ -112,14 +107,21 @@ pub fn Sedes() -> impl IntoView {
                 Some(params) => {
                     log!("loaded params: {:?}", params);
                     match params.secret {
-                    Some(secret) => view! { <ConfiguredReveleitor config_contest=contest_and_panel secret/> }.into_view(),
-                    None => view! {
-                        <Navigation config_contest />
-                        <Suspense fallback=|| view! { <p> Loading contest... </p> }>
-                            {move || contest_and_panel.get().map(|(contest, config_contest, panel_items)| view!{ <ProvideSede contest panel_items timer config_contest /> })}
-                        </Suspense>
-                    }.into_view(),
-                }
+                        Some(secret) => view! {
+                            <ConfiguredReveleitor config_contest=contest_and_panel secret=secret sede_param=params.sede.clone() />
+                        }.into_view(),
+                        None => view! {
+                            <Navigation config_contest />
+                            <Suspense fallback=|| view! { <p> Loading contest... </p> }>
+                                {
+                                    let sede = params.sede.clone();
+                                    move || contest_and_panel.get().map(|(contest, config_contest, panel_items)|
+                                       view!{ <ProvideSede contest panel_items timer config_contest sede_param=sede.clone() /> }
+                                    )
+                                }
+                            </Suspense>
+                        }.into_view(),
+                    }
                 }
             }
         }
