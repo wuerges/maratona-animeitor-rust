@@ -50,17 +50,23 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
 }
 
 #[component]
-fn RunResult(problem: String, answer: Signal<data::Answer>) -> impl IntoView {
+fn RunResult(
+    problem: String,
+    answer: Signal<data::Answer>,
+    first_solved: Signal<bool>,
+) -> impl IntoView {
     let balao = format!("balao_{}", problem);
     view! {
         <div class="cell quadrado">{problem}</div>
         {move || match answer.get() {
-            data::Answer::Yes(time) => view! {
+            data::Answer::Yes(time) => {
+                let img = if first_solved.get() {"star-img"} else {"accept-img"};
+                view! {
                 <div class="accept cell quadrado">
-                    <div class=format!("accept-img {balao}") />
+                    <div class=format!("{img} {balao}") />
                     <div class="accept-text cell-content">{time}</div>
                 </div>
-            },
+            }},
             data::Answer::No => view! {
                 <div class="unsolved cell quadrado cell-content">
                     <div class="no-img-run" />
@@ -104,12 +110,13 @@ fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Box<Sede>) -> impl IntoVie
                 let sede = sede.clone();
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
                 let result = Signal::derive(move || items.get()[i].result.clone());
+                let first_solved = Signal::derive(move || items.get()[i].first_solved);
 
                 view! {
                     <div class="run" style:top={top} >
                         <Placement placement={o.placement.into()} sede=sede.clone() />
                         <TeamName escola={o.escola.clone()} name={o.team_name.clone()} />
-                        <RunResult problem=o.problem.clone() answer=result />
+                        <RunResult problem=o.problem.clone() answer=result first_solved />
                     </div>
                 }
             }}

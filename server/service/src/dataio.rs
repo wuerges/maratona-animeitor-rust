@@ -166,6 +166,12 @@ impl DB {
             .map(|r| {
                 let dummy = Team::dummy();
                 let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
+                let first_solved = self
+                    .contest_file
+                    .first_solution_time
+                    .get(&r.prob)
+                    .copied()
+                    .unwrap_or_default();
                 RunsPanelItem {
                     id: r.id,
                     placement: t.placement,
@@ -175,6 +181,7 @@ impl DB {
                     team_login: t.login.clone(),
                     problem: r.prob.clone(),
                     result: r.answer.clone(),
+                    first_solved: r.time == first_solved,
                 }
             })
             .collect()

@@ -429,6 +429,12 @@ impl ContestFile {
             .get(&run.team_login)
             .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
 
+        let first_time = self
+            .first_solution_time
+            .get(&run.prob)
+            .copied()
+            .unwrap_or_default();
+
         Ok(RunsPanelItem {
             id: run.id,
             placement: team.placement_global,
@@ -438,6 +444,7 @@ impl ContestFile {
             team_login: run.team_login.clone(),
             problem: run.prob.clone(),
             result: run.answer.clone(),
+            first_solved: first_time == run.time,
         })
     }
 }
@@ -497,6 +504,7 @@ pub struct RunsPanelItem {
     pub team_login: String,
     pub problem: String,
     pub result: Answer,
+    pub first_solved: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
