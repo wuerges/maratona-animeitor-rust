@@ -269,8 +269,6 @@ pub struct ContestFile {
     pub score_freeze_time: i64,
     /// Penalty per wrong answer.
     pub penalty_per_wrong_answer: i64,
-    /// Score board. (Not used by animeitor).
-    pub score_board: Vec<String>,
     /// Number of problems in the contest.
     pub number_problems: usize,
 }
@@ -311,7 +309,6 @@ impl ContestFile {
             maximum_time,
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
-            score_board: Vec::new(),
             number_problems,
         }
     }
@@ -373,26 +370,6 @@ impl ContestFile {
             }
         }
 
-        Ok(())
-    }
-
-    pub fn reload_score(&mut self) -> Result<(), ContestError> {
-        let mut score_board = Vec::new();
-        for (key, _) in self.teams.iter() {
-            score_board.push(key.clone());
-        }
-        score_board.sort_by(|a, b| {
-            let score_a = self.teams.get(a).unwrap().score();
-            let score_b = self.teams.get(b).unwrap().score();
-            score_a.cmp(&score_b)
-        });
-        for (i, v) in score_board.iter().enumerate() {
-            if let Some(t) = self.teams.get_mut(v) {
-                t.placement = i + 1;
-            }
-        }
-
-        self.score_board = score_board;
         Ok(())
     }
 
