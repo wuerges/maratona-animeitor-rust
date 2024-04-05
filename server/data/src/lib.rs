@@ -269,7 +269,7 @@ pub struct ContestFile {
     pub score_freeze_time: i64,
     /// Penalty per wrong answer.
     pub penalty_per_wrong_answer: i64,
-    /// Score board. (Not used by animaitor).
+    /// Score board. (Not used by animeitor).
     pub score_board: Vec<String>,
     /// Number of problems in the contest.
     pub number_problems: usize,
