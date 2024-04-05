@@ -169,7 +169,9 @@ fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
     view! {
 
             <div class={move || match problem.get() {
-                Some(p) => if p.solved {
+                Some(p) => if p.solved_first {
+                    "star cell quadrado".to_string()
+                } else if p.solved {
                     "accept cell quadrado".to_string()
                 } else {
                     let cell_type = if p.wait() { "inqueue"} else { "unsolved" };
@@ -181,8 +183,9 @@ fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
                 Some(p) => {
                     (if p.solved {
                         let balao = format!("balao_{}", prob);
+                        let img = if p.solved_first { "star-img"} else { "accept-img" };
                         view! {
-                            <div class=format!("accept-img {balao}")></div>
+                            <div class=format!("{img} {balao}")></div>
                             <div class="accept-text cell-content">
                                 +{number_submissions(p.submissions)}<br />{p.time_solved}
                             </div>
