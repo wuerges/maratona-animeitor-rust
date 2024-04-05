@@ -166,7 +166,7 @@ mod tests {
         };
 
         let config_contest = ConfigContest {
-            sedes: vec![sede],
+            sedes: Some(vec![sede]),
             titulo: SedeEntry {
                 name: "dummy".to_string(),
                 ..SedeEntry::default()

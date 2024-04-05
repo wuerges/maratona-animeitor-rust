@@ -4,7 +4,7 @@ pub mod revelation;
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
-use std::collections::{btree_map, BTreeMap};
+use std::collections::{btree_map, BTreeMap, HashMap};
 use std::fmt;
 use thiserror::Error;
 use utoipa::ToSchema;
@@ -41,6 +41,8 @@ pub type TimeFile = i64;
 pub struct Problem {
     /// Was the problem solved?
     pub solved: bool,
+    /// Was the problem solved first?
+    pub solved_first: bool,
     /// How many submissions?
     pub submissions: usize,
     /// How much penalty in total?
@@ -81,6 +83,7 @@ impl Problem {
     fn empty() -> Self {
         Problem {
             solved: false,
+            solved_first: false,
             submissions: 0,
             time_solved: 0,
             penalty: 0,
@@ -271,6 +274,8 @@ pub struct ContestFile {
     pub penalty_per_wrong_answer: i64,
     /// Number of problems in the contest.
     pub number_problems: usize,
+    /// Time of the first solution for each problem.
+    pub first_solution_time: HashMap<String, i64>,
 }
 
 pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -310,6 +315,7 @@ impl ContestFile {
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
             number_problems,
+            first_solution_time: HashMap::new(),
         }
     }
 
@@ -343,6 +349,32 @@ impl ContestFile {
         self.recalculate_placement(None)
     }
 
+    pub fn recalculate_stars(&mut self) {
+        for (_, team) in &self.teams {
+            for (l, problem) in &team.problems {
+                if problem.solved {
+                    match self.first_solution_time.entry(l.clone()) {
+                        std::collections::hash_map::Entry::Occupied(mut o) => {
+                            *o.get_mut() = *o.get().min(&problem.time_solved)
+                        }
+                        std::collections::hash_map::Entry::Vacant(v) => {
+                            v.insert(problem.time_solved);
+                        }
+                    }
+                }
+            }
+        }
+        for (_, team) in &mut self.teams {
+            for (l, problem) in &mut team.problems {
+                if problem.time_solved
+                    == self.first_solution_time.get(l).copied().unwrap_or_default()
+                {
+                    problem.solved_first = true
+                }
+            }
+        }
+    }
+
     pub fn recalculate_placement(
         &mut self,
         sede_filter: Option<&Sede>,
@@ -369,6 +401,8 @@ impl ContestFile {
                 placement_global += 1;
             }
         }
+
+        self.recalculate_stars();
 
         Ok(())
     }
