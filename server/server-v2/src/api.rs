@@ -13,13 +13,27 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
         get_config,
         get_allruns_ws,
         get_allruns_secret,
+        get_contest_default,
+        get_timer_default,
+        get_config_default,
+        get_allruns_ws_default,
+        get_allruns_secret_default,
     ));
 }
 
+#[get("/contest")]
+async fn get_contest_default(data: web::Data<AppData>) -> impl Responder {
+    get_contest_fn(data, "").await
+}
+
 #[get("/files/{sede_config}/contest")]
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -> impl Responder {
+    get_contest_fn(data, sede_config.as_str()).await
+}
+
+#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
+#[autometrics]
+async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -34,10 +48,19 @@ async fn get_contest(data: web::Data<AppData>, sede_config: web::Path<String>) -
     }
 }
 
+#[get("/config")]
+async fn get_config_default(data: web::Data<AppData>) -> impl Responder {
+    get_config_fn(data, "").await
+}
+
 #[get("/files/{sede_config}/config")]
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 async fn get_config(data: web::Data<AppData>, sede_config: web::Path<String>) -> impl Responder {
+    get_config_fn(data, sede_config.as_str()).await
+}
+
+#[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
+#[autometrics]
+async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -54,12 +77,11 @@ struct SecretQuery {
     secret: String,
 }
 
-#[get("/files/{sede_config}/allruns_secret")]
-#[autometrics]
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
-async fn get_allruns_secret(
+#[autometrics]
+async fn get_allruns_secret_fn(
     data: web::Data<AppData>,
-    sede_config: web::Path<String>,
+    sede_config: &str,
     query: web::Query<SecretQuery>,
 ) -> impl Responder {
     let sede = data
@@ -81,12 +103,47 @@ async fn get_allruns_secret(
     }
 }
 
+#[get("/files/{sede_config}/allruns_secret")]
+async fn get_allruns_secret(
+    data: web::Data<AppData>,
+    sede_config: web::Path<String>,
+    query: web::Query<SecretQuery>,
+) -> impl Responder {
+    get_allruns_secret_fn(data, sede_config.as_str(), query).await
+}
+
+#[get("/allruns_secret")]
+async fn get_allruns_secret_default(
+    data: web::Data<AppData>,
+    query: web::Query<SecretQuery>,
+) -> impl Responder {
+    get_allruns_secret_fn(data, "", query).await
+}
+
 #[get("/files/{sede_config}/allruns_ws")]
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
 async fn get_allruns_ws(
     data: web::Data<AppData>,
     sede_config: web::Path<String>,
+    req: HttpRequest,
+    body: web::Payload,
+) -> Result<HttpResponse, Error> {
+    get_allruns_ws_fn(data, sede_config.as_str(), req, body).await
+}
+
+#[get("/allruns_ws")]
+async fn get_allruns_ws_default(
+    data: web::Data<AppData>,
+    req: HttpRequest,
+    body: web::Payload,
+) -> Result<HttpResponse, Error> {
+    get_allruns_ws_fn(data, "", req, body).await
+}
+
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
+async fn get_allruns_ws_fn(
+    data: web::Data<AppData>,
+    sede_config: &str,
     req: HttpRequest,
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
@@ -130,11 +187,28 @@ async fn get_allruns_ws(
 }
 
 #[get("/files/{sede_config}/timer")]
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
 async fn get_timer(
     data: web::Data<AppData>,
     _sede_config: web::Path<String>,
+    req: HttpRequest,
+    body: web::Payload,
+) -> Result<HttpResponse, Error> {
+    get_timer_fn(data, req, body).await
+}
+
+#[get("/timer")]
+async fn get_timer_default(
+    data: web::Data<AppData>,
+    req: HttpRequest,
+    body: web::Payload,
+) -> Result<HttpResponse, Error> {
+    get_timer_fn(data, req, body).await
+}
+
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
+async fn get_timer_fn(
+    data: web::Data<AppData>,
     req: HttpRequest,
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {

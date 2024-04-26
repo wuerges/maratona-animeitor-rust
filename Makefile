@@ -33,14 +33,14 @@ build-client-ccl:
 	docker push wuerges/animeitor-client-ccl:0.12.0
 	docker push wuerges/animeitor-client-ccl:latest
 
-# BOCA_URL ?= ../tests/inputs/webcast_jones.zip
-BOCA_URL ?= ../tests/inputs/pda-2024/pda-2024.zip
+BOCA_URL ?= ../tests/inputs/webcast_jones.zip
+# BOCA_URL ?= ../tests/inputs/pda-2024/pda-2024.zip
 
 run-standalone:
 	@echo recompiling client...
-	( cd client-v2 && URL_PREFIX="http://localhost:8000/api/files/default" trunk build --release )
+	( cd client-v2 && trunk build --release )
 	@echo running server...
-	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client-v2/dist: --sedes ../config/basic.toml:default --secret ../config/basic_secret.toml ${BOCA_URL} )
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client-v2/dist: --sedes ../config/basic.toml: --secret ../config/basic_secret.toml ${BOCA_URL} )
 
 prog-americas-build-client:
 	@echo recompiling client...
