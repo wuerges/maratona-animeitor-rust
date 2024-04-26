@@ -37,8 +37,8 @@ struct SimpleParser {
 
 #[derive(Default, Debug, Clone)]
 enum Version {
-    #[default]
     V1,
+    #[default]
     V2,
 }
 
