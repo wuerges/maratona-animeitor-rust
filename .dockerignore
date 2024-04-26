@@ -6,3 +6,4 @@ urls_placar.txt
 .cache
 target
 client/target
+server/target
