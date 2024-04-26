@@ -50,7 +50,7 @@ PUBLIC_PORT=9000
 The `Makefile` has an example of how to run animeitor without docker:
 
 ```
-make run_standalone
+make run-standalone
 ```
 
 ## Important!
