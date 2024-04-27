@@ -249,17 +249,17 @@ fn ContestPanelLine(
                             <div class="baixo">{score.penalty}</div>
                         </div>
                     </div>
+                    <For
+                        each=move || all_problems.get().char_indices()
+                        key=|(_, prob)| *prob
+                        children={move |(_, prob)| {
+                            view! {
+                                <Problem prob team />
+                            }
+                        }}
+                    />
                 }
             }}
-            <For
-                each=move || all_problems.get().char_indices()
-                key=|(_, prob)| *prob
-                children={move |(_, prob)| {
-                    view! {
-                        <Problem prob team />
-                    }
-                }}
-            />
             </div>
         </div>
     }
@@ -297,7 +297,7 @@ pub fn ContestPanel(
     let n: Signal<usize> = Signal::derive(move || contest.get().number_problems);
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
     let cloned_sede = sede.clone();
-    let is_compressed = Signal::derive(move || {
+    let is_compressed = create_memo(move |_| {
         contest
             .get()
             .teams
@@ -306,7 +306,7 @@ pub fn ContestPanel(
     });
 
     let cloned_sede = sede.clone();
-    let teams = Signal::derive(move || {
+    let teams = create_memo(move |_| {
         contest
             .get()
             .teams
@@ -315,7 +315,8 @@ pub fn ContestPanel(
             .collect_vec()
     });
 
-    let placements = Signal::derive(move || {
+    let placements = create_memo(move |_| {
+        let _contest = contest.get();
         teams.with(|ts| {
             let ps = ts
                 .iter()
@@ -333,7 +334,7 @@ pub fn ContestPanel(
         })
     });
 
-    let p_center = Signal::derive(move || {
+    let p_center = create_memo(move |_| {
         with!(|center, teams, placements| {
             center
                 .as_ref()
@@ -353,11 +354,12 @@ pub fn ContestPanel(
                 each=move || teams.get().into_iter().enumerate()
                 key=|(_, team)| team.login.clone()
                 children={move |(i, _)| {
-                    let local_placement = Signal::derive(move || placements.with(|ps| ps[i] + 1));
-                    let team = Signal::derive(move || teams.with(|ts| ts[i].clone()));
+                    log!("rerender children");
+                    let local_placement = (move || placements.with(|ps| ps[i] + 1)).into_signal();
+                    let team = (move || teams.with(|ts| ts[i].clone())).into_signal();
 
                     view!{
-                        <ContestPanelLine is_compressed local_placement p_center team all_problems sede=sede.clone() />
+                        <ContestPanelLine is_compressed=is_compressed.into() local_placement p_center=p_center.into() team all_problems sede=sede.clone() />
                     }
                 }}
             />
