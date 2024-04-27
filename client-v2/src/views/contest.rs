@@ -266,7 +266,7 @@ fn ContestPanelLine(
                 }
             }}
             <For
-                each=move || team_problems.get().into_iter().sorted_by_cached_key(|(key,_)| key.clone())
+                each=move || team_problems.get().into_iter().sorted_by_key(|(key,_)| *key)
                 key=|(key, prob)| (*key, prob.as_ref().map(problem_key))
                 children = {move |(prob, problem)| {
                     view!{ <Problem prob problem /> }
@@ -351,13 +351,14 @@ pub fn ContestPanel(
         result
     });
 
-    let p_center = create_memo(move |_| {
+    let p_center = (move || {
         with!(|center, teams, placements| {
             center
                 .as_ref()
                 .and_then(|center| find_center(&center, teams).map(|c| placements[c] + 1))
         })
-    });
+    })
+    .into_signal();
 
     view! {
         <div class="runstable">
@@ -372,11 +373,11 @@ pub fn ContestPanel(
                 key=move |i| teams.with(|t| team_key(&t[*i as usize]))
                 children={move |i| {
                     log!("rerender children");
-                    let local_placement = (move || placements.with(|ps| ps[i] + 1)).into_signal();
-                    let team = (move || teams.with(|ts| ts[i].clone())).into_signal();
+                    let local_placement = create_memo(move |_| placements.with(|ps| ps[i] + 1)).into();
+                    let team = create_memo(move |_| contest.with(|_c| teams.with(|ts| ts[i].clone())));
 
                     view!{
-                        <ContestPanelLine is_compressed=is_compressed.into() local_placement p_center=p_center.into() team all_problems sede=sede.clone() />
+                        <ContestPanelLine is_compressed=is_compressed.into() local_placement p_center=p_center.into() team=team.into() all_problems sede=sede.clone() />
                     }
                 }}
             />
