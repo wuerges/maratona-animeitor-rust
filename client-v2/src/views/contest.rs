@@ -299,21 +299,8 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
         .map(|p| p.0)
 }
 
-fn team_key(
-    team: &Team,
-) -> (
-    std::string::String,
-    usize,
-    Vec<(std::string::String, (usize, bool, bool))>,
-) {
-    (
-        team.name.to_string(),
-        team.placement_global,
-        team.problems
-            .iter()
-            .map(|(key, prob)| (key.to_string(), problem_key(prob)))
-            .collect_vec(),
-    )
+fn team_key(team: &Team) -> (std::string::String, u32) {
+    (team.name.to_string(), team.serial)
 }
 
 #[component]

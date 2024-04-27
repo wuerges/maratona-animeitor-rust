@@ -152,6 +152,8 @@ pub struct Team {
     pub placement_global: usize,
     /// State of the problems that the team is solving.
     pub problems: BTreeMap<String, Problem>,
+
+    pub serial: u32,
 }
 
 impl PartialEq for Team {
@@ -203,6 +205,7 @@ impl Team {
             placement: 0,
             placement_global: 0,
             problems: BTreeMap::new(),
+            serial: 0,
         }
     }
 
@@ -211,6 +214,7 @@ impl Team {
     }
 
     fn apply_run(&mut self, run: &RunTuple) {
+        self.serial += 1;
         self.problems
             .entry(run.prob.clone())
             .or_insert(Problem::empty())
@@ -218,6 +222,7 @@ impl Team {
     }
 
     fn apply_run_frozen(&mut self, run: &RunTuple) {
+        self.serial += 1;
         self.problems
             .entry(run.prob.clone())
             .or_insert(Problem::empty())
@@ -231,6 +236,7 @@ impl Team {
     pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
             if p.wait() && p.reveal_run_frozen() {
+                self.serial += 1;
                 return true;
             }
         }
