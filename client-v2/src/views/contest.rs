@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use data::{
     configdata::{Color, Sede},
     ContestFile, RunsPanelItem, Team, TimerData,
@@ -170,12 +172,10 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
-fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
-    let problem =
-        Signal::derive(move || team.with(move |t| t.problems.get(&prob.to_string()).cloned()));
+fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
+    log!("rendered problem");
     view! {
-
-            <div class={move || match problem.get() {
+            <div class={match &problem {
                 Some(p) => if p.solved_first {
                     "star cell quadrado".to_string()
                 } else if p.solved {
@@ -186,7 +186,7 @@ fn Problem(prob: char, team: Signal<Team>) -> impl IntoView {
                 },
                 None => "not-tried cell quadrado".to_string(),
             }}>
-            {move || match problem.get() {
+            {match &problem {
                 Some(p) => {
                     (if p.solved {
                         let balao = format!("balao_{}", prob);
@@ -226,6 +226,17 @@ fn ContestPanelLine(
 ) -> impl IntoView {
     log!("line refresh");
 
+    let team_problems = (move || {
+        let all_problems = all_problems.get();
+        team.with(|team| {
+            all_problems
+                .chars()
+                .map(|prob| (prob, team.problems.get(&prob.to_string()).cloned()))
+                .collect::<HashMap<_, _>>()
+        })
+    })
+    .into_signal();
+
     view! {
         <div class="run_box" id={move || team.with(|t| t.login.clone())} style={move || format!(
             "top: {}; z-index: {};",
@@ -249,17 +260,15 @@ fn ContestPanelLine(
                             <div class="baixo">{score.penalty}</div>
                         </div>
                     </div>
-                    <For
-                        each=move || all_problems.get().char_indices()
-                        key=|(_, prob)| *prob
-                        children={move |(_, prob)| {
-                            view! {
-                                <Problem prob team />
-                            }
-                        }}
-                    />
                 }
             }}
+            <For
+                each=move || team_problems.get().into_iter().sorted_by_cached_key(|(key,_)| key.clone())
+                key=|(key, prob)| (*key, prob.as_ref().map(|p| (p.submissions, p.solved)))
+                children = {move |(prob, problem)| {
+                    view!{ <Problem prob problem /> }
+                }}
+            />
             </div>
         </div>
     }
