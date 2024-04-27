@@ -215,6 +215,10 @@ fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
     }
 }
 
+fn problem_key(p: &data::Problem) -> (usize, bool, bool) {
+    (p.submissions, p.solved, p.wait())
+}
+
 #[component]
 fn ContestPanelLine(
     is_compressed: Signal<bool>,
@@ -226,7 +230,7 @@ fn ContestPanelLine(
 ) -> impl IntoView {
     log!("line refresh");
 
-    let team_problems = (move || {
+    let team_problems = create_memo(move |_| {
         let all_problems = all_problems.get();
         team.with(|team| {
             all_problems
@@ -234,8 +238,7 @@ fn ContestPanelLine(
                 .map(|prob| (prob, team.problems.get(&prob.to_string()).cloned()))
                 .collect::<HashMap<_, _>>()
         })
-    })
-    .into_signal();
+    });
 
     view! {
         <div class="run_box" id={move || team.with(|t| t.login.clone())} style={move || format!(
@@ -264,7 +267,7 @@ fn ContestPanelLine(
             }}
             <For
                 each=move || team_problems.get().into_iter().sorted_by_cached_key(|(key,_)| key.clone())
-                key=|(key, prob)| (*key, prob.as_ref().map(|p| (p.submissions, p.solved)))
+                key=|(key, prob)| (*key, prob.as_ref().map(problem_key))
                 children = {move |(prob, problem)| {
                     view!{ <Problem prob problem /> }
                 }}
@@ -294,6 +297,21 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
         .iter()
         .find_position(|team| team.login == center)
         .map(|p| p.0)
+}
+
+fn team_key(
+    team: &Team,
+) -> (
+    std::string::String,
+    Vec<(std::string::String, (usize, bool, bool))>,
+) {
+    (
+        team.name.to_string(),
+        team.problems
+            .iter()
+            .map(|(key, prob)| (key.to_string(), problem_key(prob)))
+            .collect_vec(),
+    )
 }
 
 #[component]
@@ -359,7 +377,7 @@ pub fn ContestPanel(
 
             <For
                 each=move || teams.get().into_iter().enumerate()
-                key=|(_, team)| team.login.clone()
+                key=|(_, team)| team_key(team)
                 children={move |(i, _)| {
                     log!("rerender children");
                     let local_placement = (move || placements.with(|ps| ps[i] + 1)).into_signal();
