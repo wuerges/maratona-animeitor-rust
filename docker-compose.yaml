@@ -5,6 +5,12 @@ services:
     volumes:
       - ./tests:/tests
       - ./config:/config
+      - ./client-v2/dist:/dist
+    ports:
+      - 8000:8000
+
+    environment:
+      - RUST_LOG=debug
 
     build:
       context: .
