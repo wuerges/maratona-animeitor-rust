@@ -294,43 +294,41 @@ pub fn ContestPanel(
     sede: Box<Sede>,
 ) -> impl IntoView {
     log!("contest panel refresh");
-    let n: Signal<usize> = Signal::derive(move || contest.get().number_problems);
+    let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
     let cloned_sede = sede.clone();
     let is_compressed = create_memo(move |_| {
-        contest
-            .get()
-            .teams
-            .values()
-            .any(|team| !cloned_sede.team_belongs(team))
+        contest.with(|c| c.teams.values().any(|team| !cloned_sede.team_belongs(team)))
     });
 
     let cloned_sede = sede.clone();
     let teams = create_memo(move |_| {
-        contest
-            .get()
-            .teams
-            .into_values()
-            .filter(|team| cloned_sede.team_belongs(team))
-            .collect_vec()
+        contest.with(|c| {
+            c.teams
+                .values()
+                .filter(|team| cloned_sede.team_belongs(team))
+                .cloned()
+                .collect_vec()
+        })
     });
 
     let placements = create_memo(move |_| {
-        let _contest = contest.get();
-        teams.with(|ts| {
-            let ps = ts
-                .iter()
-                .enumerate()
-                .sorted_by_cached_key(|(_, t)| t.placement_global)
-                .map(|(i, _)| i)
-                .collect_vec();
+        contest.with(|_c| {
+            teams.with(|ts| {
+                let ps = ts
+                    .iter()
+                    .enumerate()
+                    .sorted_by_cached_key(|(_, t)| t.placement_global)
+                    .map(|(i, _)| i)
+                    .collect_vec();
 
-            ps.into_iter()
-                .enumerate()
-                .map(|(u, v)| (v, u))
-                .sorted()
-                .map(|(_, v)| v)
-                .collect_vec()
+                ps.into_iter()
+                    .enumerate()
+                    .map(|(u, v)| (v, u))
+                    .sorted()
+                    .map(|(_, v)| v)
+                    .collect_vec()
+            })
         })
     });
 
