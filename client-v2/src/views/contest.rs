@@ -329,7 +329,8 @@ pub fn ContestPanel(
     });
 
     let placements = create_memo(move |_| {
-        contest.with(|_c| {
+        log!("started calculating placements");
+        let result = contest.with(|_c| {
             teams.with(|ts| {
                 let ps = ts
                     .iter()
@@ -345,7 +346,9 @@ pub fn ContestPanel(
                     .map(|(_, v)| v)
                     .collect_vec()
             })
-        })
+        });
+        log!("finished calculating placements");
+        result
     });
 
     let p_center = create_memo(move |_| {
@@ -365,9 +368,9 @@ pub fn ContestPanel(
             </div>
 
             <For
-                each=move || teams.get().into_iter().enumerate()
-                key=|(_, team)| team_key(team)
-                children={move |(i, _)| {
+                each=move || (0..teams.with(|t| t.len()))
+                key=move |i| teams.with(|t| team_key(&t[*i as usize]))
+                children={move |i| {
                     log!("rerender children");
                     let local_placement = (move || placements.with(|ps| ps[i] + 1)).into_signal();
                     let team = (move || teams.with(|ts| ts[i].clone())).into_signal();
