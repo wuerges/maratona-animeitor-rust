@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use data::{
     configdata::{ConfigContest, Sede},
     ContestFile, RunsPanelItem, TimerData,
@@ -53,7 +55,7 @@ fn ProvideSede(
     timer: ReadSignal<(TimerData, TimerData)>,
     sede_param: Option<String>,
 ) -> impl IntoView {
-    let sede = Box::new(use_configured_sede(config_contest, sede_param));
+    let sede = Rc::new(use_configured_sede(config_contest, sede_param));
     view! { <Contest contest panel_items timer sede /> }
 }
 
@@ -79,7 +81,7 @@ fn ConfiguredReveleitor(
                 let sede_param = sede_param.clone();
                 let secret = secret.clone();
                 config_contest.get().map(move |(contest,config,_)| {
-                    let sede = Box::new(use_configured_sede(config,sede_param));
+                    let sede = Rc::new(use_configured_sede(config,sede_param));
                     view! { <Reveleitor sede secret contest /> }.into_view()
                 })
             }}

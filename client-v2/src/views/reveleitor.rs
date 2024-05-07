@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
 
@@ -79,7 +81,7 @@ impl State {
 }
 
 #[component]
-pub fn RevelationPanel(state: ReadSignal<State>, sede: Box<Sede>) -> impl IntoView {
+pub fn RevelationPanel(state: ReadSignal<State>, sede: Rc<Sede>) -> impl IntoView {
     let center = Signal::derive(move || {
         state
             .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
@@ -138,7 +140,7 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 }
 
 #[component]
-pub fn Revelation(sede: Box<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
+pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
     move || {
         let contest = contest.clone();
         let driver = State::new(contest, runs_file.clone(), &sede);
@@ -156,7 +158,7 @@ pub fn Revelation(sede: Box<Sede>, runs_file: RunsFile, contest: ContestFile) ->
 }
 
 #[component]
-pub fn Reveleitor(sede: Box<Sede>, secret: String, contest: Signal<ContestFile>) -> impl IntoView {
+pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: Signal<ContestFile>) -> impl IntoView {
     let all_runs = create_local_resource(
         || (),
         move |()| {

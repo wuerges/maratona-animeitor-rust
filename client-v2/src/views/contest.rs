@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use data::{
     configdata::{Color, Sede},
@@ -25,7 +25,7 @@ fn get_class(color: Color) -> &'static str {
 }
 
 #[component]
-fn Placement(placement: MaybeSignal<usize>, sede: Box<Sede>) -> impl IntoView {
+fn Placement(placement: MaybeSignal<usize>, sede: Rc<Sede>) -> impl IntoView {
     move || {
         let color = get_color(placement.get(), &sede);
         let background_color = color.map(get_class).unwrap_or_default();
@@ -90,7 +90,7 @@ fn RunResult(
 
 fn take_30(
     items: Vec<RunsPanelItem>,
-    sede: Box<Sede>,
+    sede: Rc<Sede>,
 ) -> impl IntoIterator<Item = (usize, RunsPanelItem)> {
     items
         .into_iter()
@@ -100,7 +100,7 @@ fn take_30(
 }
 
 #[component]
-fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Box<Sede>) -> impl IntoView {
+fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Rc<Sede>) -> impl IntoView {
     let sede_move = sede.clone();
 
     view! {
@@ -226,7 +226,7 @@ fn ContestPanelLine(
     p_center: Signal<Option<usize>>,
     team: Signal<Team>,
     all_problems: Signal<&'static str>,
-    sede: Box<Sede>,
+    sede: Rc<Sede>,
 ) -> impl IntoView {
     log!("line refresh");
 
@@ -307,7 +307,7 @@ fn team_key(team: &Team) -> (std::string::String, u32) {
 pub fn ContestPanel(
     contest: Signal<ContestFile>,
     center: Signal<Option<String>>,
-    sede: Box<Sede>,
+    sede: Rc<Sede>,
 ) -> impl IntoView {
     log!("contest panel refresh");
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
@@ -401,7 +401,7 @@ pub fn Contest(
     contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede: Box<Sede>,
+    sede: Rc<Sede>,
 ) -> impl IntoView {
     let (center, _) = create_signal(None);
 
