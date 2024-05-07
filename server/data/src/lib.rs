@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
 use std::collections::{btree_map, BTreeMap, HashMap};
 use std::fmt;
-use std::sync::atomic::AtomicU32;
+use std::sync::atomic::AtomicU64;
 use thiserror::Error;
 use utoipa::ToSchema;
 
@@ -52,7 +52,34 @@ pub struct Problem {
     pub time_solved: i64,
     /// What were the judges answers to this problem for this team?
     pub answers: Vec<Answer>,
+
+    pub id: u64,
 }
+
+#[derive(Debug, Clone)]
+/// A problem in the scoreboard.
+pub struct ProblemView {
+    /// Was the problem solved?
+    pub solved: bool,
+    /// Was the problem solved first?
+    pub solved_first: bool,
+    /// How many submissions?
+    pub submissions: usize,
+    /// How much penalty in total?
+    pub penalty: i64,
+    /// When was it solved?
+    pub time_solved: i64,
+    pub wait: bool,
+    pub id: u64,
+}
+
+impl PartialEq for ProblemView {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for ProblemView {}
 
 #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Timer state
@@ -89,10 +116,33 @@ impl Problem {
             time_solved: 0,
             penalty: 0,
             answers: Vec::new(),
+            id: gen_id(),
+        }
+    }
+
+    pub fn view(&self) -> ProblemView {
+        let Self {
+            solved,
+            solved_first,
+            submissions,
+            penalty,
+            time_solved,
+            answers: _,
+            id,
+        } = self;
+        ProblemView {
+            solved: *solved,
+            solved_first: *solved_first,
+            submissions: *submissions,
+            penalty: *penalty,
+            time_solved: *time_solved,
+            id: *id,
+            wait: self.wait(),
         }
     }
 
     fn add_run_problem(&mut self, answer: Answer) {
+        self.id = gen_id();
         if self.solved {
             return;
         }
@@ -120,12 +170,14 @@ impl Problem {
     }
 
     fn add_run_frozen(&mut self, answer: Answer) {
+        self.id = gen_id();
         if answer != Answer::Wait {
             self.answers.push(answer)
         }
     }
 
     fn reveal_run_frozen(&mut self) -> bool {
+        self.id = gen_id();
         if self.wait() {
             let a = self.answers.remove(0);
             self.add_run_problem(a);
@@ -154,8 +206,7 @@ pub struct Team {
     /// State of the problems that the team is solving.
     pub problems: BTreeMap<String, Problem>,
 
-    pub serial: u32,
-    pub id: u32,
+    pub id: u64,
 }
 
 impl PartialEq for Team {
@@ -198,9 +249,9 @@ impl Ord for Score {
     }
 }
 
-static SEED: AtomicU32 = AtomicU32::new(0);
+static SEED: AtomicU64 = AtomicU64::new(0);
 
-fn gen_id() -> u32 {
+fn gen_id() -> u64 {
     SEED.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
     SEED.load(std::sync::atomic::Ordering::SeqCst)
 }
@@ -214,7 +265,6 @@ impl Team {
             placement: 0,
             placement_global: 0,
             problems: BTreeMap::new(),
-            serial: 0,
             id: gen_id(),
         }
     }
@@ -224,7 +274,7 @@ impl Team {
     }
 
     fn apply_run(&mut self, run: &RunTuple) {
-        self.serial += 1;
+        self.id = gen_id();
         self.problems
             .entry(run.prob.clone())
             .or_insert(Problem::empty())
@@ -232,7 +282,7 @@ impl Team {
     }
 
     fn apply_run_frozen(&mut self, run: &RunTuple) {
-        self.serial += 1;
+        self.id = gen_id();
         self.problems
             .entry(run.prob.clone())
             .or_insert(Problem::empty())
@@ -246,7 +296,7 @@ impl Team {
     pub fn reveal_run_frozen(&mut self) -> bool {
         for p in self.problems.values_mut() {
             if p.wait() && p.reveal_run_frozen() {
-                self.serial += 1;
+                self.id = gen_id();
                 return true;
             }
         }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use data::{
     configdata::{Color, Sede},
@@ -172,7 +172,7 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
-fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
+fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView {
     log!("rendered problem");
     view! {
             <div class={match &problem {
@@ -181,7 +181,7 @@ fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
                 } else if p.solved {
                     "accept cell quadrado".to_string()
                 } else {
-                    let cell_type = if p.wait() { "inqueue"} else { "unsolved" };
+                    let cell_type = if p.wait { "inqueue"} else { "unsolved" };
                     format!("cell quadrado {cell_type}")
                 },
                 None => "not-tried cell quadrado".to_string(),
@@ -198,7 +198,7 @@ fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
                             </div>
                         }
                     } else {
-                        let cell_symbol = if p.wait() { "?" } else { "X" };
+                        let cell_symbol = if p.wait { "?" } else { "X" };
 
                         view! {
                             <div class="cima">{cell_symbol}</div>
@@ -215,8 +215,8 @@ fn Problem(prob: char, problem: Option<data::Problem>) -> impl IntoView {
     }
 }
 
-fn problem_key(p: &data::Problem) -> (usize, bool, bool) {
-    (p.submissions, p.solved, p.wait())
+fn problem_key(p: &data::ProblemView) -> u64 {
+    p.id
 }
 
 #[component]
@@ -232,11 +232,11 @@ fn ContestPanelLine(
 
     let team_problems = create_memo(move |_| {
         let all_problems = all_problems.get();
-        team.with(|team| {
+        team.with(move |team| {
             all_problems
                 .chars()
-                .map(|prob| (prob, team.problems.get(&prob.to_string()).cloned()))
-                .collect::<HashMap<_, _>>()
+                .map(move |prob| (prob, team.problems.get(&prob.to_string()).map(|p| p.view())))
+                .collect_vec()
         })
     });
 
@@ -266,8 +266,8 @@ fn ContestPanelLine(
                 }
             }}
             <For
-                each=move || team_problems.get().into_iter().sorted_by_key(|(key,_)| *key)
-                key=|(key, prob)| (*key, prob.as_ref().map(problem_key))
+                each=move || team_problems.get()
+                key=|(k, prob)| (*k, prob.as_ref().map(problem_key))
                 children = {move |(prob, problem)| {
                     view!{ <Problem prob problem /> }
                 }}
@@ -299,8 +299,8 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
         .map(|p| p.0)
 }
 
-fn team_key(team: &Team) -> (u32, u32) {
-    (team.serial, team.id)
+fn team_key(team: &Team) -> u64 {
+    team.id
 }
 
 #[component]
