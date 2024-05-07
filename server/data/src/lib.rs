@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
 use std::collections::{btree_map, BTreeMap, HashMap};
 use std::fmt;
+use std::sync::atomic::AtomicU32;
 use thiserror::Error;
 use utoipa::ToSchema;
 
@@ -154,6 +155,7 @@ pub struct Team {
     pub problems: BTreeMap<String, Problem>,
 
     pub serial: u32,
+    pub id: u32,
 }
 
 impl PartialEq for Team {
@@ -196,6 +198,13 @@ impl Ord for Score {
     }
 }
 
+static SEED: AtomicU32 = AtomicU32::new(0);
+
+fn gen_id() -> u32 {
+    SEED.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+    SEED.load(std::sync::atomic::Ordering::SeqCst)
+}
+
 impl Team {
     pub fn new(login: &str, escola: &str, name: String) -> Self {
         Self {
@@ -206,6 +215,7 @@ impl Team {
             placement_global: 0,
             problems: BTreeMap::new(),
             serial: 0,
+            id: gen_id(),
         }
     }
 

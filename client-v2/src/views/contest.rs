@@ -299,8 +299,8 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
         .map(|p| p.0)
 }
 
-fn team_key(team: &Team) -> (std::string::String, u32) {
-    (team.name.to_string(), team.serial)
+fn team_key(team: &Team) -> (u32, u32) {
+    (team.serial, team.id)
 }
 
 #[component]
