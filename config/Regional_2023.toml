@@ -1,4 +1,9 @@
-titulo = "Maratona de Programação da SBC - 1ª fase"
+[titulo]
+name = "Maratona de Programação da SBC - 1ª fase"
+codes = [""]
+ouro = 1
+prata = 2
+bronze = 3
 
 [[sedes]]
 name = "Brasil"
