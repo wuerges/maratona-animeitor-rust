@@ -432,8 +432,9 @@ impl ContestFile {
         }
         for (_, team) in &mut self.teams {
             for (l, problem) in &mut team.problems {
-                if problem.time_solved
-                    == self.first_solution_time.get(l).copied().unwrap_or_default()
+                if problem.solved
+                    && problem.time_solved
+                        == self.first_solution_time.get(l).copied().unwrap_or_default()
                 {
                     problem.solved_first = true
                 }

@@ -160,7 +160,7 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 
 #[component]
 fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView {
-    log!("rendered problem");
+    log!("rendered problem {:?}", problem);
     view! {
             <div class={match &problem {
                 Some(p) => if p.solved && p.solved_first {
