@@ -108,11 +108,15 @@ pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
     timer
 }
 
-pub fn photos_prefix() -> String {
+fn photos_prefix() -> String {
     match option_env!("PHOTO_PREFIX") {
         Some(prefix) => prefix.to_string(),
         None => format!("{}/photos", guess_prefix()),
     }
+}
+
+pub fn team_photo_location(team_login: &str) -> String {
+    format!("{}/{}.webp", photos_prefix(), team_login)
 }
 
 #[cfg(test)]
