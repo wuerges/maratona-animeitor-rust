@@ -7,7 +7,10 @@ use data::{
 use itertools::Itertools;
 use leptos::{logging::log, *};
 
-use crate::views::timer::Timer;
+use crate::views::{
+    photos::{PhotoState, TeamPhoto},
+    timer::Timer,
+};
 
 pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {
     sede.premio(n)
@@ -244,8 +247,15 @@ fn ContestPanelLine(
         })
     };
 
+    let show_photo = create_rw_signal(PhotoState::default());
+
     view! {
-        <div class="run_box" id={id} style={style}>
+        <div
+            class="run_box" id={id} style={style}
+            on:click={move |_| {
+                log!("clicked");
+                show_photo.update(|s| s.clicked())}}
+        >
             <div class="run">
             {move || {
                 team.with(|t| {
@@ -275,6 +285,7 @@ fn ContestPanelLine(
             />
             </div>
         </div>
+        <TeamPhoto team_login={team.with_untracked(|t| t.login.clone())} show={show_photo} />
     }
 }
 
