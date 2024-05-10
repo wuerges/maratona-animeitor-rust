@@ -299,8 +299,8 @@ fn ContestPanelHeader<'a>(sede: &'a Sede, all_problems: Signal<&'static str>) ->
 fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
     teams
         .iter()
-        .find_position(|team| team.login == center)
-        .map(|p| p.0)
+        .find(|team| team.login == center)
+        .map(|t| t.placement)
 }
 
 fn team_key(team: &Team) -> u64 {
