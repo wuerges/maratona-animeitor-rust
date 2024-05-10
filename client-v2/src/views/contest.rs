@@ -25,19 +25,17 @@ fn get_class(color: Color) -> &'static str {
 }
 
 #[component]
-fn Placement(placement: MaybeSignal<usize>, sede: Rc<Sede>) -> impl IntoView {
-    move || {
-        let color = get_color(placement.get(), &sede);
-        let background_color = color.map(get_class).unwrap_or_default();
+fn Placement(placement: usize, sede: Rc<Sede>) -> impl IntoView {
+    let color = get_color(placement, &sede);
+    let background_color = color.map(get_class).unwrap_or_default();
 
-        view! {
-            <div
-            // style:background-color=background_color
-            class=format!("cell quadrado colocacao {background_color}")
-            >
-            {placement}
-            </div>
-        }
+    view! {
+        <div
+        // style:background-color=background_color
+        class=format!("cell quadrado colocacao {background_color}")
+        >
+        {placement}
+        </div>
     }
 }
 
@@ -325,44 +323,31 @@ pub fn ContestPanel(
 
     let cloned_sede = sede.clone();
     let teams = create_memo(move |_| {
-        contest.with(|c| {
+        let mut teams = contest.with(|c| {
             c.teams
                 .values()
                 .filter(|team| cloned_sede.team_belongs(team))
                 .cloned()
                 .collect_vec()
-        })
-    });
-
-    let placements = create_memo(move |_| {
-        log!("started calculating placements");
-        let result = contest.with(|_c| {
-            teams.with(|ts| {
-                let ps = ts
-                    .iter()
-                    .enumerate()
-                    .sorted_by_cached_key(|(_, t)| t.placement_global)
-                    .map(|(i, _)| i)
-                    .collect_vec();
-
-                ps.into_iter()
-                    .enumerate()
-                    .map(|(u, v)| (v, u))
-                    .sorted()
-                    .map(|(_, v)| v)
-                    .collect_vec()
-            })
         });
-        log!("finished calculating placements");
-        result
+
+        for (placement, t) in teams
+            .iter_mut()
+            .sorted_by_cached_key(|t| t.placement_global)
+            .enumerate()
+        {
+            t.placement = placement + 1;
+        }
+
+        teams
     });
 
     let p_center = (move || {
-        with!(|center, teams, placements| {
-            center
-                .as_ref()
-                .and_then(|center| find_center(&center, teams).map(|c| placements[c] + 1))
-        })
+        {
+            teams.with(|t| {
+                center.with(|center| center.as_ref().and_then(|center| find_center(&center, t)))
+            })
+        }
     })
     .into_signal();
 
