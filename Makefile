@@ -88,6 +88,16 @@ prog-americas-print-urls:
 prog-americas-run-server:
 	RUST_LOG=info ./server/target/release/simples --sedes ./config/americas.toml --secret ./config/americas_secret.toml -v ./www/: -v ./www-transparent/webcast: -v ./www-transparent/chroma: ${BOCA_URL}
 
-rebuild-release:
+.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image
+
+rebuild-client-for-release:
 	@echo recompiling client...
 	( cd client-v2 && trunk build --release -d release )
+
+rebuild-server-for-release:
+	@echo recompiling server...
+	( cd server && cargo build --release --target x86_64-unknown-linux-musl --features vendored )
+
+rebuild-docker-image: rebuild-server-for-release rebuild-client-for-release
+	@echo rebuild docker image
+	docker compose build

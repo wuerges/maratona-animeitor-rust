@@ -1,6 +1,6 @@
 services:
   animeitor-v2:
-    image: wuerges/animeitor-v2:latest
+    # image: wuerges/animeitor-v2:latest
     command: "-v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
     volumes:
       - ./tests:/tests
