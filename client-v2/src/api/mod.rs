@@ -5,7 +5,7 @@ use leptos::{logging::warn, *};
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
 
-const DEFAULT_URL: &'static str = "http://0.0.0.0/api";
+const DEFAULT_URL: &'static str = "http://0.0.0.0";
 
 #[cfg(not(test))]
 fn window_origin() -> Option<String> {
@@ -17,19 +17,20 @@ fn window_origin() -> Option<String> {
     None
 }
 
+fn guess_prefix() -> String {
+    match window_origin() {
+        Some(origin) => origin,
+        None => {
+            warn!("could not guess an origin, using default: {}", DEFAULT_URL);
+            DEFAULT_URL.to_string()
+        }
+    }
+}
+
 fn url_prefix() -> String {
     match option_env!("URL_PREFIX") {
         Some(prefix) => prefix.to_string(),
-        None => match window_origin() {
-            Some(mut origin) => {
-                origin.push_str("/api");
-                origin
-            }
-            None => {
-                warn!("could not guess an origin, using default: {}", DEFAULT_URL);
-                DEFAULT_URL.to_string()
-            }
-        },
+        None => format!("{}/api", guess_prefix()),
     }
 }
 
@@ -105,6 +106,13 @@ pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
     });
 
     timer
+}
+
+pub fn photos_prefix() -> String {
+    match option_env!("PHOTO_PREFIX") {
+        Some(prefix) => prefix.to_string(),
+        None => format!("{}/photos", guess_prefix()),
+    }
 }
 
 #[cfg(test)]
