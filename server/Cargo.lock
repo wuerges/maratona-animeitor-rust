@@ -605,6 +605,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "data",
+ "openssl-sys",
  "quickcheck",
  "quickcheck_macros",
  "rand",
