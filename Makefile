@@ -87,3 +87,7 @@ prog-americas-print-urls:
 
 prog-americas-run-server:
 	RUST_LOG=info ./server/target/release/simples --sedes ./config/americas.toml --secret ./config/americas_secret.toml -v ./www/: -v ./www-transparent/webcast: -v ./www-transparent/chroma: ${BOCA_URL}
+
+rebuild-release:
+	@echo recompiling client...
+	( cd client-v2 && trunk build --release -d release )
