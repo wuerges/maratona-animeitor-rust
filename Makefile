@@ -101,3 +101,6 @@ rebuild-server-for-release:
 rebuild-docker-image: rebuild-server-for-release rebuild-client-for-release
 	@echo rebuild docker image
 	docker compose build
+
+republish-docker-image: rebuild-docker-image
+	docker compose push
