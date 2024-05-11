@@ -212,8 +212,6 @@ fn ContestPanelLine(
     all_problems: Signal<&'static str>,
     sede: Rc<Sede>,
 ) -> impl IntoView {
-    log!("line refresh");
-
     let team_problems = create_memo(move |_| {
         let all_problems = all_problems.get();
         team.with(move |team| {
@@ -359,7 +357,6 @@ pub fn ContestPanel(
                 each=move || teams.get().into_iter().enumerate()
                 key=move |(key,_)| key.clone()
                 children={move |(i, _team)| {
-                    log!("rerender children");
                     let team = create_memo(move |_| teams.with(|ts| ts[i].clone()));
 
                     view!{
