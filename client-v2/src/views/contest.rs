@@ -251,7 +251,6 @@ fn ContestPanelLine(
             <div class="run">
             {move || {
                 team.with(|t| {
-                    log!("rerendering teams: {t:?}");
                     let is_compressed = is_compressed.get();
                     let score = t.score();
                     view!{
