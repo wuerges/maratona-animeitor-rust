@@ -407,14 +407,6 @@ impl ContestFile {
         }
     }
 
-    pub fn placement(&self, team_login: &String) -> Option<usize> {
-        self.teams.get(team_login).map(|t| t.placement)
-    }
-
-    pub fn recalculate_placement_no_filter(&mut self) -> Result<(), ContestError> {
-        self.recalculate_placement(None)
-    }
-
     pub fn recalculate_stars(&mut self) {
         for (_, team) in &self.teams {
             for (l, problem) in &team.problems {
@@ -442,36 +434,15 @@ impl ContestFile {
         }
     }
 
-    pub fn recalculate_placement(
-        &mut self,
-        sede_filter: Option<&Sede>,
-    ) -> Result<(), ContestError> {
-        let mut score_board = Vec::new();
-        for (key, _) in self.teams.iter() {
-            score_board.push(key.clone());
-        }
-        score_board.sort_by(|a, b| {
-            let score_a = self.teams.get(a).unwrap().score();
-            let score_b = self.teams.get(b).unwrap().score();
-            score_a.cmp(&score_b)
-        });
-        let mut placement = 1;
-        let mut placement_global = 1;
-        for v in score_board.iter() {
-            if let Some(t) = self.teams.get_mut(v) {
-                t.placement = placement;
-                t.placement_global = placement_global;
+    pub fn recalculate_placement(&mut self) {
+        let mut teams = self.teams.iter_mut().map(|(_t, v)| v).collect::<Vec<_>>();
+        teams.sort_by_cached_key(|t| t.score());
 
-                if t.belongs_to_contest(sede_filter) {
-                    placement += 1;
-                }
-                placement_global += 1;
-            }
+        for (i, t) in teams.iter_mut().enumerate() {
+            t.placement_global = i + 1;
         }
 
         self.recalculate_stars();
-
-        Ok(())
     }
 
     pub fn dummy() -> Self {

@@ -17,22 +17,22 @@ pub struct RevelationDriver {
 }
 
 impl RevelationDriver {
-    pub fn new(contest: ContestFile, runs: RunsFile) -> Result<Self, ContestError> {
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
         let runs = runs.into_runs_sede(&contest);
         let mut revelation = Revelation::new(contest, runs);
-        revelation.apply_all_runs_before_frozen()?;
+        revelation.apply_all_runs_before_frozen();
 
-        Ok(Self {
+        Self {
             starting_point: revelation.clone(),
             revelation,
             step: 0,
-        })
+        }
     }
 
-    pub fn reveal_step(&mut self) -> Result<(), ContestError> {
+    pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
         self.step += 1;
-        self.revelation.contest.recalculate_placement_no_filter()
+        self.revelation.contest.recalculate_placement()
     }
 
     pub fn peek(&self) -> Option<&String> {
@@ -45,15 +45,14 @@ impl RevelationDriver {
         Ok(())
     }
 
-    pub fn jump_team_forward(&mut self) -> Result<(), ContestError> {
+    pub fn jump_team_forward(&mut self) {
         if let Some(center) = self.peek().cloned() {
             while self.peek().is_some_and(|c| c == &center) {
                 self.revelation.apply_one_run_from_queue();
                 self.step += 1;
             }
-            self.revelation.contest.recalculate_placement_no_filter()?;
+            self.revelation.contest.recalculate_placement();
         }
-        Ok(())
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -73,16 +72,15 @@ impl RevelationDriver {
         self.step = 0;
     }
 
-    pub fn back_one(&mut self) -> Result<(), ContestError> {
+    pub fn back_one(&mut self) {
         if self.step > 0 {
             self.revelation = self.starting_point.clone();
             self.step -= 1;
             for _ in 0..self.step {
                 self.revelation.apply_one_run_from_queue();
             }
-            self.revelation.contest.recalculate_placement_no_filter()?;
+            self.revelation.contest.recalculate_placement();
         }
-        Ok(())
     }
 }
 
@@ -95,7 +93,7 @@ impl Revelation {
         }
     }
 
-    fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
+    fn apply_all_runs_before_frozen(&mut self) {
         for run in self.runs.as_ref().sorted() {
             if run.time < self.contest.score_freeze_time {
                 self.contest.apply_run(&run);
@@ -104,7 +102,7 @@ impl Revelation {
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter()
+        self.contest.recalculate_placement()
     }
 
     fn apply_one_run_from_queue(&mut self) {
@@ -117,7 +115,7 @@ impl Revelation {
             count += 1;
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement_no_filter()?;
+        self.contest.recalculate_placement();
         Ok(count)
     }
 }

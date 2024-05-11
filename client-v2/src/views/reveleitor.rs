@@ -12,22 +12,17 @@ pub struct State {
 }
 
 impl State {
-    fn new(contest: ContestFile, runs: RunsFile, sede: &Sede) -> Option<Self> {
+    fn new(contest: ContestFile, runs: RunsFile, sede: &Sede) -> Self {
         let sub_contest = contest.filter_sede(sede);
-        Some(Self {
+        Self {
             is_started: false,
-            driver: RevelationDriver::new(sub_contest, runs)
-                .inspect_err(|err| error!("failed creating revelation: {err:?}"))
-                .ok()?,
-        })
+            driver: RevelationDriver::new(sub_contest, runs),
+        }
     }
 
     fn step_forward(&mut self) {
         if self.is_started && self.driver.len() > 0 {
-            self.driver
-                .reveal_step()
-                .inspect_err(|err| error!("failed step: {err:?}"))
-                .ok();
+            self.driver.reveal_step();
         } else {
             self.is_started = true;
         }
@@ -35,10 +30,7 @@ impl State {
 
     fn jump_team_forward(&mut self) {
         if self.is_started {
-            self.driver
-                .jump_team_forward()
-                .inspect_err(|err| error!("failed jumping: {err:?}"))
-                .ok();
+            self.driver.jump_team_forward();
         } else {
             self.is_started = true
         }
@@ -51,10 +43,7 @@ impl State {
 
     fn step_back(&mut self) {
         self.is_started = true;
-        self.driver
-            .back_one()
-            .inspect_err(|err| error!("failed step: {err:?}"))
-            .ok();
+        self.driver.back_one();
     }
 
     fn reveal_top_n(&mut self, n: usize) {
@@ -144,16 +133,15 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
     move || {
         let contest = contest.clone();
         let driver = State::new(contest, runs_file.clone(), &sede);
-        driver.map(|driver| {
-            let (get_driver, set_driver) = create_signal(driver);
 
-            view! {
-                <Control state=set_driver />
-                <div class="revelationpanel">
-                    <RevelationPanel state=get_driver sede=sede.clone() />
-                </div>
-            }
-        })
+        let (get_driver, set_driver) = create_signal(driver);
+
+        view! {
+            <Control state=set_driver />
+            <div class="revelationpanel">
+                <RevelationPanel state=get_driver sede=sede.clone() />
+            </div>
+        }
     }
 }
 

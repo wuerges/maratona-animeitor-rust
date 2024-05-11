@@ -158,7 +158,7 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 
 #[component]
 fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView {
-    log!("rendered problem {:?}", problem);
+    // log!("rendered problem {:?}", problem);
     view! {
             <div class={match &problem {
                 Some(p) => if p.solved && p.solved_first {
@@ -257,9 +257,9 @@ fn ContestPanelLine(
                     view!{
                         <div class={center}>
                             {is_compressed.then_some(view! {
-                                <Placement placement={t.placement.into()} sede=sede.clone() />
+                                <Placement placement={t.placement_global} sede=sede.clone() />
                             })}
-                            <Placement placement=t.placement.into() sede=sede.clone() />
+                            <Placement placement=t.placement sede=sede.clone() />
                             <TeamName escola=t.escola.clone() name=t.name.clone() />
                             <div class="cell problema quadrado">
                                 <div class="cima">{score.solved}</div>

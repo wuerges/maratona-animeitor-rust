@@ -47,9 +47,7 @@ pub async fn provide_contest() -> (
                         fresh_contest.apply_run(r);
                     }
 
-                    fresh_contest
-                        .recalculate_placement(None)
-                        .expect("Should recalculate placement");
+                    fresh_contest.recalculate_placement();
 
                     runs.reverse();
 

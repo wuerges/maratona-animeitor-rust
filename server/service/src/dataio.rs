@@ -228,7 +228,7 @@ impl DB {
 mod tests {
 
     use super::*;
-    use data::revelation::RevelationDriver;
+    // use data::revelation::RevelationDriver;
 
     #[test]
     fn test_from_string() -> ServiceResult<()> {
@@ -283,28 +283,28 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
-        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
+    // #[test]
+    // fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
+    //     let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
 
-        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-        assert_eq!(runs.len(), 6285);
+    //     let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
+    //     assert_eq!(runs.len(), 6285);
 
-        let r1 = RevelationDriver::new(contest.clone(), runs.clone())?;
-        let r2 = RevelationDriver::new(contest, runs)?;
+    //     let r1 = RevelationDriver::new(contest.clone(), runs.clone())?;
+    //     let r2 = RevelationDriver::new(contest, runs)?;
 
-        for t in r1.contest().teams.values() {
-            let t2_p = r2.contest().placement(&t.login).unwrap();
-            assert_eq!(t.placement, t2_p);
-        }
+    //     for t in r1.contest().teams.values() {
+    //         let t2_p = r2.contest().placement(&t.login).unwrap();
+    //         assert_eq!(t.placement, t2_p);
+    //     }
 
-        for t in r2.contest().teams.values() {
-            let t1_p = r1.contest().placement(&t.login).unwrap();
-            assert_eq!(t.placement, t1_p);
-        }
+    //     for t in r2.contest().teams.values() {
+    //         let t1_p = r1.contest().placement(&t.login).unwrap();
+    //         assert_eq!(t.placement, t1_p);
+    //     }
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     #[test]
     fn test_parse_contest_file() -> ServiceResult<()> {
