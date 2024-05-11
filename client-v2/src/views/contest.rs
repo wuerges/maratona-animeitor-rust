@@ -224,7 +224,7 @@ fn ContestPanelLine(
         })
     });
 
-    let id = move || team.with(|t| t.login.clone());
+    let id = move || team.with_untracked(|t| t.login.clone());
     let style = move || {
         team.with(|t| {
             format!(
@@ -303,10 +303,6 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
         .map(|t| t.placement)
 }
 
-fn team_key(team: &Team) -> u64 {
-    team.id
-}
-
 #[component]
 pub fn ContestPanel(
     contest: Signal<ContestFile>,
@@ -322,6 +318,7 @@ pub fn ContestPanel(
     });
 
     let cloned_sede = sede.clone();
+
     let teams = create_memo(move |_| {
         let mut teams = contest.with(|c| {
             c.teams
@@ -360,11 +357,11 @@ pub fn ContestPanel(
             </div>
 
             <For
-                each=move || (0..teams.with(|t| t.len()))
-                key=move |i| teams.with(|t| team_key(&t[*i as usize]))
-                children={move |i| {
+                each=move || teams.get().into_iter().enumerate()
+                key=move |(key,_)| key.clone()
+                children={move |(i, _team)| {
                     log!("rerender children");
-                    let team = create_memo(move |_| contest.with(|_c| teams.with(|ts| ts[i].clone())));
+                    let team = create_memo(move |_| teams.with(|ts| ts[i].clone()));
 
                     view!{
                         <ContestPanelLine is_compressed=is_compressed.into() p_center=p_center.into() team=team.into() all_problems sede=sede.clone() />

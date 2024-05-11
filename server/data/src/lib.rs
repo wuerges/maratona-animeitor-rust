@@ -211,7 +211,7 @@ pub struct Team {
 
 impl PartialEq for Team {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.name == other.name && self.id == other.id
     }
 }
 
@@ -440,6 +440,7 @@ impl ContestFile {
 
         for (i, t) in teams.iter_mut().enumerate() {
             t.placement_global = i + 1;
+            t.id = gen_id();
         }
 
         self.recalculate_stars();
