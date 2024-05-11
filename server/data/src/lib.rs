@@ -428,7 +428,8 @@ impl ContestFile {
                     && problem.time_solved
                         == self.first_solution_time.get(l).copied().unwrap_or_default()
                 {
-                    problem.solved_first = true
+                    problem.solved_first = true;
+                    team.id = gen_id();
                 }
             }
         }
@@ -439,8 +440,10 @@ impl ContestFile {
         teams.sort_by_cached_key(|t| t.score());
 
         for (i, t) in teams.iter_mut().enumerate() {
-            t.placement_global = i + 1;
-            t.id = gen_id();
+            if t.placement_global != i + 1 {
+                t.placement_global = i + 1;
+                t.id = gen_id()
+            }
         }
 
         self.recalculate_stars();
