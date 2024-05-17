@@ -1,17 +1,9 @@
 use crate::errors::{Error, ServiceResult};
 use data::*;
 use html_escape::decode_html_entities_to_string;
-use std::fs::File;
-use std::io::{self, Read};
 
 pub trait FromString {
     fn from_string(s: &str) -> ServiceResult<Self>
-    where
-        Self: std::marker::Sized;
-}
-
-pub trait FromFile {
-    fn from_file(s: &str) -> ServiceResult<Self>
     where
         Self: std::marker::Sized;
 }
@@ -26,13 +18,6 @@ impl FromString for Team {
         decode_html_entities_to_string(team_line[2], &mut team_name);
         Ok(Team::new(team_line[0], team_line[1], team_name))
     }
-}
-
-fn read_to_string(s: &str) -> io::Result<String> {
-    let mut file = File::open(s)?;
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-    Ok(s)
 }
 
 fn from_string_answer(t: &str, tim: i64) -> ServiceResult<Answer> {
@@ -115,20 +100,6 @@ impl FromString for ContestFile {
             penalty,
             number_problems,
         ))
-    }
-}
-
-impl FromFile for ContestFile {
-    fn from_file(s: &str) -> ServiceResult<Self> {
-        let s = read_to_string(s)?;
-        Self::from_string(&s)
-    }
-}
-
-impl FromFile for RunsFile {
-    fn from_file(s: &str) -> ServiceResult<Self> {
-        let s = read_to_string(s)?;
-        Self::from_string(&s)
     }
 }
 
@@ -226,9 +197,31 @@ impl DB {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+    use std::io::{self, Read};
 
     use super::*;
     // use data::revelation::RevelationDriver;
+
+    trait FromFile {
+        fn from_file(s: &str) -> ServiceResult<Self>
+        where
+            Self: std::marker::Sized;
+    }
+
+    impl<T: FromString> FromFile for T {
+        fn from_file(s: &str) -> ServiceResult<Self> {
+            let s = read_to_string(s)?;
+            Self::from_string(&s)
+        }
+    }
+
+    fn read_to_string(s: &str) -> io::Result<String> {
+        let mut file = File::open(s)?;
+        let mut s = String::new();
+        file.read_to_string(&mut s)?;
+        Ok(s)
+    }
 
     #[test]
     fn test_from_string() -> ServiceResult<()> {
