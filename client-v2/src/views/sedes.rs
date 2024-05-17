@@ -9,7 +9,7 @@ use leptos_router::*;
 
 use crate::{
     api::{create_config, create_timer},
-    model::provide_contest,
+    model::{provide_contest, ContestProvider},
     views::{contest::Contest, navigation::Navigation},
 };
 
@@ -61,30 +61,29 @@ fn ProvideSede(
 
 #[component]
 fn ConfiguredReveleitor(
-    config_contest: Resource<
-        (),
-        (
-            Signal<ContestFile>,
-            ConfigContest,
-            ReadSignal<Vec<RunsPanelItem>>,
-        ),
-    >,
+    contest_provider: Resource<(), ContestProvider>,
     secret: String,
     sede_param: Option<String>,
 ) -> impl IntoView {
-    view! {
-        <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
+    let configured_reveleitor = move || {
         {
             let secret = secret.clone();
             let sede_param = sede_param.clone();
-            move || {
-                let sede_param = sede_param.clone();
-                let secret = secret.clone();
-                config_contest.get().map(move |(contest,config,_)| {
-                    let sede = Rc::new(use_configured_sede(config,sede_param));
-                    view! { <Reveleitor sede secret contest /> }.into_view()
+            contest_provider.with(|provider| {
+                provider.as_ref().map(|provider| {
+                    let sede = Rc::new(use_configured_sede(
+                        provider.config_contest.clone(),
+                        sede_param,
+                    ));
+                    view! { <Reveleitor sede secret contest=provider.starting_contest.clone() /> }
                 })
-            }}
+            })
+        }
+        .into_view()
+    };
+    view! {
+        <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
+            {configured_reveleitor()}
         </Suspense>
     }
 }
@@ -92,7 +91,7 @@ fn ConfiguredReveleitor(
 #[component]
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
-    let contest_and_panel = create_local_resource(|| (), |()| provide_contest());
+    let contest_provider = create_local_resource(|| (), |()| provide_contest());
     let config_contest = create_local_resource(|| (), |()| create_config());
 
     let negative_memo = create_memo(move |_| timer.get().is_negative());
@@ -110,15 +109,25 @@ pub fn Sedes() -> impl IntoView {
                     log!("loaded params: {:?}", params);
                     match params.secret {
                         Some(secret) => view! {
-                            <ConfiguredReveleitor config_contest=contest_and_panel secret=secret sede_param=params.sede.clone() />
+                            <ConfiguredReveleitor contest_provider secret=secret sede_param=params.sede.clone() />
                         }.into_view(),
                         None => view! {
                             <Navigation config_contest />
                             <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                                 {
                                     let sede = params.sede.clone();
-                                    move || contest_and_panel.get().map(|(contest, config_contest, panel_items)|
-                                       view!{ <ProvideSede contest panel_items timer config_contest sede_param=sede.clone() /> }
+                                    move || contest_provider.with(|contest_provider|
+                                        contest_provider.as_ref().map(|provider|
+                                            view!{
+                                                <ProvideSede
+                                                    contest=provider.running_contest
+                                                    panel_items=provider.panel_items
+                                                    timer
+                                                    config_contest=provider.config_contest.clone()
+                                                    sede_param=sede.clone()
+                                                />
+                                            }
+                                        )
                                     )
                                 }
                             </Suspense>

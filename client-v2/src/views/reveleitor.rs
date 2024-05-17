@@ -146,7 +146,7 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
 }
 
 #[component]
-pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: Signal<ContestFile>) -> impl IntoView {
+pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
     let all_runs = create_local_resource(
         || (),
         move |()| {
@@ -155,10 +155,10 @@ pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: Signal<ContestFile>) 
         },
     );
 
-    move || match (all_runs.get(), contest.get()) {
-        (Some(runs_file), contest) => {
-            Some(view! { <Revelation sede=sede.clone() runs_file contest /> })
-        }
-        _ => None,
+    move || {
+        let contest = contest.clone();
+        all_runs.get().map(|runs_file| {
+            view! { <Revelation sede=sede.clone() runs_file contest /> }
+        })
     }
 }

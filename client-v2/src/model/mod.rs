@@ -5,14 +5,18 @@ use leptos::{logging::log, *};
 
 use crate::api::{create_config, create_contest, create_runs};
 
-pub async fn provide_contest() -> (
-    Signal<ContestFile>,
-    ConfigContest,
-    ReadSignal<Vec<RunsPanelItem>>,
-) {
+pub struct ContestProvider {
+    pub running_contest: Signal<ContestFile>,
+    pub starting_contest: ContestFile,
+    pub config_contest: ConfigContest,
+    pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
+}
+
+pub async fn provide_contest() -> ContestProvider {
     let original_contest_file = create_contest().await;
     let config = create_config().await;
     let original_contest_file = original_contest_file.filter_sede(&config.titulo.into_sede());
+    let starting_contest = original_contest_file.clone();
 
     log!("fetched original contest");
     let (contest_signal, set_contest_signal) =
@@ -63,5 +67,10 @@ pub async fn provide_contest() -> (
     });
 
     log!("provided contest");
-    (contest_signal.into(), config, runs_panel_signal)
+    ContestProvider {
+        running_contest: contest_signal.into(),
+        starting_contest,
+        config_contest: config,
+        panel_items: runs_panel_signal,
+    }
 }
