@@ -5,16 +5,24 @@ use leptos_router::*;
 use crate::api::ContestQuery;
 
 #[component]
-fn Sede(sede: SedeEntry) -> impl IntoView {
+fn Sede<'query>(sede: SedeEntry, query: &'query ContestQuery) -> impl IntoView {
+    let contest = query
+        .contest
+        .as_ref()
+        .map(|c| format!("&contest={c}"))
+        .unwrap_or_default();
     view! {
         <span class="sedeslink">
-            <A href=format!("?sede={}",sede.name)> {sede.name} </A>
+            <A href=format!("?sede={}{}",sede.name, contest)> {sede.name} </A>
         </span>
     }
 }
 
 #[component]
-pub fn Navigation(config_contest: Resource<ContestQuery, ConfigContest>) -> impl IntoView {
+pub fn Navigation(
+    config_contest: Resource<ContestQuery, ConfigContest>,
+    query: Signal<ContestQuery>,
+) -> impl IntoView {
     move || {
         view! {
             <div class="sedesnavigation">
@@ -22,16 +30,16 @@ pub fn Navigation(config_contest: Resource<ContestQuery, ConfigContest>) -> impl
                     fallback=||view! {<p> Loading... </p> }
                 >
                     {move || {
-                        config_contest.get().map(|contest| {
+                        let query = query.get();
+                        config_contest.with(|config| config.as_ref().map(|contest| {
                             contest
-                            .sedes.unwrap_or_default()
-                            .iter()
+                            .sedes.iter().flatten()
                             .cloned()
-                            .map(|sede| {
-                                view! {<Sede sede />}
+                            .map(move |sede| {
+                                view! {<Sede sede query=&query />}
                             })
                             .collect_view()
-                        })
+                        }))
                     }}
                 </Suspense>
             </div>

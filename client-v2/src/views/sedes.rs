@@ -115,7 +115,7 @@ pub fn Sedes() -> impl IntoView {
                             <ConfiguredReveleitor contest_provider secret=secret sede_param=params.sede.clone() />
                         }.into_view(),
                         None => view! {
-                            <Navigation config_contest />
+                            <Navigation config_contest query />
                             <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                                 {
                                     let sede = params.sede.clone();
