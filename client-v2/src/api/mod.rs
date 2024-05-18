@@ -56,10 +56,17 @@ fn ws_url_prefix() -> String {
     prefix
 }
 
+fn push_contest_query(url: &mut String, query: ContestQuery) {
+    if let Some(contest) = query.contest {
+        url.push_str(&format!("?contest={contest}"));
+    }
+}
+
 fn url(path: &str, query: ContestQuery) -> String {
     let mut prefix = url_prefix();
     prefix.push_str("/");
     prefix.push_str(path);
+    push_contest_query(&mut prefix, query);
     prefix
 }
 
@@ -67,6 +74,7 @@ fn ws(path: &str, query: ContestQuery) -> String {
     let mut prefix = ws_url_prefix();
     prefix.push_str("/");
     prefix.push_str(path);
+    push_contest_query(&mut prefix, query);
     prefix
 }
 
