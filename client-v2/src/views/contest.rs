@@ -395,7 +395,7 @@ pub fn Contest(
     contest: Signal<ContestFile>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede: Rc<Sede>,
+    sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     let (center, _) = create_signal(None);
 
@@ -405,10 +405,10 @@ pub fn Contest(
                 <div style="display: flex; flex-direction: column; width: 320px;">
                     <Timer timer />
                     <div class="submission-title"> Últimas Submissões </div>
-                    <RunsPanel items=panel_items.into() sede=sede.clone() />
+                    {move || view!{<RunsPanel items=panel_items.into() sede=sede.get() />}}
                 </div>
                 <div class="automatic" style="margin-left: 8px;">
-                    <ContestPanel contest center=center.into() sede=sede.clone() />
+                    {move || view!{<ContestPanel contest center=center.into() sede=sede.get() />}}
                 </div>
             </div>
         </body>

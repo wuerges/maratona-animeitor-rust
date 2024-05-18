@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 
 use crate::Team;
 
-#[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema, PartialEq, Eq)]
 /// A site entry.
 pub struct SedeEntry {
     /// Site name.
@@ -27,6 +27,12 @@ pub struct SedeEntry {
 pub struct Sede {
     pub entry: SedeEntry,
     automata: AhoCorasick,
+}
+
+impl PartialEq for Sede {
+    fn eq(&self, other: &Self) -> bool {
+        self.entry == other.entry
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy)]

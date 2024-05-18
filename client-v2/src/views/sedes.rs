@@ -60,10 +60,15 @@ fn ProvideSede(
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede_param: Option<String>,
+    sede_param: Signal<SedeQuery>,
 ) -> impl IntoView {
-    let sede = Rc::new(use_configured_sede(config_contest, sede_param));
-    view! { <Contest contest panel_items timer sede /> }
+    let sede = create_memo(move |_| {
+        Rc::new(use_configured_sede(
+            config_contest.clone(),
+            sede_param.get().sede,
+        ))
+    });
+    view! { <Contest contest panel_items timer sede=sede.into() /> }
 }
 
 #[component]
@@ -120,10 +125,10 @@ pub fn Sedes() -> impl IntoView {
                 Some(params) => {
                     log!("loaded params: {:?}", params);
 
-                    match params.clone().secret {
-                        Some(secret) => view! {
-                            <ConfiguredReveleitor contest_provider secret=secret sede_param=sede_query.get().sede />
-                        }.into_view(),
+                    match params.secret {
+                        Some(secret) => (move || view! {
+                            <ConfiguredReveleitor contest_provider secret=secret.clone() sede_param=sede_query.get().sede />
+                        }).into_view(),
                         None => view! {
                             <Navigation config_contest query />
                             <Suspense fallback=|| view! { <p> Loading contest... </p> }>
@@ -136,7 +141,7 @@ pub fn Sedes() -> impl IntoView {
                                                     panel_items=provider.panel_items
                                                     timer
                                                     config_contest=provider.config_contest.clone()
-                                                    sede_param=sede_query.get().sede
+                                                    sede_param=sede_query
                                                 />
                                             }
                                         )
