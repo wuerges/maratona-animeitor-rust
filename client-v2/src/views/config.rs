@@ -1,10 +1,10 @@
 use leptos::*;
 
-use crate::api::create_config;
+use crate::api::{create_config, ContestQuery};
 
 #[component]
-pub fn Config() -> impl IntoView {
-    let config = create_resource(|| (), |_| create_config());
+pub fn Config(query: Signal<ContestQuery>) -> impl IntoView {
+    let config = create_resource(move || query.get(), |q| create_config(q));
 
     move || match config.get() {
         Some(config) => view! {

@@ -2,10 +2,16 @@ use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
 use leptos::{logging::warn, *};
+use leptos_router::Params;
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
 
 const DEFAULT_URL: &'static str = "http://0.0.0.0";
+
+#[derive(Params, PartialEq, Eq, Clone, Default)]
+pub struct ContestQuery {
+    pub contest: Option<String>,
+}
 
 #[cfg(not(test))]
 fn window_origin() -> Option<String> {
@@ -50,34 +56,34 @@ fn ws_url_prefix() -> String {
     prefix
 }
 
-fn url(path: &str) -> String {
+fn url(path: &str, query: ContestQuery) -> String {
     let mut prefix = url_prefix();
     prefix.push_str("/");
     prefix.push_str(path);
     prefix
 }
 
-fn ws(path: &str) -> String {
+fn ws(path: &str, query: ContestQuery) -> String {
     let mut prefix = ws_url_prefix();
     prefix.push_str("/");
     prefix.push_str(path);
     prefix
 }
 
-pub async fn create_contest() -> ContestFile {
-    let contest_message = create_request(&url("contest")).await;
+pub async fn create_contest(query: ContestQuery) -> ContestFile {
+    let contest_message = create_request(&url("contest", query)).await;
 
     contest_message
 }
 
-pub async fn create_config() -> ConfigContest {
-    let config_message = create_request(&url("config")).await;
+pub async fn create_config(query: ContestQuery) -> ConfigContest {
+    let config_message = create_request(&url("config", query)).await;
 
     config_message
 }
 
-pub fn create_runs() -> UnboundedReceiver<RunTuple> {
-    create_websocket_stream::<RunTuple>(&ws("allruns_ws"))
+pub fn create_runs(query: ContestQuery) -> UnboundedReceiver<RunTuple> {
+    create_websocket_stream::<RunTuple>(&ws("allruns_ws", query))
 }
 
 pub async fn create_secret_runs(secret: String) -> data::RunsFile {
@@ -89,7 +95,8 @@ pub async fn create_secret_runs(secret: String) -> data::RunsFile {
 }
 
 pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
-    let mut timer_stream = create_websocket_stream::<TimerData>(&ws("timer"));
+    let mut timer_stream =
+        create_websocket_stream::<TimerData>(&ws("timer", ContestQuery { contest: None }));
 
     let (timer, set_timer) = create_signal((TimerData::fake(), data::TimerData::new(0, 1)));
 

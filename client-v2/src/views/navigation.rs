@@ -2,6 +2,8 @@ use data::configdata::{ConfigContest, SedeEntry};
 use leptos::*;
 use leptos_router::*;
 
+use crate::api::ContestQuery;
+
 #[component]
 fn Sede(sede: SedeEntry) -> impl IntoView {
     view! {
@@ -12,7 +14,7 @@ fn Sede(sede: SedeEntry) -> impl IntoView {
 }
 
 #[component]
-pub fn Navigation(config_contest: Resource<(), ConfigContest>) -> impl IntoView {
+pub fn Navigation(config_contest: Resource<ContestQuery, ConfigContest>) -> impl IntoView {
     move || {
         view! {
             <div class="sedesnavigation">

@@ -8,7 +8,7 @@ use leptos::{logging::*, *};
 use leptos_router::*;
 
 use crate::{
-    api::{create_config, create_timer},
+    api::{create_config, create_timer, ContestQuery},
     model::{provide_contest, ContestProvider},
     views::{contest::Contest, navigation::Navigation},
 };
@@ -61,7 +61,7 @@ fn ProvideSede(
 
 #[component]
 fn ConfiguredReveleitor(
-    contest_provider: Resource<(), ContestProvider>,
+    contest_provider: Resource<ContestQuery, ContestProvider>,
     secret: String,
     sede_param: Option<String>,
 ) -> impl IntoView {
@@ -91,8 +91,6 @@ fn ConfiguredReveleitor(
 #[component]
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
-    let contest_provider = create_local_resource(|| (), |()| provide_contest());
-    let config_contest = create_local_resource(|| (), |()| create_config());
 
     let negative_memo = create_memo(move |_| timer.get().is_negative());
 
@@ -100,6 +98,11 @@ pub fn Sedes() -> impl IntoView {
         if negative_memo.get() {
             view! { <Timer timer /> }.into_view()
         } else {
+            let query = (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
+            let contest_provider =
+                create_local_resource(move || query.get(), |q| provide_contest(q));
+            let config_contest = create_local_resource(move || query.get(), |q| create_config(q));
+
             match use_local_params() {
                 None => {
                     error!("failed loading params");

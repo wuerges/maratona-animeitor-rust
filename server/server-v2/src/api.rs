@@ -6,6 +6,11 @@ use tracing::{debug, warn, Level};
 
 use crate::app_data::AppData;
 
+#[derive(Deserialize, Debug)]
+struct ContestQuery {
+    pub contest: Option<String>,
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service((
         get_contest,
@@ -16,13 +21,11 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     ));
 }
 
-#[derive(Deserialize)]
-struct Contest {
-    contest: Option<String>,
-}
-
 #[get("/contest")]
-async fn get_contest(data: web::Data<AppData>, contest: web::Query<Contest>) -> impl Responder {
+async fn get_contest(
+    data: web::Data<AppData>,
+    contest: web::Query<ContestQuery>,
+) -> impl Responder {
     get_contest_fn(
         data,
         contest.into_inner().contest.unwrap_or_default().as_str(),
@@ -48,7 +51,7 @@ async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Res
 }
 
 #[get("/config")]
-async fn get_config(data: web::Data<AppData>, contest: web::Query<Contest>) -> impl Responder {
+async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>) -> impl Responder {
     get_config_fn(
         data,
         contest.into_inner().contest.unwrap_or_default().as_str(),
@@ -105,7 +108,7 @@ async fn get_allruns_secret_fn(
 async fn get_allruns_secret(
     data: web::Data<AppData>,
     query: web::Query<SecretQuery>,
-    contest: web::Query<Contest>,
+    contest: web::Query<ContestQuery>,
 ) -> impl Responder {
     get_allruns_secret_fn(
         data,
@@ -120,7 +123,7 @@ async fn get_allruns_ws(
     data: web::Data<AppData>,
     req: HttpRequest,
     body: web::Payload,
-    contest: web::Query<Contest>,
+    contest: web::Query<ContestQuery>,
 ) -> Result<HttpResponse, Error> {
     get_allruns_ws_fn(
         data,

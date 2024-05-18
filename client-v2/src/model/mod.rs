@@ -3,7 +3,7 @@ use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
 use leptos::{logging::log, *};
 
-use crate::api::{create_config, create_contest, create_runs};
+use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 
 pub struct ContestProvider {
     pub running_contest: Signal<ContestFile>,
@@ -12,9 +12,9 @@ pub struct ContestProvider {
     pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
 }
 
-pub async fn provide_contest() -> ContestProvider {
-    let original_contest_file = create_contest().await;
-    let config = create_config().await;
+pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
+    let original_contest_file = create_contest(query.clone()).await;
+    let config = create_config(query.clone()).await;
     let original_contest_file = original_contest_file.filter_sede(&config.titulo.into_sede());
     let starting_contest = original_contest_file.clone();
 
@@ -26,7 +26,7 @@ pub async fn provide_contest() -> ContestProvider {
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
 
-        let mut runs_stream = create_runs().ready_chunks(100_000);
+        let mut runs_stream = create_runs(query).ready_chunks(100_000);
 
         loop {
             TimeoutFuture::new(1_000).await;
