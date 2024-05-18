@@ -3,7 +3,6 @@ use std::str::FromStr;
 use clap::Parser;
 use cli::SimpleArgs;
 use color_eyre::eyre::eyre;
-use server::*;
 
 use service::{
     app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, sentry, volume::Volume,
@@ -30,9 +29,6 @@ struct SimpleParser {
     ///
     /// Expected format: FOLDER:PATH
     volume: Vec<FromPairArg<Volume>>,
-
-    #[clap(long)]
-    server_version: Option<Version>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -66,7 +62,6 @@ async fn main() -> color_eyre::eyre::Result<()> {
         port,
         url,
         volume: volumes,
-        server_version,
     } = SimpleParser::parse();
 
     let complete = args.into_contest_and_secret()?;
@@ -75,7 +70,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
-    let _autometrics = metrics::setup();
+    let _autometrics = server_v2::metrics::setup();
 
     let app_config = AppConfig {
         config: complete,
@@ -88,10 +83,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     tracing::info!("Server listening on port: {}", port);
 
-    match server_version.unwrap_or_default() {
-        Version::V1 => serve_simple_contest(app_config).await,
-        Version::V2 => server_v2::serve_config(app_config).await?,
-    }
+    server_v2::serve_config(app_config).await?;
 
     Ok(())
 }

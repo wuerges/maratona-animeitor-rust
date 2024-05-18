@@ -19,7 +19,6 @@ openssl-sys = { optional = true, version = "*" }
 
 data = { path = "../data" }
 service = { path = "../service" }
-server = { path = "../server" }
 server-v2 = { path = "../server-v2" }
 
 [dev-dependencies]

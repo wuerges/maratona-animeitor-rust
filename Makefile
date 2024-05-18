@@ -66,14 +66,9 @@ prog-americas-sync-client:
 	rsync -v client/www/static/styles-transparent.css ew@animeitor.naquadah.com.br:www-transparent/static/styles.css
 	rsync -v client/www/static/styles-chroma.css ew@animeitor.naquadah.com.br:www-chroma/static/styles.css
 
-prog-americas-debug-server:
-	@echo running server...
-	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/americas.toml --secret ../config/americas_secret.toml  ${BOCA_URL} )
-
 debug-server:
 	@echo running server...
-	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client/www: --sedes ../config/basic.toml:debug --secret ../config/basic_secret.toml ../tests/inputs/webcast_jones.zip )
-
+	( cd server && RUST_LOG=info cargo run --bin simples -- -v ../client-v2/dist: --sedes ../config/basic.toml: --secret ../config/basic_secret.toml ${BOCA_URL} )
 
 prog-americas-build-server:
 	@echo building the server
