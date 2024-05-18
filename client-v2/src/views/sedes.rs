@@ -25,18 +25,25 @@ impl IsNegative for (TimerData, TimerData) {
     }
 }
 
-#[derive(Params, PartialEq, Eq, Clone, Debug)]
-struct LocalParams {
+#[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
+struct SedeQuery {
     sede: Option<String>,
+}
+
+#[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
+struct SecretQuery {
     secret: Option<String>,
 }
 
-fn use_local_params() -> Option<LocalParams> {
-    let params = use_query::<LocalParams>()
+fn use_secret_query() -> Option<SecretQuery> {
+    use_query::<SecretQuery>()
         .get()
-        .inspect_err(|e| log!("{}", e))
-        .ok()?;
-    Some(params)
+        .inspect_err(|e| error!("incorrect secret: {:?}", e))
+        .ok()
+}
+
+fn use_sede_query() -> Signal<SedeQuery> {
+    (|| use_query::<SedeQuery>().get().unwrap_or_default()).into_signal()
 }
 
 fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sede {
@@ -99,26 +106,28 @@ pub fn Sedes() -> impl IntoView {
             view! { <Timer timer /> }.into_view()
         } else {
             let query = (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
+            let sede_query = use_sede_query();
+            let secret_query = use_secret_query();
             let contest_provider =
                 create_local_resource(move || query.get(), |q| provide_contest(q));
             let config_contest = create_local_resource(move || query.get(), |q| create_config(q));
 
-            (move || match use_local_params() {
+            (move || match secret_query.clone() {
                 None => {
                     error!("failed loading params");
                     view! {<p> Failed loading params </p> }.into_view()
                 }
                 Some(params) => {
                     log!("loaded params: {:?}", params);
-                    match params.secret {
+
+                    match params.clone().secret {
                         Some(secret) => view! {
-                            <ConfiguredReveleitor contest_provider secret=secret sede_param=params.sede.clone() />
+                            <ConfiguredReveleitor contest_provider secret=secret sede_param=sede_query.get().sede />
                         }.into_view(),
                         None => view! {
                             <Navigation config_contest query />
                             <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                                 {
-                                    let sede = params.sede.clone();
                                     move || contest_provider.with(|contest_provider|
                                         contest_provider.as_ref().map(|provider|
                                             view!{
@@ -127,7 +136,7 @@ pub fn Sedes() -> impl IntoView {
                                                     panel_items=provider.panel_items
                                                     timer
                                                     config_contest=provider.config_contest.clone()
-                                                    sede_param=sede.clone()
+                                                    sede_param=sede_query.get().sede
                                                 />
                                             }
                                         )
@@ -137,7 +146,8 @@ pub fn Sedes() -> impl IntoView {
                         }.into_view(),
                     }
                 }
-            }).into_view()
+            })
+            .into_view()
         }
     };
 
