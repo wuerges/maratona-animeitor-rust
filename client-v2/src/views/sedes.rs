@@ -103,7 +103,7 @@ pub fn Sedes() -> impl IntoView {
                 create_local_resource(move || query.get(), |q| provide_contest(q));
             let config_contest = create_local_resource(move || query.get(), |q| create_config(q));
 
-            match use_local_params() {
+            (move || match use_local_params() {
                 None => {
                     error!("failed loading params");
                     view! {<p> Failed loading params </p> }.into_view()
@@ -137,7 +137,7 @@ pub fn Sedes() -> impl IntoView {
                         }.into_view(),
                     }
                 }
-            }
+            }).into_view()
         }
     };
 
