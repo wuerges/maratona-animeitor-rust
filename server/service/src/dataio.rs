@@ -116,7 +116,6 @@ pub struct DB {
     run_file: RunsFile,
     pub run_file_secret: RunsFile,
     pub contest_file_begin: ContestFile,
-    contest_file: ContestFile,
     pub time_file: TimeFile,
 }
 
@@ -129,41 +128,11 @@ pub fn read_runs(s: &str) -> ServiceResult<RunsFile> {
 }
 
 impl DB {
-    pub fn latest(&self) -> Vec<RunsPanelItem> {
-        self.run_file
-            .sorted()
-            .into_iter()
-            .filter(|r| r.time < self.contest_file.score_freeze_time)
-            .map(|r| {
-                let dummy = Team::dummy();
-                let t = self.contest_file.teams.get(&r.team_login).unwrap_or(&dummy);
-                let first_solved = self
-                    .contest_file
-                    .first_solution_time
-                    .get(&r.prob)
-                    .copied()
-                    .unwrap_or_default();
-                RunsPanelItem {
-                    id: r.id,
-                    placement: t.placement,
-                    color: 0,
-                    escola: t.escola.clone(),
-                    team_name: t.name.clone(),
-                    team_login: t.login.clone(),
-                    problem: r.prob.clone(),
-                    result: r.answer.clone(),
-                    first_solved: r.time == first_solved,
-                }
-            })
-            .collect()
-    }
-
     pub fn empty() -> Self {
         DB {
             run_file: RunsFile::empty(),
             run_file_secret: RunsFile::empty(),
             contest_file_begin: ContestFile::dummy(),
-            contest_file: ContestFile::dummy(),
             time_file: 0,
         }
     }

@@ -27,6 +27,8 @@ pub enum Answer {
 pub enum ContestError {
     #[error("unmatched team: {}", 0.)]
     UnmatchedTeam(String),
+    #[error("unmatched problem: {}", 0.)]
+    UnmatchedProblem(String),
 }
 
 impl fmt::Display for Answer {
@@ -471,22 +473,21 @@ impl ContestFile {
             .get(&run.team_login)
             .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
 
-        let first_time = self
-            .first_solution_time
+        let problem = team
+            .problems
             .get(&run.prob)
-            .copied()
-            .unwrap_or_default();
+            .ok_or(ContestError::UnmatchedProblem(run.prob.clone()))?;
+
+        let view = problem.view();
 
         Ok(RunsPanelItem {
             id: run.id,
             placement: team.placement_global,
-            color: 0,
             escola: team.escola.clone(),
             team_name: team.name.clone(),
             team_login: run.team_login.clone(),
             problem: run.prob.clone(),
-            result: run.answer.clone(),
-            first_solved: first_time == run.time,
+            problem_view: view,
         })
     }
 }
@@ -536,17 +537,15 @@ impl RunTuple {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub struct RunsPanelItem {
     pub id: i64,
     pub placement: usize,
-    pub color: i64,
     pub escola: String,
     pub team_name: String,
     pub team_login: String,
     pub problem: String,
-    pub result: Answer,
-    pub first_solved: bool,
+    pub problem_view: ProblemView,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

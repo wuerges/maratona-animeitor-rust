@@ -52,43 +52,6 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
     }
 }
 
-#[component]
-fn RunResult(
-    problem: String,
-    answer: Signal<data::Answer>,
-    first_solved: Signal<bool>,
-) -> impl IntoView {
-    let balao = format!("balao_{}", problem);
-    view! {
-        <div class="cell quadrado">{problem}</div>
-        {move || match answer.get() {
-            data::Answer::Yes(time) => {
-                let img = if first_solved.get() {"star-img"} else {"accept-img"};
-                view! {
-                <div class="accept cell quadrado">
-                    <div class=format!("{img} {balao}") />
-                    <div class="accept-text cell-content">{time}</div>
-                </div>
-            }},
-            data::Answer::No => view! {
-                <div class="unsolved cell quadrado cell-content">
-                    <div class="no-img-run" />
-                </div>
-            },
-            data::Answer::Wait => view! {
-                <div class="inqueue cell quadrado cell-content">
-                    <div class="wait-img-run" />
-                </div>
-            },
-            data::Answer::Unk => view! {
-                <div class="inqueue cell quadrado cell-content">
-                    <div class="unk-img-run" />
-                </div>
-            },
-        }}
-    }
-}
-
 fn take_30(
     items: Vec<RunsPanelItem>,
     sede: Rc<Sede>,
