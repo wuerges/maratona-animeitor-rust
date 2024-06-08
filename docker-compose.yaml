@@ -1,10 +1,11 @@
 services:
   animeitor-v2:
     image: wuerges/animeitor-v2:latest
-    command: "-v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
+    command: "-v /photos:photos -v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
     volumes:
       - ./tests:/tests
       - ./config:/config
+      - ./server/photos:/photos
     ports:
       - 8000:8000
 
