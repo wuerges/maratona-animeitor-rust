@@ -112,8 +112,8 @@ fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Rc<Sede>) -> impl IntoView
         children={move |(i, o)| {
                 let sede = sede.clone();
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-                let result = Signal::derive(move || items.get()[i].result.clone());
-                let first_solved = Signal::derive(move || items.get()[i].first_solved);
+                let result = (move || o.result.clone()).into_signal();
+                let first_solved = (move || o.first_solved).into_signal();
 
                 view! {
                     <div class="run" style:top={top} >
