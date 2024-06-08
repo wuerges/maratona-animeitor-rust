@@ -112,14 +112,13 @@ fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Rc<Sede>) -> impl IntoView
         children={move |(i, o)| {
                 let sede = sede.clone();
                 let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-                let result = (move || o.result.clone()).into_signal();
-                let first_solved = (move || o.first_solved).into_signal();
 
                 view! {
                     <div class="run" style:top={top} >
                         <Placement placement={o.placement.into()} sede=sede.clone() />
                         <TeamName escola={o.escola.clone()} name={o.team_name.clone()} />
-                        <RunResult problem=o.problem.clone() answer=result first_solved />
+                        <div class="cell quadrado">{o.problem.clone()}</div>
+                        <Problem prob=o.problem.chars().next().unwrap_or('Z') problem=Some(o.problem_view) />
                     </div>
                 }
             }}
