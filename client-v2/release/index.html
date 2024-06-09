@@ -1,11 +1,22 @@
 <!DOCTYPE html><html><head>
-    <link rel="stylesheet" href="/styles-3df9a32fcea66d68.css">
-    
-        <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="/styles-3df9a32fcea66d68.css">
   
-<link rel="preload" href="/client-v2-4e7d24eaf5ae85bd_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/client-v2-4e7d24eaf5ae85bd.js"></head>
-  <body>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<script type="module">import init from '/client-v2-4e7d24eaf5ae85bd.js';init('/client-v2-4e7d24eaf5ae85bd_bg.wasm');</script></body></html>
+<link rel="preload" href="/client-v2-ab870f7c2db9b472_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/client-v2-ab870f7c2db9b472.js"></head>
+
+<body id="body">
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const bgColor = urlParams.get('background_color');
+
+  if (bgColor) {
+    console.log("using background color from query:", bgColor);
+    document.getElementById("body").style.backgroundColor = bgColor;
+  }
+</script>
+
+
+<script type="module">import init from '/client-v2-ab870f7c2db9b472.js';init('/client-v2-ab870f7c2db9b472_bg.wasm');</script></body></html>
