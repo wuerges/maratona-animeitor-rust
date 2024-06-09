@@ -1,15 +1,107 @@
-use data::{configdata::ConfigContest, ContestFile, RunsFile, RunsPanelItem};
+use std::collections::HashMap;
+
+use data::{
+    configdata::ConfigContest, ContestError, ContestFile, ProblemView, RunTuple, RunsFile,
+    RunsPanelItem, Score, Team,
+};
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
 use leptos::{logging::log, *};
 
-use crate::api::{create_config, create_contest, create_runs, ContestQuery};
+use crate::{
+    api::{create_config, create_contest, create_runs, ContestQuery},
+    net::request_signal::create_request,
+};
 
 pub struct ContestProvider {
     pub running_contest: Signal<ContestFile>,
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
     pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
+}
+
+pub struct TeamSignal {
+    login: String,
+    name: String,
+    escola: String,
+    placement: RwSignal<Option<usize>>,
+    placement_global: RwSignal<Option<usize>>,
+    score: RwSignal<Score>,
+    problems: HashMap<String, RwSignal<Option<ProblemView>>>,
+}
+
+impl TeamSignal {
+    fn new(team: &Team, letters: &[String]) -> Self {
+        let Team {
+            login,
+            escola,
+            name,
+            placement: _,
+            placement_global: _,
+            problems,
+            id: _,
+        } = team;
+
+        Self {
+            login: login.clone(),
+            name: name.clone(),
+            escola: escola.clone(),
+            placement: create_rw_signal(None),
+            placement_global: create_rw_signal(None),
+            score: create_rw_signal(team.score()),
+            problems: letters
+                .iter()
+                .map(|l| {
+                    let view = problems.get(l).map(|p| p.view());
+                    (l.clone(), create_rw_signal(view))
+                })
+                .collect(),
+        }
+    }
+
+    fn update(&self, team: &Team) {
+        let new_score = team.score();
+        self.score.update(|x| *x = new_score);
+        self.placement_global
+            .update(|p| *p = Some(team.placement_global));
+
+        for (letter, problem_view) in &self.problems {
+            if let Some(problem) = team.problems.get(letter) {
+                problem_view.update(|v| *v = Some(problem.view()))
+            }
+        }
+    }
+}
+
+pub struct ContestSignal {
+    teams: HashMap<String, TeamSignal>,
+}
+
+impl ContestSignal {
+    fn new(contest_file: &ContestFile) -> Self {
+        let letters = data::PROBLEM_LETTERS[..contest_file.number_problems]
+            .chars()
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>();
+        ContestSignal {
+            teams: contest_file
+                .teams
+                .iter()
+                .map(|(login, team)| (login.clone(), TeamSignal::new(team, &letters)))
+                .collect(),
+        }
+    }
+
+    fn update(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
+        for run in runs {
+            let login = &run.team_login;
+            if let Some(team) = fresh_contest.teams.get(login) {
+                if let Some(team_signal) = self.teams.get(login) {
+                    team_signal.update(team)
+                }
+            }
+        }
+    }
 }
 
 pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
@@ -22,6 +114,8 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     let (contest_signal, set_contest_signal) =
         create_signal::<ContestFile>(original_contest_file.clone());
     let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
+
+    let new_contest_signal = ContestSignal::new(&original_contest_file);
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
@@ -52,6 +146,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     }
 
                     fresh_contest.recalculate_placement();
+                    new_contest_signal.update(&runs, &fresh_contest);
 
                     runs.reverse();
 
