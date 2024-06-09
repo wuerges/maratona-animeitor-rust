@@ -362,17 +362,15 @@ pub fn Contest(
     let (center, _) = create_signal(None);
 
     view! {
-        <body style="height: 1px">
-            <div style="display: flex; width: 320px;">
-                <div style="display: flex; flex-direction: column; width: 320px;">
-                    <Timer timer />
-                    <div class="submission-title"> Últimas Submissões </div>
-                    {move || view!{<RunsPanel items=panel_items.into() sede=sede.get() />}}
-                </div>
-                <div class="automatic" style="margin-left: 8px;">
-                    {move || view!{<ContestPanel contest center=center.into() sede=sede.get() />}}
-                </div>
+        <div style="display: flex; width: 320px;">
+            <div style="display: flex; flex-direction: column; width: 320px;">
+                <Timer timer />
+                <div class="submission-title"> Últimas Submissões </div>
+                {move || view!{<RunsPanel items=panel_items.into() sede=sede.get() />}}
             </div>
-        </body>
+            <div class="automatic" style="margin-left: 8px;">
+                {move || view!{<ContestPanel contest center=center.into() sede=sede.get() />}}
+            </div>
+        </div>
     }
 }
