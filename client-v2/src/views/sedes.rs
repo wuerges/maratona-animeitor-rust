@@ -55,9 +55,9 @@ fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sed
 }
 
 #[component]
-fn ProvideSede(
+fn ProvideSede<'cs>(
     contest: Signal<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    contest_signal: &'cs ContestSignal,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
@@ -139,7 +139,7 @@ pub fn Sedes() -> impl IntoView {
                                             view!{
                                                 <ProvideSede
                                                     contest=provider.running_contest
-                                                    contest_signal=provider.new_contest_signal.clone()
+                                                    contest_signal=&provider.new_contest_signal
                                                     panel_items=provider.panel_items
                                                     timer
                                                     config_contest=provider.config_contest.clone()

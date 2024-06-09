@@ -23,8 +23,7 @@ pub struct TeamSignal {
     pub login: String,
     pub name: String,
     pub escola: String,
-    pub placement: RwSignal<Option<usize>>,
-    pub placement_global: RwSignal<Option<usize>>,
+    pub placement_global: RwSignal<usize>,
     pub score: RwSignal<Score>,
     pub problems: HashMap<String, RwSignal<Option<ProblemView>>>,
 }
@@ -36,7 +35,7 @@ impl TeamSignal {
             escola,
             name,
             placement: _,
-            placement_global: _,
+            placement_global,
             problems,
             id: _,
         } = team;
@@ -45,8 +44,7 @@ impl TeamSignal {
             login: login.clone(),
             name: name.clone(),
             escola: escola.clone(),
-            placement: create_rw_signal(None),
-            placement_global: create_rw_signal(None),
+            placement_global: create_rw_signal(*placement_global),
             score: create_rw_signal(team.score()),
             problems: letters
                 .iter()
@@ -61,8 +59,7 @@ impl TeamSignal {
     fn update(&self, team: &Team) {
         let new_score = team.score();
         self.score.update(|x| *x = new_score);
-        self.placement_global
-            .update(|p| *p = Some(team.placement_global));
+        self.placement_global.update(|p| *p = team.placement_global);
 
         for (letter, problem_view) in &self.problems {
             problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))

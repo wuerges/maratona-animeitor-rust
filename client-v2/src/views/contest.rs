@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use data::{
     configdata::{Color, Sede},
@@ -8,7 +8,7 @@ use itertools::Itertools;
 use leptos::{logging::log, *};
 
 use crate::{
-    model::ContestSignal,
+    model::{ContestSignal, TeamSignal},
     views::{
         photos::{PhotoState, TeamPhoto},
         timer::Timer,
@@ -31,14 +31,13 @@ fn get_class(color: Color) -> &'static str {
 }
 
 #[component]
-fn Placement(placement: usize, sede: Rc<Sede>) -> impl IntoView {
-    let color = get_color(placement, &sede);
-    let background_color = color.map(get_class).unwrap_or_default();
+fn Placement(placement: usize, sede: Signal<Rc<Sede>>) -> impl IntoView {
+    let background_color = (move || sede.with(|sede| get_color(placement, sede).map(get_class).unwrap_or_default())).into_signal();
 
     view! {
         <div
         // style:background-color=background_color
-        class=format!("cell quadrado colocacao {background_color}")
+        class=move || format!("cell quadrado colocacao {}", background_color.get())
         >
         {placement}
         </div>
@@ -67,13 +66,11 @@ fn take_30(
 }
 
 #[component]
-fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Rc<Sede>) -> impl IntoView {
-    let sede_move = sede.clone();
-
+fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Signal<Rc<Sede>>) -> impl IntoView {
     view! {
         <div class="runstable">
         <For
-        each=move || take_30(items.get(), sede_move.clone())
+        each=move || take_30(items.get(), sede.get())
         key=|(_, r)| r.id
         children={move |(i, o)| {
                 let sede = sede.clone();
@@ -81,7 +78,7 @@ fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Rc<Sede>) -> impl IntoView
 
                 view! {
                     <div class="run" style:top={top} >
-                        <Placement placement={o.placement.into()} sede=sede.clone() />
+                        <Placement placement={o.placement.into()} sede />
                         <TeamName escola={o.escola.clone()} name={o.team_name.clone()} />
                         <div class="cell quadrado">{o.problem.clone()}</div>
                         <Problem prob=o.problem.chars().next().unwrap_or('Z') problem=Some(o.problem_view) />
@@ -168,99 +165,94 @@ fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView {
     }
 }
 
-fn problem_key(p: &data::ProblemView) -> u64 {
-    p.id
-}
-
 #[component]
-fn ContestPanelLine(
+fn ContestPanelLine<'cs>(
     is_compressed: Signal<bool>,
     p_center: Signal<Option<usize>>,
-    team: Signal<Team>,
-    all_problems: Signal<&'static str>,
-    sede: Rc<Sede>,
+    local_placement: Signal<Option<usize>>,
+    team: &'cs TeamSignal,
+    sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
-    let team_problems = create_memo(move |_| {
-        let all_problems = all_problems.get();
-        team.with(move |team| {
-            all_problems
-                .chars()
-                .map(move |prob| (prob, team.problems.get(&prob.to_string()).map(|p| p.view())))
-                .collect_vec()
-        })
-    });
-
-    let id = move || team.with_untracked(|t| t.login.clone());
     let style = move || {
-        team.with(|t| {
-            format!(
+        local_placement.with(|t| match t {
+            Some(placement) => format!(
                 "top: {}; z-index: {};",
-                cell_top(t.placement, &p_center.get()),
-                -((t.placement) as i32)
-            )
+                cell_top(*placement, &p_center.get()),
+                -(*placement as i32)
+            ),
+            None => "display: none;".to_string(),
         })
     };
 
-    let center = move || {
-        team.with(|t| {
-            p_center
-                .get()
-                .and_then(|c| (c == t.placement).then_some("center"))
-                .iter()
-                .chain([&"run_prefix"])
-                .join(" ")
-        })
-    };
+    // let center = move || {
+    //     team.with(|t| {
+    //         p_center
+    //             .get()
+    //             .and_then(|c| (c == t.placement).then_some("center"))
+    //             .iter()
+    //             .chain([&"run_prefix"])
+    //             .join(" ")
+    //     })
+    // };
 
     let show_photo = create_rw_signal(PhotoState::default());
 
+    let problems = team.problems.clone();
+    let problems = 
+        problems
+        .into_iter()
+        .map(|(letter, problem)| {
+            move || view! { <Problem prob=letter.chars().next().unwrap() problem=problem.get() /> }
+        })
+        .collect_view();
+
+    let escola= team.escola.clone();
+    let name = team.name.clone();
+    let team_login = team.login.clone();
+    let sede_clone = sede.clone();
+    let score = team.score.clone();
+    let placement_global = team.placement_global.clone();
+
+    
     view! {
         <div
-            class="run_box" id={id} style={style}
+            class="run_box" id=team_login.clone() style={style}
             on:click={move |_| {
                 log!("clicked");
                 show_photo.update(|s| s.clicked())}}
         >
             <div class="run">
-            {move || {
-                team.with(|t| {
-                    let is_compressed = is_compressed.get();
-                    let score = t.score();
-                    view!{
-                        <div class={center}>
-                            {is_compressed.then_some(view! {
-                                <Placement placement={t.placement_global} sede=sede.clone() />
-                            })}
-                            <Placement placement=t.placement sede=sede.clone() />
-                            <TeamName escola=t.escola.clone() name=t.name.clone() />
-                            <div class="cell problema quadrado">
-                                <div class="cima">{score.solved}</div>
-                                <div class="baixo">{score.penalty}</div>
-                            </div>
-                        </div>
-                    }
-                })
-            }}
-            <For
-                each=move || team_problems.get()
-                key=|(k, prob)| (*k, prob.as_ref().map(problem_key))
-                children = {move |(prob, problem)| {
-                    view!{ <Problem prob problem /> }
-                }}
-            />
+                <div class:run_prefix=true >
+                    {move || {
+                        let placement = placement_global.get();
+                        is_compressed.get().then_some(view! {
+                            <Placement placement sede />
+                        })
+                    }}
+                    {move || local_placement.get().map(|placement|
+                        view!{ <Placement placement sede /> }
+                    )}
+                    <TeamName escola name />
+                    <div class="cell problema quadrado">
+                        <div class="cima">{move || score.get().solved}</div>
+                        <div class="baixo">{move || score.get().penalty}</div>
+                    </div>
+                </div>
+            {problems}
             </div>
         </div>
-        <TeamPhoto team_login={team.with_untracked(|t| t.login.clone())} show={show_photo} />
+        <TeamPhoto team_login show={show_photo} />
     }
 }
 
 #[component]
-fn ContestPanelHeader<'a>(sede: &'a Sede, all_problems: Signal<&'static str>) -> impl IntoView {
+fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
-            <div class={estilo_sede(sede).iter().chain(&["cell", "titulo"]).join(" ")}>
-                {nome_sede(sede).to_string()}
+            <div class={move || 
+                estilo_sede(&sede.get()).iter().chain(&["cell", "titulo"]).join(" ")}>
+                {move || nome_sede(&sede.get()).to_string()}
             </div>
             {move || all_problems.get().chars().map(|p| view! {
                 <div class="cell problema quadrado">{p}</div>
@@ -277,76 +269,85 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
 }
 
 #[component]
-pub fn ContestPanel(
+pub fn ContestPanel<'cs>(
     contest: Signal<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    contest_signal: &'cs ContestSignal,
     center: Signal<Option<String>>,
-    sede: Rc<Sede>,
+    sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     log!("contest panel refresh");
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
-    let cloned_sede = sede.clone();
     let is_compressed = create_memo(move |_| {
-        contest.with(|c| c.teams.values().any(|team| !cloned_sede.team_belongs(team)))
+        sede.with(|sede| {
+            contest.with(|c| c.teams.values().any(|team| !sede.team_belongs(team)))            
+        })
     });
 
     let cloned_sede = sede.clone();
 
-    let teams = create_memo(move |_| {
-        let mut teams = contest.with(|c| {
-            c.teams
-                .values()
-                .filter(|team| cloned_sede.team_belongs(team))
-                .cloned()
-                .collect_vec()
-        });
-
-        for (placement, t) in teams
-            .iter_mut()
-            .sorted_by_cached_key(|t| t.placement_global)
-            .enumerate()
-        {
-            t.placement = placement + 1;
-        }
-
-        teams
+    let placements = create_memo(move |_| {
+        sede.with(|sede| {
+            contest.with(|c| {
+                c.teams
+                    .values()
+                    .filter(|team| sede.team_belongs(team))
+                    .sorted_by_cached_key(|team| team.placement_global)
+                    .map(|team| &team.login)
+                    .enumerate()
+                    .map(|(i, login)| (login.clone(), i + 1))
+                    .collect::<HashMap<_, _>>()
+            })
+            
+        })
     });
 
-    let p_center = (move || {
-        {
-            teams.with(|t| {
-                center.with(|center| center.as_ref().and_then(|center| find_center(&center, t)))
-            })
-        }
-    })
-    .into_signal();
+    // let p_center = (move || {
+    //     {
+    //         teams.with(|t| {
+    //             center.with(|center| center.as_ref().and_then(|center| find_center(&center, t)))
+    //         })
+    //     }
+    // })
+    // .into_signal();
+
+    let p_center = create_rw_signal(None::<usize>);
+
+    let sede_clone = sede.clone();
+
+    let panel_lines = contest_signal
+        .teams
+        .values()
+        .map(move |team| {
+            let login = team.login.clone();
+            let local_placement =
+                (move || placements.with(|ps| ps.get(&login).copied())).into_signal();
+            view! {
+                <ContestPanelLine
+                    is_compressed=is_compressed.into()
+                    p_center=p_center.into()
+                    local_placement
+                    team
+                    sede
+                />
+            }
+        })
+        .collect_view();
 
     view! {
         <div class="runstable">
             <div class="run_box" style:top={move || {
                 log!("center {:?} {:?}", center.get(), p_center.get());
                 cell_top(0, &p_center.get())}}>
-                <ContestPanelHeader sede=&sede all_problems />
+                <ContestPanelHeader sede all_problems />
             </div>
-
-            <For
-                each=move || teams.get().into_iter().enumerate()
-                key=move |(key,_)| key.clone()
-                children={move |(i, _team)| {
-                    let team = create_memo(move |_| teams.with(|ts| ts[i].clone()));
-
-                    view!{
-                        <ContestPanelLine is_compressed=is_compressed.into() p_center=p_center.into() team=team.into() all_problems sede=sede.clone() />
-                    }
-                }}
-            />
+            {panel_lines}
         </div>
     }
 }
 
 #[component]
-fn EmptyContestPanel<'a>(sede: &'a Sede) -> impl IntoView {
+fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &None)}>
@@ -357,9 +358,9 @@ fn EmptyContestPanel<'a>(sede: &'a Sede) -> impl IntoView {
 }
 
 #[component]
-pub fn Contest(
+pub fn Contest<'cs>(
     contest: Signal<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    contest_signal: &'cs ContestSignal,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede: Signal<Rc<Sede>>,
@@ -371,10 +372,10 @@ pub fn Contest(
             <div style="display: flex; flex-direction: column; width: 320px;">
                 <Timer timer />
                 <div class="submission-title"> Últimas Submissões </div>
-                {move || view!{<RunsPanel items=panel_items.into() sede=sede.get() />}}
+                {move || view!{<RunsPanel items=panel_items.into() sede />}}
             </div>
             <div class="automatic" style="margin-left: 8px;">
-                {move || view!{<ContestPanel contest contest_signal=contest_signal.clone() center=center.into() sede=sede.get() />}}
+                <ContestPanel contest contest_signal=contest_signal center=center.into() sede />
             </div>
         </div>
     }
