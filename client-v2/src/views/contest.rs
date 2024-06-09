@@ -173,8 +173,9 @@ fn ContestPanelLine<'cs>(
     team: &'cs TeamSignal,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
+    let memo_placement = create_memo(move |_| local_placement.get());
     let style = move || {
-        local_placement.with(|t| match t {
+        memo_placement.with(|t| match t {
             Some(placement) => format!(
                 "top: {}; z-index: {};",
                 cell_top(*placement, &p_center.get()),
@@ -202,7 +203,8 @@ fn ContestPanelLine<'cs>(
         problems
         .into_iter()
         .map(|(letter, problem)| {
-            move || view! { <Problem prob=letter.chars().next().unwrap() problem=problem.get() /> }
+            let memo_problem =create_memo(move |_| problem.get());
+            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.get() /> }
         })
         .collect_view();
 
