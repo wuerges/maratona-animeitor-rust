@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link data-trunk rel="css" href="static/styles.css" />
-    <link data-trunk rel="copy-dir" href="static/assets/"/>
-        <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  </head>
-  <body></body>
+
+<head>
+  <link data-trunk rel="css" href="static/styles.css" />
+  <link data-trunk rel="copy-dir" href="static/assets/" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+<body id="body"></body>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const bgColor = urlParams.get('background_color');
+
+  if (bgColor) {
+    console.log("using background color from query:", bgColor);
+    document.getElementById("body").style.backgroundColor = bgColor;
+  }
+</script>
+
 </html>
