@@ -30,14 +30,18 @@ mod test {
     use rstest::rstest;
     use tokio;
 
-    async fn check_revelation(input_file: &str, golden_model: &str) {
-        let model = read_lines(golden_model).expect("Should be able to read golden model");
-        let reveals = super::build_revelation(input_file).await.unwrap();
+    async fn check_revelation(
+        input_file: &str,
+        golden_model: &str,
+    ) -> color_eyre::eyre::Result<()> {
+        let model = read_lines(golden_model)?;
+        let reveals = super::build_revelation(input_file).await?;
 
         for (expected, resulted) in model.into_iter().zip(reveals.into_iter()) {
-            let expected_string = expected.expect("Should be able to read line from golden model");
+            let expected_string = expected?;
             assert_eq!(expected_string, resulted);
         }
+        Ok(())
     }
 
     #[rstest]
@@ -47,22 +51,50 @@ mod test {
     #[case("../../tests/inputs/webcast_jones.zip")]
     #[case("../../tests/inputs/1a_fase_2021_frozen_unlocked_argentina.zip")]
     #[tokio::test]
-    async fn test_golden_model_fast_tests(#[case] test_input: &str) {
-        check_revelation(test_input, &format!("{test_input}.revelation")).await;
+    async fn test_golden_model_fast_tests(
+        #[case] test_input: &str,
+    ) -> color_eyre::eyre::Result<()> {
+        check_revelation(test_input, &format!("{test_input}.revelation"))
+            .await
+            .inspect_err(|_err| eprint!("test: {test_input}"))
     }
 
     #[cfg(feature = "slow_tests")]
     #[rstest]
+    #[case("../../tests/inputs/webcast.rinhadecalouros.zip")]
+    #[case("../../tests/inputs/1a_fase_2021_frozen_unlocked.zip")]
+    #[case("../../tests/inputs/2022/pre-warmup-webcast.zip")]
+    #[case("../../tests/inputs/2022/brspso.zip")]
+    #[case("../../tests/inputs/2a_fase_2022-23/countdown-test.zip")]
+    #[case("../../tests/inputs/2a_fase_2022-23/global.zip")]
+    #[case("../../tests/inputs/2a_fase_2022-23/ccl.zip")]
+    #[case("../../tests/inputs/victor/webcast.zip")]
+    #[case("../../tests/inputs/webcast-x-answer.zip")]
+    #[case("../../tests/inputs/maratona-mineira-2024/t.zip")]
+    #[case("../../tests/inputs/maratona-mineira-2024/t2.zip")]
+    #[case("../../tests/inputs/maratona-mineira-2024/t1.zip")]
+    #[case("../../tests/inputs/webcast_zip_1a_fase_2020.zip")]
+    #[case("../../tests/inputs/webcast_frozen_aquecimento_1a_fase_2021.zip")]
+    #[case("../../tests/inputs/webcast-2023-1a-fase-meio-prova.zip")]
+    #[case("../../tests/inputs/webcast_frozen_aquecimento_1a_fase_2020.zip")]
+    #[case("../../tests/inputs/pda-2024/pda-2024.zip")]
+    #[case("../../tests/inputs/webcast_1573336220.zip")]
+    #[case("../../tests/inputs/warmup_2a_fase_2020_fake_frozen.zip")]
+    #[case("../../tests/inputs/webcast-2023-1a-fase-meio-prova-2.zip")]
+    #[case("../../tests/inputs/webcast-2023-1a-fase-final-prova.zip")]
+    #[case("../../tests/inputs/2a_fase_2023_chapeco/geral.zip")]
+    #[case("../../tests/inputs/2a_fase_2023_chapeco/ccl.zip")]
+    #[case("../../tests/inputs/webcast-joao-2.zip")]
     #[case("../../tests/inputs/webcast_early_frozen.zip")]
     #[case("../../tests/inputs/webcast_frozen_aquecimento_1a_fase_2021_frozen_unlocked.zip")]
-    #[case("../../tests/inputs/warmup_2a_fase_2020_fake_frozen.zip")]
-    #[case("../../tests/inputs/webcast_frozen_aquecimento_1a_fase_2021.zip")]
-    #[case("../../tests/inputs/webcast_frozen_aquecimento_1a_fase_2020.zip")]
-    #[case("../../tests/inputs/1a_fase_2021_frozen_unlocked.zip")]
-    #[case("../../tests/inputs/webcast_1573336220.zip")]
-    #[case("../../tests/inputs/webcast_zip_1a_fase_2020.zip")]
+    #[case("../../tests/inputs/2a_fase_2021-22/cafecomleite.zip")]
+    #[case("../../tests/inputs/2a_fase_2021-22/brasil.zip")]
     #[tokio::test]
-    async fn test_golden_model_slow_tests(#[case] test_input: &str) {
-        check_revelation(test_input, &format!("{test_input}.revelation")).await;
+    async fn test_golden_model_slow_tests(
+        #[case] test_input: &str,
+    ) -> color_eyre::eyre::Result<()> {
+        check_revelation(test_input, &format!("{test_input}.revelation"))
+            .await
+            .inspect_err(|_err| eprint!("test: {test_input}"))
     }
 }
