@@ -9,7 +9,7 @@ use leptos_router::*;
 
 use crate::{
     api::{create_config, create_timer, ContestQuery},
-    model::{provide_contest, ContestProvider},
+    model::{provide_contest, ContestProvider, ContestSignal},
     views::{contest::Contest, navigation::Navigation},
 };
 
@@ -57,6 +57,7 @@ fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sed
 #[component]
 fn ProvideSede(
     contest: Signal<ContestFile>,
+    contest_signal: Rc<ContestSignal>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
@@ -68,7 +69,7 @@ fn ProvideSede(
             sede_param.get().sede,
         ))
     });
-    view! { <Contest contest panel_items timer sede=sede.into() /> }
+    view! { <Contest contest contest_signal panel_items timer sede=sede.into() /> }
 }
 
 #[component]
@@ -138,6 +139,7 @@ pub fn Sedes() -> impl IntoView {
                                             view!{
                                                 <ProvideSede
                                                     contest=provider.running_contest
+                                                    contest_signal=provider.new_contest_signal.clone()
                                                     panel_items=provider.panel_items
                                                     timer
                                                     config_contest=provider.config_contest.clone()

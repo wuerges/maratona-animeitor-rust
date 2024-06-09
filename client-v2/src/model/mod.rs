@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, rc::Rc};
 
 use data::{
     configdata::ConfigContest, ContestFile, ProblemView, RunTuple, RunsFile, RunsPanelItem, Score,
@@ -15,7 +15,7 @@ pub struct ContestProvider {
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
     pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
-    pub new_contest_signal: Arc<ContestSignal>,
+    pub new_contest_signal: Rc<ContestSignal>,
 }
 
 pub struct TeamSignal {
@@ -113,7 +113,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
         create_signal::<ContestFile>(original_contest_file.clone());
     let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
 
-    let new_contest_signal = Arc::new(ContestSignal::new(&original_contest_file));
+    let new_contest_signal = Rc::new(ContestSignal::new(&original_contest_file));
     let new_contest_signal_ref = new_contest_signal.clone();
 
     spawn_local(async move {

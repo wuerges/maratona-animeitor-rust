@@ -7,9 +7,12 @@ use data::{
 use itertools::Itertools;
 use leptos::{logging::log, *};
 
-use crate::views::{
-    photos::{PhotoState, TeamPhoto},
-    timer::Timer,
+use crate::{
+    model::ContestSignal,
+    views::{
+        photos::{PhotoState, TeamPhoto},
+        timer::Timer,
+    },
 };
 
 pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {
@@ -276,6 +279,7 @@ fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
 #[component]
 pub fn ContestPanel(
     contest: Signal<ContestFile>,
+    contest_signal: Rc<ContestSignal>,
     center: Signal<Option<String>>,
     sede: Rc<Sede>,
 ) -> impl IntoView {
@@ -355,6 +359,7 @@ fn EmptyContestPanel<'a>(sede: &'a Sede) -> impl IntoView {
 #[component]
 pub fn Contest(
     contest: Signal<ContestFile>,
+    contest_signal: Rc<ContestSignal>,
     panel_items: ReadSignal<Vec<RunsPanelItem>>,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede: Signal<Rc<Sede>>,
@@ -369,7 +374,7 @@ pub fn Contest(
                 {move || view!{<RunsPanel items=panel_items.into() sede=sede.get() />}}
             </div>
             <div class="automatic" style="margin-left: 8px;">
-                {move || view!{<ContestPanel contest center=center.into() sede=sede.get() />}}
+                {move || view!{<ContestPanel contest contest_signal=contest_signal.clone() center=center.into() sede=sede.get() />}}
             </div>
         </div>
     }

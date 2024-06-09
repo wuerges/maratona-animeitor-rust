@@ -69,17 +69,17 @@ impl State {
     }
 }
 
-#[component]
-pub fn RevelationPanel(state: ReadSignal<State>, sede: Rc<Sede>) -> impl IntoView {
-    let center = Signal::derive(move || {
-        state
-            .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
-            .flatten()
-    });
-    let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
+// #[component]
+// pub fn RevelationPanel(state: ReadSignal<State>, sede: Rc<Sede>) -> impl IntoView {
+//     let center = Signal::derive(move || {
+//         state
+//             .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
+//             .flatten()
+//     });
+//     let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
 
-    move || view! { <ContestPanel contest center sede=sede.clone()/> }
-}
+//     move || view! { <ContestPanel contest center sede=sede.clone()/> }
+// }
 
 #[component]
 pub fn Control(state: WriteSignal<State>) -> impl IntoView {
@@ -128,22 +128,22 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
     }
 }
 
-#[component]
-pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
-    move || {
-        let contest = contest.clone();
-        let driver = State::new(contest, runs_file.clone(), &sede);
+// #[component]
+// pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
+//     move || {
+//         let contest = contest.clone();
+//         let driver = State::new(contest, runs_file.clone(), &sede);
 
-        let (get_driver, set_driver) = create_signal(driver);
+//         let (get_driver, set_driver) = create_signal(driver);
 
-        view! {
-            <Control state=set_driver />
-            <div class="revelationpanel">
-                <RevelationPanel state=get_driver sede=sede.clone() />
-            </div>
-        }
-    }
-}
+//         view! {
+//             <Control state=set_driver />
+//             <div class="revelationpanel">
+//                 <RevelationPanel state=get_driver sede=sede.clone() />
+//             </div>
+//         }
+//     }
+// }
 
 #[component]
 pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
@@ -158,7 +158,8 @@ pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl 
     move || {
         let contest = contest.clone();
         all_runs.get().map(|runs_file| {
-            view! { <Revelation sede=sede.clone() runs_file contest /> }
+            // view! { <Revelation sede=sede.clone() runs_file contest /> }
+            view! {<p> stub </p>}
         })
     }
 }
