@@ -209,7 +209,6 @@ fn ContestPanelLine<'cs>(
     let escola= team.escola.clone();
     let name = team.name.clone();
     let team_login = team.login.clone();
-    let sede_clone = sede.clone();
     let score = team.score.clone();
     let placement_global = team.placement_global.clone();
 
@@ -284,8 +283,6 @@ pub fn ContestPanel<'cs>(
         })
     });
 
-    let cloned_sede = sede.clone();
-
     let placements = create_memo(move |_| {
         sede.with(|sede| {
             contest.with(|c| {
@@ -312,8 +309,6 @@ pub fn ContestPanel<'cs>(
     // .into_signal();
 
     let p_center = create_rw_signal(None::<usize>);
-
-    let sede_clone = sede.clone();
 
     let panel_lines = contest_signal
         .teams
