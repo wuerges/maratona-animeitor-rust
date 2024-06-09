@@ -1,33 +1,31 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use data::{
-    configdata::ConfigContest, ContestError, ContestFile, ProblemView, RunTuple, RunsFile,
-    RunsPanelItem, Score, Team,
+    configdata::ConfigContest, ContestFile, ProblemView, RunTuple, RunsFile, RunsPanelItem, Score,
+    Team,
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
 use leptos::{logging::log, *};
 
-use crate::{
-    api::{create_config, create_contest, create_runs, ContestQuery},
-    net::request_signal::create_request,
-};
+use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 
 pub struct ContestProvider {
     pub running_contest: Signal<ContestFile>,
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
     pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
+    pub new_contest_signal: Arc<ContestSignal>,
 }
 
 pub struct TeamSignal {
-    login: String,
-    name: String,
-    escola: String,
-    placement: RwSignal<Option<usize>>,
-    placement_global: RwSignal<Option<usize>>,
-    score: RwSignal<Score>,
-    problems: HashMap<String, RwSignal<Option<ProblemView>>>,
+    pub login: String,
+    pub name: String,
+    pub escola: String,
+    pub placement: RwSignal<Option<usize>>,
+    pub placement_global: RwSignal<Option<usize>>,
+    pub score: RwSignal<Score>,
+    pub problems: HashMap<String, RwSignal<Option<ProblemView>>>,
 }
 
 impl TeamSignal {
@@ -74,7 +72,7 @@ impl TeamSignal {
 }
 
 pub struct ContestSignal {
-    teams: HashMap<String, TeamSignal>,
+    pub teams: HashMap<String, TeamSignal>,
 }
 
 impl ContestSignal {
@@ -115,7 +113,8 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
         create_signal::<ContestFile>(original_contest_file.clone());
     let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
 
-    let new_contest_signal = ContestSignal::new(&original_contest_file);
+    let new_contest_signal = Arc::new(ContestSignal::new(&original_contest_file));
+    let new_contest_signal_ref = new_contest_signal.clone();
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
@@ -167,5 +166,6 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
         starting_contest,
         config_contest: config,
         panel_items: runs_panel_signal,
+        new_contest_signal: new_contest_signal_ref,
     }
 }
