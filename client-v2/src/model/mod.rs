@@ -6,6 +6,7 @@ use data::{
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
+use itertools::Itertools;
 use leptos::{logging::log, *};
 
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
@@ -64,9 +65,7 @@ impl TeamSignal {
             .update(|p| *p = Some(team.placement_global));
 
         for (letter, problem_view) in &self.problems {
-            if let Some(problem) = team.problems.get(letter) {
-                problem_view.update(|v| *v = Some(problem.view()))
-            }
+            problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))
         }
     }
 }
@@ -91,8 +90,7 @@ impl ContestSignal {
     }
 
     fn update(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
-        for run in runs {
-            let login = &run.team_login;
+        for login in runs.iter().map(|run| &run.team_login).unique() {
             if let Some(team) = fresh_contest.teams.get(login) {
                 if let Some(team_signal) = self.teams.get(login) {
                     team_signal.update(team)
