@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc, sync::Mutex};
 
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
@@ -142,10 +142,25 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
     let (get_driver, set_driver) = create_signal(driver);
 
     let effect_contest_signal = contest_signal.clone();
+
+    let team_ids = Rc::new(Mutex::new(HashMap::new()));
+
     create_effect(move |_| {
         get_driver.with(|state| {
             let contest = state.driver.contest();
-            effect_contest_signal.update(contest.teams.values().map(|t| t.login.as_str()), contest)
+            let mut id_map = team_ids.lock().unwrap();
+
+            let mut changed_logins = vec![];
+            for team in contest.teams.values() {
+                let id_changed = !id_map.get(&team.login).is_some_and(|id| &team.id == id);
+
+                if id_changed {
+                    changed_logins.push(team.login.as_str());
+                    id_map.insert(team.login.clone(), team.id);
+                }
+            }
+
+            effect_contest_signal.update(changed_logins.into_iter(), contest)
         });
     });
 
