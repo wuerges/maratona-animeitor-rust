@@ -134,12 +134,20 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 
 #[component]
 pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
-    let contest_signal = ContestSignal::new(&contest);
+    let contest_signal = Rc::new(ContestSignal::new(&contest));
     let contest = contest.clone();
     let driver = State::new(contest, runs_file.clone(), &sede);
     let (get_sede, _) = create_signal(sede.clone());
 
     let (get_driver, set_driver) = create_signal(driver);
+
+    let effect_contest_signal = contest_signal.clone();
+    create_effect(move |_| {
+        get_driver.with(|state| {
+            let contest = state.driver.contest();
+            effect_contest_signal.update(contest.teams.values().map(|t| t.login.as_str()), contest)
+        });
+    });
 
     view! {
         <Control state=set_driver />
