@@ -2,7 +2,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use data::{
     configdata::{Color, Sede},
-    ContestFile, RunsPanelItem, Team, TimerData,
+    ContestFile, RunsPanelItem, TimerData,
 };
 use itertools::Itertools;
 use leptos::{logging::log, *};
@@ -32,7 +32,14 @@ fn get_class(color: Color) -> &'static str {
 
 #[component]
 fn Placement(placement: usize, sede: Signal<Rc<Sede>>) -> impl IntoView {
-    let background_color = (move || sede.with(|sede| get_color(placement, sede).map(get_class).unwrap_or_default())).into_signal();
+    let background_color = (move || {
+        sede.with(|sede| {
+            get_color(placement, sede)
+                .map(get_class)
+                .unwrap_or_default()
+        })
+    })
+    .into_signal();
 
     view! {
         <div
@@ -185,21 +192,10 @@ fn ContestPanelLine<'cs>(
         })
     };
 
-    // let center = move || {
-    //     team.with(|t| {
-    //         p_center
-    //             .get()
-    //             .and_then(|c| (c == t.placement).then_some("center"))
-    //             .iter()
-    //             .chain([&"run_prefix"])
-    //             .join(" ")
-    //     })
-    // };
-
     let show_photo = create_rw_signal(PhotoState::default());
 
     let problems = team.problems.clone();
-    let problems = 
+    let problems =
         problems
         .into_iter()
         .map(|(letter, problem)| {
@@ -208,13 +204,17 @@ fn ContestPanelLine<'cs>(
         })
         .collect_view();
 
-    let escola= team.escola.clone();
+    let escola = team.escola.clone();
     let name = team.name.clone();
     let team_login = team.login.clone();
     let score = team.score.clone();
     let placement_global = team.placement_global.clone();
 
-    
+    let is_center = move || match (p_center.get(), local_placement.get()) {
+        (Some(c), Some(p)) => c == p,
+        _ => false,
+    };
+
     view! {
         <div
             class="run_box" id=team_login.clone() style={style}
@@ -223,7 +223,7 @@ fn ContestPanelLine<'cs>(
                 show_photo.update(|s| s.clicked())}}
         >
             <div class="run">
-                <div class:run_prefix=true >
+                <div class:run_prefix=true class:center=is_center >
                     {move || {
                         let placement = placement_global.get();
                         is_compressed.get().then_some(view! {
@@ -251,7 +251,7 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
-            <div class={move || 
+            <div class={move ||
                 estilo_sede(&sede.get()).iter().chain(&["cell", "titulo"]).join(" ")}>
                 {move || nome_sede(&sede.get()).to_string()}
             </div>
@@ -260,13 +260,6 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>
             }).collect_view()}
         </div>
     }
-}
-
-fn find_center(center: &str, teams: &[Team]) -> Option<usize> {
-    teams
-        .iter()
-        .find(|team| team.login == center)
-        .map(|t| t.placement)
 }
 
 #[component]
@@ -280,9 +273,7 @@ pub fn ContestPanel<'cs>(
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
     let is_compressed = create_memo(move |_| {
-        sede.with(|sede| {
-            contest.with(|c| c.teams.values().any(|team| !sede.team_belongs(team)))            
-        })
+        sede.with(|sede| contest.with(|c| c.teams.values().any(|team| !sede.team_belongs(team))))
     });
 
     let placements = create_memo(move |_| {
@@ -297,20 +288,19 @@ pub fn ContestPanel<'cs>(
                     .map(|(i, login)| (login.clone(), i + 1))
                     .collect::<HashMap<_, _>>()
             })
-            
         })
     });
 
-    // let p_center = (move || {
-    //     {
-    //         teams.with(|t| {
-    //             center.with(|center| center.as_ref().and_then(|center| find_center(&center, t)))
-    //         })
-    //     }
-    // })
-    // .into_signal();
-
-    let p_center = create_rw_signal(None::<usize>);
+    let p_center = (move || {
+        placements.with(|placements| {
+            center.with(|center| {
+                center
+                    .as_ref()
+                    .and_then(|center| placements.get(center).copied())
+            })
+        })
+    })
+    .into_signal();
 
     let panel_lines = contest_signal
         .teams
