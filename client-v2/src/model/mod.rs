@@ -72,7 +72,7 @@ pub struct ContestSignal {
 }
 
 impl ContestSignal {
-    fn new(contest_file: &ContestFile) -> Self {
+    pub fn new(contest_file: &ContestFile) -> Self {
         let letters = data::PROBLEM_LETTERS[..contest_file.number_problems]
             .chars()
             .map(|l| l.to_string())
@@ -86,14 +86,25 @@ impl ContestSignal {
         }
     }
 
-    fn update(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
-        for login in runs.iter().map(|run| &run.team_login).unique() {
+    pub fn update<'a>(
+        &self,
+        team_logins: impl Iterator<Item = &'a str>,
+        fresh_contest: &ContestFile,
+    ) {
+        for login in team_logins.unique() {
             if let Some(team) = fresh_contest.teams.get(login) {
                 if let Some(team_signal) = self.teams.get(login) {
                     team_signal.update(team)
                 }
             }
         }
+    }
+
+    fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
+        self.update(
+            runs.iter().map(|run| run.team_login.as_str()),
+            fresh_contest,
+        )
     }
 }
 
@@ -140,7 +151,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     }
 
                     fresh_contest.recalculate_placement();
-                    new_contest_signal.update(&runs, &fresh_contest);
+                    new_contest_signal.update_tuples(&runs, &fresh_contest);
 
                     runs.reverse();
 

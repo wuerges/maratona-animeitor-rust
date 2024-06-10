@@ -3,7 +3,7 @@ use std::rc::Rc;
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
 
-use crate::{api::create_secret_runs, views::contest::ContestPanel};
+use crate::{api::create_secret_runs, model::ContestSignal, views::contest::ContestPanel};
 
 #[derive(Debug)]
 pub struct State {
@@ -69,17 +69,21 @@ impl State {
     }
 }
 
-// #[component]
-// pub fn RevelationPanel(state: ReadSignal<State>, sede: Rc<Sede>) -> impl IntoView {
-//     let center = Signal::derive(move || {
-//         state
-//             .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
-//             .flatten()
-//     });
-//     let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
+#[component]
+pub fn RevelationPanel<'cs>(
+    state: ReadSignal<State>,
+    contest_signal: &'cs ContestSignal,
+    sede: Signal<Rc<Sede>>,
+) -> impl IntoView {
+    let center = Signal::derive(move || {
+        state
+            .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
+            .flatten()
+    });
+    let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
 
-//     move || view! { <ContestPanel contest center sede=sede.clone()/> }
-// }
+    view! { <ContestPanel contest_signal contest center sede /> }
+}
 
 #[component]
 pub fn Control(state: WriteSignal<State>) -> impl IntoView {
@@ -128,22 +132,22 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
     }
 }
 
-// #[component]
-// pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
-//     move || {
-//         let contest = contest.clone();
-//         let driver = State::new(contest, runs_file.clone(), &sede);
+#[component]
+pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
+    let contest_signal = ContestSignal::new(&contest);
+    let contest = contest.clone();
+    let driver = State::new(contest, runs_file.clone(), &sede);
+    let (get_sede, _) = create_signal(sede.clone());
 
-//         let (get_driver, set_driver) = create_signal(driver);
+    let (get_driver, set_driver) = create_signal(driver);
 
-//         view! {
-//             <Control state=set_driver />
-//             <div class="revelationpanel">
-//                 <RevelationPanel state=get_driver sede=sede.clone() />
-//             </div>
-//         }
-//     }
-// }
+    view! {
+        <Control state=set_driver />
+        <div class="revelationpanel">
+            <RevelationPanel contest_signal=&contest_signal state=get_driver sede=get_sede.into() />
+        </div>
+    }
+}
 
 #[component]
 pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
@@ -158,8 +162,7 @@ pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl 
     move || {
         let contest = contest.clone();
         all_runs.get().map(|runs_file| {
-            // view! { <Revelation sede=sede.clone() runs_file contest /> }
-            view! {<p> stub </p>}
+            view! { <Revelation sede=sede.clone() runs_file contest /> }
         })
     }
 }
