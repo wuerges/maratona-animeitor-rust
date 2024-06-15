@@ -5,7 +5,11 @@ services:
     volumes:
       - ./tests:/tests
       - ./config:/config
+      # place your team photos inside of ./server/photos       
       - ./server/photos:/photos
+      # the ./client-v2/static/user-styles.css can be edited, and it will 
+      # overwrite the styles from the app
+      - ./client-v2/static/user-styles.css:/dist/user-styles.css
     ports:
       - 8000:8000
 
