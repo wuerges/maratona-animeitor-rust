@@ -1,13 +1,13 @@
+pub mod runs_panel_signal;
+
 use std::{collections::HashMap, rc::Rc};
 
-use data::{
-    configdata::ConfigContest, ContestFile, ProblemView, RunTuple, RunsFile, RunsPanelItem, Score,
-    Team,
-};
+use data::{configdata::ConfigContest, ContestFile, ProblemView, RunTuple, RunsFile, Score, Team};
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
 use itertools::Itertools;
 use leptos::{logging::log, *};
+use runs_panel_signal::RunsPanelItemManager;
 
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 
@@ -15,8 +15,8 @@ pub struct ContestProvider {
     pub running_contest: Signal<ContestFile>,
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
-    pub panel_items: ReadSignal<Vec<RunsPanelItem>>,
     pub new_contest_signal: Rc<ContestSignal>,
+    pub runs_panel_item_manager: Rc<RunsPanelItemManager>,
 }
 
 pub struct TeamSignal {
@@ -117,10 +117,11 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     log!("fetched original contest");
     let (contest_signal, set_contest_signal) =
         create_signal::<ContestFile>(original_contest_file.clone());
-    let (runs_panel_signal, set_runs_panel_signal) = create_signal::<Vec<RunsPanelItem>>(vec![]);
 
     let new_contest_signal = Rc::new(ContestSignal::new(&original_contest_file));
     let new_contest_signal_ref = new_contest_signal.clone();
+    let runs_panel_item_manager = Rc::new(RunsPanelItemManager::new());
+    let runs_panel_item_manager_ref = runs_panel_item_manager.clone();
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
@@ -145,7 +146,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 if !fresh_runs.is_empty() {
                     let mut fresh_contest = original_contest_file.clone();
 
-                    let mut runs = runs_file.sorted();
+                    let runs = runs_file.sorted();
                     for r in &runs {
                         fresh_contest.apply_run(r);
                     }
@@ -153,13 +154,11 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     fresh_contest.recalculate_placement();
                     new_contest_signal.update_tuples(&runs, &fresh_contest);
 
-                    runs.reverse();
-
-                    set_runs_panel_signal.set(
-                        runs.into_iter()
-                            .filter_map(|r| fresh_contest.build_panel_item(&r).ok())
-                            .collect(),
-                    );
+                    for run in fresh_runs {
+                        if let Some(panel_item) = fresh_contest.build_panel_item(&run).ok() {
+                            runs_panel_item_manager.push(panel_item)
+                        }
+                    }
                     set_contest_signal.set(fresh_contest);
                 }
             }
@@ -171,7 +170,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
         running_contest: contest_signal.into(),
         starting_contest,
         config_contest: config,
-        panel_items: runs_panel_signal,
         new_contest_signal: new_contest_signal_ref,
+        runs_panel_item_manager: runs_panel_item_manager_ref,
     }
 }

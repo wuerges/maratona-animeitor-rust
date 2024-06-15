@@ -2,13 +2,13 @@ use std::{collections::HashMap, rc::Rc};
 
 use data::{
     configdata::{Color, Sede},
-    ContestFile, RunsPanelItem, TimerData,
+    ContestFile, TimerData,
 };
 use itertools::Itertools;
 use leptos::{logging::log, *};
 
 use crate::{
-    model::{ContestSignal, TeamSignal},
+    model::{runs_panel_signal::RunsPanelItemManager, ContestSignal, TeamSignal},
     views::{
         photos::{PhotoState, TeamPhoto},
         timer::Timer,
@@ -61,38 +61,39 @@ fn TeamName(escola: String, name: String) -> impl IntoView {
     }
 }
 
-fn take_30(
-    items: Vec<RunsPanelItem>,
-    sede: Rc<Sede>,
-) -> impl IntoIterator<Item = (usize, RunsPanelItem)> {
-    items
-        .into_iter()
-        .filter(move |p| sede.team_belongs_str(&p.team_login))
-        .take(30)
-        .enumerate()
-}
-
 #[component]
-fn RunsPanel(items: Signal<Vec<RunsPanelItem>>, sede: Signal<Rc<Sede>>) -> impl IntoView {
+fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> impl IntoView {
+    let panel = items
+        .items
+        .iter()
+        .map(|p| {
+            let position = p.position.clone();
+            let top = move || {
+                format!(
+                    "calc(var(--row-height) * {} + var(--root-top))",
+                    position.get()
+                )
+            };
+            let panel_item = p.panel_item.clone();
+
+            move || panel_item.with(move |p| {
+                p.as_ref().map(move |panel_item| {
+                    view! {
+                        <div class="run" style:top={top}>
+                            <Placement placement=panel_item.placement sede />
+                            <TeamName escola={panel_item.escola.clone()} name={panel_item.team_name.clone()} />
+                            <div class="cell quadrado">{panel_item.problem.clone()}</div>
+                            <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=Some(panel_item.problem_view.clone()) />
+                        </div>
+                    }
+                })
+            })
+        })
+        .collect_view();
+
     view! {
         <div class="runstable">
-        <For
-        each=move || take_30(items.get(), sede.get())
-        key=|(_, r)| r.id
-        children={move |(i, o)| {
-                let sede = sede.clone();
-                let top = format!("calc(var(--row-height) * {} + var(--root-top))", i);
-
-                view! {
-                    <div class="run" style:top={top} >
-                        <Placement placement={o.placement.into()} sede />
-                        <TeamName escola={o.escola.clone()} name={o.team_name.clone()} />
-                        <div class="cell quadrado">{o.problem.clone()}</div>
-                        <Problem prob=o.problem.chars().next().unwrap_or('Z') problem=Some(o.problem_view) />
-                    </div>
-                }
-            }}
-        />
+            {panel}
         </div>
     }
 }
@@ -349,7 +350,7 @@ fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
 pub fn Contest<'cs>(
     contest: Signal<ContestFile>,
     contest_signal: &'cs ContestSignal,
-    panel_items: ReadSignal<Vec<RunsPanelItem>>,
+    panel_items: &'cs RunsPanelItemManager,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
@@ -360,7 +361,7 @@ pub fn Contest<'cs>(
             <div style="display: flex; flex-direction: column; width: 320px;">
                 <Timer timer />
                 <div class="submission-title"> Últimas Submissões </div>
-                {move || view!{<RunsPanel items=panel_items.into() sede />}}
+                <RunsPanel items=panel_items sede />
             </div>
             <div class="automatic" style="margin-left: 8px;">
                 <ContestPanel contest contest_signal=contest_signal center=center.into() sede />

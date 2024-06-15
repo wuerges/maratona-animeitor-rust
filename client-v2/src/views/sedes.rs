@@ -2,14 +2,16 @@ use std::rc::Rc;
 
 use data::{
     configdata::{ConfigContest, Sede},
-    ContestFile, RunsPanelItem, TimerData,
+    ContestFile, TimerData,
 };
 use leptos::{logging::*, *};
 use leptos_router::*;
 
 use crate::{
     api::{create_config, create_timer, ContestQuery},
-    model::{provide_contest, ContestProvider, ContestSignal},
+    model::{
+        provide_contest, runs_panel_signal::RunsPanelItemManager, ContestProvider, ContestSignal,
+    },
     views::{contest::Contest, navigation::Navigation},
 };
 
@@ -58,7 +60,7 @@ fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sed
 fn ProvideSede<'cs>(
     contest: Signal<ContestFile>,
     contest_signal: &'cs ContestSignal,
-    panel_items: ReadSignal<Vec<RunsPanelItem>>,
+    panel_items: &'cs RunsPanelItemManager,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede_param: Signal<SedeQuery>,
@@ -140,7 +142,7 @@ pub fn Sedes() -> impl IntoView {
                                                 <ProvideSede
                                                     contest=provider.running_contest
                                                     contest_signal=&provider.new_contest_signal
-                                                    panel_items=provider.panel_items
+                                                    panel_items=&provider.runs_panel_item_manager
                                                     timer
                                                     config_contest=provider.config_contest.clone()
                                                     sede_param=sede_query
