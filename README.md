@@ -55,3 +55,9 @@ The `Makefile` has an example of how to run animeitor without docker:
 ```
 make run-standalone
 ```
+
+To execute client with trunk:
+
+```
+make run-debug-client
+```
