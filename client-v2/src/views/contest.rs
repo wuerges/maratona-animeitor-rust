@@ -53,10 +53,11 @@ fn Placement(placement: usize, sede: Signal<Rc<Sede>>) -> impl IntoView {
 
 #[component]
 fn TeamName(escola: String, name: String) -> impl IntoView {
+    let isLong = name.len() > 30;
     view! {
         <div class="cell time">
-            <div class="nomeEscola">{escola}</div>
-            <div class="nomeTIme">{name}</div>
+            <div class:nomeEscola=true >{escola}</div>
+            <div class:nomeTime=true class:longTeamName=isLong >{name}</div>
         </div>
     }
 }
