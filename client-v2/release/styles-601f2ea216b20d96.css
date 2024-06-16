@@ -105,16 +105,19 @@ body {
   min-width: 40px;
 }
 
-.center .not-tried{
+.center .not-tried {
   background-color: #27333a;
 }
-.center .time{
+
+.center .time {
   background-color: #27333a;
 }
-.center .problema{
+
+.center .problema {
   background-color: #27333a;
 }
-.center .problema{
+
+.center .problema {
   background-color: #27333a;
 }
 
@@ -277,13 +280,14 @@ body {
   /* content:url(/static/assets/titulo-final.svg); */
   font-size: 24px;
 }
+
 .titulo.sede_la {
   /* content:url(/static/assets/titulo-1stPhase.svg); */
   /* content:url(assets/titulo-icpc.svg); */
   font-size: 24px;
 }
 
-.submission-title{
+.submission-title {
   /* width: 302px; */
   /* height: 45px; */
   background-color: #263238;
@@ -305,7 +309,11 @@ body {
 }
 
 .nomeTime {
-  font-size: 14px;
+  font-size: 100%;
+}
+
+.longTeamName {
+  font-size: 80%;
 }
 
 .problema {
@@ -322,6 +330,7 @@ body {
   font-size: 20px;
   font-weight: 800;
 }
+
 .baixo {
   font-size: 14px;
   font-weight: 700;
@@ -338,7 +347,7 @@ body {
   background-color: #4F5B6288;
 }
 
-.answer-img{
+.answer-img {
   position: absolute;
   height: 16px;
   width: 16px;
@@ -372,7 +381,7 @@ body {
   color: black;
 }
 
-.color-text{
+.color-text {
   color: #263238
 }
 
@@ -404,45 +413,59 @@ body {
 .balao_A {
   filter: invert(93%) sepia(68%) saturate(2%) hue-rotate(57deg) brightness(107%) contrast(100%) !important;
 }
+
 .balao_B {
   filter: invert(0%) sepia(0%) saturate(7497%) hue-rotate(212deg) brightness(90%) contrast(100%) !important;
 }
+
 .balao_C {
   filter: invert(17%) sepia(95%) saturate(6747%) hue-rotate(358deg) brightness(128%) contrast(116%) !important;
 }
+
 .balao_D {
   filter: invert(15%) sepia(25%) saturate(7375%) hue-rotate(349deg) brightness(87%) contrast(126%) !important;
 }
+
 .balao_E {
   filter: invert(90%) sepia(63%) saturate(3562%) hue-rotate(358deg) brightness(108%) contrast(101%) !important;
 }
+
 .balao_F {
   filter: invert(26%) sepia(97%) saturate(1646%) hue-rotate(102deg) brightness(90%) contrast(104%) !important;
 }
+
 .balao_G {
   filter: invert(8%) sepia(100%) saturate(7474%) hue-rotate(247deg) brightness(92%) contrast(143%) !important;
 }
+
 .balao_H {
   filter: invert(10%) sepia(38%) saturate(6078%) hue-rotate(236deg) brightness(106%) contrast(143%) !important;
 }
+
 .balao_I {
   filter: invert(16%) sepia(81%) saturate(5328%) hue-rotate(296deg) brightness(117%) contrast(119%) !important;
 }
+
 .balao_J {
   filter: invert(11%) sepia(92%) saturate(5890%) hue-rotate(296deg) brightness(66%) contrast(106%) !important;
 }
+
 .balao_K {
   filter: invert(54%) sepia(91%) saturate(3217%) hue-rotate(88deg) brightness(126%) contrast(118%) !important;
 }
+
 .balao_L {
   filter: invert(90%) sepia(50%) saturate(4791%) hue-rotate(102deg) brightness(100%) contrast(103%) !important;
 }
+
 .balao_M {
   filter: invert(88%) sepia(0%) saturate(0%) hue-rotate(8deg) brightness(91%) contrast(83%) !important;
 }
+
 .balao_N {
   filter: invert(86%) sepia(75%) saturate(4397%) hue-rotate(172deg) brightness(97%) contrast(85%) !important;
 }
+
 .balao_O {
   filter: invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
 }
@@ -463,11 +486,30 @@ body {
 }
 
 @keyframes blinkingBackground {
-  0%      { background-color: #F4D03F; color: black; }
-  25%     { background-color: #00ab5e; color: white; }
-  50%     { background-color: #F4D03F; color: black; }
-  75%     { background-color: #ae2538; color: white; }
-  100%    { background-color: #F4D03F; color: black; }
+  0% {
+    background-color: #F4D03F;
+    color: black;
+  }
+
+  25% {
+    background-color: #00ab5e;
+    color: white;
+  }
+
+  50% {
+    background-color: #F4D03F;
+    color: black;
+  }
+
+  75% {
+    background-color: #ae2538;
+    color: white;
+  }
+
+  100% {
+    background-color: #F4D03F;
+    color: black;
+  }
 }
 
 
@@ -511,20 +553,32 @@ body {
 }
 
 @keyframes borderUpdate {
-  0% { background-color: #8888; }
-  100% {  }
+  0% {
+    background-color: #8888;
+  }
+
+  100% {}
 }
 
 .changed {
   animation: clockUpdate 1s;
 }
+
 @keyframes clockUpdate {
-  0% { color: #263238; }
+  0% {
+    color: #263238;
+  }
+
   /* 25%		{ color: green;  }
   50%		{ color: yellow; }
   75%	    { color: red;    } */
-  50%	{ color: yellow; }
-  100% { color: #263238; }
+  50% {
+    color: yellow;
+  }
+
+  100% {
+    color: #263238;
+  }
 }
 
 /*
@@ -548,6 +602,6 @@ a {
   margin-bottom: 10px;
 }
 
-div#runheader > .cell {
+div#runheader>.cell {
   background-color: #263238 !important;
 }
