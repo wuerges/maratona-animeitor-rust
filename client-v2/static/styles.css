@@ -6,6 +6,21 @@
   box-sizing: border-box;
 }
 
+.submissions-container {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+}
+
+.contest-container {
+  margin-left: 8px;
+}
+
+.root-container {
+  display: flex;
+  width: 320px;
+}
+
 maratona {
   display: block;
   width: 100%;

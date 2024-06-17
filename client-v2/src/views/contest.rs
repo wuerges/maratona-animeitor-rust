@@ -358,13 +358,13 @@ pub fn Contest<'cs>(
     let (center, _) = create_signal(None);
 
     view! {
-        <div style="display: flex; width: 320px;">
-            <div style="display: flex; flex-direction: column; width: 320px;">
+        <div class="root-container">
+            <div class="submissions-container">
                 <Timer timer />
                 <div class="submission-title"> Últimas Submissões </div>
                 <RunsPanel items=panel_items sede />
             </div>
-            <div class="automatic" style="margin-left: 8px;">
+            <div class="contest-container">
                 <ContestPanel contest contest_signal=contest_signal center=center.into() sede />
             </div>
         </div>
