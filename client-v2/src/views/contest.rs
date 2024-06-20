@@ -80,7 +80,7 @@ fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> i
             move || panel_item.with(move |p| {
                 p.as_ref().map(move |panel_item| {
                     view! {
-                        <div class="run" style:top={top}>
+                        <div class="run" style:top={top} style:z-index={move || 100_000 - position.get()}>
                             <Placement placement=panel_item.placement sede />
                             <TeamName escola={panel_item.escola.clone()} name={panel_item.team_name.clone()} />
                             <div class="cell quadrado">{panel_item.problem.clone()}</div>
