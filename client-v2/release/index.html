@@ -1,15 +1,29 @@
-<!DOCTYPE html><html><head>
-  <link rel="stylesheet" href="/styles-d6e7cc00ec197a.css">
-  <link rel="stylesheet" href="/user-styles.css">
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="/styles-6bebac373ed2e9e.css" integrity="sha384&#x2D;6FG1FIt1zG&#x2F;uJ9P5EIOS&#x2B;pthTBvSE2bRd2BwnLCvCZik2OuebTUPQfNSKZPse&#x2F;xz"/>
+  <link rel="stylesheet" href="/user-styles.css" />
   
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<link rel="preload" href="/client-v2-3937a3e8ed1d445c_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/client-v2-3937a3e8ed1d445c.js"></head>
+<link rel="modulepreload" href="/client-v2-ca379768224db7b5.js" crossorigin=anonymous integrity="sha384-eXD/DJ43GptV/uY0EUDcV4uK2Z7rzC7QTsoHu2quVq6ky6C7Ur3jGMyMTaSjUesR">
+<link rel="preload" href="/client-v2-ca379768224db7b5_bg.wasm" crossorigin=anonymous integrity="sha384-jG9gpCTIasZGD10nFB02yudVJduujl3i7CZ2bD924Rq4IyxrsdUU5AJbnH3L39RQ" as="fetch" type="application/wasm"></head>
 
 <body id="body">
+<script type="module" nonce="ywWvsL1AUvPoebAdkU3jtw==">
+import init, * as bindings from '/client-v2-ca379768224db7b5.js';
+const wasm = await init('/client-v2-ca379768224db7b5_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const bgColor = urlParams.get('background_color');
@@ -20,4 +34,4 @@
   }
 </script>
 
-<script type="module">import init from '/client-v2-3937a3e8ed1d445c.js';init('/client-v2-3937a3e8ed1d445c_bg.wasm');</script></body></html>
+</html>
