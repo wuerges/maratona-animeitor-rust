@@ -108,7 +108,25 @@ impl ContestSignal {
     }
 }
 
+#[derive(Debug)]
+pub struct Options {
+    pub ready_chunk_capacity: usize,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            ready_chunk_capacity: 100_000,
+            // ready_chunk_capacity: 1,
+        }
+    }
+}
+
 pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
+    let Options {
+        ready_chunk_capacity,
+    } = Options::default();
+
     let original_contest_file = create_contest(query.clone()).await;
     let config = create_config(query.clone()).await;
     let original_contest_file = original_contest_file.filter_sede(&config.titulo.into_sede());
@@ -126,7 +144,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
 
-        let mut runs_stream = create_runs(query).ready_chunks(100_000);
+        let mut runs_stream = create_runs(query).ready_chunks(ready_chunk_capacity);
 
         loop {
             TimeoutFuture::new(1_000).await;
@@ -144,21 +162,19 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 }
 
                 if !fresh_runs.is_empty() {
-                    let mut fresh_contest = original_contest_file.clone();
+                    let mut fresh_contest = contest_signal.get();
 
                     let runs = runs_file.sorted();
-                    for r in &runs {
+                    for r in &fresh_runs {
                         fresh_contest.apply_run(r);
-                    }
-
-                    fresh_contest.recalculate_placement();
-                    new_contest_signal.update_tuples(&runs, &fresh_contest);
-
-                    for run in fresh_runs {
-                        if let Some(panel_item) = fresh_contest.build_panel_item(&run).ok() {
+                        fresh_contest.recalculate_placement();
+                        if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
                             runs_panel_item_manager.push(panel_item)
                         }
                     }
+
+                    new_contest_signal.update_tuples(&runs, &fresh_contest);
+
                     set_contest_signal.set(fresh_contest);
                 }
             }
