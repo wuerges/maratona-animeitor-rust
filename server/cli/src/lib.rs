@@ -37,7 +37,7 @@ impl From<PairArg> for NamedSede {
 #[derive(clap::Args, Debug)]
 
 pub struct SimpleArgs {
-    #[clap(short = 's', long, default_value = "default:config/Default.toml")]
+    #[clap(short = 's', long, default_value = "config/basic.toml:default")]
     /// Sets a custom config file
     pub sedes: Vec<FromPairArg<NamedSede>>,
 
