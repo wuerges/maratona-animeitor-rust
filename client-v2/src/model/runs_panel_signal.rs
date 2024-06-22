@@ -1,6 +1,8 @@
 use data::{RunTuple, RunsPanelItem};
 use itertools::Itertools;
-use leptos::{create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate};
+use leptos::{
+    create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalWithUntracked,
+};
 
 pub struct RunPanelItemSignal {
     pub panel_item: RwSignal<Option<RunsPanelItem>>,
@@ -24,7 +26,7 @@ impl RunsPanelItemManager {
         }
     }
 
-    pub fn push(&self, new_item: RunsPanelItem) {
+    fn append(&self, new_item: RunsPanelItem) {
         for p in &self.items {
             p.position.update(|i| {
                 if *i == Self::MAX {
@@ -40,6 +42,28 @@ impl RunsPanelItemManager {
                 p.panel_item.set(Some(new_item));
                 break;
             }
+        }
+    }
+
+    fn find_item_in_panel(
+        &self,
+        new_item: &RunsPanelItem,
+    ) -> Option<RwSignal<Option<RunsPanelItem>>> {
+        for p in &self.items {
+            if p.panel_item
+                .with_untracked(|i| i.as_ref().is_some_and(|i| i.id == new_item.id))
+            {
+                return Some(p.panel_item);
+            }
+        }
+        return None;
+    }
+
+    pub fn push(&self, new_item: RunsPanelItem) {
+        if let Some(item) = self.find_item_in_panel(&new_item) {
+            item.set(Some(new_item));
+        } else {
+            self.append(new_item)
         }
     }
 
