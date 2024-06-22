@@ -165,13 +165,19 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     let mut fresh_contest = contest_signal.get();
 
                     let runs = runs_file.sorted();
-                    for r in &fresh_runs {
+
+                    let position = RunsPanelItemManager::position_in_last_submissions(&fresh_runs);
+
+                    for (i, r) in fresh_runs.iter().enumerate() {
                         fresh_contest.apply_run(r);
-                        fresh_contest.recalculate_placement();
-                        if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
-                            runs_panel_item_manager.push(panel_item)
+                        if i >= position {
+                            fresh_contest.recalculate_placement();
+                            if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
+                                runs_panel_item_manager.push(panel_item)
+                            }
                         }
                     }
+                    fresh_contest.recalculate_placement();
 
                     new_contest_signal.update_tuples(&runs, &fresh_contest);
 

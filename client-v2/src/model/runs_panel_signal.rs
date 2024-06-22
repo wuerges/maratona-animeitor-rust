@@ -1,4 +1,4 @@
-use data::RunsPanelItem;
+use data::{RunTuple, RunsPanelItem};
 use itertools::Itertools;
 use leptos::{create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate};
 
@@ -11,12 +11,11 @@ pub struct RunsPanelItemManager {
     pub items: Vec<RunPanelItemSignal>,
 }
 
-const MAX: usize = 29;
-
 impl RunsPanelItemManager {
+    pub const MAX: usize = 29;
     pub fn new() -> Self {
         Self {
-            items: (0..=MAX)
+            items: (0..=Self::MAX)
                 .map(|i| RunPanelItemSignal {
                     panel_item: create_rw_signal(None),
                     position: create_rw_signal(i),
@@ -28,7 +27,7 @@ impl RunsPanelItemManager {
     pub fn push(&self, new_item: RunsPanelItem) {
         for p in &self.items {
             p.position.update(|i| {
-                if *i == MAX {
+                if *i == Self::MAX {
                     *i = 0;
                 } else {
                     *i = *i + 1;
@@ -42,5 +41,18 @@ impl RunsPanelItemManager {
                 break;
             }
         }
+    }
+
+    pub fn position_in_last_submissions(runs: &Vec<RunTuple>) -> usize {
+        let mut non_waits = 0;
+        for (i, run) in runs.iter().enumerate().rev() {
+            if !run.answer.is_wait() {
+                non_waits += 1;
+            }
+            if non_waits > Self::MAX + 1 {
+                return i;
+            }
+        }
+        return 0;
     }
 }

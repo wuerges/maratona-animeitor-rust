@@ -23,6 +23,15 @@ pub enum Answer {
     Unk,
 }
 
+impl Answer {
+    pub fn is_wait(&self) -> bool {
+        match self {
+            Answer::Wait => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ContestError {
     #[error("unmatched team: {}", 0.)]
