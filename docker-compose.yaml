@@ -1,4 +1,13 @@
 services:
+  printurls:
+    image: wuerges/animeitor-v2:latest
+    entrypoint: "/printurls"
+    command: "--prefix ${PREFIX} --sedes ${SEDES}: --secret ${SECRET}"
+    volumes:
+      - ./config:/config
+    build:
+      context: .
+    
   animeitor-v2:
     image: wuerges/animeitor-v2:latest
     command: "-v /photos:photos -v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
@@ -11,7 +20,7 @@ services:
       # overwrite the styles from the app
       - ./client-v2/static/user-styles.css:/dist/user-styles.css
     ports:
-      - 8000:8000
+      - ${PUBLIC_PORT}:8000
 
     environment:
       - RUST_LOG=debug
