@@ -130,8 +130,19 @@ fn photos_prefix() -> String {
     }
 }
 
+fn sound_prefix() -> String {
+    match option_env!("SOUND_PREFIX") {
+        Some(prefix) => prefix.to_string(),
+        None => format!("{}/sounds", guess_prefix()),
+    }
+}
+
 pub fn team_photo_location(team_login: &str) -> String {
     format!("{}/{}.webp", photos_prefix(), team_login)
+}
+
+pub fn team_sound_location(team_login: &str) -> String {
+    format!("{}/{}.mp3", sound_prefix(), team_login)
 }
 
 #[cfg(test)]
