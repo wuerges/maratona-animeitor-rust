@@ -4,7 +4,7 @@ pub mod revelation;
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
-use std::collections::{btree_map, BTreeMap, HashMap};
+use std::collections::{btree_map, BTreeMap};
 use std::fmt;
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
@@ -352,8 +352,6 @@ pub struct ContestFile {
     pub penalty_per_wrong_answer: i64,
     /// Number of problems in the contest.
     pub number_problems: usize,
-    /// Time of the first solution for each problem.
-    pub first_solution_time: HashMap<String, i64>,
 }
 
 pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -393,7 +391,6 @@ impl ContestFile {
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
             number_problems,
-            first_solution_time: HashMap::new(),
         }
     }
 
