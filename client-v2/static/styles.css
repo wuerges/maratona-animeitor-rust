@@ -30,7 +30,7 @@ body {
   color: white;
   font-family: Lato, Ubuntu, sans-serif;
   font-weight: 700;
-
+  height: 1px;
   background-color: #000;
   /* overflow-y: scroll; */
 }
