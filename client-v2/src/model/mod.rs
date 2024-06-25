@@ -1,6 +1,9 @@
 pub mod runs_panel_signal;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use data::{configdata::ConfigContest, ContestFile, ProblemView, RunTuple, RunsFile, Score, Team};
 use futures::StreamExt;
@@ -122,6 +125,20 @@ impl Default for Options {
     }
 }
 
+pub fn annotate_first_solved(solved: &mut HashSet<String>, runs: &mut Vec<RunTuple>) {
+    for run in runs.iter_mut().sorted_by_key(|r| r.order) {
+        match &mut run.answer {
+            data::Answer::Yes { time: _, is_first } => {
+                if !solved.contains(&run.prob) {
+                    solved.insert(run.prob.clone());
+                    *is_first = true;
+                }
+            }
+            _ => (),
+        }
+    }
+}
+
 pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     let Options {
         ready_chunk_capacity,
@@ -143,6 +160,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
+        let mut solved = HashSet::new();
 
         let mut runs_stream = create_runs(query).ready_chunks(ready_chunk_capacity);
 
@@ -153,7 +171,8 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
             let size = next_batch.as_ref().map(|v| v.len()).unwrap_or_default();
             leptos_dom::logging::console_log(&format!("read next {size:?} runs"));
 
-            if let Some(next_batch) = next_batch {
+            if let Some(mut next_batch) = next_batch {
+                annotate_first_solved(&mut solved, &mut next_batch);
                 let mut fresh_runs = vec![];
                 for run_tuple in next_batch {
                     if runs_file.refresh_1(&run_tuple) {
