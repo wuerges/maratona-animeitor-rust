@@ -555,7 +555,7 @@ impl RunsFile {
 
     pub fn sorted(&self) -> Vec<RunTuple> {
         let mut r: Vec<_> = self.runs.values().cloned().collect();
-        r.sort_by(|t1, t2| t1.time.cmp(&t2.time));
+        r.sort_by_key(|r| (r.time, r.order));
         r
     }
 
