@@ -402,7 +402,7 @@ body {
 }
 
 .foto {
-  display: none;
+  display: block;
   position: fixed;
   top: 0;
   left: 0;
@@ -424,6 +424,18 @@ body {
   margin-left: auto;
   margin-right: auto;
   display: block;
+}
+
+.foto_team_label {
+  display: none;
+}
+
+.foto_team_name {
+  display: none;
+}
+
+.foto_team_escola {
+  display: none;
 }
 
 .balao_A {
