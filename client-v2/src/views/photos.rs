@@ -1,6 +1,6 @@
-use leptos::{component, prelude::*, view, IntoView};
+use leptos::{component, html::Audio, prelude::*, view, IntoView};
 
-use crate::api::team_photo_location;
+use crate::api::{team_photo_location, team_sound_location};
 
 #[derive(Clone, Copy, Default)]
 pub enum PhotoState {
@@ -28,6 +28,20 @@ impl PhotoState {
     }
 }
 
+fn onerror_photo() -> String {
+    format!(
+        "this.onerror=null; this.src='{}'",
+        team_photo_location("fake")
+    )
+}
+
+fn onerror_sound() -> String {
+    format!(
+        "this.onerror=null; this.src='{}'",
+        team_sound_location("applause")
+    )
+}
+
 #[component]
 pub fn TeamPhoto(team_login: String, show: RwSignal<PhotoState>) -> impl IntoView {
     let foto_id = format!("foto_{}", team_login);
@@ -38,10 +52,11 @@ pub fn TeamPhoto(team_login: String, show: RwSignal<PhotoState>) -> impl IntoVie
             <div class="foto" id={foto_id.clone()} style={state.style()}>
                 <img
                     class="foto_img"
-                    src={team_photo_location(&team_login)}
-                    onerror={format!("this.onerror=null; this.src='{}'", team_photo_location("fake"))}
+                    src=team_photo_location(&team_login)
+                    onerror=onerror_photo()
                     on:click=move |_| show.update(|s| s.clicked())
                 />
+                <audio src=team_sound_location(&team_login) onerror=onerror_sound() autoplay />
             </div>
         }),
     }
