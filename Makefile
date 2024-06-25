@@ -3,7 +3,11 @@ include .env
 .PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone
 
 run-debug-client:
-	( cd client-v2 && URL_PREFIX="http://localhost:${PUBLIC_PORT}/api" trunk serve )
+	( cd client-v2 && \
+		PHOTO_PREFIX=http://localhost:8000/photos \
+		SOUND_PREFIX=http://localhost:8000/sounds \
+		URL_PREFIX=http://localhost:8000/api \
+		trunk serve )
 
 run-standalone: rebuild-client-for-release
 	@echo recompiling client...
@@ -11,6 +15,7 @@ run-standalone: rebuild-client-for-release
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
+		-v ./server/sounds:sounds \
 		-v ./client-v2/release: \
 		--sedes ${SEDES}: \
 		--secret ${SECRET} ${BOCA_URL} \
