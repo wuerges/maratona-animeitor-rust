@@ -136,7 +136,7 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
     let contest_signal = Rc::new(ContestSignal::new(&contest));
     let contest = contest.clone();
-    let driver = State::new(contest, runs_file.clone(), &sede);
+    let driver = State::new(contest, runs_file, &sede);
     let (get_sede, _) = create_signal(sede.clone());
 
     let (get_driver, set_driver) = create_signal(driver);

@@ -1,3 +1,4 @@
+pub mod annotate_first_solved;
 pub mod configdata;
 pub mod revelation;
 

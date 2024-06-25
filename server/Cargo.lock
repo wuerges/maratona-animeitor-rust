@@ -746,6 +746,7 @@ name = "data"
 version = "0.12.0"
 dependencies = [
  "aho-corasick 0.7.20",
+ "itertools",
  "quickcheck",
  "quickcheck_macros",
  "serde",

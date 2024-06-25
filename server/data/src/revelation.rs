@@ -1,6 +1,8 @@
+use annotate_first_solved::annotate_first_solved;
+
 use crate::*;
 
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashSet};
 
 #[derive(Debug, Clone)]
 struct Revelation {
@@ -85,7 +87,10 @@ impl RevelationDriver {
 }
 
 impl Revelation {
-    fn new(contest: ContestFile, runs: RunsFileContest) -> Self {
+    fn new(contest: ContestFile, mut runs: RunsFileContest) -> Self {
+        let mut solved = HashSet::new();
+        annotate_first_solved(&mut solved, runs.0.runs.values_mut());
+
         Self {
             contest,
             runs,

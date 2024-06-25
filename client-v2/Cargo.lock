@@ -142,7 +142,7 @@ dependencies = [
  "futures",
  "gloo-net 0.5.0",
  "gloo-timers",
- "itertools",
+ "itertools 0.12.1",
  "leptos",
  "leptos_router",
  "serde",
@@ -223,6 +223,7 @@ name = "data"
 version = "0.12.0"
 dependencies = [
  "aho-corasick 0.7.20",
+ "itertools 0.10.5",
  "serde",
  "serde_json",
  "thiserror",
@@ -537,6 +538,15 @@ checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
 
 [[package]]
 name = "itertools"
+version = "0.10.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
@@ -611,7 +621,7 @@ dependencies = [
  "getrandom",
  "html-escape",
  "indexmap",
- "itertools",
+ "itertools 0.12.1",
  "js-sys",
  "leptos_reactive",
  "once_cell",
@@ -656,7 +666,7 @@ dependencies = [
  "cfg-if",
  "convert_case",
  "html-escape",
- "itertools",
+ "itertools 0.12.1",
  "leptos_hot_reload",
  "prettyplease",
  "proc-macro-error",
@@ -703,7 +713,7 @@ checksum = "9460a5dc184fa05d8eb635b687ad3220d02d2d23d6f49c3bf146aa71e427f423"
 dependencies = [
  "cfg-if",
  "gloo-net 0.2.6",
- "itertools",
+ "itertools 0.12.1",
  "js-sys",
  "lazy_static",
  "leptos",
