@@ -7,16 +7,18 @@ services:
       - ./config:/config
     build:
       context: .
-    
+
   animeitor-v2:
     image: wuerges/animeitor-v2:latest
     command: "-v /photos:photos -v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
     volumes:
       - ./tests:/tests
       - ./config:/config
-      # place your team photos inside of ./server/photos       
+      # place your team photos inside of ./server/photos
       - ./server/photos:/photos
-      # the ./client-v2/static/user-styles.css can be edited, and it will 
+      # place your team sounds inside of ./server/sounds
+      - ./server/sounds:/sounds
+      # the ./client-v2/static/user-styles.css can be edited, and it will
       # overwrite the styles from the app
       - ./client-v2/static/user-styles.css:/dist/user-styles.css
     ports:
