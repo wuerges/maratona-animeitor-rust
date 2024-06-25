@@ -1,6 +1,9 @@
 use leptos::{component, prelude::*, view, IntoView};
 
-use crate::api::{team_photo_location, team_sound_location};
+use crate::{
+    api::{team_photo_location, team_sound_location},
+    model::TeamSignal,
+};
 
 #[derive(Clone, Copy, Default)]
 pub enum PhotoState {
@@ -35,8 +38,14 @@ fn onerror_sound() -> String {
 }
 
 #[component]
-pub fn TeamPhoto(team_login: String, show: RwSignal<PhotoState>) -> impl IntoView {
+pub fn TeamPhoto<'cs>(
+    team_login: String,
+    show: RwSignal<PhotoState>,
+    team: &'cs TeamSignal,
+) -> impl IntoView {
     let foto_id = format!("foto_{}", team_login);
+    let team_name = team.name.clone();
+    let escola = team.escola.clone();
 
     move || match show.get() {
         PhotoState::Unloaded => None,
@@ -49,8 +58,12 @@ pub fn TeamPhoto(team_login: String, show: RwSignal<PhotoState>) -> impl IntoVie
                     onerror=onerror_photo()
                     on:click=move |_| show.update(|s| s.clicked())
                 />
-                <audio src=team_sound_location(&team_login) onerror=onerror_sound() autoplay />
+                <div class="foto_team_label">
+                    <div class="foto_team_name">{team_name.clone()} </div>
+                    <div class="foto_team_escola">{escola.clone()} </div>
+                </div>
             </div>
+            <audio src=team_sound_location(&team_login) onerror=onerror_sound() autoplay />
         }),
     }
 }
