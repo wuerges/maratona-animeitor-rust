@@ -477,6 +477,8 @@ impl ContestFile {
 pub struct RunTuple {
     /// Id of submission.
     pub id: i64,
+    /// Order in input.
+    pub order: u64,
     /// Time of the submision.
     pub time: i64,
     /// The team login.

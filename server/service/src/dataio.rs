@@ -44,6 +44,7 @@ impl FromString for RunTuple {
         let ans = from_string_answer(v[4], time)?;
 
         Ok(Self {
+            order: 0,
             id,
             time,
             team_login: v[2].to_string(),
@@ -108,8 +109,13 @@ impl FromString for ContestFile {
 
 impl FromString for RunsFile {
     fn from_string(s: &str) -> ServiceResult<Self> {
-        let runs = s.lines().map(RunTuple::from_string);
-        let runs = runs.collect::<ServiceResult<_>>()?;
+        let runs = s.lines().map(RunTuple::from_string).rev();
+        let mut runs = runs.collect::<ServiceResult<Vec<RunTuple>>>()?;
+
+        for (i, run) in runs.iter_mut().enumerate() {
+            run.order = i as u64;
+        }
+
         Ok(RunsFile::new(runs))
     }
 }
