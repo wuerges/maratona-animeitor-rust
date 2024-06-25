@@ -13,8 +13,8 @@ use utoipa::ToSchema;
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema)]
 /// The judge answer to a submission.
 pub enum Answer {
-    /// Accepted, with the time of the submission.
-    Yes(i64),
+    /// Accepted, with the time of the submission, and a bool that
+    Yes { time: i64, is_first: bool },
     /// Rejected.
     No,
     /// Waiting to be judged.
@@ -158,12 +158,13 @@ impl Problem {
             return;
         }
         match answer {
-            Answer::Yes(tim) => {
+            Answer::Yes { time, is_first } => {
                 self.solved = true;
                 self.submissions += 1;
-                self.penalty += tim;
-                self.time_solved = tim;
+                self.penalty += time;
+                self.time_solved = time;
                 self.answers.clear();
+                self.solved_first = is_first;
             }
             Answer::No => {
                 self.submissions += 1;
@@ -172,7 +173,7 @@ impl Problem {
             Answer::Wait => {
                 self.answers.push(Answer::No) // failsafe
             }
-            _ => {}
+            Answer::Unk => {}
         }
     }
 
@@ -418,34 +419,6 @@ impl ContestFile {
         }
     }
 
-    pub fn recalculate_stars(&mut self) {
-        for (_, team) in &self.teams {
-            for (l, problem) in &team.problems {
-                if problem.solved {
-                    match self.first_solution_time.entry(l.clone()) {
-                        std::collections::hash_map::Entry::Occupied(mut o) => {
-                            *o.get_mut() = *o.get().min(&problem.time_solved)
-                        }
-                        std::collections::hash_map::Entry::Vacant(v) => {
-                            v.insert(problem.time_solved);
-                        }
-                    }
-                }
-            }
-        }
-        for (_, team) in &mut self.teams {
-            for (l, problem) in &mut team.problems {
-                if problem.solved
-                    && problem.time_solved
-                        == self.first_solution_time.get(l).copied().unwrap_or_default()
-                {
-                    problem.solved_first = true;
-                    team.id = gen_id();
-                }
-            }
-        }
-    }
-
     pub fn recalculate_placement(&mut self) {
         let mut teams = self.teams.iter_mut().map(|(_t, v)| v).collect::<Vec<_>>();
         teams.sort_by_cached_key(|t| t.score());
@@ -456,8 +429,6 @@ impl ContestFile {
                 t.id = gen_id()
             }
         }
-
-        self.recalculate_stars();
     }
 
     pub fn dummy() -> Self {

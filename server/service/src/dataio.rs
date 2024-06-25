@@ -20,9 +20,12 @@ impl FromString for Team {
     }
 }
 
-fn from_string_answer(t: &str, tim: i64) -> ServiceResult<Answer> {
+fn from_string_answer(t: &str, time: i64) -> ServiceResult<Answer> {
     match t {
-        "Y" => Ok(Answer::Yes(tim)),
+        "Y" => Ok(Answer::Yes {
+            time,
+            is_first: false,
+        }),
         "N" => Ok(Answer::No),
         "X" => Ok(Answer::Unk),
         "?" => Ok(Answer::Wait),
