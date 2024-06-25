@@ -162,7 +162,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 }
 
                 if !fresh_runs.is_empty() {
-                    let mut fresh_contest = contest_signal.get();
+                    let mut fresh_contest = contest_signal.get_untracked();
 
                     let runs = runs_file.sorted();
 
