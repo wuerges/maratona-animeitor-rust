@@ -83,6 +83,7 @@ pub struct ProblemView {
     pub time_solved: i64,
     pub wait: bool,
     pub id: u64,
+    pub pending: usize,
 }
 
 impl PartialEq for ProblemView {
@@ -139,7 +140,7 @@ impl Problem {
             submissions,
             penalty,
             time_solved,
-            answers: _,
+            answers,
             id,
         } = self;
         ProblemView {
@@ -150,6 +151,7 @@ impl Problem {
             time_solved: *time_solved,
             id: *id,
             wait: self.wait(),
+            pending: answers.len(),
         }
     }
 

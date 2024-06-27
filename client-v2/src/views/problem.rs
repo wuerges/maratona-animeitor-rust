@@ -36,10 +36,11 @@ pub fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView 
                         }
                     } else {
                         let cell_symbol = if p.wait { "?" } else { "X" };
+                        let pending = (p.pending > 0).then_some(format!("+{}", p.pending));
 
                         view! {
                             <div class="cima">{cell_symbol}</div>
-                            <div class="baixo">"("{p.submissions}")"</div>
+                            <div class="baixo">"("{p.submissions}{pending}")"</div>
                         }
                     }).into_view()
 
