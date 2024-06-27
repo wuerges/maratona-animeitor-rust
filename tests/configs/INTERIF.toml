@@ -1,0 +1,113 @@
+[titulo]
+name = "VII INTERIF 2024"
+codes = [""]
+vagas =3
+ouro = 1
+prata = 2
+bronze = 3
+
+
+[[sedes]]
+name = "Geral"
+codes =[""]
+vagas =3
+ouro = 1
+prata = 2
+bronze = 3
+
+[[sedes]]
+name = "ARQ"
+codes =["teamarq"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "BRA"
+codes =["teambra"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "BRI"
+codes =["teambri"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "BRT"
+codes =["teambrt"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "CJO"
+codes =["teamcjo"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "CMP"
+codes =["teamcmp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "CPV"
+codes =["teamcpv"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "CTD"
+codes =["teamctd"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "GRU"
+codes =["teamgru"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "ITP"
+codes =["teamitp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PEP"
+codes =["teampep"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "PRC"
+codes =["teamprc"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SBV"
+codes =["teamsbv"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SCL"
+codes =["teamscl"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SJP"
+codes =["teamsjp"]
+premiacao = false
+vagas = 0
+
+[[sedes]]
+name = "SPO"
+codes =["teamspo"]
+premiacao = false
+vagas = 0
+
