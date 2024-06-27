@@ -48,12 +48,23 @@ fn use_sede_query() -> Signal<SedeQuery> {
     (|| use_query::<SedeQuery>().get().unwrap_or_default()).into_signal()
 }
 
-fn use_configured_sede(config: ConfigContest, sede_param: Option<String>) -> Sede {
+fn use_configured_sede(
+    config: ConfigContest,
+    titulo: Rc<Sede>,
+    sede_param: Option<String>,
+) -> Rc<Sede> {
     let config = config.into_contest();
-    sede_param
+    let sub_sede = sede_param
         .and_then(|sede| config.get_sede_nome_sede(&sede))
         .cloned()
-        .unwrap_or(config.titulo)
+        .map(Rc::new);
+
+    sub_sede.unwrap_or(titulo)
+}
+
+fn use_titulo(config: ConfigContest) -> Rc<Sede> {
+    let config = config.into_contest();
+    Rc::new(config.titulo)
 }
 
 #[component]
@@ -65,13 +76,27 @@ fn ProvideSede<'cs>(
     timer: ReadSignal<(TimerData, TimerData)>,
     sede_param: Signal<SedeQuery>,
 ) -> impl IntoView {
+    let titulo = use_titulo(config_contest.clone());
+    let titulo_sede = titulo.clone();
     let sede = create_memo(move |_| {
-        Rc::new(use_configured_sede(
+        use_configured_sede(
             config_contest.clone(),
+            titulo_sede.clone(),
             sede_param.get().sede,
-        ))
+        )
     });
-    view! { <Contest contest contest_signal panel_items timer sede=sede.into() /> }
+
+    let titulo = move || {
+        sede.with(|s| {
+            if s.entry.name == titulo.entry.name {
+                None
+            } else {
+                Some(titulo.clone())
+            }
+        })
+    };
+
+    view! { <Contest contest contest_signal panel_items timer titulo=titulo.into() sede=sede.into() /> }
 }
 
 #[component]
@@ -86,10 +111,9 @@ fn ConfiguredReveleitor(
             let sede_param = sede_param.clone();
             contest_provider.with(|provider| {
                 provider.as_ref().map(|provider| {
-                    let sede = Rc::new(use_configured_sede(
-                        provider.config_contest.clone(),
-                        sede_param,
-                    ));
+                    let titulo = use_titulo(provider.config_contest.clone());
+                    let sede =
+                        use_configured_sede(provider.config_contest.clone(), titulo, sede_param);
                     view! { <Reveleitor sede secret contest=provider.starting_contest.clone() /> }
                 })
             })

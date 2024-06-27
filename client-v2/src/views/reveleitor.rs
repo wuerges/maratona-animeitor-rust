@@ -82,7 +82,7 @@ pub fn RevelationPanel<'cs>(
     });
     let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
 
-    view! { <ContestPanel contest_signal contest center sede /> }
+    view! { <ContestPanel contest_signal contest center titulo=(|| None).into() sede /> }
 }
 
 #[component]

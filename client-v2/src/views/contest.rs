@@ -176,7 +176,7 @@ fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView {
 
 #[component]
 fn ContestPanelLine<'cs>(
-    is_compressed: Signal<bool>,
+    titulo: Signal<Option<Rc<Sede>>>,
     p_center: Signal<Option<usize>>,
     local_placement: Signal<Option<usize>>,
     team: &'cs TeamSignal,
@@ -229,9 +229,9 @@ fn ContestPanelLine<'cs>(
                 <div class:run_prefix=true class:center=is_center >
                     {move || {
                         let placement = placement_global.get();
-                        is_compressed.get().then_some(view! {
-                            <Placement placement sede />
-                        })
+                        titulo.with(move |t| t.clone().map(move |t| view! {
+                            <Placement placement sede=(move || t.clone()).into() />
+                        }))
                     }}
                     {move || local_placement.get().map(|placement|
                         view!{ <Placement placement sede /> }
@@ -270,14 +270,12 @@ pub fn ContestPanel<'cs>(
     contest: Signal<ContestFile>,
     contest_signal: &'cs ContestSignal,
     center: Signal<Option<String>>,
+    titulo: Signal<Option<Rc<Sede>>>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     log!("contest panel refresh");
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
-    let is_compressed = create_memo(move |_| {
-        sede.with(|sede| contest.with(|c| c.teams.values().any(|team| !sede.team_belongs(team))))
-    });
 
     let placements = create_memo(move |_| {
         sede.with(|sede| {
@@ -314,7 +312,7 @@ pub fn ContestPanel<'cs>(
                 (move || placements.with(|ps| ps.get(&login).copied())).into_signal();
             view! {
                 <ContestPanelLine
-                    is_compressed=is_compressed.into()
+                    titulo
                     p_center=p_center.into()
                     local_placement
                     team
@@ -353,6 +351,7 @@ pub fn Contest<'cs>(
     contest_signal: &'cs ContestSignal,
     panel_items: &'cs RunsPanelItemManager,
     timer: ReadSignal<(TimerData, TimerData)>,
+    titulo: Signal<Option<Rc<Sede>>>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     let (center, _) = create_signal(None);
@@ -365,7 +364,7 @@ pub fn Contest<'cs>(
                 <RunsPanel items=panel_items sede />
             </div>
             <div class="contest-container">
-                <ContestPanel contest contest_signal=contest_signal center=center.into() sede />
+                <ContestPanel contest contest_signal=contest_signal center=center.into() titulo sede />
             </div>
         </div>
     }
