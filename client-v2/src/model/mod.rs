@@ -11,7 +11,6 @@ use data::{
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
-use itertools::Itertools;
 use leptos::{logging::log, *};
 use runs_panel_signal::RunsPanelItemManager;
 
@@ -97,10 +96,14 @@ impl ContestSignal {
         team_logins: impl Iterator<Item = &'a str>,
         fresh_contest: &ContestFile,
     ) {
-        for login in team_logins.unique() {
-            if let Some(team) = fresh_contest.teams.get(login) {
-                if let Some(team_signal) = self.teams.get(login) {
-                    team_signal.update(team)
+        let update_set: HashSet<_> = team_logins.collect();
+
+        for team in fresh_contest.teams.values() {
+            if let Some(team_signal) = self.teams.get(&team.login) {
+                if update_set.contains(team.login.as_str()) {
+                    team_signal.update(team);
+                } else {
+                    team_signal.placement_global.set(team.placement_global)
                 }
             }
         }
@@ -146,6 +149,12 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     let new_contest_signal_ref = new_contest_signal.clone();
     let runs_panel_item_manager = Rc::new(RunsPanelItemManager::new());
     let runs_panel_item_manager_ref = runs_panel_item_manager.clone();
+
+    {
+        let mut starting_contest = contest_signal.get_untracked();
+        starting_contest.recalculate_placement();
+        new_contest_signal.update([].into_iter(), &starting_contest);
+    }
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
