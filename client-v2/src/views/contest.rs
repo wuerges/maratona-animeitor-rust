@@ -305,8 +305,10 @@ pub fn Contest<'cs>(
 ) -> impl IntoView {
     let (center, _) = create_signal(None);
 
+    let is_frozen = (move || timer.with(|(current, _)| current.is_frozen())).into_signal();
+
     view! {
-        <div class="root-container">
+        <div class="root-container" class:is-frozen=is_frozen>
             <div class="submissions-container">
                 <Timer timer />
                 <div class="submission-title"> Últimas Submissões </div>
