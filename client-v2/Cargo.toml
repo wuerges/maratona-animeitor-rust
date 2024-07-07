@@ -16,6 +16,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 data = { path = "../server/data" }
 itertools = "0"
+leptos-use = { version = "0.10.10", features = ["serde"] }
 
 [dependencies.web-sys]
 features = ["WebSocket", "MessageEvent"]
