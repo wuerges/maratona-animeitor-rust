@@ -39,10 +39,19 @@ fn onerror_sound() -> String {
     )
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct VolumeSettings {
-    dont_autoplay: bool,
+    autoplay: bool,
     volume: f32,
+}
+
+impl Default for VolumeSettings {
+    fn default() -> Self {
+        Self {
+            autoplay: true,
+            volume: 1.0,
+        }
+    }
 }
 
 #[component]
@@ -59,7 +68,7 @@ pub fn TeamPhoto<'cs>(
     let (volume_settings, set_volume_settings, _) =
         use_local_storage::<VolumeSettings, JsonCodec>(&key);
 
-    let autoplay = move || volume_settings.with(|s| !s.dont_autoplay);
+    let autoplay = move || volume_settings.with(|s| s.autoplay);
 
     move || match show.get() {
         PhotoState::Unloaded => None,
@@ -79,10 +88,9 @@ pub fn TeamPhoto<'cs>(
                 <div class="controls">
                     <label>autoplay</label>
                     <input
-                    type="checkbox"
-                    // onchange=(move || { set_volume_settings.update(|v| v.muted = true); })
-                    prop:checked=autoplay
-                    on:input=move |ev| set_volume_settings.update(|v| v.dont_autoplay = !event_target_checked(&ev))
+                        type="checkbox"
+                        prop:checked=autoplay
+                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
                     />
                 </div>
 
