@@ -12,7 +12,7 @@ use crate::{
     model::{
         provide_contest, runs_panel_signal::RunsPanelItemManager, ContestProvider, ContestSignal,
     },
-    views::{contest::Contest, navigation::Navigation},
+    views::{contest::Contest, global_settings::SettingsPanel, navigation::Navigation},
 };
 
 use super::{reveleitor::Reveleitor, timer::Timer};
@@ -33,12 +33,13 @@ struct SedeQuery {
 }
 
 #[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
-struct SecretQuery {
+struct StaticQuery {
     secret: Option<String>,
+    settings: Option<bool>,
 }
 
-fn use_secret_query() -> Option<SecretQuery> {
-    use_query::<SecretQuery>()
+fn use_static_query() -> Option<StaticQuery> {
+    use_query::<StaticQuery>()
         .get()
         .inspect_err(|e| error!("incorrect secret: {:?}", e))
         .ok()
@@ -139,7 +140,7 @@ pub fn Sedes() -> impl IntoView {
         } else {
             let query = (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
             let sede_query = use_sede_query();
-            let secret_query = use_secret_query();
+            let secret_query = use_static_query();
             let contest_provider =
                 create_local_resource(move || query.get(), |q| provide_contest(q));
             let config_contest = create_local_resource(move || query.get(), |q| create_config(q));
@@ -151,6 +152,11 @@ pub fn Sedes() -> impl IntoView {
                 }
                 Some(params) => {
                     log!("loaded params: {:?}", params);
+                    let settings_panel = move || {
+                        params.settings.unwrap_or_default().then_some(view!{
+                            <SettingsPanel />
+                        })
+                    };
 
                     match params.secret {
                         Some(secret) => (move || view! {
@@ -158,6 +164,7 @@ pub fn Sedes() -> impl IntoView {
                         }).into_view(),
                         None => view! {
                             <Navigation config_contest query />
+                            {settings_panel}
                             <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                                 {
                                     move || contest_provider.with(|contest_provider|
