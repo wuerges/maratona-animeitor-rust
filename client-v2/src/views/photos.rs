@@ -1,6 +1,6 @@
 use leptos::{
     component, create_effect, create_node_ref, event_target_checked, event_target_value,
-    html::Audio, prelude::*, view, IntoView,
+    html::Audio, prelude::*, use_context, view, IntoView,
 };
 use leptos_use::{storage::use_local_storage, utils::JsonCodec};
 use serde::{Deserialize, Serialize};
@@ -9,6 +9,8 @@ use crate::{
     api::{team_photo_location, team_sound_location},
     model::TeamSignal,
 };
+
+use super::global_settings::GlobalSettings;
 
 #[derive(Clone, Copy, Default)]
 pub enum PhotoState {
@@ -68,10 +70,12 @@ pub fn TeamPhoto<'cs>(
     let escola = team.escola.clone();
     let key = format!("volume.{}", team_login);
 
+    let global = use_context::<GlobalSettings>().unwrap_or_default();
+
     let (volume_settings, set_volume_settings, _) =
         use_local_storage::<VolumeSettings, JsonCodec>(&key);
 
-    let autoplay = move || volume_settings.with(|s| s.autoplay);
+    let autoplay = move || global.autoplay.get() && volume_settings.with(|s| s.autoplay);
 
     let audio_ref = create_node_ref::<Audio>();
 

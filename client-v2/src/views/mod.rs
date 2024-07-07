@@ -1,5 +1,6 @@
 pub mod config;
 pub mod contest;
+pub mod global_settings;
 pub mod navigation;
 pub mod photos;
 pub mod problem;
