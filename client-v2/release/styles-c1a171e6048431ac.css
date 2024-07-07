@@ -1,6 +1,6 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
-@import url("teams.css");
-@import url("balloons.css");
+/* FIXME re-enable this once trunk supports local css imports */
+/* @import url("balloons.css"); */
 
 /* Container holding the image and the text */
 
