@@ -10,7 +10,7 @@ use crate::{
     model::TeamSignal,
 };
 
-use super::global_settings::GlobalSettings;
+use super::global_settings::GlobalSettingsSignal;
 
 #[derive(Clone, Copy, Default)]
 pub enum PhotoState {
@@ -70,12 +70,13 @@ pub fn TeamPhoto<'cs>(
     let escola = team.escola.clone();
     let key = format!("volume.{}", team_login);
 
-    let global = use_context::<GlobalSettings>().unwrap_or_default();
+    let settings = use_context::<GlobalSettingsSignal>().unwrap();
 
     let (volume_settings, set_volume_settings, _) =
         use_local_storage::<VolumeSettings, JsonCodec>(&key);
 
-    let autoplay = move || global.autoplay.get() && volume_settings.with(|s| s.autoplay);
+    let autoplay =
+        move || settings.global.with(|g| g.autoplay) && volume_settings.with(|s| s.autoplay);
 
     let audio_ref = create_node_ref::<Audio>();
 
