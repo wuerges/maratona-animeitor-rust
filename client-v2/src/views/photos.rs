@@ -1,4 +1,4 @@
-use leptos::{component, event_target_checked, prelude::*, view, IntoView};
+use leptos::{component, event_target_checked, event_target_value, prelude::*, view, IntoView};
 use leptos_use::{storage::use_local_storage, utils::JsonCodec};
 use serde::{Deserialize, Serialize};
 
@@ -42,14 +42,14 @@ fn onerror_sound() -> String {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct VolumeSettings {
     autoplay: bool,
-    volume: f32,
+    volume: u32,
 }
 
 impl Default for VolumeSettings {
     fn default() -> Self {
         Self {
             autoplay: true,
-            volume: 1.0,
+            volume: 100,
         }
     }
 }
@@ -97,7 +97,13 @@ pub fn TeamPhoto<'cs>(
                     <div class="control">
                         <label>volume</label>
                         <div class="volume_slide">
-                            <input type="range" min="0" max="100" value="100" />
+                            <input
+                                type="range"
+                                min="0" max="100"
+                                value="100"
+                                prop:value=move || volume_settings.with(|v| v.volume)
+                                on:input=move |ev| set_volume_settings.update(|v| v.volume = event_target_value(&ev).parse().unwrap_or_default())
+                            />
                         </div>
                     </div>
                 </div>
