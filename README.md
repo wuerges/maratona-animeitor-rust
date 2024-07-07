@@ -9,7 +9,10 @@ This is the scoreboard used for South American ICPC contests.
 Install docker, and docker compose, then:
 
 ```
-docker compose up --build
+git clone https://github.com/wuerges/maratona-animeitor-rust
+cd maratona-animeitor-rust
+git checkout animeitor-v2
+docker compose up
 ```
 
 ## URLs:
@@ -50,10 +53,11 @@ PUBLIC_PORT=9000
 The `Makefile` has an example of how to run animeitor without docker:
 
 ```
-make run_standalone
+make run-standalone
 ```
 
-## Important!
+To execute client with trunk:
 
-The public url is baked into the client.
-The docker client image must be rebuilt every time `PUBLIC_HOST` or `PUBLIC_PORT` change.
+```
+make run-debug-client
+```

@@ -1,8 +1,12 @@
+use std::str::FromStr;
+
 use clap::Parser;
 use cli::SimpleArgs;
-use server::{config::ServerConfig, *};
+use color_eyre::eyre::eyre;
 
-use service::volume::Volume;
+use service::{
+    app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, sentry, volume::Volume,
+};
 use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
 
 #[derive(Parser)]
@@ -24,7 +28,26 @@ struct SimpleParser {
     /// Can be used multiple times.
     ///
     /// Expected format: FOLDER:PATH
-    volume: Vec<Volume>,
+    volume: Vec<FromPairArg<Volume>>,
+}
+
+#[derive(Default, Debug, Clone)]
+enum Version {
+    V1,
+    #[default]
+    V2,
+}
+
+impl FromStr for Version {
+    type Err = color_eyre::eyre::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "v1" => Ok(Version::V1),
+            "v2" => Ok(Version::V2),
+            _ => Err(eyre!("unknown version: {s}")),
+        }
+    }
 }
 
 #[tokio::main]
@@ -41,16 +64,26 @@ async fn main() -> color_eyre::eyre::Result<()> {
         volume: volumes,
     } = SimpleParser::parse();
 
-    let (config_contest, _, config_secret) = args.into_contest_and_secret()?;
+    let complete = args.into_contest_and_secret()?;
 
-    let server_config = ServerConfig { port };
+    let server_config = HttpConfig { port };
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
-    let _autometrics = metrics::setup();
+    let _autometrics = server_v2::metrics::setup();
+
+    let app_config = AppConfig {
+        config: complete,
+        boca_url: url,
+        server_config,
+        volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
+    };
 
     tracing::info!("\nMaratona Rustreimator rodando!");
-    serve_simple_contest(config_contest, url, config_secret, server_config, volumes).await;
+
+    tracing::info!("Server listening on port: {}", port);
+
+    server_v2::serve_config(app_config).await?;
 
     Ok(())
 }

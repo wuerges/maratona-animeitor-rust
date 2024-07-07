@@ -1,0 +1,22 @@
+[package]
+name = "client-v2"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+leptos = { version = "0.6.9", features = ["csr"] }
+leptos_router = { version = "0.6.9", features = ["csr"] }
+gloo-net = "0"
+gloo-timers = { version = "0", features = ["futures"] }
+wasm-bindgen-futures = "0.4.37"
+futures = "0.3.29"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+data = { path = "../server/data" }
+itertools = "0"
+
+[dependencies.web-sys]
+features = ["WebSocket", "MessageEvent"]
+version = "0"

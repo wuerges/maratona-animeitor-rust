@@ -1,11 +1,13 @@
+use annotate_first_solved::annotate_first_solved;
+
 use crate::*;
 
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashSet};
 
 #[derive(Debug, Clone)]
 struct Revelation {
     contest: ContestFile,
-    runs: RunsFile,
+    runs: RunsFileContest,
     runs_queue: RunsQueue,
 }
 
@@ -17,21 +19,22 @@ pub struct RevelationDriver {
 }
 
 impl RevelationDriver {
-    pub fn new(contest: ContestFile, runs: RunsFile) -> Result<Self, ContestError> {
+    pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
+        let runs = runs.into_runs_sede(&contest);
         let mut revelation = Revelation::new(contest, runs);
-        revelation.apply_all_runs_before_frozen()?;
+        revelation.apply_all_runs_before_frozen();
 
-        Ok(Self {
+        Self {
             starting_point: revelation.clone(),
             revelation,
             step: 0,
-        })
+        }
     }
 
-    pub fn reveal_step(&mut self) -> Result<(), ContestError> {
+    pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
         self.step += 1;
-        self.revelation.contest.recalculate_placement_no_filter()
+        self.revelation.contest.recalculate_placement()
     }
 
     pub fn peek(&self) -> Option<&String> {
@@ -42,6 +45,16 @@ impl RevelationDriver {
         let steps = self.revelation.apply_runs_from_queue_n(n)?;
         self.step += steps;
         Ok(())
+    }
+
+    pub fn jump_team_forward(&mut self) {
+        if let Some(center) = self.peek().cloned() {
+            while self.peek().is_some_and(|c| c == &center) {
+                self.revelation.apply_one_run_from_queue();
+                self.step += 1;
+            }
+            self.revelation.contest.recalculate_placement();
+        }
     }
 
     pub fn contest(&self) -> &ContestFile {
@@ -61,21 +74,23 @@ impl RevelationDriver {
         self.step = 0;
     }
 
-    pub fn back_one(&mut self) -> Result<(), ContestError> {
+    pub fn back_one(&mut self) {
         if self.step > 0 {
             self.revelation = self.starting_point.clone();
             self.step -= 1;
             for _ in 0..self.step {
                 self.revelation.apply_one_run_from_queue();
             }
-            self.revelation.contest.recalculate_placement_no_filter()?;
+            self.revelation.contest.recalculate_placement();
         }
-        Ok(())
     }
 }
 
 impl Revelation {
-    fn new(contest: ContestFile, runs: RunsFile) -> Self {
+    fn new(contest: ContestFile, mut runs: RunsFileContest) -> Self {
+        let mut solved = HashSet::new();
+        annotate_first_solved(&mut solved, runs.0.runs.values_mut());
+
         Self {
             contest,
             runs,
@@ -83,16 +98,16 @@ impl Revelation {
         }
     }
 
-    fn apply_all_runs_before_frozen(&mut self) -> Result<(), ContestError> {
-        for run in &self.runs.sorted() {
+    fn apply_all_runs_before_frozen(&mut self) {
+        for run in self.runs.as_ref().sorted() {
             if run.time < self.contest.score_freeze_time {
-                self.contest.apply_run(run);
+                self.contest.apply_run(&run);
             } else {
-                self.contest.apply_run_frozen(run);
+                self.contest.apply_run_frozen(&run);
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement_no_filter()
+        self.contest.recalculate_placement()
     }
 
     fn apply_one_run_from_queue(&mut self) {
@@ -105,7 +120,7 @@ impl Revelation {
             count += 1;
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement_no_filter()?;
+        self.contest.recalculate_placement();
         Ok(count)
     }
 }
@@ -155,47 +170,5 @@ impl RunsQueue {
                 }
             },
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use quickcheck::*;
-
-    quickcheck! {
-        fn problem_with_runs_is_the_same_as_revealed(answers : Vec<Answer>) -> bool {
-            let mut p1 = Problem::empty();
-            let mut p2 = Problem::empty();
-            println!("------------------------------");
-            println!("answers={:?}", answers);
-            for a in &answers {
-                p1.add_run_problem(a.clone());
-                p2.add_run_frozen(a.clone());
-            }
-            println!("p1={:?}", p1);
-            while p2.wait() {
-                p2.reveal_run_frozen();
-
-            }
-            println!("p2={:?}", p2);
-
-            println!("p2={:?}", p2);
-            println!("p1==p2= {}", p1==p2);
-
-            p1 == p2
-        }
-    }
-
-    #[test]
-    fn tree_test() {
-        let mut t = BTreeMap::new();
-        t.entry(1).or_insert(2);
-
-        assert_eq!(t[&1], 2);
-
-        t.entry(1).or_insert(3);
-
-        assert_eq!(t[&1], 2);
     }
 }

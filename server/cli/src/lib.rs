@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use color_eyre::Section;
 use data::configdata::{ConfigContest, ConfigSecret, Contest, Secret};
 use serde::Deserialize;
+use service::pair_arg::{FromPairArg, PairArg};
 
 pub mod test_revelation;
 
@@ -16,37 +19,74 @@ where
     Ok(config)
 }
 
+#[derive(Debug, Clone)]
+pub struct NamedSede {
+    file: String,
+    name: String,
+}
+
+impl From<PairArg> for NamedSede {
+    fn from(PairArg { first, second }: PairArg) -> Self {
+        Self {
+            name: second,
+            file: first,
+        }
+    }
+}
+
 #[derive(clap::Args, Debug)]
 
 pub struct SimpleArgs {
-    #[clap(short = 's', long, default_value = "config/Default.toml")]
+    #[clap(short = 's', long, default_value = "config/basic.toml:default")]
     /// Sets a custom config file
-    pub sedes: String,
+    pub sedes: Vec<FromPairArg<NamedSede>>,
+
+    #[clap(short = 'y', long)]
+    /// Salt to be added to secrets
+    pub salt: Option<String>,
 
     #[clap(short = 'x', long)]
-    /// Sets a custom config file
-    pub secret: Option<String>,
+    /// Sets custom secrets file
+    pub secret: Vec<String>,
+}
+
+fn gather_secrets(secrets: &[String]) -> color_eyre::Result<ConfigSecret> {
+    let mut empty = ConfigSecret { secrets: vec![] };
+    for path in secrets {
+        let secret = parse_config::<ConfigSecret>(std::path::Path::new(path))
+            .map_err(|e| e.with_note(|| "Should be able to parse secret file."))?;
+
+        empty.secrets.extend(secret.secrets);
+    }
+    Ok(empty)
 }
 
 impl SimpleArgs {
     #[tracing::instrument(err)]
     pub fn into_contest_and_secret(
         self,
-    ) -> color_eyre::eyre::Result<(ConfigContest, Contest, Secret)> {
-        let Self { sedes, secret } = self;
+    ) -> color_eyre::eyre::Result<HashMap<String, (ConfigContest, Contest, Secret)>> {
+        let Self {
+            salt,
+            sedes,
+            secret,
+        } = self;
 
-        let config = parse_config::<ConfigContest>(std::path::Path::new(&sedes))
-            .map_err(|e| e.with_note(|| "Should be able to parse the config."))?;
+        let main_config_secret = gather_secrets(&secret)?;
 
-        let contest = config.clone().into_contest();
+        let mut result = HashMap::new();
 
-        let config_secret = match secret {
-            Some(secret) => parse_config::<ConfigSecret>(std::path::Path::new(&secret))
-                .map_err(|e| e.with_note(|| "Should be able to parse secret file."))?,
-            None => ConfigSecret::default(),
+        for sede in sedes {
+            let NamedSede { file, name } = sede.into_inner();
+            let config = parse_config::<ConfigContest>(std::path::Path::new(&file))
+                .map_err(|e| e.with_note(|| "Should be able to parse the config."))?;
+
+            let contest = config.clone().into_contest();
+            let secret = main_config_secret.into_secret(salt.clone(), &contest);
+
+            result.insert(name, (config, contest, secret));
         }
-        .into_secret(&contest);
 
-        Ok((config, contest, config_secret))
+        Ok(result)
     }
 }

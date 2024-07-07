@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="/styles-6fb3092a26b632a9.css" integrity="sha384&#x2D;CQoNGy&#x2B;yOK3rJC3mzEF8i&#x2F;RIDsc1bML2O89GQ&#x2F;aoHsLAdoIzGOh05myREmlESZ9e"/>
+  <link rel="stylesheet" href="/user-styles.css" />
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="modulepreload" href="/client-v2-821e12ed3b654568.js" crossorigin=anonymous integrity="sha384-5Y/MQ4pzB8LTOkf51U8jaUXIlZEJzHf4Se0QaCX3wFssuZZxxgAP8iwEuFtdnvnF">
+<link rel="preload" href="/client-v2-821e12ed3b654568_bg.wasm" crossorigin=anonymous integrity="sha384-8XTQI2MT/1/fRdFsbdquhrCT3fJvFUsoysjkasoouO8Rz37dFo+vLTVTLXmgN4EB" as="fetch" type="application/wasm"></head>
+
+<body id="body">
+<script type="module" nonce="kcnw9uQWzsCwN32s/+6WHA==">
+import init, * as bindings from '/client-v2-821e12ed3b654568.js';
+const wasm = await init('/client-v2-821e12ed3b654568_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const bgColor = urlParams.get('background_color');
+
+  if (bgColor) {
+    console.log("using background color from query:", bgColor);
+    document.getElementById("body").style.backgroundColor = bgColor;
+  }
+</script>
+
+</html>

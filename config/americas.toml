@@ -1,4 +1,6 @@
-titulo = "Programadores da América"
+[titulo]
+name = "Programadores da América"
+codes = [""]
 
 [[sedes]]
 name = "América Latina"

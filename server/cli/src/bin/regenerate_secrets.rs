@@ -11,8 +11,6 @@ fn secret() -> String {
 }
 
 fn shuffle_secrets(secrets: &mut ConfigSecret) {
-    secrets.salt = Some(secret());
-
     for sede in &mut secrets.secrets {
         sede.secret = secret();
     }

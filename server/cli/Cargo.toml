@@ -15,10 +15,11 @@ url.workspace = true
 rand.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+openssl-sys = { optional = true, version = "*" }
 
 data = { path = "../data" }
 service = { path = "../service" }
-server = { path = "../server" }
+server-v2 = { path = "../server-v2" }
 
 [dev-dependencies]
 rstest = "0.16"
@@ -27,3 +28,4 @@ quickcheck_macros = "1"
 
 [features]
 slow_tests = []
+vendored = ["openssl-sys/vendored"]

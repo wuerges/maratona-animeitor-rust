@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use crate::pair_arg::PairArg;
 
 #[derive(Debug, Clone)]
 pub struct Volume {
@@ -8,15 +8,11 @@ pub struct Volume {
     pub path: String,
 }
 
-impl FromStr for Volume {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (folder, path) = s.trim().split_once(':').ok_or("delimiter `:' not found.")?;
-
-        Ok(Volume {
-            folder: folder.to_string(),
-            path: path.to_string(),
-        })
+impl From<PairArg> for Volume {
+    fn from(PairArg { first, second }: PairArg) -> Self {
+        Self {
+            folder: first,
+            path: second,
+        }
     }
 }
