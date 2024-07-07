@@ -85,13 +85,21 @@ pub fn TeamPhoto<'cs>(
                     <div class="foto_team_name">{team_name.clone()} </div>
                     <div class="foto_team_escola">{escola.clone()} </div>
                 </div>
-                <div class="controls">
-                    <label>autoplay</label>
-                    <input
-                        type="checkbox"
-                        prop:checked=autoplay
-                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
-                    />
+                <div class="volume_controls">
+                    <div class="control">
+                        <label>autoplay</label>
+                        <input
+                            type="checkbox"
+                            prop:checked=autoplay
+                            on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
+                        />
+                    </div>
+                    <div class="control">
+                        <label>volume</label>
+                        <div class="volume_slide">
+                            <input type="range" min="0" max="100" value="100" />
+                        </div>
+                    </div>
                 </div>
 
                 <audio
