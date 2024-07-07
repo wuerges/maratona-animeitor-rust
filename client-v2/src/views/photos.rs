@@ -1,4 +1,7 @@
-use leptos::{component, event_target_checked, event_target_value, prelude::*, view, IntoView};
+use leptos::{
+    component, create_effect, create_node_ref, event_target_checked, event_target_value,
+    html::Audio, prelude::*, view, IntoView,
+};
 use leptos_use::{storage::use_local_storage, utils::JsonCodec};
 use serde::{Deserialize, Serialize};
 
@@ -70,6 +73,15 @@ pub fn TeamPhoto<'cs>(
 
     let autoplay = move || volume_settings.with(|s| s.autoplay);
 
+    let audio_ref = create_node_ref::<Audio>();
+
+    create_effect(move |_| {
+        let volume = volume_settings.with(|v| v.volume);
+        if let Some(audio) = audio_ref.get() {
+            audio.set_volume(volume as f64 / 100_f64);
+        }
+    });
+
     move || match show.get() {
         PhotoState::Unloaded => None,
         PhotoState::Hidden => None,
@@ -109,6 +121,7 @@ pub fn TeamPhoto<'cs>(
                 </div>
 
                 <audio
+                    ref=audio_ref
                     src=team_sound_location(&team_login)
                     onerror=onerror_sound()
                     autoplay=autoplay
