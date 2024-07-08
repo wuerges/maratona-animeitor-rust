@@ -9,7 +9,7 @@ run-debug-client:
 		URL_PREFIX=http://localhost:8000/api \
 		trunk serve )
 
-run-standalone: rebuild-client-for-release
+run-standalone:
 	@echo recompiling client...
 	( cargo run --manifest-path server/Cargo.toml \
 		--bin simples -- \
