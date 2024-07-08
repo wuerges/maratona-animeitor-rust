@@ -1,9 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 
-use data::{
-    configdata::{Color, Sede},
-    ContestFile, TimerData,
-};
+use data::{configdata::Sede, ContestFile, TimerData};
 use itertools::Itertools;
 use leptos::{logging::log, *};
 
@@ -11,57 +8,13 @@ use crate::{
     model::{runs_panel_signal::RunsPanelItemManager, ContestSignal, TeamSignal},
     views::{
         photos::{PhotoState, TeamPhoto},
+        placement::Placement,
         problem::Problem,
+        team_name::TeamName,
+        team_score_line::TeamScoreLine,
         timer::Timer,
     },
 };
-
-pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {
-    sede.premio(n)
-}
-
-fn get_class(color: Color) -> &'static str {
-    match color {
-        Color::Red => "vermelho",
-        Color::Gold => "ouro",
-        Color::Silver => "prata",
-        Color::Bronze => "bronze",
-        Color::Green => "verde",
-        Color::Yellow => "amarelo",
-    }
-}
-
-#[component]
-fn Placement(placement: usize, sede: Signal<Rc<Sede>>) -> impl IntoView {
-    let background_color = (move || {
-        sede.with(|sede| {
-            get_color(placement, sede)
-                .map(get_class)
-                .unwrap_or_default()
-        })
-    })
-    .into_signal();
-
-    view! {
-        <div
-        // style:background-color=background_color
-        class=move || format!("cell quadrado colocacao {}", background_color.get())
-        >
-        {placement}
-        </div>
-    }
-}
-
-#[component]
-fn TeamName(escola: String, name: String) -> impl IntoView {
-    let isLong = name.len() > 30;
-    view! {
-        <div class="cell time">
-            <div class:nomeEscola=true >{escola}</div>
-            <div class:nomeTime=true class:longTeamName=isLong >{name}</div>
-        </div>
-    }
-}
 
 #[component]
 fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> impl IntoView {
@@ -122,54 +75,6 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
                 format!("calc(var(--row-height) * {} + var(--root-top))", i + 9 - p)
             }
         }
-    }
-}
-
-#[component]
-fn TeamScoreLine<'cs>(
-    team: &'cs TeamSignal,
-    is_center: Signal<bool>,
-    titulo: Signal<Option<Rc<Sede>>>,
-    local_placement: Signal<Option<usize>>,
-    sede: Signal<Rc<Sede>>,
-) -> impl IntoView {
-    let escola = team.escola.clone();
-    let name = team.name.clone();
-    let score = team.score.clone();
-
-    let problems = team.problems.clone();
-    let problems =
-        problems
-        .into_iter()
-        .sorted_by_cached_key(|(letter,_problem)| letter.clone())
-        .map(|(letter, problem)| {
-            let memo_problem =create_memo(move |_| problem.get());
-            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.get() /> }
-        })
-        .collect_view();
-
-    let placement_global = team.placement_global;
-
-    view! {
-        <div class="run">
-            <div class:run_prefix=true class:center=is_center >
-                {move || {
-                    let placement = placement_global.get();
-                    titulo.with(move |t| t.clone().map(move |t| view! {
-                        <Placement placement sede=(move || t.clone()).into() />
-                    }))
-                }}
-                {move || local_placement.get().map(|placement|
-                    view!{ <Placement placement sede /> }
-                )}
-                <TeamName escola name />
-                <div class="cell problema quadrado">
-                    <div class="cima">{move || score.with(|s| s.solved)}</div>
-                    <div class="baixo">{move || score.with(|s| s.solved)}</div>
-                </div>
-            </div>
-            {problems}
-        </div>
     }
 }
 
