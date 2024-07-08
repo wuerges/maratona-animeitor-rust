@@ -40,6 +40,10 @@ fn maybe_color(text: String) -> Option<String> {
     }
 }
 
+pub fn use_global_settings() -> GlobalSettingsSignal {
+    use_context::<GlobalSettingsSignal>().unwrap()
+}
+
 #[component]
 pub fn SettingsPanel() -> impl IntoView {
     let global = use_context::<GlobalSettingsSignal>().unwrap();

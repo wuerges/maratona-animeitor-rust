@@ -13,14 +13,5 @@
 </head>
 
 <body id="body"></body>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const bgColor = urlParams.get('background_color');
-
-  if (bgColor) {
-    console.log("using background color from query:", bgColor);
-    document.getElementById("body").style.backgroundColor = bgColor;
-  }
-</script>
 
 </html>
