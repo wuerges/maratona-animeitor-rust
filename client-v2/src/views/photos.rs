@@ -60,23 +60,11 @@ impl Default for VolumeSettings {
 }
 
 #[component]
-pub fn TeamPhoto<'cs>(
-    team_login: String,
-    show: RwSignal<PhotoState>,
-    team: &'cs TeamSignal,
-) -> impl IntoView {
-    let foto_id = format!("foto_{}", team_login);
-    let team_name = team.name.clone();
-    let escola = team.escola.clone();
+fn TeamAudio(team_login: String) -> impl IntoView {
     let key = format!("volume.{}", team_login);
-
-    let settings = use_context::<GlobalSettingsSignal>().unwrap();
 
     let (volume_settings, set_volume_settings, _) =
         use_local_storage::<VolumeSettings, JsonCodec>(&key);
-
-    let autoplay =
-        move || settings.global.with(|g| g.autoplay) && volume_settings.with(|s| s.autoplay);
 
     let audio_ref = create_node_ref::<Audio>();
 
@@ -86,6 +74,57 @@ pub fn TeamPhoto<'cs>(
             audio.set_volume(volume as f64 / 100_f64);
         }
     });
+
+    let settings = use_context::<GlobalSettingsSignal>().unwrap();
+
+    let autoplay = move || volume_settings.with(|s| s.autoplay);
+    let mute = (move || settings.global.with(|g| g.mute)).into_signal();
+
+    let should_autoplay = move || !mute.get() && autoplay();
+
+    move || {
+        (!mute.get()).then_some(view! {
+            <div class="volume_controls">
+                <div class="control">
+                    <label>autoplay</label>
+                    <input
+                        type="checkbox"
+                        prop:checked=autoplay
+                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
+                    />
+                </div>
+                <div class="control">
+                    <label>volume</label>
+                    <div class="volume_slide">
+                        <input
+                            type="range"
+                            min="0" max="100"
+                            value="100"
+                            prop:value=move || volume_settings.with(|v| v.volume)
+                            on:input=move |ev| set_volume_settings.update(|v| v.volume = event_target_value(&ev).parse().unwrap_or_default())
+                        />
+                    </div>
+                </div>
+            </div>
+            <audio
+                ref=audio_ref
+                src=team_sound_location(&team_login)
+                onerror=onerror_sound()
+                autoplay=should_autoplay
+            />
+        })
+    }
+}
+
+#[component]
+pub fn TeamPhoto<'cs>(
+    team_login: String,
+    show: RwSignal<PhotoState>,
+    team: &'cs TeamSignal,
+) -> impl IntoView {
+    let foto_id = format!("foto_{}", team_login);
+    let team_name = team.name.clone();
+    let escola = team.escola.clone();
 
     move || match show.get() {
         PhotoState::Unloaded => None,
@@ -102,35 +141,7 @@ pub fn TeamPhoto<'cs>(
                     <div class="foto_team_name">{team_name.clone()} </div>
                     <div class="foto_team_escola">{escola.clone()} </div>
                 </div>
-                <div class="volume_controls">
-                    <div class="control">
-                        <label>autoplay</label>
-                        <input
-                            type="checkbox"
-                            prop:checked=autoplay
-                            on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
-                        />
-                    </div>
-                    <div class="control">
-                        <label>volume</label>
-                        <div class="volume_slide">
-                            <input
-                                type="range"
-                                min="0" max="100"
-                                value="100"
-                                prop:value=move || volume_settings.with(|v| v.volume)
-                                on:input=move |ev| set_volume_settings.update(|v| v.volume = event_target_value(&ev).parse().unwrap_or_default())
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <audio
-                    ref=audio_ref
-                    src=team_sound_location(&team_login)
-                    onerror=onerror_sound()
-                    autoplay=autoplay
-                />
+                <TeamAudio team_login=team_login.clone() />
             </div>
         }),
     }

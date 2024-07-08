@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GlobalSettings {
-    pub autoplay: bool,
+    pub mute: bool,
 }
 
 impl Default for GlobalSettings {
     fn default() -> Self {
-        Self { autoplay: true }
+        Self { mute: true }
     }
 }
 
@@ -35,11 +35,11 @@ pub fn SettingsPanel() -> impl IntoView {
     view! {
         <div class="settings_panel">
             <div class="control">
-                <label>autoplay</label>
+            <label>mute</label>
                 <input
                     type="checkbox"
-                    prop:checked=move || global.global.with(|g| g.autoplay)
-                    on:input=move |ev| global.set_global.update(|g| g.autoplay = event_target_checked(&ev))
+                    prop:checked=move || global.global.with(|g| g.mute)
+                    on:input=move |ev| global.set_global.update(|g| g.mute = event_target_checked(&ev))
                 />
             </div>
         </div>
