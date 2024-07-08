@@ -117,7 +117,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
 }
 
 #[component]
-pub fn TeamPhoto<'cs>(
+pub fn TeamMedia<'cs>(
     team_login: String,
     show: RwSignal<PhotoState>,
     team: &'cs TeamSignal,

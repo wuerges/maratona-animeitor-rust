@@ -7,9 +7,9 @@ use leptos::{logging::log, *};
 use crate::{
     model::{runs_panel_signal::RunsPanelItemManager, ContestSignal, TeamSignal},
     views::{
-        photos::{PhotoState, TeamPhoto},
         placement::Placement,
         problem::Problem,
+        team_media::{PhotoState, TeamMedia},
         team_name::TeamName,
         team_score_line::TeamScoreLine,
         timer::Timer,
@@ -116,7 +116,7 @@ fn ContestPanelLine<'cs>(
         >
             <TeamScoreLine titulo is_center=is_center.into_signal() team sede local_placement />
         </div>
-        <TeamPhoto team_login show={show_photo} team />
+        <TeamMedia team_login show={show_photo} team />
     }
 }
 
