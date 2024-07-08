@@ -61,9 +61,7 @@ body {
 }
 
 .run {
-  transition: top 2s ease 0s;
   width: 100%;
-  position: absolute;
   display: flex;
 }
 
