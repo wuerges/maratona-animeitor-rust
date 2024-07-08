@@ -11,7 +11,10 @@ use crate::{
     model::TeamSignal,
 };
 
-use super::{global_settings::GlobalSettingsSignal, team_score_line::TeamScoreLine};
+use super::{
+    global_settings::{use_global_settings, GlobalSettingsSignal},
+    team_score_line::TeamScoreLine,
+};
 
 use std::rc::Rc;
 
@@ -132,11 +135,14 @@ pub fn TeamMedia(
     let team_name = team.name.clone();
     let escola = team.escola.clone();
 
+    let settings = use_global_settings();
+    let background_color = move || settings.global.with(|g| g.background_color.clone());
+
     move || match show.get() {
         PhotoState::Unloaded => None,
         PhotoState::Hidden => None,
         PhotoState::Show => Some(view! {
-            <div class="foto" id={foto_id.clone()}>
+            <div class="foto" id={foto_id.clone()} style:background-color=background_color>
                 <img
                     class="foto_img"
                     src=team_photo_location(&team_login)
