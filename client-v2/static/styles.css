@@ -119,6 +119,7 @@ body {
 .quadrado {
   /* width: 40px; */
   min-width: 40px;
+  max-width: 40px;
 }
 
 .center .not-tried {
