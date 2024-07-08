@@ -5,14 +5,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GlobalSettings {
     pub mute: bool,
+    pub show_audio_controls: bool,
     pub background_color: Option<String>,
+    pub team_background_color: Option<String>,
 }
 
 impl Default for GlobalSettings {
     fn default() -> Self {
         Self {
             mute: true,
+            show_audio_controls: false,
             background_color: None,
+            team_background_color: None,
         }
     }
 }
@@ -59,11 +63,27 @@ pub fn SettingsPanel() -> impl IntoView {
                 />
             </div>
             <div class="control">
+            <label>show audio controls</label>
+                <input
+                    type="checkbox"
+                    prop:checked=move || global.global.with(|g| g.show_audio_controls)
+                    on:input=move |ev| global.set_global.update(|g| g.show_audio_controls = event_target_checked(&ev))
+                />
+            </div>
+            <div class="control">
                 <label>background_color</label>
                 <input
                     type="text"
                     prop:value=move || global.global.with(|g| g.background_color.clone().unwrap_or_default())
                     on:input=move |ev| global.set_global.update(|g| g.background_color = maybe_color(event_target_value(&ev)))
+                />
+            </div>
+            <div class="control">
+                <label>team_background_color</label>
+                <input
+                    type="text"
+                    prop:value=move || global.global.with(|g| g.team_background_color.clone().unwrap_or_default())
+                    on:input=move |ev| global.set_global.update(|g| g.team_background_color = maybe_color(event_target_value(&ev)))
                 />
             </div>
         </div>

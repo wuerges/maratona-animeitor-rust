@@ -85,11 +85,13 @@ fn TeamAudio(team_login: String) -> impl IntoView {
 
     let autoplay = move || volume_settings.with(|s| s.autoplay);
     let mute = (move || settings.global.with(|g| g.mute)).into_signal();
+    let show_audio_controls =
+        (move || settings.global.with(|g| g.show_audio_controls)).into_signal();
 
     let should_autoplay = move || !mute.get() && autoplay();
 
-    move || {
-        (!mute.get()).then_some(view! {
+    let controls = move || {
+        (show_audio_controls.get()).then_some(view! {
             <div class="volume_controls">
                 <div class="control">
                     <label>autoplay</label>
@@ -112,6 +114,10 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                     </div>
                 </div>
             </div>
+        })
+    };
+    let audio = move || {
+        (!mute.get()).then_some(view! {
             <audio
                 ref=audio_ref
                 src=team_sound_location(&team_login)
@@ -119,6 +125,11 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                 autoplay=should_autoplay
             />
         })
+    };
+
+    view! {
+        {controls}
+        {audio}
     }
 }
 
@@ -136,7 +147,7 @@ pub fn TeamMedia(
     let escola = team.escola.clone();
 
     let settings = use_global_settings();
-    let background_color = move || settings.global.with(|g| g.background_color.clone());
+    let background_color = move || settings.global.with(|g| g.team_background_color.clone());
 
     move || match show.get() {
         PhotoState::Unloaded => None,
