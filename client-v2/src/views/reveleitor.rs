@@ -70,9 +70,9 @@ impl State {
 }
 
 #[component]
-pub fn RevelationPanel<'cs>(
+pub fn RevelationPanel(
     state: ReadSignal<State>,
-    contest_signal: &'cs ContestSignal,
+    contest_signal: Rc<ContestSignal>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     let center = Signal::derive(move || {
@@ -167,7 +167,7 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
     view! {
         <Control state=set_driver />
         <div class="revelationpanel">
-            <RevelationPanel contest_signal=&contest_signal state=get_driver sede=get_sede.into() />
+            <RevelationPanel contest_signal state=get_driver sede=get_sede.into() />
         </div>
     }
 }

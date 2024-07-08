@@ -79,11 +79,11 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
-fn ContestPanelLine<'cs>(
+fn ContestPanelLine(
     titulo: Signal<Option<Rc<Sede>>>,
     p_center: Signal<Option<usize>>,
     local_placement: Signal<Option<usize>>,
-    team: &'cs TeamSignal,
+    team: Rc<TeamSignal>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     let memo_placement = create_memo(move |_| local_placement.get());
@@ -114,9 +114,9 @@ fn ContestPanelLine<'cs>(
                 log!("clicked");
                 show_photo.update(|s| s.clicked())}}
         >
-            <TeamScoreLine titulo is_center=is_center.into_signal() team sede local_placement />
+            <TeamScoreLine titulo is_center=is_center.into_signal() team=team.clone() sede local_placement />
         </div>
-        <TeamMedia team_login show={show_photo} team />
+        <TeamMedia team_login show={show_photo} team titulo local_placement sede />
     }
 }
 
@@ -137,9 +137,9 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>
 }
 
 #[component]
-pub fn ContestPanel<'cs>(
+pub fn ContestPanel(
     contest: Signal<ContestFile>,
-    contest_signal: &'cs ContestSignal,
+    contest_signal: Rc<ContestSignal>,
     center: Signal<Option<String>>,
     titulo: Signal<Option<Rc<Sede>>>,
     sede: Signal<Rc<Sede>>,
@@ -186,7 +186,7 @@ pub fn ContestPanel<'cs>(
                     titulo
                     p_center=p_center.into()
                     local_placement
-                    team
+                    team=team.clone()
                     sede
                 />
             }
@@ -219,7 +219,7 @@ fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
 #[component]
 pub fn Contest<'cs>(
     contest: Signal<ContestFile>,
-    contest_signal: &'cs ContestSignal,
+    contest_signal: Rc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     timer: ReadSignal<(TimerData, TimerData)>,
     titulo: Signal<Option<Rc<Sede>>>,

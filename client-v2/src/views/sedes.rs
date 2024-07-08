@@ -71,7 +71,7 @@ fn use_titulo(config: ConfigContest) -> Rc<Sede> {
 #[component]
 fn ProvideSede<'cs>(
     contest: Signal<ContestFile>,
-    contest_signal: &'cs ContestSignal,
+    contest_signal: Rc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
@@ -172,7 +172,7 @@ pub fn Sedes() -> impl IntoView {
                                             view!{
                                                 <ProvideSede
                                                     contest=provider.running_contest
-                                                    contest_signal=&provider.new_contest_signal
+                                                    contest_signal=provider.new_contest_signal.clone()
                                                     panel_items=&provider.runs_panel_item_manager
                                                     timer
                                                     config_contest=provider.config_contest.clone()

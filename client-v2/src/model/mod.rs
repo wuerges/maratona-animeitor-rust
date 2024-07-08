@@ -73,7 +73,7 @@ impl TeamSignal {
 }
 
 pub struct ContestSignal {
-    pub teams: HashMap<String, TeamSignal>,
+    pub teams: HashMap<String, Rc<TeamSignal>>,
 }
 
 impl ContestSignal {
@@ -86,7 +86,7 @@ impl ContestSignal {
             teams: contest_file
                 .teams
                 .iter()
-                .map(|(login, team)| (login.clone(), TeamSignal::new(team, &letters)))
+                .map(|(login, team)| (login.clone(), Rc::new(TeamSignal::new(team, &letters))))
                 .collect(),
         }
     }

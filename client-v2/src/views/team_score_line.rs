@@ -9,8 +9,8 @@ use crate::{
 };
 
 #[component]
-pub fn TeamScoreLine<'cs>(
-    team: &'cs TeamSignal,
+pub fn TeamScoreLine(
+    team: Rc<TeamSignal>,
     is_center: Signal<bool>,
     titulo: Signal<Option<Rc<Sede>>>,
     local_placement: Signal<Option<usize>>,

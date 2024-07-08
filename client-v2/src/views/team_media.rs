@@ -1,3 +1,4 @@
+use data::configdata::Sede;
 use leptos::{
     component, create_effect, create_node_ref, event_target_checked, event_target_value,
     html::Audio, prelude::*, use_context, view, IntoView,
@@ -10,7 +11,9 @@ use crate::{
     model::TeamSignal,
 };
 
-use super::global_settings::GlobalSettingsSignal;
+use super::{global_settings::GlobalSettingsSignal, team_score_line::TeamScoreLine};
+
+use std::rc::Rc;
 
 #[derive(Clone, Copy, Default)]
 pub enum PhotoState {
@@ -117,10 +120,13 @@ fn TeamAudio(team_login: String) -> impl IntoView {
 }
 
 #[component]
-pub fn TeamMedia<'cs>(
+pub fn TeamMedia(
     team_login: String,
     show: RwSignal<PhotoState>,
-    team: &'cs TeamSignal,
+    team: Rc<TeamSignal>,
+    titulo: Signal<Option<Rc<Sede>>>,
+    local_placement: Signal<Option<usize>>,
+    sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     let foto_id = format!("foto_{}", team_login);
     let team_name = team.name.clone();
@@ -141,6 +147,7 @@ pub fn TeamMedia<'cs>(
                     <div class="foto_team_name">{team_name.clone()} </div>
                     <div class="foto_team_escola">{escola.clone()} </div>
                 </div>
+                <TeamScoreLine team=team.clone() is_center=(|| false).into() titulo local_placement sede />
                 <TeamAudio team_login=team_login.clone() />
             </div>
         }),
