@@ -52,3 +52,7 @@
 .foto audio {
   text-align: right;
 }
+
+.foto .run {
+  justify-content: center;
+}

@@ -61,9 +61,7 @@ body {
 }
 
 .run {
-  transition: top 2s ease 0s;
   width: 100%;
-  position: absolute;
   display: flex;
 }
 
@@ -121,6 +119,7 @@ body {
 .quadrado {
   /* width: 40px; */
   min-width: 40px;
+  max-width: 40px;
 }
 
 .center .not-tried {

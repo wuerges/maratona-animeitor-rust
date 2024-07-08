@@ -2,8 +2,8 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="/styles-bf55431c920fdae2.css" integrity="sha384&#x2D;3Rf3&#x2F;&#x2F;xKJdDC23ePBhfsTsOK8WqQY7jVGQUuduOSzMo&#x2B;rsw8SdZLOjhyc334Uj6n"/>
-  <link rel="stylesheet" href="/audio-e2e44aad7589d4f9.css" integrity="sha384&#x2D;9JfISLmTTWxZ&#x2F;ndCr6h8IZgRZBir6IESFslBRrNIidF3BH&#x2B;QGvLFsbXuh0XPvqKa"/>
+  <link rel="stylesheet" href="/styles-b8972ff754ae6604.css" integrity="sha384&#x2D;IaUXnv6pqOPCY2QfiQ3hWMtiwz9Z2iK4E5dmPV6DN0Rlnw8Ib1NsAvYE2XGYEOpj"/>
+  <link rel="stylesheet" href="/audio-f8271a4d52f1e02c.css" integrity="sha384&#x2D;f&#x2F;FvVruvjOKKjC&#x2B;X7HJLve7bC54UEs77n&#x2F;&#x2F;lFRliZoJ9dSVJ&#x2F;q1JywbwSQ6Ps&#x2F;NJ"/>
   <link rel="stylesheet" href="/balloons-5fe069752bcbc7ec.css" integrity="sha384&#x2D;MH5TVjb7YtxmM&#x2F;3MPLk2Kr8Gx2&#x2F;EPCo&#x2F;EuAkiPOnUK9aGsqHXnV7bXYXxb3Ii4II"/>
   <link rel="stylesheet" href="/user-styles.css" />
   
@@ -11,13 +11,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<link rel="modulepreload" href="/client-v2-de70cddd22262bc2.js" crossorigin=anonymous integrity="sha384-HQXWxbgt41XTdxLKkeS+3Eak6Fm0Pjsu99hEJooI1ftX+AqnygGdKEp7hoEN/Lx4">
-<link rel="preload" href="/client-v2-de70cddd22262bc2_bg.wasm" crossorigin=anonymous integrity="sha384-qGf7za2ubNAiJHYuddJRBI64cUW4zD6ZWH6zR8oe5u9mDIXIgyEa+bKT/uK5YA8f" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/client-v2-7ce5a02a349227f2.js" crossorigin=anonymous integrity="sha384-qn67NYh77P9g8n39TT6K/a8ArFQ5Ywhv8UF04vTY5Y1zPUntCE+VzsN7X2JjXPJq">
+<link rel="preload" href="/client-v2-7ce5a02a349227f2_bg.wasm" crossorigin=anonymous integrity="sha384-72hI2ZpofQWjQDANT+CIK0NxO600fWb5ugi8uMYIKojqQDeS8jTxM0qBOS2m/FyL" as="fetch" type="application/wasm"></head>
 
 <body id="body">
-<script type="module" nonce="6NzgTau/LgUsZ2MmgejbEQ==">
-import init, * as bindings from '/client-v2-de70cddd22262bc2.js';
-const wasm = await init('/client-v2-de70cddd22262bc2_bg.wasm');
+<script type="module" nonce="0PZ4h91JepungEemaKm7Rw==">
+import init, * as bindings from '/client-v2-7ce5a02a349227f2.js';
+const wasm = await init('/client-v2-7ce5a02a349227f2_bg.wasm');
 
 
 window.wasmBindings = bindings;
@@ -26,14 +26,5 @@ window.wasmBindings = bindings;
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 </script></body>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const bgColor = urlParams.get('background_color');
-
-  if (bgColor) {
-    console.log("using background color from query:", bgColor);
-    document.getElementById("body").style.backgroundColor = bgColor;
-  }
-</script>
 
 </html>
