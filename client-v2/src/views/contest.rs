@@ -126,6 +126,54 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 }
 
 #[component]
+fn TeamScoreLine<'cs>(
+    team: &'cs TeamSignal,
+    is_center: Signal<bool>,
+    titulo: Signal<Option<Rc<Sede>>>,
+    local_placement: Signal<Option<usize>>,
+    sede: Signal<Rc<Sede>>,
+) -> impl IntoView {
+    let escola = team.escola.clone();
+    let name = team.name.clone();
+    let score = team.score.clone();
+
+    let problems = team.problems.clone();
+    let problems =
+        problems
+        .into_iter()
+        .sorted_by_cached_key(|(letter,_problem)| letter.clone())
+        .map(|(letter, problem)| {
+            let memo_problem =create_memo(move |_| problem.get());
+            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.get() /> }
+        })
+        .collect_view();
+
+    let placement_global = team.placement_global;
+
+    view! {
+        <div class="run">
+            <div class:run_prefix=true class:center=is_center >
+                {move || {
+                    let placement = placement_global.get();
+                    titulo.with(move |t| t.clone().map(move |t| view! {
+                        <Placement placement sede=(move || t.clone()).into() />
+                    }))
+                }}
+                {move || local_placement.get().map(|placement|
+                    view!{ <Placement placement sede /> }
+                )}
+                <TeamName escola name />
+                <div class="cell problema quadrado">
+                    <div class="cima">{move || score.with(|s| s.solved)}</div>
+                    <div class="baixo">{move || score.with(|s| s.solved)}</div>
+                </div>
+            </div>
+            {problems}
+        </div>
+    }
+}
+
+#[component]
 fn ContestPanelLine<'cs>(
     titulo: Signal<Option<Rc<Sede>>>,
     p_center: Signal<Option<usize>>,
@@ -147,22 +195,7 @@ fn ContestPanelLine<'cs>(
 
     let show_photo = create_rw_signal(PhotoState::default());
 
-    let problems = team.problems.clone();
-    let problems =
-        problems
-        .into_iter()
-        .sorted_by_cached_key(|(letter,_problem)| letter.clone())
-        .map(|(letter, problem)| {
-            let memo_problem =create_memo(move |_| problem.get());
-            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.get() /> }
-        })
-        .collect_view();
-
-    let escola = team.escola.clone();
-    let name = team.name.clone();
     let team_login = team.login.clone();
-    let score = team.score.clone();
-    let placement_global = team.placement_global.clone();
 
     let is_center = move || match (p_center.get(), local_placement.get()) {
         (Some(c), Some(p)) => c == p,
@@ -176,25 +209,7 @@ fn ContestPanelLine<'cs>(
                 log!("clicked");
                 show_photo.update(|s| s.clicked())}}
         >
-            <div class="run">
-                <div class:run_prefix=true class:center=is_center >
-                    {move || {
-                        let placement = placement_global.get();
-                        titulo.with(move |t| t.clone().map(move |t| view! {
-                            <Placement placement sede=(move || t.clone()).into() />
-                        }))
-                    }}
-                    {move || local_placement.get().map(|placement|
-                        view!{ <Placement placement sede /> }
-                    )}
-                    <TeamName escola name />
-                    <div class="cell problema quadrado">
-                        <div class="cima">{move || score.get().solved}</div>
-                        <div class="baixo">{move || score.get().penalty}</div>
-                    </div>
-                </div>
-            {problems}
-            </div>
+            <TeamScoreLine titulo is_center=is_center.into_signal() team sede local_placement />
         </div>
         <TeamPhoto team_login show={show_photo} team />
     }
