@@ -174,7 +174,7 @@ impl Problem {
                 self.penalty += 20;
             }
             Answer::Wait => {
-                self.answers.push(Answer::No) // failsafe
+                // self.answers.push(Answer::No) // failsafe
             }
             Answer::Unk => {}
         }
