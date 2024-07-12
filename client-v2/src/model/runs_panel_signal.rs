@@ -1,8 +1,7 @@
 use data::{RunTuple, RunsPanelItem};
 use itertools::Itertools;
 use leptos::{
-    create_rw_signal, logging::log, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate,
-    SignalWithUntracked,
+    create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalWithUntracked,
 };
 
 pub struct RunPanelItemSignal {
@@ -61,7 +60,6 @@ impl RunsPanelItemManager {
     }
 
     pub fn push(&self, new_item: RunsPanelItem) {
-        log!("pushing new item to submissions panel: {:?}", new_item);
         if let Some(item) = self.find_item_in_panel(&new_item) {
             item.set(Some(new_item));
         } else {
