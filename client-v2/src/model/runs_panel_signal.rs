@@ -80,3 +80,66 @@ impl RunsPanelItemManager {
         return 0;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use data::{ProblemView, RunsPanelItem};
+    use itertools::Itertools;
+    use leptos::SignalGetUntracked;
+
+    use super::RunsPanelItemManager;
+
+    #[test]
+    fn check_replace() {
+        let first = RunsPanelItem {
+            id: 1,
+            placement: 1,
+            escola: "escola".to_string(),
+            team_name: "name".to_string(),
+            team_login: "a".to_string(),
+            problem: "A".to_string(),
+            problem_view: ProblemView {
+                solved: false,
+                solved_first: false,
+                submissions: 1,
+                penalty: 100,
+                time_solved: 0,
+                wait: true,
+                id: 1,
+                pending: 3,
+            },
+        };
+        let second = RunsPanelItem {
+            id: 1,
+            placement: 2,
+            escola: "escola".to_string(),
+            team_name: "name".to_string(),
+            team_login: "a".to_string(),
+            problem: "A".to_string(),
+            problem_view: ProblemView {
+                solved: true,
+                solved_first: false,
+                submissions: 1,
+                penalty: 100,
+                time_solved: 10,
+                wait: false,
+                id: 2,
+                pending: 0,
+            },
+        };
+
+        let manager = RunsPanelItemManager::new();
+
+        manager.push(first);
+        manager.push(second);
+
+        let items = manager
+            .items
+            .iter()
+            .map(|i| i.panel_item.get_untracked())
+            .filter(|i| i.is_some())
+            .collect_vec();
+
+        assert_eq!(items.len(), 1);
+    }
+}
