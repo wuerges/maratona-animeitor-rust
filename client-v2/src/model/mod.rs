@@ -7,7 +7,7 @@ use std::{
 
 use data::{
     annotate_first_solved::annotate_first_solved, configdata::ConfigContest, ContestFile,
-    ProblemView, RunTuple, RunsFile, Score, Team,
+    ProblemView, RunTuple, Score, Team,
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
@@ -157,7 +157,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     }
 
     spawn_local(async move {
-        let mut runs_file = RunsFile::empty();
+        // let mut runs_file = RunsFile::empty();
         let mut solved = HashSet::new();
 
         let mut runs_stream = create_runs(query).ready_chunks(ready_chunk_capacity);
@@ -171,21 +171,13 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
 
             if let Some(mut next_batch) = next_batch {
                 annotate_first_solved(&mut solved, next_batch.iter_mut());
-                let mut fresh_runs = vec![];
-                for run_tuple in next_batch {
-                    if runs_file.refresh_1(&run_tuple) {
-                        fresh_runs.push(run_tuple);
-                    }
-                }
 
-                if !fresh_runs.is_empty() {
+                if !next_batch.is_empty() {
                     let mut fresh_contest = contest_signal.get_untracked();
 
-                    let runs = runs_file.sorted();
+                    let position = RunsPanelItemManager::position_in_last_submissions(&next_batch);
 
-                    let position = RunsPanelItemManager::position_in_last_submissions(&fresh_runs);
-
-                    for (i, r) in fresh_runs.iter().enumerate() {
+                    for (i, r) in next_batch.iter().enumerate() {
                         fresh_contest.apply_run(r);
                         if i >= position {
                             fresh_contest.recalculate_placement();
@@ -196,7 +188,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     }
                     fresh_contest.recalculate_placement();
 
-                    new_contest_signal.update_tuples(&runs, &fresh_contest);
+                    new_contest_signal.update_tuples(&next_batch, &fresh_contest);
 
                     set_contest_signal.set(fresh_contest);
                 }
