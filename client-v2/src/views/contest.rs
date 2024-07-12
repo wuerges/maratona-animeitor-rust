@@ -85,6 +85,7 @@ fn ContestPanelLine(
     local_placement: Signal<Option<usize>>,
     team: Rc<TeamSignal>,
     sede: Signal<Rc<Sede>>,
+    show_photo: RwSignal<PhotoState>,
 ) -> impl IntoView {
     let memo_placement = create_memo(move |_| local_placement.get());
     let style = move || {
@@ -98,8 +99,7 @@ fn ContestPanelLine(
         })
     };
 
-    let show_photo = create_rw_signal(PhotoState::default());
-
+    let team_login_1 = team.login.clone();
     let team_login = team.login.clone();
 
     let is_center = move || match (p_center.get(), local_placement.get()) {
@@ -112,7 +112,7 @@ fn ContestPanelLine(
             class="run_box" id=team_login.clone() style={style}
             on:click={move |_| {
                 log!("clicked");
-                show_photo.update(|s| s.clicked())}}
+                show_photo.update(|s| s.clicked(&team_login_1))}}
         >
             <TeamScoreLine titulo is_center=is_center.into_signal() team=team.clone() sede local_placement />
         </div>
@@ -147,6 +147,8 @@ pub fn ContestPanel(
     log!("contest panel refresh");
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
+
+    let show_photo = create_rw_signal(PhotoState::default());
 
     let placements = create_memo(move |_| {
         sede.with(|sede| {
@@ -188,6 +190,7 @@ pub fn ContestPanel(
                     local_placement
                     team=team.clone()
                     sede
+                    show_photo
                 />
             }
         })

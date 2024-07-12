@@ -18,20 +18,18 @@ use super::{
 
 use std::rc::Rc;
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Default)]
 pub enum PhotoState {
     #[default]
-    Unloaded,
-    Show,
     Hidden,
+    Show(String),
 }
 
 impl PhotoState {
-    pub fn clicked(&mut self) {
+    pub fn clicked(&mut self, team_login: &str) {
         *self = match self {
-            PhotoState::Unloaded => PhotoState::Show,
-            PhotoState::Show => PhotoState::Hidden,
-            PhotoState::Hidden => PhotoState::Show,
+            PhotoState::Show(_) => PhotoState::Hidden,
+            PhotoState::Hidden => PhotoState::Show(team_login.to_string()),
         }
     }
 }
@@ -149,24 +147,32 @@ pub fn TeamMedia(
     let settings = use_global_settings();
     let background_color = move || settings.global.with(|g| g.team_background_color.clone());
 
-    move || match show.get() {
-        PhotoState::Unloaded => None,
-        PhotoState::Hidden => None,
-        PhotoState::Show => Some(view! {
-            <div class="foto" id={foto_id.clone()} style:background-color=background_color>
-                <img
-                    class="foto_img"
-                    src=team_photo_location(&team_login)
-                    onerror=onerror_photo()
-                    on:click=move |_| show.update(|s| s.clicked())
-                />
-                <div class="foto_team_label">
-                    <div class="foto_team_name">{team_name.clone()} </div>
-                    <div class="foto_team_escola">{escola.clone()} </div>
-                </div>
-                <TeamScoreLine team=team.clone() is_center=(|| false).into() titulo local_placement sede />
-                <TeamAudio team_login=team_login.clone() />
-            </div>
-        }),
+    move || {
+        let team_login_click = team_login.clone();
+        match show.get() {
+            PhotoState::Hidden => None,
+            PhotoState::Show(team_login) => {
+                if team_login == team_login_click {
+                    Some(view! {
+                        <div class="foto" id={foto_id.clone()} style:background-color=background_color>
+                            <img
+                                class="foto_img"
+                                src=team_photo_location(&team_login)
+                                onerror=onerror_photo()
+                                on:click=move |_| show.update(|s| s.clicked(&team_login_click))
+                            />
+                            <div class="foto_team_label">
+                                <div class="foto_team_name">{team_name.clone()} </div>
+                                <div class="foto_team_escola">{escola.clone()} </div>
+                            </div>
+                            <TeamScoreLine team=team.clone() is_center=(|| false).into() titulo local_placement sede />
+                            <TeamAudio team_login=team_login.clone() />
+                        </div>
+                    })
+                } else {
+                    None
+                }
+            }
+        }
     }
 }
