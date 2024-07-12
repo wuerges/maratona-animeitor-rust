@@ -18,7 +18,7 @@ pub fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView 
                 } else if p.solved {
                     "accept cell quadrado".to_string()
                 } else {
-                    let cell_type = if p.wait { "inqueue"} else { "unsolved" };
+                    let cell_type = if p.pending > 0 { "inqueue"} else { "unsolved" };
                     format!("cell quadrado {cell_type}")
                 },
                 None => "not-tried cell quadrado".to_string(),
@@ -46,10 +46,8 @@ pub fn Problem(prob: char, problem: Option<data::ProblemView>) -> impl IntoView 
                             n => format!("({})", n)
                         };
 
-                        let cell_symbol = if p.wait { pending } else { "X".to_string() };
-
                         view! {
-                            <div class="cima">{cell_symbol}</div>
+                            <div class="cima">{pending}</div>
                             <div class="baixo"> +{p.submissions}" "</div>
                         }
                     }).into_view()

@@ -88,7 +88,6 @@ pub struct ProblemView {
     pub penalty: i64,
     /// When was it solved?
     pub time_solved: i64,
-    pub wait: bool,
     pub id: u64,
     pub pending: usize,
 }
@@ -159,7 +158,6 @@ impl Problem {
             penalty: *penalty,
             time_solved: *time_solved,
             id: *id,
-            wait: self.wait(),
             pending: answers.len() + waits.len(),
         }
     }
@@ -198,7 +196,7 @@ impl Problem {
         }
     }
 
-    pub fn wait(&self) -> bool {
+    fn wait(&self) -> bool {
         !self.solved && !self.answers.is_empty()
     }
 
