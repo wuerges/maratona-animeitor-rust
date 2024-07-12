@@ -20,15 +20,16 @@ impl FromString for Team {
     }
 }
 
-fn from_string_answer(t: &str, time: i64) -> ServiceResult<Answer> {
+fn from_string_answer(t: &str, time: i64, run_id: i64) -> ServiceResult<Answer> {
     match t {
         "Y" => Ok(Answer::Yes {
             time,
             is_first: false,
+            run_id,
         }),
-        "N" => Ok(Answer::No),
-        "X" => Ok(Answer::Unk),
-        "?" => Ok(Answer::Wait),
+        "N" => Ok(Answer::No { run_id }),
+        "X" => Ok(Answer::Unk { run_id }),
+        "?" => Ok(Answer::Wait { run_id }),
         _ => Err(Error::InvalidAnswer(t.to_string())),
     }
 }
@@ -41,7 +42,7 @@ impl FromString for RunTuple {
         }
         let id = v[0].parse()?;
         let time = v[1].parse()?;
-        let ans = from_string_answer(v[4], time)?;
+        let ans = from_string_answer(v[4], time, id)?;
 
         Ok(Self {
             order: 0,
@@ -210,7 +211,7 @@ mod tests {
         assert_eq!(t.time, 299);
         assert_eq!(t.team_login, "teambrbr3");
         assert_eq!(t.prob, "B");
-        assert_eq!(t.answer, Answer::No);
+        assert_eq!(t.answer, Answer::No { run_id: 375971416 });
         Ok(())
     }
 

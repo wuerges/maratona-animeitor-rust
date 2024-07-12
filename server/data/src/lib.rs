@@ -5,7 +5,7 @@ pub mod revelation;
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
-use std::collections::{btree_map, BTreeMap};
+use std::collections::{btree_map, BTreeMap, HashSet};
 use std::fmt;
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
@@ -15,19 +15,23 @@ use utoipa::ToSchema;
 /// The judge answer to a submission.
 pub enum Answer {
     /// Accepted, with the time of the submission, and a bool that
-    Yes { time: i64, is_first: bool },
+    Yes {
+        time: i64,
+        is_first: bool,
+        run_id: i64,
+    },
     /// Rejected.
-    No,
+    No { run_id: i64 },
     /// Waiting to be judged.
-    Wait,
+    Wait { run_id: i64 },
     /// Unknown.
-    Unk,
+    Unk { run_id: i64 },
 }
 
 impl Answer {
     pub fn is_wait(&self) -> bool {
         match self {
-            Answer::Wait => true,
+            Answer::Wait { .. } => true,
             _ => false,
         }
     }
@@ -64,6 +68,9 @@ pub struct Problem {
     pub time_solved: i64,
     /// What were the judges answers to this problem for this team?
     pub answers: Vec<Answer>,
+
+    /// The run ids of the waits
+    pub waits: HashSet<i64>,
 
     pub id: u64,
 }
@@ -130,6 +137,7 @@ impl Problem {
             penalty: 0,
             answers: Vec::new(),
             id: gen_id(),
+            waits: HashSet::new(),
         }
     }
 
@@ -142,6 +150,7 @@ impl Problem {
             time_solved,
             answers,
             id,
+            waits,
         } = self;
         ProblemView {
             solved: *solved,
@@ -151,7 +160,7 @@ impl Problem {
             time_solved: *time_solved,
             id: *id,
             wait: self.wait(),
-            pending: answers.len(),
+            pending: answers.len() + waits.len(),
         }
     }
 
@@ -161,22 +170,31 @@ impl Problem {
             return;
         }
         match answer {
-            Answer::Yes { time, is_first } => {
+            Answer::Yes {
+                time,
+                is_first,
+                run_id,
+            } => {
                 self.solved = true;
                 self.submissions += 1;
                 self.penalty += time;
                 self.time_solved = time;
                 self.answers.clear();
                 self.solved_first = is_first;
+
+                self.waits.remove(&run_id);
             }
-            Answer::No => {
+            Answer::No { run_id } => {
                 self.submissions += 1;
                 self.penalty += 20;
+                self.waits.remove(&run_id);
             }
-            Answer::Wait => {
-                self.answers.push(Answer::No) // failsafe
+            Answer::Wait { run_id } => {
+                self.waits.insert(run_id);
             }
-            Answer::Unk => {}
+            Answer::Unk { run_id } => {
+                self.waits.remove(&run_id);
+            }
         }
     }
 
@@ -186,7 +204,7 @@ impl Problem {
 
     fn add_run_frozen(&mut self, answer: Answer) {
         self.id = gen_id();
-        if answer != Answer::Wait {
+        if !answer.is_wait() {
             self.answers.push(answer)
         }
     }

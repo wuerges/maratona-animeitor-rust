@@ -9,7 +9,7 @@ pub fn annotate_first_solved<'t>(
 ) {
     for run in runs.sorted_by_key(|r| r.order) {
         match &mut run.answer {
-            crate::Answer::Yes { time: _, is_first } => {
+            crate::Answer::Yes { is_first, .. } => {
                 if !solved.contains(&run.prob) {
                     solved.insert(run.prob.clone());
                     *is_first = true;
