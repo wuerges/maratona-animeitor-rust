@@ -4,7 +4,7 @@ use data::{
     configdata::{ConfigContest, Sede},
     ContestFile, TimerData,
 };
-use leptos::{logging::*, *};
+use leptos::*;
 use leptos_router::*;
 
 use crate::{
@@ -12,7 +12,11 @@ use crate::{
     model::{
         provide_contest, runs_panel_signal::RunsPanelItemManager, ContestProvider, ContestSignal,
     },
-    views::{contest::Contest, global_settings::SettingsPanel, navigation::Navigation},
+    views::{
+        contest::Contest,
+        global_settings::{use_global_settings, SettingsPanel},
+        navigation::Navigation,
+    },
 };
 
 use super::{reveleitor::Reveleitor, timer::Timer};
@@ -28,25 +32,21 @@ impl IsNegative for (TimerData, TimerData) {
 }
 
 #[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
-struct SedeQuery {
+struct QueryParams {
     sede: Option<String>,
-}
-
-#[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
-struct StaticQuery {
     secret: Option<String>,
     settings: Option<bool>,
 }
 
-fn use_static_query() -> Option<StaticQuery> {
-    use_query::<StaticQuery>()
-        .get()
-        .inspect_err(|e| error!("incorrect secret: {:?}", e))
-        .ok()
+impl QueryParams {
+    fn is_settings_enabled(&self) -> bool {
+        self.settings.unwrap_or_default()
+    }
 }
 
-fn use_sede_query() -> Signal<SedeQuery> {
-    (|| use_query::<SedeQuery>().get().unwrap_or_default()).into_signal()
+fn use_static_query() -> Signal<QueryParams> {
+    let query_params = use_query::<QueryParams>();
+    (move || query_params.get().ok().unwrap_or_default()).into_signal()
 }
 
 fn use_configured_sede(
@@ -75,7 +75,7 @@ fn ProvideSede<'cs>(
     panel_items: &'cs RunsPanelItemManager,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
-    sede_param: Signal<SedeQuery>,
+    sede_param: Signal<QueryParams>,
 ) -> impl IntoView {
     let titulo = use_titulo(config_contest.clone());
     let titulo_sede = titulo.clone();
@@ -134,59 +134,71 @@ pub fn Sedes() -> impl IntoView {
 
     let negative_memo = create_memo(move |_| timer.get().is_negative());
 
+    let global_settings = use_global_settings();
+
     let root = move || {
-        if negative_memo.get() {
-            view! { <Timer timer /> }.into_view()
-        } else {
-            let query = (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
-            let sede_query = use_sede_query();
-            let secret_query = use_static_query();
+        let query_params = use_static_query();
+        let settings_panel = move || {
+            query_params
+                .with(|q| q.is_settings_enabled())
+                .then_some(view! {
+                    <SettingsPanel />
+                })
+        };
+
+        let secret = (move || {
+            query_params
+                .with(|q| q.secret.clone())
+                .or(global_settings.global.with(|g| g.get_secret()))
+        })
+        .into_signal();
+        let secret = create_memo(move |_| secret.get());
+        let contest_query =
+            (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
+
+        let animeitor =
+        (move || {
             let contest_provider =
-                create_local_resource(move || query.get(), |q| provide_contest(q));
-            let config_contest = create_local_resource(move || query.get(), |q| create_config(q));
+                create_local_resource(move || contest_query.get(), |q| provide_contest(q));
+            let config_contest =
+                create_local_resource(move || contest_query.get(), |q| create_config(q));
 
-            (move || match secret_query.clone() {
-                None => {
-                    error!("failed loading params");
-                    view! {<p> Failed loading params </p> }.into_view()
-                }
-                Some(params) => {
-                    log!("loaded params: {:?}", params);
-                    let settings_panel = move || {
-                        params.settings.unwrap_or_default().then_some(view!{
-                            <SettingsPanel />
-                        })
-                    };
-
-                    match params.secret {
-                        Some(secret) => (move || view! {
-                            <ConfiguredReveleitor contest_provider secret=secret.clone() sede_param=sede_query.get().sede />
-                        }).into_view(),
-                        None => view! {
-                            <Navigation config_contest query />
-                            {settings_panel}
-                            <Suspense fallback=|| view! { <p> Loading contest... </p> }>
-                                {
-                                    move || contest_provider.with(|contest_provider|
-                                        contest_provider.as_ref().map(|provider|
-                                            view!{
-                                                <ProvideSede
-                                                    contest=provider.running_contest
-                                                    contest_signal=provider.new_contest_signal.clone()
-                                                    panel_items=&provider.runs_panel_item_manager
-                                                    timer
-                                                    config_contest=provider.config_contest.clone()
-                                                    sede_param=sede_query
-                                                />
-                                            }
-                                        )
+            match secret.get() {
+                Some(secret) => (move || view! {
+                    <ConfiguredReveleitor contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
+                }).into_view(),
+                None => view! {
+                    <Navigation config_contest query=contest_query />
+                    <Suspense fallback=|| view! { <p> Loading contest... </p> }>
+                    {
+                        move || contest_provider.with(|contest_provider|
+                            contest_provider.as_ref().map(|provider|
+                                view!{
+                                    <ProvideSede
+                                            contest=provider.running_contest
+                                            contest_signal=provider.new_contest_signal.clone()
+                                            panel_items=&provider.runs_panel_item_manager
+                                            timer
+                                            config_contest=provider.config_contest.clone()
+                                            sede_param=query_params
+                                            />
+                                        }
                                     )
-                                }
+                                )
+                            }
                             </Suspense>
                         }.into_view(),
                     }
-                }
-            })
+                })
+                .into_view();
+
+        if negative_memo.get() {
+            view! { <Timer timer /> }.into_view()
+        } else {
+            view! {
+                {settings_panel}
+                {animeitor}
+            }
             .into_view()
         }
     };
