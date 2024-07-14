@@ -8,6 +8,8 @@ pub struct GlobalSettings {
     pub show_audio_controls: bool,
     pub background_color: Option<String>,
     pub team_background_color: Option<String>,
+    pub secret_enabled: bool,
+    pub secret: Option<String>,
 }
 
 impl Default for GlobalSettings {
@@ -17,6 +19,8 @@ impl Default for GlobalSettings {
             show_audio_controls: false,
             background_color: None,
             team_background_color: None,
+            secret_enabled: false,
+            secret: None,
         }
     }
 }
@@ -25,6 +29,12 @@ impl Default for GlobalSettings {
 pub struct GlobalSettingsSignal {
     pub global: Signal<GlobalSettings>,
     pub set_global: WriteSignal<GlobalSettings>,
+}
+
+impl GlobalSettings {
+    pub fn get_secret(&self) -> Option<String> {
+        self.secret_enabled.then_some(self.secret.clone()).flatten()
+    }
 }
 
 pub fn provide_global_settings() {
@@ -36,7 +46,7 @@ pub fn provide_global_settings() {
     })
 }
 
-fn maybe_color(text: String) -> Option<String> {
+fn maybe_text(text: String) -> Option<String> {
     if text.is_empty() {
         None
     } else {
@@ -75,7 +85,7 @@ pub fn SettingsPanel() -> impl IntoView {
                 <input
                     type="text"
                     prop:value=move || global.global.with(|g| g.background_color.clone().unwrap_or_default())
-                    on:input=move |ev| global.set_global.update(|g| g.background_color = maybe_color(event_target_value(&ev)))
+                    on:input=move |ev| global.set_global.update(|g| g.background_color = maybe_text(event_target_value(&ev)))
                 />
             </div>
             <div class="control">
@@ -83,9 +93,22 @@ pub fn SettingsPanel() -> impl IntoView {
                 <input
                     type="text"
                     prop:value=move || global.global.with(|g| g.team_background_color.clone().unwrap_or_default())
-                    on:input=move |ev| global.set_global.update(|g| g.team_background_color = maybe_color(event_target_value(&ev)))
+                    on:input=move |ev| global.set_global.update(|g| g.team_background_color = maybe_text(event_target_value(&ev)))
                 />
             </div>
+            <div class="control">
+            <label>secret</label>
+            <input
+                    type="checkbox"
+                    prop:checked=move || global.global.with(|g| g.secret_enabled)
+                    on:input=move |ev| global.set_global.update(|g| g.secret_enabled = event_target_checked(&ev))
+                />
+            <input
+                type="password"
+                prop:value=move || global.global.with(|g| g.secret.clone().unwrap_or_default())
+                on:input=move |ev| global.set_global.update(|g| g.secret = maybe_text(event_target_value(&ev)))
+            />
+        </div>
         </div>
     }
 }
