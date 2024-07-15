@@ -33,13 +33,14 @@ fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> i
 
             move || panel_item.with(move |p| {
                 p.as_ref().map(move |panel_item| {
+                    let problem_view = panel_item.problem_view.clone();
                     view! {
                         <div class="run_box" style:top={top} style:z-index={move || -(position.get() as i32)}>
                             <div class="run">
                                 <Placement placement=panel_item.placement sede />
                                 <TeamName escola={panel_item.escola.clone()} name={panel_item.team_name.clone()} />
                                 <div class="cell quadrado">{panel_item.problem.clone()}</div>
-                                <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=Some(panel_item.problem_view.clone()) />
+                                <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=(move || Some(problem_view.clone())).into_signal() />
                             </div>
                         </div>
                     }

@@ -21,13 +21,12 @@ pub fn TeamScoreLine(
     let score = team.score.clone();
 
     let problems = team.problems.clone();
-    let problems =
-        problems
+    let problems = problems
         .into_iter()
-        .sorted_by_cached_key(|(letter,_problem)| letter.clone())
+        .sorted_by_cached_key(|(letter, _problem)| letter.clone())
         .map(|(letter, problem)| {
-            let memo_problem =create_memo(move |_| problem.get());
-            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.get() /> }
+            let memo_problem = create_memo(move |_| problem.get());
+            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.into() /> }
         })
         .collect_view();
 
