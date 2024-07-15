@@ -141,11 +141,13 @@ body {
 .accept {
   position: relative;
   background-color: #305745;
+  animation: acceptBackground 2s 1;
 }
 
 .star {
   position: relative;
   background-color: #305745;
+  animation: blinkingBackground 1s 5;
 }
 
 .accept-img {
@@ -219,6 +221,7 @@ body {
 .unsolved {
   position: relative;
   background-color: #573a41;
+  animation: unsolvedBackground 2s 1;
 }
 
 .inqueue {
@@ -445,6 +448,30 @@ body {
   100% {
     background-color: #F4D03F;
     color: black;
+  }
+}
+
+@keyframes unsolvedBackground {
+  0% {
+    background-color: #F4D03F;
+    color: white;
+  }
+
+  100% {
+    background-color: #573a41;
+    color: white;
+  }
+}
+
+@keyframes acceptBackground {
+  0% {
+    background-color: #F4D03F;
+    color: white;
+  }
+
+  100% {
+    background-color: #305745;
+    color: white;
   }
 }
 
