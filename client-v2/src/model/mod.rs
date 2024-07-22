@@ -189,9 +189,9 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                         fresh_contest.apply_run(r);
                         if i >= position {
                             fresh_contest.recalculate_placement();
-                            if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
-                                runs_panel_item_manager.push(panel_item)
-                            }
+                        }
+                        if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
+                            runs_panel_item_manager.push(panel_item)
                         }
                     }
                     fresh_contest.recalculate_placement();

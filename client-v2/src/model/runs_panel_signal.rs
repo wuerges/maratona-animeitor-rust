@@ -1,7 +1,10 @@
+use std::collections::HashSet;
+
 use data::{RunTuple, RunsPanelItem};
 use itertools::Itertools;
 use leptos::{
-    create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalWithUntracked,
+    create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalUpdateUntracked,
+    SignalWithUntracked,
 };
 
 pub struct RunPanelItemSignal {
@@ -11,6 +14,7 @@ pub struct RunPanelItemSignal {
 
 pub struct RunsPanelItemManager {
     pub items: Vec<RunPanelItemSignal>,
+    pub push_ids: RwSignal<HashSet<i64>>,
 }
 
 impl RunsPanelItemManager {
@@ -23,6 +27,7 @@ impl RunsPanelItemManager {
                     position: create_rw_signal(i),
                 })
                 .collect_vec(),
+            push_ids: create_rw_signal(HashSet::new()),
         }
     }
 
@@ -59,10 +64,19 @@ impl RunsPanelItemManager {
         return None;
     }
 
+    fn was_pushed_before(&self, item: &RunsPanelItem) -> bool {
+        self.push_ids.get_untracked().contains(&item.id)
+    }
+
     pub fn push(&self, new_item: RunsPanelItem) {
-        if let Some(item) = self.find_item_in_panel(&new_item) {
-            item.set(Some(new_item));
+        if self.was_pushed_before(&new_item) {
+            if let Some(item) = self.find_item_in_panel(&new_item) {
+                item.set(Some(new_item));
+            }
         } else {
+            self.push_ids.update_untracked(|x| {
+                x.insert(new_item.id);
+            });
             self.append(new_item)
         }
     }
