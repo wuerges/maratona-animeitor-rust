@@ -14,42 +14,55 @@ struct SimpleParser {
     /// The url prefix for the animeitor server.
     #[clap(long, default_value = "http://localhost:8080", required = true)]
     prefix: String,
+
+    /// Show filters.
+    #[clap(long, default_value = "false")]
+    filters: bool,
 }
 
-fn print_sede(url_prefix: &str, sede: &Sede) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&format!("{url_prefix}"))?;
+fn print_sede(parse: &SimpleParser, sede: &Sede) -> color_eyre::eyre::Result<()> {
+    let mut url = Url::parse(&parse.prefix)?;
     url.query_pairs_mut().append_pair("sede", &sede.entry.name);
 
     println!("-> {}", sede.entry.name);
     println!("    Animeitor em {}", url.as_str());
-    println!("    Filters = {:?}", sede.entry.codes);
+    if parse.filters {
+        println!("    Filters = {:?}", sede.entry.codes);
+    }
     Ok(())
 }
 
-fn print_reveleitor(url_prefix: &str, sede: &Sede, secret: &str) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&format!("{url_prefix}"))?;
+fn print_reveleitor(
+    parse: &SimpleParser,
+    sede: &Sede,
+    secret: &str,
+) -> color_eyre::eyre::Result<()> {
+    let mut url = Url::parse(&parse.prefix)?;
     url.query_pairs_mut()
         .append_pair("secret", &secret)
         .append_pair("sede", &sede.entry.name);
 
     println!("-> {}", sede.entry.name);
     println!("    Reveleitor em {}", url.as_str());
-    println!("    Filters = {:?}", sede.entry.codes);
+    if parse.filters {
+        println!("    Filters = {:?}", sede.entry.codes);
+    }
     Ok(())
 }
 
 fn print_urls(
-    url_prefix: &str,
+    parse: &SimpleParser,
     contest: &Contest,
     config_secret: &Secret,
 ) -> color_eyre::eyre::Result<()> {
-    print_sede(url_prefix, &contest.titulo)?;
+    println!("\n");
+    print_sede(parse, &contest.titulo)?;
     for (_secret, sede) in &contest.sedes {
-        print_sede(url_prefix, sede)?;
+        print_sede(parse, sede)?;
     }
 
     for (secret, sede) in &config_secret.sedes_by_secret {
-        print_reveleitor(url_prefix, sede, &secret)?;
+        print_reveleitor(parse, sede, &secret)?;
     }
     Ok(())
 }
@@ -60,15 +73,12 @@ fn main() -> color_eyre::eyre::Result<()> {
         .finish()
         .init();
 
-    let SimpleParser {
-        args,
-        prefix: url_prefix,
-    } = SimpleParser::parse();
+    let parse = SimpleParser::parse();
 
-    let map = args.into_contest_and_secret()?;
+    let map = parse.args.into_contest_and_secret()?;
 
     for (_, (_, contest, config_secret)) in &map {
-        print_urls(&url_prefix, contest, config_secret)?;
+        print_urls(&parse, contest, config_secret)?;
     }
 
     Ok(())

@@ -64,7 +64,7 @@ fn gather_secrets(secrets: &[String]) -> color_eyre::Result<ConfigSecret> {
 impl SimpleArgs {
     #[tracing::instrument(err)]
     pub fn into_contest_and_secret(
-        self,
+        &self,
     ) -> color_eyre::eyre::Result<HashMap<String, (ConfigContest, Contest, Secret)>> {
         let Self {
             salt,
@@ -77,7 +77,7 @@ impl SimpleArgs {
         let mut result = HashMap::new();
 
         for sede in sedes {
-            let NamedSede { file, name } = sede.into_inner();
+            let NamedSede { file, name } = sede.clone().into_inner();
             let config = parse_config::<ConfigContest>(std::path::Path::new(&file))
                 .map_err(|e| e.with_note(|| "Should be able to parse the config."))?;
 
