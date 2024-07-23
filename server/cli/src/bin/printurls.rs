@@ -12,12 +12,7 @@ struct SimpleParser {
     args: SimpleArgs,
 
     /// The url prefix for the animeitor server.
-    #[clap(
-        short = 'p',
-        long,
-        default_value = "http://localhost:8080",
-        required = true
-    )]
+    #[clap(long, default_value = "http://localhost:8080", required = true)]
     prefix: String,
 }
 
