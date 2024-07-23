@@ -29,6 +29,23 @@ run-standalone:
 		--secret ${SECRET} ${BOCA_URL} \
 	)
 
+# --prefix http://animeitor.naquadah.com.br
+
+printurls-standalone:
+	@echo recompiling client...
+	( cargo run --manifest-path server/Cargo.toml \
+		--bin printurls -- \
+		--prefix http://localhost:8000 \
+		--sedes ./config/regional_2024/CCL.toml:ccl \
+		--sedes ./config/regional_2024/LA.toml: \
+		--sedes ./config/regional_2024/Brasil.toml:brasil \
+		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
+		--sedes ./config/regional_2024/Centro_America.toml:centro \
+		--sedes ./config/regional_2024/Chile.toml:chile \
+		--sedes ./config/regional_2024/Mexico.toml:mexico \
+		--secret ${SECRET} \
+	)
+
 rebuild-client-for-release:
 	@echo recompiling client...
 	( cd client-v2 && trunk build --release -d release )
