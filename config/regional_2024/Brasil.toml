@@ -1,9 +1,9 @@
 [titulo]
 name = "Maratona de Programação da SBC"
 codes = ["teambr"]
-ouro = 1
-prata = 2
-bronze = 3
+ouro = 4
+prata = 8
+bronze = 12
 
 [[sedes]]
 name = "Brasil"
@@ -54,14 +54,13 @@ codes = [
   "prto23",
   "rspa23",
 ]
-premiacao = false
-contest = "Brasil"
+ouro = 4
+prata = 8
+bronze = 12
 
 [[sedes]]
 name = "Região Norte"
 codes = ["pait23", "acrb23", "papa23", "ropv23", "amma23"]
-premiacao = false
-contest = "Região Norte"
 
 [[sedes]]
 name = "Região Nordeste"
@@ -81,14 +80,10 @@ codes = [
   "alma23",
   "ceqx23",
 ]
-premiacao = false
-contest = "Região Nordeste"
 
 [[sedes]]
 name = "Região Centro-Oeste"
 codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
-premiacao = false
-contest = "Região Centro-Oeste"
 
 [[sedes]]
 name = "Região Sudeste"
@@ -109,411 +104,259 @@ codes = [
   "mgvi23",
   "mgvi23",
 ]
-premiacao = false
-contest = "Região Sudeste"
 
 [[sedes]]
 name = "Região Sul"
 codes = ["scfl23", "prcm23", "prcu23", "scch23", "rsij23", "prto23", "rspa23"]
-premiacao = false
-contest = "Região Sul"
 
 [[sedes]]
 name = "Supersede Norte"
 codes = ["pait23", "acrb23", "ropv23", "amma23"]
-premiacao = false
-contest = "Supersede Norte"
 
 [[sedes]]
 name = "Supersede Nordeste"
 codes = ["sesc23", "masl23", "ceju23", "maba23", "baju23", "alma23", "ceqx23"]
-premiacao = false
-contest = "Supersede Nordeste"
 
 [[sedes]]
 name = "Supersede Centro Oeste"
 codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
-premiacao = false
-contest = "Supersede Centro Oeste"
 
 [[sedes]]
 name = "Supersede Sul"
 codes = ["scfl23", "scch23", "rspa23"]
-premiacao = false
-contest = "Supersede Sul"
 
 [[sedes]]
 name = "Supersede Minas"
 codes = ["mgmc23", "mgsj23", "mgud23", "mgvi23"]
-premiacao = false
-contest = "Supersede Minas"
 
 [[sedes]]
 name = "Supersede Parana"
 codes = ["prcm23", "prcu23", "prto23"]
-premiacao = false
-contest = "Supersede Parana"
 
 [[sedes]]
 name = "Supersede RN"
 codes = ["rnna23", "rnpf23"]
-premiacao = false
-contest = "Supersede RN"
 
 [[sedes]]
 name = "Supersede Sao Paulo"
 codes = ["spbs23", "spta23"]
-premiacao = false
-contest = "Supersede Sao Paulo"
-
 
 # :MS:Campo Grande
 [[sedes]]
 name = "Campo Grande"
 codes = ["mscg23"]
-contest = "Campo Grande"
-premiacao = false
-
 
 # :PA:Itaituba
 [[sedes]]
 name = "Itaituba"
 codes = ["pait23"]
-contest = "Itaituba"
-premiacao = false
-
 
 # :MT:Cuiabá
 [[sedes]]
 name = "Cuiabá"
 codes = ["mtcu23"]
-contest = "Cuiabá"
-premiacao = false
-
 
 # :GO:Goiânia
 [[sedes]]
 name = "Goiânia"
 codes = ["gogo23"]
-contest = "Goiânia"
-premiacao = false
-
 
 # :DF:Brasília
 [[sedes]]
 name = "Brasília"
 codes = ["dfdf23"]
-contest = "Brasília"
-premiacao = false
-
 
 # :PE:Olinda
 [[sedes]]
 name = "Olinda"
 codes = ["peol23"]
-contest = "Olinda"
-premiacao = false
-
 
 # :SE:São Cristóvão
 [[sedes]]
 name = "São Cristóvão"
 codes = ["sesc23"]
-contest = "São Cristóvão"
-premiacao = false
-
 
 # :MA:São Luís
 [[sedes]]
 name = "São Luís"
 codes = ["masl23"]
-contest = "São Luís"
-premiacao = false
-
 
 # :PI:Teresina
 [[sedes]]
 name = "Teresina"
 codes = ["pite23"]
-contest = "Teresina"
-premiacao = false
-
 
 # :CE:Juazeiro do Norte
 [[sedes]]
 name = "Juazeiro do Norte"
 codes = ["ceju23"]
-contest = "Juazeiro do Norte"
-premiacao = false
-
 
 # :PB:Campina Grande
 [[sedes]]
 name = "Campina Grande"
 codes = ["pbcg23"]
-contest = "Campina Grande"
-premiacao = false
-
 
 # :RN:Natal
 [[sedes]]
 name = "Natal"
 codes = ["rnna23"]
-contest = "Natal"
-premiacao = false
-
 
 # :MA:Balsas
 [[sedes]]
 name = "Balsas"
 codes = ["maba23"]
-contest = "Balsas"
-premiacao = false
-
 
 # :BA:Juazeiro
 [[sedes]]
 name = "Juazeiro"
 codes = ["baju23"]
-contest = "Juazeiro"
-premiacao = false
-
 
 # :CE:Fortaleza
 [[sedes]]
 name = "Fortaleza"
 codes = ["cefo23"]
-contest = "Fortaleza"
-premiacao = false
-
 
 # :BA:Salvador
 [[sedes]]
 name = "Salvador"
 codes = ["basa23"]
-contest = "Salvador"
-premiacao = false
-
 
 # :RN:Pau dos Ferros
 [[sedes]]
 name = "Pau dos Ferros"
 codes = ["rnpf23"]
-contest = "Pau dos Ferros"
-premiacao = false
-
 
 # :AL:Maceió
 [[sedes]]
 name = "Maceió"
 codes = ["alma23"]
-contest = "Maceió"
-premiacao = false
-
 
 # :CE:Quixadá
 [[sedes]]
 name = "Quixadá"
 codes = ["ceqx23"]
-contest = "Quixadá"
-premiacao = false
-
 
 # :AC:Rio Branco
 [[sedes]]
 name = "Rio Branco"
 codes = ["acrb23"]
-contest = "Rio Branco"
-premiacao = false
-
 
 # :PA:Paragominas
 [[sedes]]
 name = "Paragominas"
 codes = ["papa23"]
-contest = "Paragominas"
-premiacao = false
-
 
 # :RO:Porto Velho
 [[sedes]]
 name = "Porto Velho"
 codes = ["ropv23"]
-contest = "Porto Velho"
-premiacao = false
-
 
 # :AM:Manaus
 [[sedes]]
 name = "Manaus"
 codes = ["amma23"]
-contest = "Manaus"
-premiacao = false
-
 
 # :MG:Montes Claros
 [[sedes]]
 name = "Montes Claros"
 codes = ["mgmc23"]
-contest = "Montes Claros"
-premiacao = false
-
 
 # :MG:Timóteo
 [[sedes]]
 name = "Timóteo"
 codes = ["mgti23"]
-contest = "Timóteo"
-premiacao = false
-
 
 # :SP:Bauru
 [[sedes]]
 name = "Bauru"
 codes = ["spba23"]
-contest = "Bauru"
-premiacao = false
-
 
 # :SP:Taubaté
 [[sedes]]
 name = "Taubaté"
 codes = ["spta23"]
-contest = "Taubaté"
-premiacao = false
-
 
 # :MG:São João del-Rei
 [[sedes]]
 name = "São João del-Rei"
 codes = ["mgsj23"]
-contest = "São João del-Rei"
-premiacao = false
-
 
 # :MG:Belo Horizonte
 [[sedes]]
 name = "Belo Horizonte"
 codes = ["mgbh23"]
-contest = "Belo Horizonte"
-premiacao = false
-
 
 # :SP:Sorocaba
 [[sedes]]
 name = "Sorocaba"
 codes = ["spso23"]
-contest = "Sorocaba"
-premiacao = false
-
 
 # :MG:Uberlândia
 [[sedes]]
 name = "Uberlândia"
 codes = ["mgud23"]
-contest = "Uberlândia"
-premiacao = false
-
 
 # :SP:Barretos
 [[sedes]]
 name = "Barretos"
 codes = ["spbs23"]
-contest = "Barretos"
-premiacao = false
-
 
 # :RJ:Rio de Janeiro
 [[sedes]]
 name = "Rio de Janeiro"
 codes = ["rjrj23"]
-contest = "Rio de Janeiro"
-premiacao = false
-
 
 # :SP:São Paulo
 [[sedes]]
 name = "São Paulo"
 codes = ["spsp23"]
-contest = "São Paulo"
-premiacao = false
-
 
 # :MG:Uberaba
 [[sedes]]
 name = "Uberaba"
 codes = ["mgub23"]
-contest = "Uberaba"
-premiacao = false
-
 
 # :MG:Santa Rita do Sapucaí
 [[sedes]]
 name = "Santa Rita do Sapucaí"
 codes = ["mgsr23"]
-contest = "Santa Rita do Sapucaí"
-premiacao = false
-
 
 # :MG:Viçosa
 [[sedes]]
 name = "Viçosa"
 codes = ["mgvi23"]
-contest = "Viçosa"
-premiacao = false
-
 
 # :SC:Florianópolis
 [[sedes]]
 name = "Florianópolis"
 codes = ["scfl23"]
-contest = "Florianópolis"
-premiacao = false
-
 
 # :PR:Campo Mourão
 [[sedes]]
 name = "Campo Mourão"
 codes = ["prcm23"]
-contest = "Campo Mourão"
-premiacao = false
-
 
 # :PR:Curitiba
 [[sedes]]
 name = "Curitiba"
 codes = ["prcu23"]
-contest = "Curitiba"
-premiacao = false
-
 
 # :SC:Chapecó
 [[sedes]]
 name = "Chapecó"
 codes = ["scch23"]
-contest = "Chapecó"
-premiacao = false
-
 
 # :RS:Ijuí
 [[sedes]]
 name = "Ijuí"
 codes = ["rsij23"]
-contest = "Ijuí"
-premiacao = false
-
 
 # :PR:Toledo
 [[sedes]]
 name = "Toledo"
 codes = ["prto23"]
-contest = "Toledo"
-premiacao = false
-
 
 # :RS:Porto Alegre
 [[sedes]]
 name = "Porto Alegre"
 codes = ["rspa23"]
-contest = "Porto Alegre"
-premiacao = false
