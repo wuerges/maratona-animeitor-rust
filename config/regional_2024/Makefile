@@ -1,6 +1,7 @@
 include .env
 
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
+SECRET=./config/regional_2024/Secrets.toml
 
 .PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone
 
