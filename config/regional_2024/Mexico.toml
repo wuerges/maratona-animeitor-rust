@@ -1,0 +1,529 @@
+[titulo]
+name = "Mexico"
+codes = ["teammx"]
+
+# MEXICO
+[[sedes]]
+codes = [
+  "mxitrr",
+  "mxitcx",
+  "mxitza",
+  "mxitzo",
+  "mxitpu",
+  "mxtnml",
+  "mxicul",
+  "mxitrv",
+  "mxitsz",
+  "mxitsv",
+  "mxitoh",
+  "mxitoc",
+  "mxitph",
+  "mxitck",
+  "mxitcm",
+  "mxitpz",
+  "mxitch",
+  "mxitox",
+  "mxitco",
+  "mxuayc",
+  "mxitpn",
+  "mxitnl",
+  "mxitcl",
+  "mxitap",
+  "mxitcn",
+  "mxitmo",
+  "mxitcz",
+  "mxithe",
+  "mxitur",
+  "mxitcj",
+  "mxitsg",
+  "mxuasi",
+  "mxiver",
+  "mximan",
+  "mxitlr",
+  "mxlzcr",
+  "mxisur",
+  "mxitlg",
+  "mxuacj",
+  "mxuton",
+  "mxucos",
+  "mxnmig",
+  "mxnmci",
+  "mxcipn",
+  "mxuoax",
+  "mxupab",
+  "mxupag",
+  "mxumor",
+  "mxtmcv",
+  "mxcnnu",
+  "mxcuat",
+  "mxuval",
+  "mxupub",
+  "mxucei",
+  "mxcuaz",
+  "mxslpt",
+  "mxuanl",
+  "mxttol",
+  "mxtmcp",
+  "mxmont",
+  "mxtmem",
+  "mxuaeh",
+  "mxugnj",
+  "mxomif",
+  "mxuach",
+  "mxsujs",
+  "mxuaag",
+  "mxmari",
+  "mxtmmx",
+  "mxumsn",
+  "mxuayt",
+  "mxumon",
+  "mxfims",
+  "mxquer",
+]
+name = "Mexico"
+premiacao = false
+contest = "Mexico"
+
+
+[[sedes]]
+codes = ["mxitrr"]
+name = "Instituto Tecnológico de Parral"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcx"]
+name = "Instituto Tecnológico Superior de Comalcaco"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitza"]
+name = "Instituto Tecnológico de Zacatepec"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitzo"]
+name = "Instituto Tecnológico Superior de Zongolica"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitpu"]
+name = "Instituto Tecnológico Superior de Purísima del Rincón"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxtnml"]
+name = "Instituto Tecnológico de León"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxicul"]
+name = "Instituto Tecnológico de Culiacán"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitrv"]
+name = "Instituto Tecnológico Superior de Rioverde"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitsz"]
+name = "Instituto Tecnológico y de Estudios Superiores de Zamora"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitsv"]
+name = "Instituto Tecnológico Superior de Salvatierra"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitoh"]
+name = "Instituto Tecnológico Superior del Oriente del Estado de Hidalgo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitoc"]
+name = "Instituto Tecnologico Superior del Occidente del Estado de Hidalgo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitph"]
+name = "Instituto Tecnológico de Pachuca"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitck"]
+name = "Instituto Tecnológico Superior de Calkiní"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcm"]
+name = "Instituto Tecnológico de Ciudad Madero"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitpz"]
+name = "Instituto Tecnológico Superior de Pátzcuaro"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitch"]
+name = "Instituto Tecnológico Superior de Ciudad Hidalgo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitox"]
+name = "Instituto Tecnológico de Oaxaca"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitco"]
+name = "Instituto Tecnológico de Comitán"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuayc"]
+name = "Universidad Autónoma de Yucatán"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitpn"]
+name = "Instituto Tecnológico de Piedras Negras"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitnl"]
+name = "Instituto Tecnológico de Nuevo León"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcl"]
+name = "Instituto Tecnológico de Celaya"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitap"]
+name = "Instituto Tecnológico Superior de Apatzingán"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcn"]
+name = "Instituto Tecnológico de Cancún"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitmo"]
+name = "Instituto Tecnológico de Morelia"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcz"]
+name = "Instituto Tecnológico Superior de Coatzacoalcos"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxithe"]
+name = "Instituto Tecnológico Superior de Huetamo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitur"]
+name = "Instituto Tecnológico Superior de Uruapan"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitcj"]
+name = "Instituto Tecnológico de Ciudad Juárez"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitsg"]
+name = "ACM Campus ITESG"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuasi"]
+name = "Coding CUP Sinaloa"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxiver"]
+name = "Comunidad Estudiantil de Programación Competitiva de Instituto Tecnológico de Veracruz"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mximan"]
+name = "Sistemas Computacionales ITS Mante"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxitlr"]
+name = "ACM ICPC Algorithmia ITSLerdo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxlzcr"]
+name = "Programación Lázaro Cárdenas"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxisur"]
+name = "Coding CUP ITSUR"
+premiacao = false
+contest = "Mexico"
+[[sedes]]
+codes = ["mxitlg"]
+name = "Club de Programación Competitiva ITLag"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuacj"]
+name = "UACJ Algorithmic Club"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuton"]
+name = "Universidad de Guadalajara CUTonalá"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxucos"]
+name = "Universidad de Guadalajara CUCOSTA"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxnmig"]
+name = "UNAM Facultad de Ingeniería - Club de Programación Competitiva"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxnmci"]
+name = "UNAM Facultad de Ciencias - Club de Programación Competitiva"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxcipn"]
+name = "Red Académica de Programación Competitiva del Instituto Politécnico Nacional / UNAM FES Acatlán / UAM / ITAM"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuoax"]
+name = "Universidad Anahuac Oaxaca"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxupab"]
+name = "Universidad Panamericana Campus Bonaterra"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxupag"]
+name = "Universidad Panamericana Campus Guadalajara"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxumor"]
+name = "Escuela Nacional de Estudios Superiores UNAM Campus Morelia"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxtmcv"]
+name = "Tecnologico de Monterrey Cuernavaca"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxcnnu"]
+name = "Centro de Nanociencias y Nanotecnologia UNAM"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxcuat"]
+name = "Capitulo Estudiantil UAT ACM"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuval"]
+name = "Club de Algoritmia CUValles"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxupub"]
+name = "CPU - Programación Competitiva Universidad Popular Autónoma del Estado de Puebla"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxucei"]
+name = "CAC - Club de Algoritmia CUCEI"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxcuaz"]
+name = "Club de Programación Competitiva UAZ"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxslpt"]
+name = "ICPC San Luis Potosi"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuanl"]
+name = "ACM Universidad Autonoma de Nuevo Leon"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxttol"]
+name = "Programación Competitiva Tec Toluca"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxtmcp"]
+name = "Programación Competitiva Tec de Monterrey Puebla"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxmont"]
+name = "ACM Monterrey"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxtmem"]
+name = "Programación Competitiva Tec de Monterrey Campus Estado de México"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuaeh"]
+name = "Universidad Autónoma del Estado de Hidalgo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxugnj"]
+name = "Universidad de Guanajuato"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxomif"]
+name = "Olimpiada Mexicana de Informatica"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuach"]
+name = "Universidad Autonoma de Chihuahua"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxsujs"]
+name = "Sistema Universitario Jesuita"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuaag"]
+name = "Universidad Autonoma de Aguascalientes"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxmari"]
+name = "Universidad Marista de Guadalajara"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxtmmx"]
+name = "Tecnológico de Monterrey Campus Ciudad de México"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxumsn"]
+name = "Universidad Michoacana de San Nicolás de Hidalgo"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxuayt"]
+name = "Universidad Autónoma de Yucatan Unidad Multidisciplinaria Tizimín"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxumon"]
+name = "Universidad de Monterrey"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxfims"]
+name = "Facultad de Informática Mazatlán Universidad Autónoma de Sinaloa"
+premiacao = false
+contest = "Mexico"
+
+[[sedes]]
+codes = ["mxquer"]
+name = "ACM Querétaro"
+premiacao = false
+contest = "Mexico"

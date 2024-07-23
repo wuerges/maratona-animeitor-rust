@@ -1,0 +1,22 @@
+[titulo]
+name = "CCL"
+codes = ["ccl"]
+
+[[sedes]]
+codes = [""]
+name = "CCL"
+premiacao = false
+contest = "CCL"
+
+[[sedes]]
+codes = ["teambr"]
+name = "CCLBrasil"
+premiacao = false
+contest = "CCLBrasil"
+
+
+[[sedes]]
+codes = ["teamsobo"]
+name = "CCLBolivia"
+premiacao = false
+contest = "CCLBolivia"

@@ -1,0 +1,109 @@
+[titulo]
+name = "Bolivia"
+codes = ["teamsobo"]
+
+
+[[sedes]]
+name = "Bolivia"
+contest = "Bolivia"
+premiacao = false
+codes = [
+  "sobolp23",
+  "soboco23",
+  "sobota23",
+  "sobotr23",
+  "sobosc23",
+  "sobocb23",
+  "sobobe23",
+  "soboor23",
+  "soboya23",
+  "sobotu23",
+  "soboea23",
+  "soboll23",
+  "sobopo23",
+  "sobosu23",
+]
+
+[[sedes]]
+name = "La Paz"
+codes = ["sobolp23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Cochabamba"
+codes = ["soboco23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Tarija"
+codes = ["sobota23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Trinidad"
+codes = ["sobotr23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Santa Cruz"
+codes = ["sobosc23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Cobija"
+codes = ["sobocb23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Bermejo"
+codes = ["sobobe23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Oruro"
+codes = ["soboor23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Yacuiba"
+codes = ["soboya23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Tupiza"
+codes = ["sobotu23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "El Alto"
+codes = ["soboea23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Llallagua"
+codes = ["soboll23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Potosí"
+codes = ["sobopo23"]
+premiacao = false
+contest = "Bolivia"
+
+[[sedes]]
+name = "Sucre"
+codes = ["sobosu23"]
+premiacao = false
+contest = "Bolivia"
