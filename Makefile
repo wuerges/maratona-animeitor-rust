@@ -10,7 +10,6 @@ run-debug-client:
 		trunk serve )
 
 run-standalone:
-	@echo recompiling client...
 	( cargo run --manifest-path server/Cargo.toml \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
