@@ -6,41 +6,27 @@ codes = ["teamch"]
 [[sedes]]
 name = "Chile"
 codes = ["chsaud23", "chrauo23", "chcouc23", "chsaut23", "chcoud23", "chtauc23"]
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chsaud23"]
 name = "Santiago (UDP)"
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chrauo23"]
 name = "Rancagua (UOH)"
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chcouc23"]
 name = "Coquimbo / La Serena (UCN)"
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chsaut23"]
 name = "Santiago (UTFSM)"
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chcoud23"]
 name = "Concepción (UdeC)"
-premiacao = false
-contest = "Chile"
 
 [[sedes]]
 codes = ["chtauc23"]
 name = "Talca (UCM)"
-premiacao = false
-contest = "Chile"
