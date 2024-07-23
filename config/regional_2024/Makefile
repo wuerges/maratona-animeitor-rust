@@ -2,24 +2,25 @@ include .env
 
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 SECRET=./config/regional_2024/Secrets.toml
-# PREFIX=http://animeitor.naquadah.com.br
-PREFIX=http://localhost:8000
+PREFIX=http://animeitor.naquadah.com.br
+# PREFIX=http://localhost:8000
 
-PHOTO_PREFIX ?=
+PHOTO_PREFIX ?= ${PREFIX}/photos
+SOUND_PREFIX ?= ${PREFIX}/sounds
 
-.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone
+.PHONY: run-debug-client rebuid-client run-standalone printurls-standalone
 
 run-debug-client:
 	( cd client-v2 && \
-		PHOTO_PREFIX=${PREFIX}/photos \
-		SOUND_PREFIX=${PREFIX}/sounds \
+		PHOTO_PREFIX=${PHOTO_PREFIX} \
+		SOUND_PREFIX=${SOUND_PREFIX} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk serve )
 
 rebuid-client:
 	( cd client-v2 && \
-		PHOTO_PREFIX=${PREFIX}/photos \
-		SOUND_PREFIX=${PREFIX}/sounds \
+		PHOTO_PREFIX=${PHOTO_PREFIX} \
+		SOUND_PREFIX=${SOUND_PREFIX} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk build --release -d naquadah )
 
