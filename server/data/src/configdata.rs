@@ -16,11 +16,24 @@ pub struct SedeEntry {
     /// Style of the site (For CSS)
     pub style: Option<String>,
     /// Golden medal position.
-    pub ouro: Option<usize>,
+    #[serde(default = "one")]
+    pub ouro: usize,
     /// Silver medal position.
-    pub prata: Option<usize>,
+    #[serde(default = "two")]
+    pub prata: usize,
     /// Bronze medal position.
-    pub bronze: Option<usize>,
+    #[serde(default = "three")]
+    pub bronze: usize,
+}
+
+fn one() -> usize {
+    1
+}
+fn two() -> usize {
+    2
+}
+fn three() -> usize {
+    3
 }
 
 #[derive(Debug, Clone)]
@@ -55,11 +68,11 @@ impl Sede {
     }
 
     pub fn premio(&self, p: usize) -> Option<Color> {
-        if p <= self.entry.ouro.unwrap_or(0) {
+        if p <= self.entry.ouro {
             Some(Color::Gold)
-        } else if p <= self.entry.prata.unwrap_or(0) {
+        } else if p <= self.entry.prata {
             Some(Color::Silver)
-        } else if p <= self.entry.bronze.unwrap_or(0) {
+        } else if p <= self.entry.bronze {
             Some(Color::Bronze)
         } else {
             None
