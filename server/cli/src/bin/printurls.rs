@@ -20,8 +20,15 @@ struct SimpleParser {
     filters: bool,
 }
 
-fn print_sede(parse: &SimpleParser, sede: &Sede) -> color_eyre::eyre::Result<()> {
+fn print_sede(
+    parse: &SimpleParser,
+    sede: &Sede,
+    contest_name: &str,
+) -> color_eyre::eyre::Result<()> {
     let mut url = Url::parse(&parse.prefix)?;
+    if !contest_name.is_empty() {
+        url.query_pairs_mut().append_pair("contest", contest_name);
+    }
     url.query_pairs_mut().append_pair("sede", &sede.entry.name);
 
     println!("-> {}", sede.entry.name);
@@ -54,11 +61,12 @@ fn print_urls(
     parse: &SimpleParser,
     contest: &Contest,
     config_secret: &Secret,
+    contest_name: &str,
 ) -> color_eyre::eyre::Result<()> {
     println!("\n");
-    print_sede(parse, &contest.titulo)?;
+    print_sede(parse, &contest.titulo, contest_name)?;
     for (_secret, sede) in &contest.sedes {
-        print_sede(parse, sede)?;
+        print_sede(parse, sede, contest_name)?;
     }
 
     for (secret, sede) in &config_secret.sedes_by_secret {
@@ -77,8 +85,8 @@ fn main() -> color_eyre::eyre::Result<()> {
 
     let map = parse.args.into_contest_and_secret()?;
 
-    for (_, (_, contest, config_secret)) in &map {
-        print_urls(&parse, contest, config_secret)?;
+    for (name, (_, contest, config_secret)) in &map {
+        print_urls(&parse, contest, config_secret, name)?;
     }
 
     Ok(())
