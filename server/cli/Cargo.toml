@@ -17,14 +17,14 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 openssl-sys = { optional = true, version = "*" }
 
-data = { path = "../data" }
-service = { path = "../service" }
-server-v2 = { path = "../server-v2" }
+data.workspace = true
+service.workspace = true
+server-v2.workspace = true
 
 [dev-dependencies]
-rstest = "0.16"
-quickcheck = "1"
-quickcheck_macros = "1"
+rstest.workspace = true
+quickcheck.workspace = true
+quickcheck_macros.workspace = true
 
 [features]
 slow_tests = []

@@ -20,6 +20,6 @@ itertools.workspace = true
 futures.workspace = true
 sentry.workspace = true
 metrics.workspace = true
-futures-signals = "0.3"
+futures-signals.workspace = true
 
-data = { path = "../data" }
+data.workspace = true

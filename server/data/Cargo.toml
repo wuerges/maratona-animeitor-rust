@@ -14,5 +14,5 @@ tracing.workspace = true
 itertools.workspace = true
 
 [dev-dependencies]
-quickcheck = "1"
-quickcheck_macros = "1"
+quickcheck.workspace = true
+quickcheck_macros.workspace = true
