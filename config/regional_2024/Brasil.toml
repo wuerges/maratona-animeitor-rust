@@ -1,5 +1,5 @@
 [titulo]
-name = "Maratona de Programação da SBC"
+name = "Brasil"
 codes = ["teambr"]
 ouro = 4
 prata = 8
@@ -7,356 +7,234 @@ bronze = 12
 
 [[sedes]]
 name = "Brasil"
-codes = [
-  "pait23",
-  "mtcu23",
-  "acrb23",
-  "papa23",
-  "ropv23",
-  "amma23",
-  "peol23",
-  "sesc23",
-  "masl23",
-  "pite23",
-  "ceju23",
-  "pbcg23",
-  "rnna23",
-  "maba23",
-  "baju23",
-  "cefo23",
-  "basa23",
-  "rnpf23",
-  "alma23",
-  "ceqx23",
-  "mscg23",
-  "gogo23",
-  "dfdf23",
-  "mgmc23",
-  "mgti23",
-  "spba23",
-  "spta23",
-  "mgsj23",
-  "mgbh23",
-  "spso23",
-  "mgud23",
-  "spbs23",
-  "rjrj23",
-  "spsp23",
-  "mgub23",
-  "mgsr23",
-  "mgvi23",
-  "mgvi23",
-  "scfl23",
-  "prcm23",
-  "prcu23",
-  "scch23",
-  "rsij23",
-  "prto23",
-  "rspa23",
-]
+codes = ["teambr"]
 ouro = 4
 prata = 8
 bronze = 12
 
 [[sedes]]
 name = "Região Norte"
-codes = ["pait23", "acrb23", "papa23", "ropv23", "amma23"]
+codes = ["teambrac", "teambram", "teambrpa", "teambrro"]
 
 [[sedes]]
 name = "Região Nordeste"
 codes = [
-  "peol23",
-  "sesc23",
-  "masl23",
-  "pite23",
-  "ceju23",
-  "pbcg23",
-  "rnna23",
-  "maba23",
-  "baju23",
-  "cefo23",
-  "basa23",
-  "rnpf23",
-  "alma23",
-  "ceqx23",
+  "teambral",
+  "teambrba",
+  "teambrce",
+  "teambrma",
+  "teambrpb",
+  "teambrpe",
+  "teambrpi",
+  "teambrrn",
+  "teambrse",
 ]
 
 [[sedes]]
 name = "Região Centro-Oeste"
-codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
+codes = ["teambrdf", "teambrgo", "teambrms", "teambrmt"]
 
 [[sedes]]
 name = "Região Sudeste"
-codes = [
-  "mgmc23",
-  "mgti23",
-  "spba23",
-  "spta23",
-  "mgsj23",
-  "mgbh23",
-  "spso23",
-  "mgud23",
-  "spbs23",
-  "rjrj23",
-  "spsp23",
-  "mgub23",
-  "mgsr23",
-  "mgvi23",
-  "mgvi23",
-]
+codes = ["teambrmg", "teambrrj", "teambrsp"]
 
 [[sedes]]
 name = "Região Sul"
-codes = ["scfl23", "prcm23", "prcu23", "scch23", "rsij23", "prto23", "rspa23"]
+codes = ["teambrpr", "teambrrs", "teambrsc"]
+
 
 [[sedes]]
-name = "Supersede Norte"
-codes = ["pait23", "acrb23", "ropv23", "amma23"]
+codes = ["teambresvi"]
+name = "ES, Vitoria"
 
 [[sedes]]
-name = "Supersede Nordeste"
-codes = ["sesc23", "masl23", "ceju23", "maba23", "baju23", "alma23", "ceqx23"]
+codes = ["teambrpbcg"]
+name = "PB, Campina Grande"
 
 [[sedes]]
-name = "Supersede Centro Oeste"
-codes = ["mtcu23", "mscg23", "gogo23", "dfdf23"]
+codes = ["teambrbaju"]
+name = "BA, Juazeiro"
 
 [[sedes]]
-name = "Supersede Sul"
-codes = ["scfl23", "scch23", "rspa23"]
+codes = ["teambrcefo"]
+name = "CE, Fortaleza"
 
 [[sedes]]
-name = "Supersede Minas"
-codes = ["mgmc23", "mgsj23", "mgud23", "mgvi23"]
+codes = ["teambrcejn"]
+name = "CE, Juazeiro do Norte"
 
 [[sedes]]
-name = "Supersede Parana"
-codes = ["prcm23", "prcu23", "prto23"]
+codes = ["teambrceqx"]
+name = "CE, Quixada"
 
 [[sedes]]
-name = "Supersede RN"
-codes = ["rnna23", "rnpf23"]
+codes = ["teambrgogo"]
+name = "GO, Goiania"
 
 [[sedes]]
-name = "Supersede Sao Paulo"
-codes = ["spbs23", "spta23"]
+codes = ["teambrmaba"]
+name = "MA, Balsas"
 
-# :MS:Campo Grande
 [[sedes]]
-name = "Campo Grande"
-codes = ["mscg23"]
+codes = ["teambrmgbh"]
+name = "MG, Belo Horizonte"
 
-# :PA:Itaituba
 [[sedes]]
-name = "Itaituba"
-codes = ["pait23"]
+codes = ["teambrmgmc"]
+name = "MG, Montes Claros"
 
-# :MT:Cuiabá
 [[sedes]]
-name = "Cuiabá"
-codes = ["mtcu23"]
+codes = ["teambrmscg"]
+name = "MS, Campo Grande"
 
-# :GO:Goiânia
 [[sedes]]
-name = "Goiânia"
-codes = ["gogo23"]
+codes = ["teambrsptb"]
+name = "SP, Taubate"
 
-# :DF:Brasília
 [[sedes]]
-name = "Brasília"
-codes = ["dfdf23"]
+codes = ["teambrpite"]
+name = "PI, Teresina"
 
-# :PE:Olinda
 [[sedes]]
-name = "Olinda"
-codes = ["peol23"]
+codes = ["teambrrjrj"]
+name = "RJ, Rio de Janeiro"
 
-# :SE:São Cristóvão
 [[sedes]]
-name = "São Cristóvão"
-codes = ["sesc23"]
+codes = ["teambrrnpf"]
+name = "RN, Pau dos Ferros"
 
-# :MA:São Luís
 [[sedes]]
-name = "São Luís"
-codes = ["masl23"]
+codes = ["teambrspsp"]
+name = "SP, Sao Paulo"
 
-# :PI:Teresina
 [[sedes]]
-name = "Teresina"
-codes = ["pite23"]
+codes = ["teambrropv"]
+name = "RO, Porto Velho"
 
-# :CE:Juazeiro do Norte
 [[sedes]]
-name = "Juazeiro do Norte"
-codes = ["ceju23"]
+codes = ["teambrmgud"]
+name = "MG, Uberlandia"
 
-# :PB:Campina Grande
 [[sedes]]
-name = "Campina Grande"
-codes = ["pbcg23"]
+codes = ["teambrdfdf"]
+name = "DF, Brasilia"
 
-# :RN:Natal
 [[sedes]]
-name = "Natal"
-codes = ["rnna23"]
+codes = ["teambrmgsr"]
+name = "MG, Sao Joao de"
 
-# :MA:Balsas
 [[sedes]]
-name = "Balsas"
-codes = ["maba23"]
+codes = ["teambrpeol"]
+name = "PE, Olinda"
 
-# :BA:Juazeiro
 [[sedes]]
-name = "Juazeiro"
-codes = ["baju23"]
+codes = ["teambrprcm"]
+name = "PR, Campo Mourao"
 
-# :CE:Fortaleza
 [[sedes]]
-name = "Fortaleza"
-codes = ["cefo23"]
+codes = ["teambrrspa"]
+name = "RS, Porto Alegre"
 
-# :BA:Salvador
 [[sedes]]
-name = "Salvador"
-codes = ["basa23"]
+codes = ["teambrscfl"]
+name = "SC, Florianopolis"
 
-# :RN:Pau dos Ferros
 [[sedes]]
-name = "Pau dos Ferros"
-codes = ["rnpf23"]
+codes = ["teambrsesc"]
+name = "SE, Sao Cristovao"
 
-# :AL:Maceió
 [[sedes]]
-name = "Maceió"
-codes = ["alma23"]
+codes = ["teambrspso"]
+name = "SP, Sorocaba"
 
-# :CE:Quixadá
 [[sedes]]
-name = "Quixadá"
-codes = ["ceqx23"]
+codes = ["teambrmtcu"]
+name = "MT, Cuiaba"
 
-# :AC:Rio Branco
 [[sedes]]
-name = "Rio Branco"
-codes = ["acrb23"]
+codes = ["teambrmgmu"]
+name = "MG, Muzambinho"
 
-# :PA:Paragominas
 [[sedes]]
-name = "Paragominas"
-codes = ["papa23"]
+codes = ["teambrmgpa"]
+name = "MG, Patrocinio"
 
-# :RO:Porto Velho
 [[sedes]]
-name = "Porto Velho"
-codes = ["ropv23"]
+codes = ["teambrpabe"]
+name = "PA, Belem"
 
-# :AM:Manaus
 [[sedes]]
-name = "Manaus"
-codes = ["amma23"]
+codes = ["teambrpama"]
+name = "PA, Maraba"
 
-# :MG:Montes Claros
 [[sedes]]
-name = "Montes Claros"
-codes = ["mgmc23"]
+codes = ["teambrrspf"]
+name = "RS, Passo Fundo"
 
-# :MG:Timóteo
 [[sedes]]
-name = "Timóteo"
-codes = ["mgti23"]
+codes = ["teambrspma"]
+name = "SP, Marilia"
 
-# :SP:Bauru
 [[sedes]]
-name = "Bauru"
-codes = ["spba23"]
+codes = ["teambrspsa"]
+name = "SP, Santos"
 
-# :SP:Taubaté
 [[sedes]]
-name = "Taubaté"
-codes = ["spta23"]
+codes = ["teambrpipa"]
+name = "PI, Parnaiba"
 
-# :MG:São João del-Rei
 [[sedes]]
-name = "São João del-Rei"
-codes = ["mgsj23"]
+codes = ["teambrmgvi"]
+name = "MG, Vicosa"
 
-# :MG:Belo Horizonte
 [[sedes]]
-name = "Belo Horizonte"
-codes = ["mgbh23"]
+codes = ["teambrbasa"]
+name = "BA, Salvador"
 
-# :SP:Sorocaba
 [[sedes]]
-name = "Sorocaba"
-codes = ["spso23"]
+codes = ["teambracrb"]
+name = "AC, Rio Branco"
 
-# :MG:Uberlândia
 [[sedes]]
-name = "Uberlândia"
-codes = ["mgud23"]
+codes = ["teambralma"]
+name = "AL, Maceio"
 
-# :SP:Barretos
 [[sedes]]
-name = "Barretos"
-codes = ["spbs23"]
+codes = ["teambrmasl"]
+name = "MA, Sao Luis"
 
-# :RJ:Rio de Janeiro
 [[sedes]]
-name = "Rio de Janeiro"
-codes = ["rjrj23"]
+codes = ["teambramma"]
+name = "AM, Manaus"
 
-# :SP:São Paulo
 [[sedes]]
-name = "São Paulo"
-codes = ["spsp23"]
+codes = ["teambrrnna"]
+name = "RN, Natal"
 
-# :MG:Uberaba
 [[sedes]]
-name = "Uberaba"
-codes = ["mgub23"]
+codes = ["teambrmsdo"]
+name = "MS, Dourados"
 
-# :MG:Santa Rita do Sapucaí
 [[sedes]]
-name = "Santa Rita do Sapucaí"
-codes = ["mgsr23"]
+codes = ["teambrmtsi"]
+name = "MT, Sinop"
 
-# :MG:Viçosa
 [[sedes]]
-name = "Viçosa"
-codes = ["mgvi23"]
+codes = ["teambrtopa"]
+name = "TO, Palmas"
 
-# :SC:Florianópolis
 [[sedes]]
-name = "Florianópolis"
-codes = ["scfl23"]
+codes = ["teambrscjo"]
+name = "SC, Joinville"
 
-# :PR:Campo Mourão
 [[sedes]]
-name = "Campo Mourão"
-codes = ["prcm23"]
+codes = ["teambrmtaa"]
+name = "MT, Alto Araguaia"
 
-# :PR:Curitiba
 [[sedes]]
-name = "Curitiba"
-codes = ["prcu23"]
+codes = ["teambrpaor"]
+name = "PA, Oriximina"
 
-# :SC:Chapecó
 [[sedes]]
-name = "Chapecó"
-codes = ["scch23"]
-
-# :RS:Ijuí
-[[sedes]]
-name = "Ijuí"
-codes = ["rsij23"]
-
-# :PR:Toledo
-[[sedes]]
-name = "Toledo"
-codes = ["prto23"]
-
-# :RS:Porto Alegre
-[[sedes]]
-name = "Porto Alegre"
-codes = ["rspa23"]
+codes = ["teambrspsc"]
+name = "SP, Sao Carlos"

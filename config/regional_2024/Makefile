@@ -2,8 +2,8 @@ include .env
 
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 SECRET=./config/regional_2024/Secrets.toml
-PREFIX=http://animeitor.naquadah.com.br
-# PREFIX=http://localhost:8000
+# PREFIX=http://animeitor.naquadah.com.br
+PREFIX=http://localhost:8000
 
 PHOTO_PREFIX ?= ${PREFIX}/photos
 SOUND_PREFIX ?= ${PREFIX}/sounds

@@ -1,9 +1,10 @@
 [titulo]
 name = "Latin America"
 codes = [""]
-ouro = 1
-prata = 2
-bronze = 3
+
+[[sedes]]
+name = "Latin America"
+codes = [""]
 
 [[sedes]]
 name = "Brasil"
