@@ -1,10 +1,47 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+};
 
+use derivative::Derivative;
 use regex::RegexSet;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::Team;
+
+#[derive(Debug, Clone, Default, Derivative)]
+#[derivative(PartialEq, Eq)]
+pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
+
+impl<'de> Deserialize<'de> for RegexSetField {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let v = Vec::<String>::deserialize(deserializer)?;
+
+        let automata = RegexSet::new(v.clone()).map_err(D::Error::custom)?;
+
+        Ok(RegexSetField(v, automata))
+    }
+}
+
+impl Serialize for RegexSetField {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+impl Display for RegexSetField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema, PartialEq, Eq)]
 /// A site entry.
@@ -12,7 +49,7 @@ pub struct SedeEntry {
     /// Site name.
     pub name: String,
     /// Site codes, using in filtering groups of sites.
-    pub codes: Vec<String>,
+    pub codes: RegexSetField,
     /// Style of the site (For CSS)
     pub style: Option<String>,
     /// Golden medal position.
@@ -84,7 +121,7 @@ impl SedeEntry {
     pub fn into_sede(&self) -> Sede {
         Sede {
             entry: self.clone(),
-            automata: RegexSet::new(&self.codes).unwrap(),
+            automata: self.codes.1.clone(),
         }
     }
 }
@@ -174,13 +211,15 @@ impl ConfigSecret {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::*;
 
     #[test]
     fn test_config_patterns() {
         let sede = SedeEntry {
             name: "sede-name".into(),
-            codes: ["teambr", "teammx"].into_iter().map(String::from).collect(),
+            codes: serde_json::from_value(json!(["teambr", "teammx"])).unwrap(),
             ..SedeEntry::default()
         };
 
