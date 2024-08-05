@@ -10,8 +10,6 @@ authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 [workspace.dependencies]
 # autometrics launched 2.0
 autometrics = { version = "1", features = ["prometheus-exporter", "metrics"] }
-# aho-corasick is in 1.1
-aho-corasick = "0.7"
 clap = { version = "4", features = ["derive"] }
 color-eyre = "0.6"
 futures = "0.3"
@@ -20,6 +18,7 @@ html-escape = "0.2"
 hyper = { version = "0.14", features = ["client", "http2"] }
 # hyper-tls is in 0.6
 hyper-tls = "0.5"
+regex = "1.10"
 
 itertools = "0.13"
 # metrics is in 0.23

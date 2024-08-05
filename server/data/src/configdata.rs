@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use aho_corasick::AhoCorasick;
+use regex::RegexSet;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -39,7 +39,7 @@ fn three() -> usize {
 #[derive(Debug, Clone)]
 pub struct Sede {
     pub entry: SedeEntry,
-    automata: AhoCorasick,
+    automata: RegexSet,
 }
 
 impl PartialEq for Sede {
@@ -84,7 +84,7 @@ impl SedeEntry {
     pub fn into_sede(&self) -> Sede {
         Sede {
             entry: self.clone(),
-            automata: AhoCorasick::new_auto_configured(&self.codes),
+            automata: RegexSet::new(&self.codes).unwrap(),
         }
     }
 }
