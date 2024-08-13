@@ -1,5 +1,6 @@
 pub mod annotate_first_solved;
 pub mod configdata;
+pub mod remote_control;
 pub mod revelation;
 
 use configdata::Sede;
