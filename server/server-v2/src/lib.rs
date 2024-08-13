@@ -1,6 +1,7 @@
 mod api;
 mod app_data;
 pub mod metrics;
+mod remote_control;
 mod volumes;
 
 use std::sync::Arc;
@@ -10,6 +11,7 @@ use actix_web::*;
 use app_data::AppData;
 
 use metrics::get_metrics;
+use remote_control::remote_control_ws;
 use service::{
     app_config::AppConfig, dbupdate_v2::spawn_db_update, errors::ServiceResult, http::HttpConfig,
 };
@@ -26,6 +28,7 @@ pub async fn serve_config(
 ) -> ServiceResult<()> {
     let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url)?;
     let config = Arc::new(config);
+    let (sender, _) = tokio::sync::broadcast::channel(100);
 
     Ok(HttpServer::new(move || {
         App::new()
@@ -36,8 +39,13 @@ pub async fn serve_config(
                 runs_tx: runs_tx.clone(),
                 time_tx: time_tx.clone(),
                 config: config.clone(),
+                remote_control: sender.clone(),
             }))
-            .service(web::scope("api").configure(api::configure))
+            .service(
+                web::scope("api")
+                    .configure(api::configure)
+                    .service(remote_control_ws),
+            )
             .service(configure_volumes(volumes.clone()))
             .service(get_metrics)
     })

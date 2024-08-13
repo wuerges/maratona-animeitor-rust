@@ -19,6 +19,7 @@ tokio.workspace = true
 color-eyre.workspace = true
 tracing.workspace = true
 autometrics.workspace = true
+thiserror.workspace = true
 
 service.workspace = true
 data.workspace = true

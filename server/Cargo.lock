@@ -2602,6 +2602,7 @@ dependencies = [
  "serde",
  "serde_json",
  "service",
+ "thiserror",
  "tokio",
  "toml",
  "tracing",
