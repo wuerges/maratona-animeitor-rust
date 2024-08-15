@@ -14,12 +14,8 @@ clap = { version = "4", features = ["derive"] }
 color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"
-# hyper is in 1.4
-hyper = { version = "0.14", features = ["client", "http2"] }
-# hyper-tls is in 0.6
-hyper-tls = "0.5"
+reqwest = { version = "0.12", features = ["native-tls-vendored"] }
 regex = "1.10"
-
 itertools = "0.13"
 # metrics is in 0.23
 metrics = "0.21"

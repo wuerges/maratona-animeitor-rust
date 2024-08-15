@@ -8,10 +8,7 @@ pub enum Error {
     IO(#[from] std::io::Error),
 
     #[error(transparent)]
-    InvalidUri(#[from] hyper::http::uri::InvalidUri),
-
-    #[error(transparent)]
-    Hyper(#[from] hyper::Error),
+    Reqwest(#[from] reqwest::Error),
 
     #[error(transparent)]
     ZipError(#[from] zip::result::ZipError),

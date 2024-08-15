@@ -1,7 +1,5 @@
 use crate::dataio::{read_contest, read_runs};
 use crate::errors::{Error, ServiceResult};
-use hyper::body;
-use hyper_tls::HttpsConnector;
 use std::io::Read;
 use zip;
 
@@ -16,14 +14,9 @@ fn read_bytes_from_file(path: &str) -> ServiceResult<Vec<u8>> {
 }
 
 async fn read_bytes_from_url(uri: &str) -> ServiceResult<Vec<u8>> {
-    let https = HttpsConnector::new();
-    let client = hyper::Client::builder().build::<_, hyper::Body>(https);
+    let resp = reqwest::get(uri).await?.bytes().await?;
 
-    let uri = uri.parse()?;
-
-    let resp = client.get(uri).await?;
-    let bytes = body::to_bytes(resp.into_body()).await?;
-    Ok(bytes.to_vec())
+    Ok(resp.into())
 }
 
 fn try_read_from_zip(
