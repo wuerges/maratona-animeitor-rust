@@ -2,7 +2,9 @@ use data::remote_control::{ControlMessage, WindowScroll};
 use leptos::*;
 use leptos_dom::logging::console_error;
 use leptos_router::{use_query, Params};
-use leptos_use::{use_idle, use_websocket, use_window_scroll, UseIdleReturn, UseWebsocketReturn};
+use leptos_use::{
+    signal_throttled, use_idle, use_websocket, use_window_scroll, UseIdleReturn, UseWebsocketReturn,
+};
 use web_sys::ScrollToOptions;
 
 use crate::api::remote_control_url;
@@ -20,11 +22,16 @@ fn Scrolling<SendFn: Fn(&str) + 'static>(
 ) -> impl IntoView {
     let (_get_x, get_y) = use_window_scroll();
 
+    let memo_y = create_memo(move |_| get_y.get());
+    let throttled_y = signal_throttled(memo_y, 300.0);
+
     let window = web_sys::window().unwrap();
 
     create_effect(move |_| {
         if !idle.get() {
-            match serde_json::to_string(&WindowScroll { y: get_y.get() }) {
+            match serde_json::to_string(&WindowScroll {
+                y: throttled_y.get(),
+            }) {
                 Ok(text) => send(&text),
                 Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
             }
@@ -32,14 +39,16 @@ fn Scrolling<SendFn: Fn(&str) + 'static>(
     });
 
     create_effect(move |_| {
-        if let Some(message) = message_signal.get() {
-            match message {
-                ControlMessage::WindowScroll(WindowScroll { y }) => window
-                    .scroll_to_with_scroll_to_options(
-                        ScrollToOptions::new()
-                            .behavior(web_sys::ScrollBehavior::Smooth)
-                            .top(y),
-                    ),
+        if idle.get() {
+            if let Some(message) = message_signal.get() {
+                match message {
+                    ControlMessage::WindowScroll(WindowScroll { y }) => window
+                        .scroll_to_with_scroll_to_options(
+                            ScrollToOptions::new()
+                                .behavior(web_sys::ScrollBehavior::Smooth)
+                                .top(y),
+                        ),
+                }
             }
         }
     });
