@@ -20,6 +20,8 @@ color-eyre.workspace = true
 tracing.workspace = true
 autometrics.workspace = true
 thiserror.workspace = true
+futures.workspace = true
+tokio-stream.workspace = true
 
 service.workspace = true
 data.workspace = true

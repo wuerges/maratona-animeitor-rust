@@ -4,10 +4,12 @@ use actix_web::{get, web, HttpRequest, HttpResponse};
 use actix_ws::{Message, MessageStream, Session};
 use autometrics::autometrics;
 use data::remote_control::ControlMessage;
+use futures::StreamExt;
 use tokio::sync::broadcast::{
     error::{RecvError, SendError},
     Receiver, Sender,
 };
+use tokio_stream::wrappers::BroadcastStream;
 use tracing::{debug, instrument, Level};
 
 use crate::app_data::AppData;
@@ -39,17 +41,15 @@ enum Error {
 }
 
 #[instrument(skip(rec, session), err)]
-async fn send_to_clients(
-    rec: &mut Receiver<ControlMessage>,
-    session: &mut Session,
-) -> Result<(), Error> {
-    let message = rec.recv().await?;
-    debug!(?message, "send");
-    let text = serde_json::to_string(&message)?;
+async fn send_to_clients(rec: Receiver<ControlMessage>, mut session: Session) -> Result<(), Error> {
+    let mut rec_stream = BroadcastStream::new(rec);
 
-    session.text(text).await?;
+    while let Some(Ok(message)) = rec_stream.next().await {
+        let text = serde_json::to_string(&message)?;
+        session.text(text).await?;
+    }
 
-    Ok(())
+    Ok(session.close(None).await?)
 }
 
 fn get_text(message: Message) -> Result<Option<ControlMessage>, Error> {
@@ -69,15 +69,13 @@ async fn read_from_clients(
     stream: &mut MessageStream,
     sender: &mut Sender<ControlMessage>,
 ) -> Result<(), Error> {
-    if let Some(message) = stream.recv().await {
-        if let Some(control) = get_text(message?)? {
+    while let Some(Ok(message)) = stream.next().await {
+        if let Some(control) = get_text(message)? {
             debug!(?control, "receive");
             sender.send(control)?;
         } else {
             tokio::time::sleep(Duration::from_secs(1)).await
         }
-    } else {
-        tokio::time::sleep(Duration::from_secs(1)).await
     }
 
     Ok(())
@@ -91,23 +89,19 @@ async fn run_remote_control_ws(
     body: web::Payload,
     key: String,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)?;
+    let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
     let mut sender = data.remote_control.clone();
-    let mut rec = data.remote_control.subscribe();
+    let rec = data.remote_control.subscribe();
 
     actix_web::rt::spawn(async move {
-        loop {
-            if let Err(_) = send_to_clients(&mut rec, &mut session).await {
-                break;
-            }
+        if let Err(err) = send_to_clients(rec, session).await {
+            tracing::debug!(?err, "failed sending");
         }
     });
 
     actix_web::rt::spawn(async move {
-        loop {
-            if let Err(_) = read_from_clients(&mut msg_stream, &mut sender).await {
-                break;
-            }
+        if let Err(err) = read_from_clients(&mut msg_stream, &mut sender).await {
+            tracing::debug!(?err, "failed reading");
         }
     });
 
