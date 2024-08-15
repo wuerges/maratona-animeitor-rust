@@ -1,5 +1,6 @@
 mod config;
 mod contest;
+mod control_scrolling;
 mod navigation;
 mod placement;
 mod problem;

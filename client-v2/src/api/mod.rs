@@ -70,7 +70,7 @@ fn url(path: &str, query: ContestQuery) -> String {
     prefix
 }
 
-fn ws(path: &str, query: ContestQuery) -> String {
+fn contest_query_ws(path: &str, query: ContestQuery) -> String {
     let mut prefix = ws_url_prefix();
     prefix.push_str("/");
     prefix.push_str(path);
@@ -91,7 +91,14 @@ pub async fn create_config(query: ContestQuery) -> ConfigContest {
 }
 
 pub fn create_runs(query: ContestQuery) -> UnboundedReceiver<RunTuple> {
-    create_websocket_stream::<RunTuple>(&ws("allruns_ws", query))
+    create_websocket_stream::<RunTuple>(&contest_query_ws("allruns_ws", query))
+}
+
+pub fn remote_control_url(key: &str) -> String {
+    let mut prefix = ws_url_prefix();
+    prefix.push_str("/remote_control/");
+    prefix.push_str(key);
+    prefix
 }
 
 pub async fn create_secret_runs(secret: String) -> data::RunsFile {
@@ -103,8 +110,10 @@ pub async fn create_secret_runs(secret: String) -> data::RunsFile {
 }
 
 pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
-    let mut timer_stream =
-        create_websocket_stream::<TimerData>(&ws("timer", ContestQuery { contest: None }));
+    let mut timer_stream = create_websocket_stream::<TimerData>(&contest_query_ws(
+        "timer",
+        ContestQuery { contest: None },
+    ));
 
     let (timer, set_timer) = create_signal((TimerData::fake(), data::TimerData::new(0, 1)));
 

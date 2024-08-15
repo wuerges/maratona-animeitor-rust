@@ -14,6 +14,7 @@ use crate::{
     },
     views::{
         contest::Contest,
+        control_scrolling::RemoteControl,
         global_settings::{use_global_settings, SettingsPanel},
         navigation::Navigation,
     },
@@ -196,6 +197,7 @@ pub fn Sedes() -> impl IntoView {
             view! { <Timer timer /> }.into_view()
         } else {
             view! {
+                <RemoteControl />
                 {settings_panel}
                 {animeitor}
             }
