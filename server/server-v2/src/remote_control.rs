@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use actix_ws::{Message, MessageStream, Session};
 use autometrics::autometrics;
@@ -71,8 +73,12 @@ async fn read_from_clients(
         if let Some(control) = get_text(message?)? {
             debug!(?control, "receive");
             sender.send(control)?;
+        } else {
+            tokio::time::sleep(Duration::from_secs(1)).await
         }
-    };
+    } else {
+        tokio::time::sleep(Duration::from_secs(1)).await
+    }
 
     Ok(())
 }
