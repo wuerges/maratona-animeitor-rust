@@ -6,7 +6,13 @@ pub struct WindowScroll {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct QueryString {
+    pub query: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum ControlMessage {
     WindowScroll(WindowScroll),
+    QueryString(QueryString),
 }

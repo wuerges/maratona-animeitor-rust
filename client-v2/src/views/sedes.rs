@@ -169,7 +169,7 @@ pub fn Sedes() -> impl IntoView {
                     <ConfiguredReveleitor contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
                 }).into_view(),
                 None => view! {
-                    <Navigation config_contest query=contest_query />
+                    <Navigation config_contest />
                     <Suspense fallback=|| view! { <p> Loading contest... </p> }>
                     {
                         move || contest_provider.with(|contest_provider|
