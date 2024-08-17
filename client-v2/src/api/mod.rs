@@ -2,6 +2,7 @@ use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
 use leptos::{logging::warn, *};
+use leptos_dom::logging::console_log;
 use leptos_router::Params;
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
@@ -40,19 +41,27 @@ fn url_prefix() -> String {
     }
 }
 
+fn window_protocol_is_https() -> bool {
+    web_sys::window().is_some_and(|w| {
+        w.location()
+            .protocol()
+            .is_ok_and(|p| p.starts_with("https"))
+    })
+}
+
 fn ws_url_prefix() -> String {
+    let protocol = web_sys::window().map(|w| w.location().protocol());
+    console_log(&format!("protocol: {:?}", protocol));
+
     let mut prefix = url_prefix();
 
     let https = "https://";
     let wss = "wss://";
 
-    let http = "http://";
-    let ws = "ws://";
-    if prefix.starts_with(https) {
+    if window_protocol_is_https() {
         prefix.replace_range(..https.len(), wss)
-    } else if prefix.starts_with(http) {
-        prefix.replace_range(..http.len(), ws)
     }
+
     prefix
 }
 
