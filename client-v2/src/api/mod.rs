@@ -35,10 +35,18 @@ fn guess_prefix() -> String {
 }
 
 fn url_prefix() -> String {
-    match option_env!("URL_PREFIX") {
+    let mut prefix = match option_env!("URL_PREFIX") {
         Some(prefix) => prefix.to_string(),
         None => format!("{}/api", guess_prefix()),
+    };
+
+    if window_protocol_is_https() {
+        if prefix.starts_with("http:") {
+            prefix.replace_range(.."http:".len(), "https:")
+        }
     }
+
+    prefix
 }
 
 fn window_protocol_is_https() -> bool {
@@ -50,16 +58,13 @@ fn window_protocol_is_https() -> bool {
 }
 
 fn ws_url_prefix() -> String {
-    let protocol = web_sys::window().map(|w| w.location().protocol());
-    console_log(&format!("protocol: {:?}", protocol));
-
     let mut prefix = url_prefix();
 
-    let https = "https://";
-    let wss = "wss://";
-
-    if window_protocol_is_https() {
-        prefix.replace_range(..https.len(), wss)
+    if prefix.starts_with("https:") {
+        prefix.replace_range(.."https:".len(), "wss:")
+    }
+    if prefix.starts_with("http:") {
+        prefix.replace_range(.."http:".len(), "ws:")
     }
 
     prefix
