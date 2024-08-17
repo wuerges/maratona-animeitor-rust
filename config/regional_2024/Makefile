@@ -1,6 +1,6 @@
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 SECRET=./config/regional_2024/Secrets.toml
-PUBLIC_PORT=8000
+PUBLIC_PORT=80
 SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
 
 # PREFIX=http://localhost:8000
