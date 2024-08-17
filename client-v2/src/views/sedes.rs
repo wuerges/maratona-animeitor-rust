@@ -13,6 +13,7 @@ use crate::{
         provide_contest, runs_panel_signal::RunsPanelItemManager, ContestProvider, ContestSignal,
     },
     views::{
+        background_color::BackgroundColor,
         contest::Contest,
         control_scrolling::RemoteControl,
         global_settings::{use_global_settings, SettingsPanel},
@@ -197,6 +198,7 @@ pub fn Sedes() -> impl IntoView {
             view! { <Timer timer /> }.into_view()
         } else {
             view! {
+                <BackgroundColor />
                 <RemoteControl />
                 {settings_panel}
                 {animeitor}

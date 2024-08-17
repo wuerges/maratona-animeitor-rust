@@ -1,6 +1,4 @@
-use client_v2::views::{
-    background_color::BackgroundColor, global_settings::provide_global_settings, sedes::Sedes,
-};
+use client_v2::views::{global_settings::provide_global_settings, sedes::Sedes};
 use leptos::*;
 
 pub fn main() {
@@ -8,7 +6,6 @@ pub fn main() {
         provide_global_settings();
 
         view! {
-            <BackgroundColor />
             <Sedes />
             // <Runs />
             // <Config />
