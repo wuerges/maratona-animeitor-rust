@@ -44,10 +44,10 @@ pub async fn serve_config(
             .service(
                 web::scope("api")
                     .configure(api::configure)
+                    .service(get_metrics)
                     .service(remote_control_ws),
             )
             .service(configure_volumes(volumes.clone()))
-            .service(get_metrics)
     })
     .bind(("0.0.0.0", port))?
     .run()
