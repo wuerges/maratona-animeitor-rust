@@ -6,8 +6,18 @@ SERVER_RELEASE_DIR ?= ./server/target/release/
 # PREFIX=http://localhost:8000
 PREFIX=http://animeitor.naquadah.com.br
 
-.PHONY: run-debug-client rebuid-client run-standalone printurls-standalone rebuild-debug-server rebuild-release-server
+SSH_ANIMEITOR=ew@animeitor.naquadah.com.br
 
+.PHONY: run-debug-client rebuild-client run-standalone printurls-standalone rebuild-debug-server rebuild-release-server deploy-server deploy-client
+
+deploy-server:
+	ssh ${SSH_ANIMEITOR} mkdir -p maratona-animeitor-rust/${SERVER_RELEASE_DIR}
+	scp ${SERVER_RELEASE_DIR}/simples ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
+	scp ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls 
+
+deploy-client:
+	ssh ${SSH_ANIMEITOR} cd maratona-animeitor-rust && git pull
+	
 run-debug-client:
 	( cd client-v2 && \
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
@@ -26,7 +36,10 @@ rebuild-debug-server:
 	cargo build --manifest-path server/Cargo.toml
 
 rebuild-release-server:
-	cargo build --release --manifest-path server/Cargo.toml
+	cargo build \
+		--release \
+		--target x86_64-unknown-linux-musl --features vendored \
+		--manifest-path server/Cargo.toml
 		
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \
