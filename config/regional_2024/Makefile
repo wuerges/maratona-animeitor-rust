@@ -1,14 +1,12 @@
-include .env
-
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 SECRET=./config/regional_2024/Secrets.toml
-# PREFIX=http://animeitor.naquadah.com.br
-PREFIX=http://localhost:8000
+PUBLIC_PORT=8000
+SERVER_RELEASE_DIR ?= ./server/target/release/
 
-PHOTO_PREFIX ?= ${PREFIX}/photos
-SOUND_PREFIX ?= ${PREFIX}/sounds
+# PREFIX=http://localhost:8000
+PREFIX=http://animeitor.naquadah.com.br
 
-.PHONY: run-debug-client rebuid-client run-standalone printurls-standalone
+.PHONY: run-debug-client rebuid-client run-standalone printurls-standalone rebuild-debug-server rebuild-release-server
 
 run-debug-client:
 	( cd client-v2 && \
@@ -17,16 +15,21 @@ run-debug-client:
 		URL_PREFIX=${PREFIX}/api \
 		trunk serve )
 
-rebuid-client:
+rebuild-client:
 	( cd client-v2 && \
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
 		SOUND_PREFIX=${SOUND_PREFIX} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk build --release -d naquadah )
 
+rebuild-debug-server:
+	cargo build --manifest-path server/Cargo.toml
+
+rebuild-release-server:
+	cargo build --release --manifest-path server/Cargo.toml
+		
 run-standalone:
-	( cargo run --manifest-path server/Cargo.toml \
-		--bin simples -- \
+	( ${SERVER_RELEASE_DIR}/simples \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
@@ -42,8 +45,7 @@ run-standalone:
 	)
 
 printurls-standalone:
-	( cargo run --manifest-path server/Cargo.toml \
-		--bin printurls -- \
+	( ${SERVER_RELEASE_DIR}/printurls \
 		--prefix ${PREFIX} \
 		--sedes ./config/regional_2024/CCL.toml:ccl \
 		--sedes ./config/regional_2024/LA.toml: \
