@@ -1,5 +1,6 @@
 BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
-SECRET=./config/regional_2024/Secrets.toml
+# SECRET=./config/regional_2024/Secrets.toml
+SECRET=./config/regional_2024/Secrets_secret.toml
 PUBLIC_PORT=80
 SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
 
@@ -15,6 +16,7 @@ deploy:
 	ssh ${SSH_ANIMEITOR} mkdir -p maratona-animeitor-rust/${SERVER_RELEASE_DIR}
 	rsync -P ${SERVER_RELEASE_DIR}/simples ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
 	rsync -P ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls 
+	rsync -P ${SECRET} ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SECRET} 
 	
 run-debug-client:
 	( cd client-v2 && \
