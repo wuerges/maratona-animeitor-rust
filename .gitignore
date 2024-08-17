@@ -8,3 +8,4 @@ secrets.txt
 urls_placar.txt
 Secret.toml
 secret_ccl.toml
+secret_env
