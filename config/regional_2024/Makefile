@@ -8,15 +8,13 @@ PREFIX=http://animeitor.naquadah.com.br
 
 SSH_ANIMEITOR=ew@animeitor.naquadah.com.br
 
-.PHONY: run-debug-client rebuild-client run-standalone printurls-standalone rebuild-debug-server rebuild-release-server deploy-server deploy-client
+.PHONY: run-debug-client rebuild-client run-standalone printurls-standalone rebuild-debug-server rebuild-release-server deploy
 
-deploy-server:
+deploy:
+	ssh ${SSH_ANIMEITOR} cd maratona-animeitor-rust && git pull
 	ssh ${SSH_ANIMEITOR} mkdir -p maratona-animeitor-rust/${SERVER_RELEASE_DIR}
 	scp ${SERVER_RELEASE_DIR}/simples ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
 	scp ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls 
-
-deploy-client:
-	ssh ${SSH_ANIMEITOR} cd maratona-animeitor-rust && git pull
 	
 run-debug-client:
 	( cd client-v2 && \
