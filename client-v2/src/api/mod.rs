@@ -2,7 +2,6 @@ use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
 use leptos::{logging::warn, *};
-use leptos_dom::logging::console_log;
 use leptos_router::Params;
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
