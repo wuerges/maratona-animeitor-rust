@@ -1,4 +1,6 @@
-BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
+include secret_env
+
+BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 # SECRET=./config/regional_2024/Secrets.toml
 SECRET=./config/regional_2024/Secrets_secret.toml
 PUBLIC_PORT=80
