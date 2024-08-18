@@ -1,7 +1,7 @@
 use data::configdata::Sede;
 use leptos::{
     component, create_effect, create_node_ref, event_target_checked, event_target_value,
-    html::Audio, prelude::*, use_context, view, IntoView,
+    html::Audio, prelude::*, provide_context, use_context, view, IntoView,
 };
 use leptos_use::{storage::use_local_storage, utils::JsonCodec};
 use serde::{Deserialize, Serialize};
@@ -18,11 +18,26 @@ use super::{
 
 use std::rc::Rc;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub enum PhotoState {
     #[default]
     Hidden,
     Show(String),
+}
+
+#[derive(Clone)]
+pub struct PhotoStateSignal {
+    photo_state: RwSignal<PhotoState>,
+}
+
+pub fn provide_global_photo_state() {
+    provide_context(PhotoStateSignal {
+        photo_state: create_rw_signal(PhotoState::default()),
+    })
+}
+
+pub fn use_global_photo_state() -> RwSignal<PhotoState> {
+    use_context::<PhotoStateSignal>().unwrap().photo_state
 }
 
 impl PhotoState {
@@ -147,9 +162,11 @@ pub fn TeamMedia(
     let settings = use_global_settings();
     let background_color = move || settings.global.with(|g| g.team_background_color.clone());
 
+    let memo = create_memo(move |_| show.get());
+
     move || {
         let team_login_click = team_login.clone();
-        match show.get() {
+        match memo.get() {
             PhotoState::Hidden => None,
             PhotoState::Show(team_login) => {
                 if team_login == team_login_click {

@@ -9,7 +9,7 @@ use crate::{
     views::{
         placement::Placement,
         problem::Problem,
-        team_media::{PhotoState, TeamMedia},
+        team_media::{use_global_photo_state, PhotoState, TeamMedia},
         team_name::TeamName,
         team_score_line::TeamScoreLine,
         timer::Timer,
@@ -149,7 +149,7 @@ pub fn ContestPanel(
     let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
     let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
 
-    let show_photo = create_rw_signal(PhotoState::default());
+    let show_photo = use_global_photo_state();
 
     let placements = create_memo(move |_| {
         sede.with(|sede| {

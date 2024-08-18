@@ -2,6 +2,8 @@ use leptos::*;
 use leptos_use::{storage::use_local_storage, utils::JsonCodec};
 use serde::{Deserialize, Serialize};
 
+use super::team_media::provide_global_photo_state;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GlobalSettings {
     pub mute: bool,
@@ -40,6 +42,7 @@ impl GlobalSettings {
 pub fn provide_global_settings() {
     let (get, set, _) = use_local_storage::<GlobalSettings, JsonCodec>("global.settings");
 
+    provide_global_photo_state();
     provide_context(GlobalSettingsSignal {
         global: get,
         set_global: set,

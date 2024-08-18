@@ -9,6 +9,8 @@ use web_sys::ScrollToOptions;
 
 use crate::api::remote_control_url;
 
+use super::team_media::{use_global_photo_state, PhotoState};
+
 #[derive(Params, PartialEq, Eq, Clone, Default)]
 struct RemoteControlQuery {
     remote_control: Option<String>,
@@ -18,10 +20,11 @@ struct RemoteControlQuery {
 fn Tab<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> impl IntoView {
     let query_params = use_query_map();
 
-    create_effect(move |_| {
-        if !idle.get() {
-            let params = query_params.get();
+    let memo = create_memo(move |_| (query_params.get(), idle.get()));
 
+    create_effect(move |_| {
+        let (params, idle) = memo.get();
+        if !idle {
             match serde_json::to_string(&QueryString {
                 query: params.to_query_string(),
             }) {
@@ -32,8 +35,44 @@ fn Tab<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> impl Int
     });
 }
 
+fn into_data_photo_state(photo_state: PhotoState) -> data::remote_control::PhotoState {
+    match photo_state {
+        PhotoState::Hidden => data::remote_control::PhotoState::Hidden,
+        PhotoState::Show(team_login) => data::remote_control::PhotoState::Show(team_login),
+    }
+}
+fn from_data_photo_state(photo_state: data::remote_control::PhotoState) -> PhotoState {
+    match photo_state {
+        data::remote_control::PhotoState::Hidden => PhotoState::Hidden,
+        data::remote_control::PhotoState::Show(team_login) => PhotoState::Show(team_login),
+    }
+}
+
 #[component]
-fn Effects(idle: Signal<bool>, message_signal: Memo<Option<ControlMessage>>) -> impl IntoView {
+fn ShowTeamPhoto<SendFn: Fn(&str) + 'static>(
+    idle: Signal<bool>,
+    send: SendFn,
+    photo_state: RwSignal<PhotoState>,
+) -> impl IntoView {
+    let memo = create_memo(move |_| (photo_state.get(), idle.get()));
+
+    create_effect(move |_| {
+        let (photo_state, idle) = memo.get();
+        if !idle {
+            match serde_json::to_string(&into_data_photo_state(photo_state)) {
+                Ok(text) => send(&text),
+                Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
+            }
+        }
+    });
+}
+
+#[component]
+fn Effects(
+    idle: Signal<bool>,
+    message_signal: Memo<Option<ControlMessage>>,
+    photo_state: RwSignal<PhotoState>,
+) -> impl IntoView {
     let window = web_sys::window().unwrap();
     let navigate = use_navigate();
 
@@ -50,6 +89,9 @@ fn Effects(idle: Signal<bool>, message_signal: Memo<Option<ControlMessage>>) -> 
                     ControlMessage::QueryString(QueryString { query }) => {
                         navigate(&query, Default::default())
                     }
+                    ControlMessage::PhotoState(state) => {
+                        photo_state.set(from_data_photo_state(state))
+                    }
                 }
             }
         }
@@ -63,11 +105,12 @@ fn Scrolling<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> im
     let memo_y = create_memo(move |_| get_y.get());
     let throttled_y = signal_throttled(memo_y, 300.0);
 
+    let memo = create_memo(move |_| (idle.get(), throttled_y.get()));
+
     create_effect(move |_| {
-        if !idle.get() {
-            match serde_json::to_string(&WindowScroll {
-                y: throttled_y.get(),
-            }) {
+        let (idle, y) = memo.get();
+        if !idle {
+            match serde_json::to_string(&WindowScroll { y }) {
                 Ok(text) => send(&text),
                 Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
             }
@@ -78,6 +121,8 @@ fn Scrolling<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> im
 #[component]
 pub fn RemoteControl() -> impl IntoView {
     let query = use_query::<RemoteControlQuery>();
+
+    let photo_state = use_global_photo_state();
 
     move || {
         query
@@ -97,8 +142,9 @@ pub fn RemoteControl() -> impl IntoView {
 
                 view! {
                     <Scrolling idle send=send.clone() />
-                    <Tab idle send />
-                    <Effects idle message_signal />
+                    <Tab idle send=send.clone() />
+                    <ShowTeamPhoto idle send photo_state />
+                    <Effects idle message_signal photo_state />
                 }
             })
     }
