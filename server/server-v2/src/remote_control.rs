@@ -24,14 +24,20 @@ async fn remote_control_ws(
     run_remote_control_ws(data, req, body, key.into_inner()).await
 }
 
-pub type ControlSender = Sender<ControlMessage>;
+pub type ControlSender = Sender<ConnectionControlMessage>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConnectionControlMessage {
+    request_id: u64,
+    message: ControlMessage,
+}
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)]
     RecvError(#[from] RecvError),
     #[error(transparent)]
-    SendError(#[from] SendError<ControlMessage>),
+    SendError(#[from] SendError<ConnectionControlMessage>),
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
@@ -41,12 +47,22 @@ enum Error {
 }
 
 #[instrument(skip(rec, session), err)]
-async fn send_to_clients(rec: Receiver<ControlMessage>, mut session: Session) -> Result<(), Error> {
+async fn send_to_clients(
+    rec: Receiver<ConnectionControlMessage>,
+    mut session: Session,
+    connection_request_id: u64,
+) -> Result<(), Error> {
     let mut rec_stream = BroadcastStream::new(rec);
 
-    while let Some(Ok(message)) = rec_stream.next().await {
-        let text = serde_json::to_string(&message)?;
-        session.text(text).await?;
+    while let Some(Ok(ConnectionControlMessage {
+        request_id,
+        message,
+    })) = rec_stream.next().await
+    {
+        if request_id != connection_request_id {
+            let text = serde_json::to_string(&message)?;
+            session.text(text).await?;
+        }
     }
 
     Ok(session.close(None).await?)
@@ -67,12 +83,16 @@ fn get_text(message: Message) -> Result<Option<ControlMessage>, Error> {
 #[instrument(skip(stream, sender), err)]
 async fn read_from_clients(
     stream: &mut MessageStream,
-    sender: &mut Sender<ControlMessage>,
+    sender: &mut Sender<ConnectionControlMessage>,
+    request_id: u64,
 ) -> Result<(), Error> {
-    while let Some(Ok(message)) = stream.next().await {
-        if let Some(control) = get_text(message)? {
-            debug!(?control, "receive");
-            sender.send(control)?;
+    while let Some(Ok(raw_message)) = stream.next().await {
+        if let Some(message) = get_text(raw_message)? {
+            debug!(?message, "receive");
+            sender.send(ConnectionControlMessage {
+                request_id,
+                message,
+            })?;
         } else {
             tokio::time::sleep(Duration::from_secs(1)).await
         }
@@ -93,14 +113,17 @@ async fn run_remote_control_ws(
     let mut sender = data.remote_control.clone();
     let rec = data.remote_control.subscribe();
 
+    let request_id = rand::random();
+    tracing::info!(?request_id, "established remote control");
+
     actix_web::rt::spawn(async move {
-        if let Err(err) = send_to_clients(rec, session).await {
+        if let Err(err) = send_to_clients(rec, session, request_id).await {
             tracing::debug!(?err, "failed sending");
         }
     });
 
     actix_web::rt::spawn(async move {
-        if let Err(err) = read_from_clients(&mut msg_stream, &mut sender).await {
+        if let Err(err) = read_from_clients(&mut msg_stream, &mut sender, request_id).await {
             tracing::debug!(?err, "failed reading");
         }
     });
