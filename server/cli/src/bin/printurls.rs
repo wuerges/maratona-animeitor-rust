@@ -65,9 +65,9 @@ fn print_urls(
 ) -> color_eyre::eyre::Result<()> {
     println!("\n");
     print_sede(parse, &contest.titulo, contest_name)?;
-    for (_secret, sede) in &contest.sedes {
-        print_sede(parse, sede, contest_name)?;
-    }
+    // for (_secret, sede) in &contest.sedes {
+    //     print_sede(parse, sede, contest_name)?;
+    // }
 
     for (secret, sede) in &config_secret.sedes_by_secret {
         print_reveleitor(parse, sede, &secret)?;
