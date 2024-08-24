@@ -2,6 +2,7 @@ use std::{collections::HashMap, rc::Rc, sync::Mutex};
 
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
 use leptos::{logging::*, *};
+use leptos_router::use_query_map;
 
 use crate::{api::create_secret_runs, model::ContestSignal, views::contest::ContestPanel};
 
@@ -174,12 +175,13 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
 
 #[component]
 pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
-    let contest_name = contest.contest_name.clone();
+    let query_map = use_query_map();
     let all_runs = create_local_resource(
         || (),
         move |()| {
             let secret = secret.clone();
-            create_secret_runs(secret, Some(contest_name.clone()))
+            let contest_name = query_map.get().get("contest").cloned();
+            create_secret_runs(secret, contest_name)
         },
     );
 
