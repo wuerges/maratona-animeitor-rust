@@ -20,9 +20,9 @@ deploy:
 	ssh ${SSH_ANIMEITOR} mkdir -p maratona-animeitor-rust/${SERVER_RELEASE_DIR}
 	rsync -P ${SERVER_RELEASE_DIR}/simples ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
 	ssh ${SSH_ANIMEITOR} sudo setcap 'cap_net_bind_service=+ep' maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
-	rsync -P ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls 
-	rsync -P ${SECRET} ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SECRET} 
-	
+	rsync -P ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls
+	rsync -P ${SECRET} ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SECRET}
+
 run-debug-client:
 	( cd client-v2 && \
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
@@ -45,7 +45,7 @@ rebuild-release-server:
 		--release \
 		--target x86_64-unknown-linux-musl --features vendored \
 		--manifest-path server/Cargo.toml
-		
+
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \
 		-p ${PUBLIC_PORT} \
@@ -53,6 +53,8 @@ run-standalone:
 		-v ./server/sounds:sounds \
 		-v ./client-v2/naquadah: \
 		--sedes ./config/regional_2024/CCL.toml:ccl \
+		--sedes ./config/regional_2024/CCL_Bolivia.toml:ccl-bolivia \
+		--sedes ./config/regional_2024/CCL_Brasil.toml:ccl-brasil \
 		--sedes ./config/regional_2024/LA.toml: \
 		--sedes ./config/regional_2024/Brasil.toml:brasil \
 		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
@@ -74,4 +76,3 @@ printurls-standalone:
 		--sedes ./config/regional_2024/Mexico.toml:mexico \
 		--secret ${SECRET} \
 	)
-

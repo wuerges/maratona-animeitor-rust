@@ -3,6 +3,10 @@ name = "CCL"
 codes = ["ccl"]
 
 [[sedes]]
+codes = ["ccl"]
+name = "CCL"
+
+[[sedes]]
 codes = ["brccl"]
 name = "Brasil CCL"
 
