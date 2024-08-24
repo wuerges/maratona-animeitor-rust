@@ -43,11 +43,13 @@ fn print_reveleitor(
     parse: &SimpleParser,
     sede: &Sede,
     secret: &str,
+    contest_name: &str,
 ) -> color_eyre::eyre::Result<()> {
     let mut url = Url::parse(&parse.prefix)?;
     url.query_pairs_mut()
         .append_pair("secret", &secret)
-        .append_pair("sede", &sede.entry.name);
+        .append_pair("sede", &sede.entry.name)
+        .append_pair("contest", contest_name);
 
     println!("-> {}", sede.entry.name);
     println!("    Reveleitor em {}", url.as_str());
@@ -70,7 +72,7 @@ fn print_urls(
     // }
 
     for (secret, sede) in &config_secret.sedes_by_secret {
-        print_reveleitor(parse, sede, &secret)?;
+        print_reveleitor(parse, sede, &secret, contest_name)?;
     }
     Ok(())
 }
