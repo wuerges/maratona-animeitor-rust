@@ -114,10 +114,15 @@ pub fn remote_control_url(key: &str) -> String {
     prefix
 }
 
-pub async fn create_secret_runs(secret: String) -> data::RunsFile {
+pub async fn create_secret_runs(secret: String, contest: Option<String>) -> data::RunsFile {
     let mut url = url_prefix();
     url.push_str("/allruns_secret?secret=");
     url.push_str(secret.as_str());
+
+    if let Some(contest) = contest {
+        url.push_str("&contest=");
+        url.push_str(contest.as_str());
+    }
 
     create_request(&url).await
 }
