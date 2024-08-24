@@ -1,79 +1,77 @@
 [titulo]
 name = "Bolivia"
-codes = ["teamsobo"]
-
+codes = ["sobo"]
 
 [[sedes]]
 name = "Bolivia"
-codes = [
-  "sobolp23",
-  "soboco23",
-  "sobota23",
-  "sobotr23",
-  "sobosc23",
-  "sobocb23",
-  "sobobe23",
-  "soboor23",
-  "soboya23",
-  "sobotu23",
-  "soboea23",
-  "soboll23",
-  "sobopo23",
-  "sobosu23",
-]
+codes = ["sobo"]
 
-[[sedes]]
-name = "La Paz"
-codes = ["sobolp23"]
-
-[[sedes]]
-name = "Cochabamba"
-codes = ["soboco23"]
-
-[[sedes]]
-name = "Tarija"
-codes = ["sobota23"]
-
-[[sedes]]
-name = "Trinidad"
-codes = ["sobotr23"]
-
-[[sedes]]
-name = "Santa Cruz"
-codes = ["sobosc23"]
-
+# soboco:Cobija
 [[sedes]]
 name = "Cobija"
-codes = ["sobocb23"]
+codes = ["soboco"]
 
+# sobolp:La Paz
+[[sedes]]
+name = "La Paz"
+codes = ["sobolp"]
+
+# sobobe:Bermejo
 [[sedes]]
 name = "Bermejo"
-codes = ["sobobe23"]
+codes = ["sobobe"]
 
-[[sedes]]
-name = "Oruro"
-codes = ["soboor23"]
-
-[[sedes]]
-name = "Yacuiba"
-codes = ["soboya23"]
-
-[[sedes]]
-name = "Tupiza"
-codes = ["sobotu23"]
-
-[[sedes]]
-name = "El Alto"
-codes = ["soboea23"]
-
-[[sedes]]
-name = "Llallagua"
-codes = ["soboll23"]
-
+# sobopo:Potosí
 [[sedes]]
 name = "Potosí"
-codes = ["sobopo23"]
+codes = ["sobopo"]
 
+# soboll:Llallagua
+[[sedes]]
+name = "Llallagua"
+codes = ["soboll"]
+
+# sobotu:Tupiza
+[[sedes]]
+name = "Tupiza"
+codes = ["sobotu"]
+
+# soboya:Yacuiba
+[[sedes]]
+name = "Yacuiba"
+codes = ["soboya"]
+
+# sobota:Tarija
+[[sedes]]
+name = "Tarija"
+codes = ["sobota"]
+
+# sobosu:Sucre
 [[sedes]]
 name = "Sucre"
-codes = ["sobosu23"]
+codes = ["sobosu"]
+
+# soboea:El Alto
+[[sedes]]
+name = "El Alto"
+codes = ["soboea"]
+
+# sobotr:Trinidad
+[[sedes]]
+name = "Trinidad"
+codes = ["sobotr"]
+
+# soboor:Oruro
+[[sedes]]
+name = "Oruro"
+codes = ["soboor"]
+
+# sobosc:Santa Cruz
+[[sedes]]
+name = "Santa Cruz"
+codes = ["sobosc"]
+
+# soboch:Cochabamba
+[[sedes]]
+name = "Cochabamba"
+codes = ["soboch"]
