@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="/styles-ebe23c392ab5b2d2.css" integrity="sha384&#x2D;uz6J&#x2F;5vHXDIOYk17gQ5slomDzC5q8H1I1ZkKXqD4&#x2B;au9KYyQnPA&#x2F;jvNBpdakxkvB"/>
+  <link rel="stylesheet" href="/audio-f8271a4d52f1e02c.css" integrity="sha384&#x2D;f&#x2F;FvVruvjOKKjC&#x2B;X7HJLve7bC54UEs77n&#x2F;&#x2F;lFRliZoJ9dSVJ&#x2F;q1JywbwSQ6Ps&#x2F;NJ"/>
+  <link rel="stylesheet" href="/balloons-5fe069752bcbc7ec.css" integrity="sha384&#x2D;MH5TVjb7YtxmM&#x2F;3MPLk2Kr8Gx2&#x2F;EPCo&#x2F;EuAkiPOnUK9aGsqHXnV7bXYXxb3Ii4II"/>
+  <link rel="stylesheet" href="/user-styles.css" />
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="modulepreload" href="/client-v2-aaf0a56adfc2a6fc.js" crossorigin=anonymous integrity="sha384-uC6uDyLCofo4kZGjNIn/Ki32vCDZ4Hsu2B/tsG46B5k/7s8Xl+qt5u3lIh+OoGvQ">
+<link rel="preload" href="/client-v2-aaf0a56adfc2a6fc_bg.wasm" crossorigin=anonymous integrity="sha384-8BqOJWrrKsRYfAv/r3RPwUao4reZ8U0tF2dcsD5nj9fgOHevqNLHOGtsTkPAbEhi" as="fetch" type="application/wasm"></head>
+
+<body id="body">
+<script type="module" nonce="khM1R/quiDhggX0SjxPxOw==">
+import init, * as bindings from '/client-v2-aaf0a56adfc2a6fc.js';
+const wasm = await init('/client-v2-aaf0a56adfc2a6fc_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>
