@@ -5,28 +5,28 @@ codes = ["teamch"]
 # CHILE
 [[sedes]]
 name = "Chile"
-codes = ["chsaud23", "chrauo23", "chcouc23", "chsaut23", "chcoud23", "chtauc23"]
+codes = ["teamch"]
 
 [[sedes]]
-codes = ["chsaud23"]
+codes = ["chsaud"]
 name = "Santiago (UDP)"
 
 [[sedes]]
-codes = ["chrauo23"]
+codes = ["chrauo"]
 name = "Rancagua (UOH)"
 
 [[sedes]]
-codes = ["chcouc23"]
+codes = ["chcouc"]
 name = "Coquimbo / La Serena (UCN)"
 
 [[sedes]]
-codes = ["chsaut23"]
+codes = ["chsaut"]
 name = "Santiago (UTFSM)"
 
 [[sedes]]
-codes = ["chcoud23"]
+codes = ["chcoud"]
 name = "Concepción (UdeC)"
 
 [[sedes]]
-codes = ["chtauc23"]
+codes = ["chtauc"]
 name = "Talca (UCM)"

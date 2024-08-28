@@ -3,66 +3,53 @@ name = "Centro America"
 codes = ["teamca"]
 
 [[sedes]]
-codes = [
-  "caurlq23",
-  "caufla23",
-  "cacrsp23",
-  "caujsc23",
-  "cananm23",
-  "catcrs23",
-  "caucrp23",
-  "cauncn23",
-  "caunco23",
-  "catcrl23",
-  "caumgg23",
-  "catcra23",
-]
+codes = ["teamca"]
 name = "Centro America"
 
 [[sedes]]
-codes = ["caurlq23"]
+codes = ["caurlq"]
 name = "Universidad Rafael Landívar sede Quetzaltenango"
 
 [[sedes]]
-codes = ["caufla23"]
+codes = ["caufla"]
 name = "Universidad Rafael Landívar"
 
 [[sedes]]
-codes = ["cacrsp23"]
+codes = ["cacrsp"]
 name = "Universidad de Costa Rica sede San Pedro"
 
 [[sedes]]
-codes = ["caujsc23"]
+codes = ["caujsc"]
 name = "Universidad Centroamericana José Simeón Cañas"
 
 [[sedes]]
-codes = ["cananm23"]
+codes = ["cananm"]
 name = "Universidad Nacional Autónoma de Nicaragua sede Managua"
 
 [[sedes]]
-codes = ["catcrs23"]
+codes = ["catcrs"]
 name = "Tecnológico de Costa Rica Sede Cartago"
 
 [[sedes]]
-codes = ["caucrp23"]
+codes = ["caucrp"]
 name = "Universidad de Costa Rica Pacífico"
 
 [[sedes]]
-codes = ["cauncn23"]
+codes = ["cauncn"]
 name = "Universidad Nacional Chorotega - Nicoya"
 
 [[sedes]]
-codes = ["caunco23"]
+codes = ["caunco"]
 name = "Universidad Nacional sede Coto"
 
 [[sedes]]
-codes = ["catcrl23"]
+codes = ["catcrl"]
 name = "Tecnológico de Costa Rica sede Limón"
 
 [[sedes]]
-codes = ["caumgg23"]
+codes = ["caumgg"]
 name = "Universidad Mariano Galvez de Guatemala Campus Chiquimulilla"
 
 [[sedes]]
-codes = ["catcra23"]
+codes = ["catcra"]
 name = "Tecnológico de Costa Rica Sede Alajuela"
