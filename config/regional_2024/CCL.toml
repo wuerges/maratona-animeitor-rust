@@ -7,13 +7,12 @@ codes = ["ccl"]
 name = "CCL"
 
 [[sedes]]
-codes = ["brccl"]
 name = "CCL Brasil"
+codes = ["brccl"]
 
 [[sedes]]
-name = "CCL Brasil"
+name = "CCL Bolivia"
 codes = ["boccl"]
-
 
 [[sedes]]
 codes = ["caccl"]
