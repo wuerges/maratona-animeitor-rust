@@ -13,3 +13,8 @@ name = "CCL Brasil"
 [[sedes]]
 name = "CCL Brasil"
 codes = ["boccl"]
+
+
+[[sedes]]
+codes = ["caccl"]
+name = "CCL Centro America"

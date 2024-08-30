@@ -55,6 +55,7 @@ run-standalone:
 		--sedes ./config/regional_2024/CCL.toml:ccl \
 		--sedes ./config/regional_2024/CCL_Bolivia.toml:ccl-bolivia \
 		--sedes ./config/regional_2024/CCL_Brasil.toml:ccl-brasil \
+		--sedes ./config/regional_2024/CCL_Centro_America.toml:ccl-centro \
 		--sedes ./config/regional_2024/LA.toml: \
 		--sedes ./config/regional_2024/Brasil.toml:brasil \
 		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
@@ -69,6 +70,7 @@ printurls-standalone:
 		--sedes ./config/regional_2024/CCL.toml:ccl \
 		--sedes ./config/regional_2024/CCL_Bolivia.toml:ccl-bolivia \
 		--sedes ./config/regional_2024/CCL_Brasil.toml:ccl-brasil \
+		--sedes ./config/regional_2024/CCL_Centro_America.toml:ccl-centro \
 		--sedes ./config/regional_2024/LA.toml: \
 		--sedes ./config/regional_2024/Brasil.toml:brasil \
 		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
