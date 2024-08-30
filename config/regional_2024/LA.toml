@@ -18,10 +18,6 @@ name = "Bolivia"
 codes = ["teamsobo"]
 
 [[sedes]]
-name = "Chile"
-codes = ["teamch"]
-
-[[sedes]]
 codes = ["teammx"]
 name = "Mexico"
 
