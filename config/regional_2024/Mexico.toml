@@ -6,3 +6,251 @@ codes = ["teammx"]
 [[sedes]]
 codes = ["teammx"]
 name = "Mexico"
+
+[[sedes]]
+codes = ["teammxaaab"]
+name = "Instituto Tecnológico de Zacatepec"
+
+[[sedes]]
+codes = ["teammxaaac"]
+name = "Instituto Tecnológico Superior de Salvatierra"
+
+[[sedes]]
+codes = ["teammxaaad"]
+name = "Instituto Tecnológico de Ciudad Juárez"
+
+[[sedes]]
+codes = ["teammxaaae"]
+name = "Instituto Tecnológico de Cancún"
+
+[[sedes]]
+codes = ["teammxaaaf"]
+name = "Instituto Tecnológico Superior de Apatzingán"
+
+[[sedes]]
+codes = ["teammxaaag"]
+name = "Instituto Tecnológico de Celaya"
+
+[[sedes]]
+codes = ["teammxaaah"]
+name = "Instituto Tecnológico de Comitán"
+
+[[sedes]]
+codes = ["teammxaaai"]
+name = "Instituto Tecnológico de Nuevo León"
+
+[[sedes]]
+codes = ["teammxaaaj"]
+name = "Instituto Tecnológico de Oaxaca"
+
+[[sedes]]
+codes = ["teammxaaak"]
+name = "Instituto Tecnológico Superior de Santiago Papasquiaro"
+
+[[sedes]]
+codes = ["teammxaaal"]
+name = "Sistema Universitario Jesuita"
+
+[[sedes]]
+codes = ["teammxaaam"]
+name = "Universidad Autonoma de Chihuahua"
+
+[[sedes]]
+codes = ["teammxaaan"]
+name = "Club de Programación Competitiva UAZ"
+
+[[sedes]]
+codes = ["teammxaaao"]
+name = "Programación Competitiva Tec de Monterrey Campus Estado de México"
+
+[[sedes]]
+codes = ["teammxaaap"]
+name = "Universidad de Guadalajara CUTonalá"
+
+[[sedes]]
+codes = ["teammxaaaq"]
+name = "Programación Competitiva Tec de Monterrey Puebla"
+
+[[sedes]]
+codes = ["teammxaaar"]
+name = "ACM Universidad Autonoma de Nuevo Leon"
+
+[[sedes]]
+codes = ["teammxaaas"]
+name = "Tecnológico de Monterrey Campus Santa Fe"
+
+[[sedes]]
+codes = ["teammxaaat"]
+name = "ICPC San Luis Potosi"
+
+[[sedes]]
+codes = ["teammxaaau"]
+name = "CPU - Programación Competitiva Universidad Popular Autónoma del Estado de Puebla"
+
+[[sedes]]
+codes = ["teammxaaav"]
+name = "Club de Algoritmia CUValles"
+
+[[sedes]]
+codes = ["teammxaaaw"]
+name = "Capitulo Estudiantil UAT ACM"
+
+[[sedes]]
+codes = ["teammxaaax"]
+name = "Centro de Nanociencias y Nanotecnologia UNAM"
+
+[[sedes]]
+codes = ["teammxaaay"]
+name = "Escuela Nacional de Estudios Superiores UNAM Campus Morelia"
+
+[[sedes]]
+codes = ["teammxaaaz"]
+name = "Universidad Panamericana Campus Guadalajara"
+
+[[sedes]]
+codes = ["teammxaaba"]
+name = "Universidad Panamericana Campus Bonaterra"
+
+[[sedes]]
+codes = ["teammxaabb"]
+name = "Universidad Anahuac Oaxaca"
+
+[[sedes]]
+codes = ["teammxaabc"]
+name = "CAC - Club de Algoritmia CUCEI"
+
+[[sedes]]
+codes = ["teammxaabd"]
+name = "UNAM Facultad de Ciencias - Club de Programación Competitiva"
+
+[[sedes]]
+codes = ["teammxaabe"]
+name = "UNAM Facultad de Ingeniería - Club de Programación Competitiva"
+
+[[sedes]]
+codes = ["teammxaabf"]
+name = "Universidad de Guadalajara CUALTOS"
+
+[[sedes]]
+codes = ["teammxaabg"]
+name = "Universidad de Guadalajara CUCOSTA"
+
+[[sedes]]
+codes = ["teammxaabh"]
+name = "Coding CUP ITSUR"
+
+[[sedes]]
+codes = ["teammxaabi"]
+name = "UACJ Algorithmic Club"
+
+[[sedes]]
+codes = ["teammxaabj"]
+name = "Red Académica de Programación Competitiva del Instituto Politécnico Nacional / UNAM FES Acatlán / UAM / ITAM"
+
+[[sedes]]
+codes = ["teammxaabk"]
+name = "Programación Lázaro Cárdenas"
+
+[[sedes]]
+codes = ["teammxaabl"]
+name = "ACM ICPC Algorithmia ITSLerdo"
+
+[[sedes]]
+codes = ["teammxaabm"]
+name = "Universidad Autónoma del Estado de Hidalgo"
+
+[[sedes]]
+codes = ["teammxaabn"]
+name = "Comunidad Estudiantil de Programación Competitiva de Instituto Tecnológico de Veracruz"
+
+[[sedes]]
+codes = ["teammxaabo"]
+name = "Universidad Autónoma de Querétaro"
+
+[[sedes]]
+codes = ["teammxaabp"]
+name = "Club de Programación Competitiva ITLag"
+
+[[sedes]]
+codes = ["teammxaabq"]
+name = "Programación Competitiva Tec Toluca"
+
+[[sedes]]
+codes = ["teammxaabr"]
+name = "Universidad Autónoma de Yucatan Unidad Multidisciplinaria Tizimín"
+
+[[sedes]]
+codes = ["teammxaabs"]
+name = "Universidad de Monterrey"
+
+[[sedes]]
+codes = ["teammxaabt"]
+name = "Instituto Tecnológico de Parral"
+
+[[sedes]]
+codes = ["teammxaabu"]
+name = "Universidad Marista de Guadalajara"
+
+[[sedes]]
+codes = ["teammxaabv"]
+name = "Tecnológico de Monterrey Campus Ciudad de México"
+
+[[sedes]]
+codes = ["teammxaabw"]
+name = "Universidad Autónoma de Yucatán Facultad de Matemáticas"
+
+[[sedes]]
+codes = ["teammxaabx"]
+name = "ITESM ACM"
+
+[[sedes]]
+codes = ["teammxaaby"]
+name = "Universidad Autonoma de Aguascalientes"
+
+[[sedes]]
+codes = ["teammxaabz"]
+name = "Facultad de Informática Mazatlán Universidad Autónoma de Sinaloa"
+
+[[sedes]]
+codes = ["teammxaaca"]
+name = "ACM Querétaro"
+
+[[sedes]]
+codes = ["teammxaacb"]
+name = "Universidad de Guanajuato"
+
+[[sedes]]
+codes = ["teammxaacc"]
+name = "Instituto Tecnológico de Culiacán"
+
+[[sedes]]
+codes = ["teammxaacd"]
+name = "Instituto Tecnológico de Saltillo"
+
+[[sedes]]
+codes = ["teammxaace"]
+name = "Instituto Tecnológico Superior de Purísima del Rincón"
+
+[[sedes]]
+codes = ["teammxaacf"]
+name = "Benemerita Universidad Autonoma de Puebla"
+
+[[sedes]]
+codes = ["teammxaacg"]
+name = "Instituto Tecnológico Superior de Zacapoaxtla"
+
+[[sedes]]
+codes = ["teammxaach"]
+name = "Tecnológico de Monterrey Campus Guadalajara"
+
+[[sedes]]
+codes = ["teammxaaci"]
+name = "Masters - Cafe com Leite"
+
+[[sedes]]
+codes = ["teammxaacj"]
+name = "Universidad TecMileno Monterrey"
+
+[[sedes]]
+codes = ["teammxaack"]
+name = "Universidad TecMilenio Toluca"
