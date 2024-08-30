@@ -7,45 +7,45 @@ codes = ["teamca"]
 name = "Centro America"
 
 [[sedes]]
-codes = ["24cacral"]
+codes = ["cacral"]
 name = "Tecnológico de Costa Rica Sede Alajuela"
 
 [[sedes]]
 name = 'Universidad Centroamericana "José Simeón Cañas"'
-codes = ["24cacejc"]
+codes = ["cacejc"]
 
 [[sedes]]
-codes = ["24cacrsp"]
+codes = ["cacrsp"]
 name = "Universidad de Costa Rica sede San Pedro"
 
 [[sedes]]
-codes = ["24caunrl"]
+codes = ["caunrl"]
 name = "Universidad Rafael Landívar"
 
 [[sedes]]
-codes = ["24caurlq"]
+codes = ["caurlq"]
 name = "Universidad Rafael Landívar sede Quetzaltenango"
 
 [[sedes]]
-codes = ["24caunfg"]
+codes = ["caunfg"]
 name = "Universidad Francisco Gavidia"
 
 [[sedes]]
-codes = ["24caundb"]
+codes = ["caundb"]
 name = "Universidad Don Bosco"
 
 [[sedes]]
-codes = ["24caunor"]
+codes = ["caunor"]
 name = "Universidad de Oriente"
 
 [[sedes]]
-codes = ["24caunga"]
+codes = ["caunga"]
 name = "Universidad Galileo"
 
 [[sedes]]
-codes = ["24cavagt"]
+codes = ["cavagt"]
 name = "Universidad del Valle GT"
 
 [[sedes]]
-codes = ["24caitgu"]
+codes = ["caitgu"]
 name = "Universidad del Itsmo de Guatemala"

@@ -59,7 +59,6 @@ run-standalone:
 		--sedes ./config/regional_2024/Brasil.toml:brasil \
 		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
 		--sedes ./config/regional_2024/Centro_America.toml:centro \
-		--sedes ./config/regional_2024/Chile.toml:chile \
 		--sedes ./config/regional_2024/Mexico.toml:mexico \
 		--secret ${SECRET} ${BOCA_URL} \
 	)
@@ -74,7 +73,6 @@ printurls-standalone:
 		--sedes ./config/regional_2024/Brasil.toml:brasil \
 		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
 		--sedes ./config/regional_2024/Centro_America.toml:centro \
-		--sedes ./config/regional_2024/Chile.toml:chile \
 		--sedes ./config/regional_2024/Mexico.toml:mexico \
 		--secret ${SECRET} \
 	)
