@@ -51,6 +51,19 @@ name = "Supersede MT"
 codes = ["brmtcu", "brmtsi"]
 
 [[sedes]]
+name = "Supersede NE"
+codes = [
+  "bralma",
+  "brbaju",
+  "brcejn",
+  "brceqx",
+  "brmaba",
+  "brmasl",
+  "brpbcg",
+  "brpite",
+]
+
+[[sedes]]
 name = "Supersede RN"
 codes = ["brrnna", "brrnpf"]
 
