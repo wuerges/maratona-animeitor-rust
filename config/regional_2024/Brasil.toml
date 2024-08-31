@@ -61,6 +61,7 @@ codes = [
   "brmasl",
   "brpbcg",
   "brpite",
+  "brsesc",
 ]
 
 [[sedes]]
@@ -278,3 +279,8 @@ name = "PA, Oriximina"
 [[sedes]]
 codes = ["teambrspsc"]
 name = "SP, Sao Carlos"
+
+
+[[sedes]]
+codes = ["brsesc"]
+name = "SE, Sao Cristovao"
