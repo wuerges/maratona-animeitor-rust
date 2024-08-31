@@ -1,7 +1,7 @@
 [titulo]
 name = "Brasil CCL"
-codes = ["brccl"]
+codes = ["cclbr"]
 
 [[sedes]]
-codes = ["brccl"]
+codes = ["cclbr"]
 name = "Brasil CCL"

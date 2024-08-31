@@ -8,12 +8,12 @@ name = "CCL"
 
 [[sedes]]
 name = "CCL Brasil"
-codes = ["brccl"]
+codes = ["cclbr"]
 
 [[sedes]]
 name = "CCL Bolivia"
-codes = ["boccl"]
+codes = ["cclsobo"]
 
 [[sedes]]
-codes = ["caccl"]
+codes = ["cclca"]
 name = "CCL Centro America"
