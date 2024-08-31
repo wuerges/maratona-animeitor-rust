@@ -42,6 +42,33 @@ codes = ["teambrmg", "teambrrj", "teambrsp"]
 name = "Região Sul"
 codes = ["teambrpr", "teambrrs", "teambrsc"]
 
+[[sedes]]
+name = "Supersede MS"
+codes = ["brmsdo", "brmscg"]
+
+[[sedes]]
+name = "Supersede MT"
+codes = ["brmtcu", "brmtsi"]
+
+[[sedes]]
+name = "Supersede RN"
+codes = ["brrnna", "brrnpf"]
+
+[[sedes]]
+name = "Supersede Norte"
+codes = ["bracrb", "bramma", "brpabe", "brropv", "brtopa"]
+
+[[sedes]]
+name = "Supersede MG"
+codes = ["brmgmc", "brmgud"]
+
+[[sedes]]
+name = "Supersede SE"
+codes = ["bresvi", "brspsa"]
+
+[[sedes]]
+name = "Supersede Sul"
+codes = ["brrspa", "brscfl"]
 
 [[sedes]]
 codes = ["teambresvi"]
