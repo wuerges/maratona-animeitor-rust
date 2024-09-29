@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     api::{team_photo_location, team_sound_location},
-    model::TeamSignal,
+    model::team_signal::TeamSignal,
 };
 
 use super::{

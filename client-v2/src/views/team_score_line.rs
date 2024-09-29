@@ -4,7 +4,7 @@ use leptos::*;
 use std::rc::Rc;
 
 use crate::{
-    model::TeamSignal,
+    model::team_signal::TeamSignal,
     views::{placement::Placement, problem::Problem, team_name::TeamName},
 };
 

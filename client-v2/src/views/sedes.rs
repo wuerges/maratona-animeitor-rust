@@ -10,7 +10,8 @@ use leptos_router::*;
 use crate::{
     api::{create_config, create_timer, ContestQuery},
     model::{
-        provide_contest, runs_panel_signal::RunsPanelItemManager, ContestProvider, ContestSignal,
+        contest_signal::ContestSignal, provide_contest, runs_panel_signal::RunsPanelItemManager,
+        ContestProvider,
     },
     views::{
         background_color::BackgroundColor,

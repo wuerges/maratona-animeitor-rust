@@ -5,7 +5,10 @@ use itertools::Itertools;
 use leptos::{logging::log, *};
 
 use crate::{
-    model::{runs_panel_signal::RunsPanelItemManager, ContestSignal, TeamSignal},
+    model::{
+        contest_signal::ContestSignal, runs_panel_signal::RunsPanelItemManager,
+        team_signal::TeamSignal,
+    },
     views::{
         placement::Placement,
         problem::Problem,

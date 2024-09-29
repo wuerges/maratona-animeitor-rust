@@ -4,7 +4,9 @@ use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile
 use leptos::{logging::*, *};
 use leptos_router::use_query_map;
 
-use crate::{api::create_secret_runs, model::ContestSignal, views::contest::ContestPanel};
+use crate::{
+    api::create_secret_runs, model::contest_signal::ContestSignal, views::contest::ContestPanel,
+};
 
 #[derive(Debug)]
 pub struct State {

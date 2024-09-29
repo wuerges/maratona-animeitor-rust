@@ -1,13 +1,12 @@
+pub(crate) mod contest_signal;
 pub mod runs_panel_signal;
+pub(crate) mod team_signal;
 
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{collections::HashSet, rc::Rc};
 
+use contest_signal::ContestSignal;
 use data::{
-    annotate_first_solved::annotate_first_solved, configdata::ConfigContest, ContestFile,
-    ProblemView, RunTuple, RunsFile, Score, Team,
+    annotate_first_solved::annotate_first_solved, configdata::ConfigContest, ContestFile, RunsFile,
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
@@ -22,99 +21,6 @@ pub struct ContestProvider {
     pub config_contest: ConfigContest,
     pub new_contest_signal: Rc<ContestSignal>,
     pub runs_panel_item_manager: Rc<RunsPanelItemManager>,
-}
-
-pub struct TeamSignal {
-    pub login: String,
-    pub name: String,
-    pub escola: String,
-    pub placement_global: RwSignal<usize>,
-    pub score: RwSignal<Score>,
-    pub problems: HashMap<String, RwSignal<Option<ProblemView>>>,
-}
-
-impl TeamSignal {
-    fn new(team: &Team, letters: &[String]) -> Self {
-        let Team {
-            login,
-            escola,
-            name,
-            placement: _,
-            placement_global,
-            problems,
-            id: _,
-        } = team;
-
-        Self {
-            login: login.clone(),
-            name: name.clone(),
-            escola: escola.clone(),
-            placement_global: create_rw_signal(*placement_global),
-            score: create_rw_signal(team.score()),
-            problems: letters
-                .iter()
-                .map(|l| {
-                    let view = problems.get(l).map(|p| p.view());
-                    (l.clone(), create_rw_signal(view))
-                })
-                .collect(),
-        }
-    }
-
-    fn update(&self, team: &Team) {
-        let new_score = team.score();
-        self.score.update(|x| *x = new_score);
-        self.placement_global.update(|p| *p = team.placement_global);
-
-        for (letter, problem_view) in &self.problems {
-            problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))
-        }
-    }
-}
-
-pub struct ContestSignal {
-    pub teams: HashMap<String, Rc<TeamSignal>>,
-}
-
-impl ContestSignal {
-    pub fn new(contest_file: &ContestFile) -> Self {
-        let letters = data::PROBLEM_LETTERS[..contest_file.number_problems]
-            .chars()
-            .map(|l| l.to_string())
-            .collect::<Vec<_>>();
-        ContestSignal {
-            teams: contest_file
-                .teams
-                .iter()
-                .map(|(login, team)| (login.clone(), Rc::new(TeamSignal::new(team, &letters))))
-                .collect(),
-        }
-    }
-
-    pub fn update<'a>(
-        &self,
-        team_logins: impl Iterator<Item = &'a str>,
-        fresh_contest: &ContestFile,
-    ) {
-        let update_set: HashSet<_> = team_logins.collect();
-
-        for team in fresh_contest.teams.values() {
-            if let Some(team_signal) = self.teams.get(&team.login) {
-                if update_set.contains(team.login.as_str()) {
-                    team_signal.update(team);
-                } else {
-                    team_signal.placement_global.set(team.placement_global)
-                }
-            }
-        }
-    }
-
-    fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
-        self.update(
-            runs.iter().map(|run| run.team_login.as_str()),
-            fresh_contest,
-        )
-    }
 }
 
 #[derive(Debug)]
