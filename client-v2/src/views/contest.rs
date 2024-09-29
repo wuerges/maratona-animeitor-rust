@@ -158,15 +158,13 @@ pub fn ContestPanel(
 
     let placements = create_memo(move |_| {
         sede.with(|sede| {
-            placement_contest
-                .teams
-                .values()
-                .filter(|team| sede.team_belongs_str(&team.login))
-                .sorted_by_cached_key(|team| team.placement_global.get()) // FIXME Super slow
-                .map(|team| &team.login)
-                .enumerate()
-                .map(|(i, login)| (login.clone(), i + 1))
-                .collect::<HashMap<_, _>>()
+            placement_contest.team_global_placements.with(|p| {
+                p.iter()
+                    .filter(|team| sede.team_belongs_str(team))
+                    .enumerate()
+                    .map(|(i, login)| (login.clone(), i + 1))
+                    .collect::<HashMap<String, usize>>()
+            })
         })
     });
 

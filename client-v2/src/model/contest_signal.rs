@@ -4,12 +4,14 @@ use std::{
 };
 
 use data::{ContestFile, RunTuple};
-use leptos::SignalSet;
+use itertools::Itertools;
+use leptos::{create_rw_signal, RwSignal, SignalSet};
 
 use super::team_signal::TeamSignal;
 
 pub struct ContestSignal {
     pub teams: HashMap<String, Rc<TeamSignal>>,
+    pub team_global_placements: RwSignal<Vec<String>>,
 }
 
 impl ContestSignal {
@@ -24,6 +26,13 @@ impl ContestSignal {
                 .iter()
                 .map(|(login, team)| (login.clone(), Rc::new(TeamSignal::new(team, &letters))))
                 .collect(),
+            team_global_placements: create_rw_signal(
+                contest_file
+                    .teams
+                    .values()
+                    .map(|team| team.login.clone())
+                    .collect(),
+            ),
         }
     }
 
@@ -43,6 +52,15 @@ impl ContestSignal {
                 }
             }
         }
+
+        self.team_global_placements.set(
+            fresh_contest
+                .teams
+                .values()
+                .sorted_by_cached_key(|team| team.placement_global)
+                .map(|team| team.login.clone())
+                .collect(),
+        );
     }
 
     pub fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
