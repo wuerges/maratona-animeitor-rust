@@ -125,7 +125,7 @@ fn ContestPanelLine(
 }
 
 #[component]
-fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>) -> impl IntoView {
+fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: &'static str) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
@@ -133,7 +133,7 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>
                 estilo_sede(&sede.get()).iter().chain(&["cell", "titulo"]).join(" ")}>
                 {move || nome_sede(&sede.get()).to_string()}
             </div>
-            {move || all_problems.get().chars().map(|p| view! {
+            {all_problems.chars().map(|p| view! {
                 <div class="cell problema quadrado">{p}</div>
             }).collect_view()}
         </div>
@@ -142,30 +142,31 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: Signal<&'static str>
 
 #[component]
 pub fn ContestPanel(
-    contest: Signal<ContestFile>,
+    original_contest: Rc<ContestFile>,
     contest_signal: Rc<ContestSignal>,
     center: Signal<Option<String>>,
     titulo: Signal<Option<Rc<Sede>>>,
     sede: Signal<Rc<Sede>>,
 ) -> impl IntoView {
     log!("contest panel refresh");
-    let n: Signal<usize> = Signal::derive(move || contest.with(|c| c.number_problems));
-    let all_problems = Signal::derive(move || &data::PROBLEM_LETTERS[..n.get()]);
+    let n = original_contest.number_problems;
+    let all_problems = &data::PROBLEM_LETTERS[..n];
 
     let show_photo = use_global_photo_state();
 
+    let placement_contest = contest_signal.clone();
+
     let placements = create_memo(move |_| {
         sede.with(|sede| {
-            contest.with(|c| {
-                c.teams
-                    .values()
-                    .filter(|team| sede.team_belongs(team))
-                    .sorted_by_cached_key(|team| team.placement_global)
-                    .map(|team| &team.login)
-                    .enumerate()
-                    .map(|(i, login)| (login.clone(), i + 1))
-                    .collect::<HashMap<_, _>>()
-            })
+            placement_contest
+                .teams
+                .values()
+                .filter(|team| sede.team_belongs_str(&team.login))
+                .sorted_by_cached_key(|team| team.placement_global.get()) // FIXME Super slow
+                .map(|team| &team.login)
+                .enumerate()
+                .map(|(i, login)| (login.clone(), i + 1))
+                .collect::<HashMap<_, _>>()
         })
     });
 
@@ -217,7 +218,7 @@ fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &None)}>
-                <ContestPanelHeader sede all_problems=create_signal("").0.into() />
+                <ContestPanelHeader sede all_problems="" />
             </div>
         </div>
     }
@@ -225,7 +226,7 @@ fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
 
 #[component]
 pub fn Contest<'cs>(
-    contest: Signal<ContestFile>,
+    original_contest: Rc<ContestFile>,
     contest_signal: Rc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     timer: ReadSignal<(TimerData, TimerData)>,
@@ -244,7 +245,7 @@ pub fn Contest<'cs>(
                 <RunsPanel items=panel_items sede />
             </div>
             <div class="contest-container">
-                <ContestPanel contest contest_signal=contest_signal center=center.into() titulo sede />
+                <ContestPanel original_contest contest_signal=contest_signal center=center.into() titulo sede />
             </div>
         </div>
     }

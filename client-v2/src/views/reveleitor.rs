@@ -74,6 +74,7 @@ impl State {
 
 #[component]
 pub fn RevelationPanel(
+    original_contest: Rc<ContestFile>,
     state: ReadSignal<State>,
     contest_signal: Rc<ContestSignal>,
     sede: Signal<Rc<Sede>>,
@@ -83,9 +84,8 @@ pub fn RevelationPanel(
             .with(|state| state.is_started.then_some(state.driver.peek().cloned()))
             .flatten()
     });
-    let contest = Signal::derive(move || state.with(|state| state.driver.contest().clone()));
 
-    view! { <ContestPanel contest_signal contest center titulo=(|| None).into() sede /> }
+    view! { <ContestPanel original_contest contest_signal center titulo=(|| None).into() sede /> }
 }
 
 #[component]
@@ -139,6 +139,7 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
     let contest_signal = Rc::new(ContestSignal::new(&contest));
     let contest = contest.clone();
+    let original_contest = Rc::new(contest.clone());
     let driver = State::new(contest, runs_file, &sede);
     let (get_sede, _) = create_signal(sede.clone());
 
@@ -170,7 +171,7 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
     view! {
         <Control state=set_driver />
         <div class="revelationpanel">
-            <RevelationPanel contest_signal state=get_driver sede=get_sede.into() />
+            <RevelationPanel original_contest contest_signal state=get_driver sede=get_sede.into() />
         </div>
     }
 }

@@ -16,7 +16,6 @@ use runs_panel_signal::RunsPanelItemManager;
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 
 pub struct ContestProvider {
-    pub running_contest: Signal<ContestFile>,
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
     pub new_contest_signal: Rc<ContestSignal>,
@@ -48,24 +47,17 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     let starting_contest = original_contest_file.clone();
 
     log!("fetched original contest");
-    let (contest_signal, set_contest_signal) =
-        create_signal::<ContestFile>(original_contest_file.clone());
 
     let new_contest_signal = Rc::new(ContestSignal::new(&original_contest_file));
     let new_contest_signal_ref = new_contest_signal.clone();
     let runs_panel_item_manager = Rc::new(RunsPanelItemManager::new());
     let runs_panel_item_manager_ref = runs_panel_item_manager.clone();
 
-    {
-        let mut starting_contest = contest_signal.get_untracked();
-        starting_contest.recalculate_placement();
-        new_contest_signal.update([].into_iter(), &starting_contest);
-    }
+    let mut running_contest = starting_contest.clone();
 
     spawn_local(async move {
         let mut runs_file = RunsFile::empty();
         let mut solved = HashSet::new();
-
         let mut runs_stream = create_runs(query).ready_chunks(ready_chunk_capacity);
 
         loop {
@@ -85,26 +77,22 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 }
 
                 if !fresh_runs.is_empty() {
-                    let mut fresh_contest = contest_signal.get_untracked();
-
                     let runs = runs_file.sorted();
 
                     let position = RunsPanelItemManager::position_in_last_submissions(&fresh_runs);
 
                     for (i, r) in fresh_runs.iter().enumerate() {
-                        fresh_contest.apply_run(r);
+                        running_contest.apply_run(r);
                         if i >= position {
-                            fresh_contest.recalculate_placement();
+                            running_contest.recalculate_placement();
                         }
-                        if let Some(panel_item) = fresh_contest.build_panel_item(&r).ok() {
+                        if let Some(panel_item) = running_contest.build_panel_item(&r).ok() {
                             runs_panel_item_manager.push(panel_item)
                         }
                     }
-                    fresh_contest.recalculate_placement();
+                    running_contest.recalculate_placement();
 
-                    new_contest_signal.update_tuples(&runs, &fresh_contest);
-
-                    set_contest_signal.set(fresh_contest);
+                    new_contest_signal.update_tuples(&runs, &running_contest);
                 }
             }
         }
@@ -112,7 +100,6 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
 
     log!("provided contest");
     ContestProvider {
-        running_contest: contest_signal.into(),
         starting_contest,
         config_contest: config,
         new_contest_signal: new_contest_signal_ref,

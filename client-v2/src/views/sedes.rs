@@ -73,7 +73,7 @@ fn use_titulo(config: ConfigContest) -> Rc<Sede> {
 
 #[component]
 fn ProvideSede<'cs>(
-    contest: Signal<ContestFile>,
+    original_contest: Rc<ContestFile>,
     contest_signal: Rc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     config_contest: ConfigContest,
@@ -100,7 +100,7 @@ fn ProvideSede<'cs>(
         })
     };
 
-    view! { <Contest contest contest_signal panel_items timer titulo=titulo.into() sede=sede.into() /> }
+    view! { <Contest original_contest contest_signal panel_items timer titulo=titulo.into() sede=sede.into() /> }
 }
 
 #[component]
@@ -178,7 +178,7 @@ pub fn Sedes() -> impl IntoView {
                             contest_provider.as_ref().map(|provider|
                                 view!{
                                     <ProvideSede
-                                            contest=provider.running_contest
+                                            original_contest=Rc::new(provider.starting_contest.clone())
                                             contest_signal=provider.new_contest_signal.clone()
                                             panel_items=&provider.runs_panel_item_manager
                                             timer
