@@ -43,24 +43,27 @@ impl ContestSignal {
     ) {
         let update_set: HashSet<_> = team_logins.collect();
 
-        for team in fresh_contest.teams.values() {
+        // FIXME traverse redblack in order
+        let new_placements = fresh_contest
+            .teams
+            .values()
+            // .sorted_by_cached_key(|team| team.placement_global)
+            //.map(|team| team.login.clone())
+            .collect_vec();
+
+        for (i, team) in new_placements.iter().enumerate() {
+            let placement = i + 1;
             if let Some(team_signal) = self.teams.get(&team.login) {
                 if update_set.contains(team.login.as_str()) {
-                    team_signal.update(team);
+                    team_signal.update(team, placement);
                 } else {
-                    team_signal.placement_global.set(team.placement_global)
+                    team_signal.placement_global.set(placement)
                 }
             }
         }
 
-        self.team_global_placements.set(
-            fresh_contest
-                .teams
-                .values()
-                .sorted_by_cached_key(|team| team.placement_global)
-                .map(|team| team.login.clone())
-                .collect(),
-        );
+        self.team_global_placements
+            .set(new_placements.iter().map(|t| t.login.clone()).collect_vec());
     }
 
     pub fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {

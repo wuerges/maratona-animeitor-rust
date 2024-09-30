@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use data::{ProblemView, Score, Team};
-use leptos::{create_rw_signal, RwSignal, SignalUpdate};
+use leptos::{create_rw_signal, RwSignal, SignalSet, SignalUpdate};
 
 pub struct TeamSignal {
     pub login: String,
@@ -18,8 +18,6 @@ impl TeamSignal {
             login,
             escola,
             name,
-            placement: _,
-            placement_global,
             problems,
             id: _,
         } = team;
@@ -28,7 +26,7 @@ impl TeamSignal {
             login: login.clone(),
             name: name.clone(),
             escola: escola.clone(),
-            placement_global: create_rw_signal(*placement_global),
+            placement_global: create_rw_signal(1),
             score: create_rw_signal(team.score()),
             problems: letters
                 .iter()
@@ -40,10 +38,10 @@ impl TeamSignal {
         }
     }
 
-    pub fn update(&self, team: &Team) {
+    pub fn update(&self, team: &Team, position: usize) {
         let new_score = team.score();
-        self.score.update(|x| *x = new_score);
-        self.placement_global.update(|p| *p = team.placement_global);
+        self.score.set(new_score);
+        self.placement_global.set(position);
 
         for (letter, problem_view) in &self.problems {
             problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))

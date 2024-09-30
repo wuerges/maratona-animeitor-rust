@@ -34,7 +34,6 @@ impl RevelationDriver {
     pub fn reveal_step(&mut self) {
         self.revelation.apply_one_run_from_queue();
         self.step += 1;
-        self.revelation.contest.recalculate_placement()
     }
 
     pub fn peek(&self) -> Option<&String> {
@@ -53,7 +52,6 @@ impl RevelationDriver {
                 self.revelation.apply_one_run_from_queue();
                 self.step += 1;
             }
-            self.revelation.contest.recalculate_placement();
         }
     }
 
@@ -81,7 +79,6 @@ impl RevelationDriver {
             for _ in 0..self.step {
                 self.revelation.apply_one_run_from_queue();
             }
-            self.revelation.contest.recalculate_placement();
         }
     }
 }
@@ -107,7 +104,6 @@ impl Revelation {
             }
         }
         self.runs_queue = RunsQueue::setup_queue(&self.contest);
-        self.contest.recalculate_placement()
     }
 
     fn apply_one_run_from_queue(&mut self) {
@@ -120,7 +116,7 @@ impl Revelation {
             count += 1;
             self.apply_one_run_from_queue();
         }
-        self.contest.recalculate_placement();
+
         Ok(count)
     }
 }

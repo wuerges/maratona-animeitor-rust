@@ -79,18 +79,12 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 if !fresh_runs.is_empty() {
                     let runs = runs_file.sorted();
 
-                    let position = RunsPanelItemManager::position_in_last_submissions(&fresh_runs);
-
-                    for (i, r) in fresh_runs.iter().enumerate() {
+                    for r in &fresh_runs {
                         running_contest.apply_run(r);
-                        if i >= position {
-                            running_contest.recalculate_placement();
-                        }
-                        if let Some(panel_item) = running_contest.build_panel_item(&r).ok() {
+                        if let Some(panel_item) = running_contest.build_panel_item(r).ok() {
                             runs_panel_item_manager.push(panel_item)
                         }
                     }
-                    running_contest.recalculate_placement();
 
                     new_contest_signal.update_tuples(&runs, &running_contest);
                 }

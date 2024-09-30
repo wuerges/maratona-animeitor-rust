@@ -231,10 +231,6 @@ pub struct Team {
     pub escola: String,
     /// The name of the team.
     pub name: String,
-    /// Placement in the site.
-    pub placement: usize,
-    /// Global placement across all sites.
-    pub placement_global: usize,
     /// State of the problems that the team is solving.
     pub problems: BTreeMap<String, Problem>,
 
@@ -294,8 +290,6 @@ impl Team {
             login: login.to_string(),
             escola: escola.to_string(),
             name,
-            placement: 0,
-            placement_global: 0,
             problems: BTreeMap::new(),
             id: gen_id(),
         }
@@ -436,18 +430,6 @@ impl ContestFile {
         }
     }
 
-    pub fn recalculate_placement(&mut self) {
-        let mut teams = self.teams.iter_mut().map(|(_t, v)| v).collect::<Vec<_>>();
-        teams.sort_by_cached_key(|t| t.score());
-
-        for (i, t) in teams.iter_mut().enumerate() {
-            if t.placement_global != i + 1 {
-                t.placement_global = i + 1;
-                t.id = gen_id()
-            }
-        }
-    }
-
     pub fn dummy() -> Self {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
@@ -479,7 +461,7 @@ impl ContestFile {
 
         Ok(RunsPanelItem {
             id: run.id,
-            placement: team.placement_global,
+            placement: 0, //team.placement_global, // FIXME need to get the placement here
             escola: team.escola.clone(),
             team_name: team.name.clone(),
             team_login: run.team_login.clone(),
