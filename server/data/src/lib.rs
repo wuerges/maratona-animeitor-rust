@@ -4,6 +4,7 @@ pub mod remote_control;
 pub mod revelation;
 
 use configdata::Sede;
+use rudac::tree::RedBlack;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
 use std::collections::{btree_map, BTreeMap, HashSet};
@@ -368,6 +369,66 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
+/// A contest serialized in the api response.
+pub struct RunningContest {
+    /// Name of the contest.
+    pub contest_name: String,
+    /// Map of the teams.
+    pub teams: BTreeMap<String, Team>,
+    /// Current contest time.
+    pub current_time: i64,
+    /// Maximum time (contest ends).
+    pub maximum_time: i64,
+    /// Time that score gets frozen.
+    pub score_freeze_time: i64,
+    /// Penalty per wrong answer.
+    pub penalty_per_wrong_answer: i64,
+    /// Number of problems in the contest.
+    pub number_problems: usize,
+
+    pub team_placements: rudac::tree::RedBlack<Score, String>,
+}
+
+fn red_black_from_teams<'t>(teams: impl IntoIterator<Item = &'t Team>) -> RedBlack<Score, String> {
+    let mut red_black = RedBlack::init();
+
+    for team in teams.into_iter() {
+        red_black.insert(team.score(), team.login.clone());
+    }
+
+    red_black
+}
+
+impl Clone for RunningContest {
+    fn clone(&self) -> Self {
+        Self {
+            contest_name: self.contest_name.clone(),
+            teams: self.teams.clone(),
+            current_time: self.current_time.clone(),
+            maximum_time: self.maximum_time.clone(),
+            score_freeze_time: self.score_freeze_time.clone(),
+            penalty_per_wrong_answer: self.penalty_per_wrong_answer.clone(),
+            number_problems: self.number_problems.clone(),
+            team_placements: red_black_from_teams(self.teams.values()),
+        }
+    }
+}
+
+impl fmt::Debug for RunningContest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RunningContest")
+            .field("contest_name", &self.contest_name)
+            .field("teams", &self.teams)
+            .field("current_time", &self.current_time)
+            .field("maximum_time", &self.maximum_time)
+            .field("score_freeze_time", &self.score_freeze_time)
+            .field("penalty_per_wrong_answer", &self.penalty_per_wrong_answer)
+            .field("number_problems", &self.number_problems)
+            //.field("team_placements", &self.team_placements)
+            .finish()
+    }
+}
+
 pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 pub trait BelongsToContest {
@@ -380,6 +441,44 @@ impl BelongsToContest for Team {
             Some(sede) => sede.team_belongs(self),
             None => true,
         }
+    }
+}
+
+impl RunningContest {
+    pub fn apply_run(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run(r);
+        }
+    }
+
+    pub fn apply_run_frozen(&mut self, r: &RunTuple) {
+        if let Some(t) = self.teams.get_mut(&r.team_login) {
+            t.apply_run_frozen(r);
+        }
+    }
+
+    pub fn build_panel_item(&self, run: &RunTuple) -> Result<RunsPanelItem, ContestError> {
+        let team = self
+            .teams
+            .get(&run.team_login)
+            .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
+
+        let problem = team
+            .problems
+            .get(&run.prob)
+            .ok_or(ContestError::UnmatchedProblem(run.prob.clone()))?;
+
+        let view = problem.view();
+
+        Ok(RunsPanelItem {
+            id: run.id,
+            placement: 0, //team.placement_global, // FIXME need to get the placement here
+            escola: team.escola.clone(),
+            team_name: team.name.clone(),
+            team_login: run.team_login.clone(),
+            problem: run.prob.clone(),
+            problem_view: view,
+        })
     }
 }
 
@@ -434,40 +533,27 @@ impl ContestFile {
         Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
     }
 
-    pub fn apply_run(&mut self, r: &RunTuple) {
-        if let Some(t) = self.teams.get_mut(&r.team_login) {
-            t.apply_run(r);
+    pub fn into_running_contest(&self) -> RunningContest {
+        let Self {
+            contest_name,
+            teams,
+            current_time,
+            maximum_time,
+            score_freeze_time,
+            penalty_per_wrong_answer,
+            number_problems,
+        } = self;
+
+        RunningContest {
+            contest_name: contest_name.clone(),
+            teams: teams.clone(),
+            current_time: current_time.clone(),
+            maximum_time: maximum_time.clone(),
+            score_freeze_time: score_freeze_time.clone(),
+            penalty_per_wrong_answer: penalty_per_wrong_answer.clone(),
+            number_problems: number_problems.clone(),
+            team_placements: red_black_from_teams(teams.values()),
         }
-    }
-
-    pub fn apply_run_frozen(&mut self, r: &RunTuple) {
-        if let Some(t) = self.teams.get_mut(&r.team_login) {
-            t.apply_run_frozen(r);
-        }
-    }
-
-    pub fn build_panel_item(&self, run: &RunTuple) -> Result<RunsPanelItem, ContestError> {
-        let team = self
-            .teams
-            .get(&run.team_login)
-            .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
-
-        let problem = team
-            .problems
-            .get(&run.prob)
-            .ok_or(ContestError::UnmatchedProblem(run.prob.clone()))?;
-
-        let view = problem.view();
-
-        Ok(RunsPanelItem {
-            id: run.id,
-            placement: 0, //team.placement_global, // FIXME need to get the placement here
-            escola: team.escola.clone(),
-            team_name: team.name.clone(),
-            team_login: run.team_login.clone(),
-            problem: run.prob.clone(),
-            problem_view: view,
-        })
     }
 }
 

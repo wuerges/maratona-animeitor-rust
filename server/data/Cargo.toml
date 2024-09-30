@@ -12,6 +12,7 @@ thiserror.workspace = true
 tracing.workspace = true
 itertools.workspace = true
 regex.workspace = true
+rudac.workspace = true
 derivative = "2.2"
 
 [dev-dependencies]

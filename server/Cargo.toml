@@ -44,6 +44,7 @@ quickcheck_macros = "1"
 rstest = "0.21"
 futures-signals = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
+rudac = "0.8"
 
 data = { path = "data" }
 cli = { path = "cli" }

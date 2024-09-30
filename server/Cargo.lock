@@ -773,6 +773,7 @@ dependencies = [
  "quickcheck",
  "quickcheck_macros",
  "regex",
+ "rudac",
  "serde",
  "serde_json",
  "thiserror",
@@ -2347,6 +2348,12 @@ dependencies = [
  "syn 2.0.49",
  "unicode-ident",
 ]
+
+[[package]]
+name = "rudac"
+version = "0.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24cbfe1be4fe7e19f6a11444e5ae699fbfdcd3648c099d242a5d6be2dbb6ef64"
 
 [[package]]
 name = "rustc-demangle"

@@ -44,11 +44,13 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
     let original_contest_file = create_contest(query.clone()).await;
     let config = create_config(query.clone()).await;
     let original_contest_file = original_contest_file.filter_sede(&config.titulo.into_sede());
-    let starting_contest = original_contest_file.clone();
+    let starting_contest = original_contest_file.into_running_contest();
 
     log!("fetched original contest");
 
-    let new_contest_signal = Rc::new(ContestSignal::new(&original_contest_file));
+    let new_contest_signal = Rc::new(ContestSignal::new(
+        &original_contest_file.into_running_contest(),
+    ));
     let new_contest_signal_ref = new_contest_signal.clone();
     let runs_panel_item_manager = Rc::new(RunsPanelItemManager::new());
     let runs_panel_item_manager_ref = runs_panel_item_manager.clone();

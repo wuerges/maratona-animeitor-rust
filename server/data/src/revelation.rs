@@ -6,7 +6,7 @@ use std::collections::{BinaryHeap, HashSet};
 
 #[derive(Debug, Clone)]
 struct Revelation {
-    contest: ContestFile,
+    contest: RunningContest,
     runs: RunsFileContest,
     runs_queue: RunsQueue,
 }
@@ -21,7 +21,8 @@ pub struct RevelationDriver {
 impl RevelationDriver {
     pub fn new(contest: ContestFile, runs: RunsFile) -> Self {
         let runs = runs.into_runs_sede(&contest);
-        let mut revelation = Revelation::new(contest, runs);
+        let running_contest = contest.into_running_contest();
+        let mut revelation = Revelation::new(running_contest, runs);
         revelation.apply_all_runs_before_frozen();
 
         Self {
@@ -55,7 +56,7 @@ impl RevelationDriver {
         }
     }
 
-    pub fn contest(&self) -> &ContestFile {
+    pub fn contest(&self) -> &RunningContest {
         &self.revelation.contest
     }
 
@@ -84,7 +85,7 @@ impl RevelationDriver {
 }
 
 impl Revelation {
-    fn new(contest: ContestFile, mut runs: RunsFileContest) -> Self {
+    fn new(contest: RunningContest, mut runs: RunsFileContest) -> Self {
         let mut solved = HashSet::new();
         annotate_first_solved(&mut solved, runs.0.runs.values_mut());
 
@@ -145,7 +146,7 @@ impl RunsQueue {
         self.queue.peek().map(|s| &s.team_login)
     }
 
-    fn setup_queue(contest: &ContestFile) -> Self {
+    fn setup_queue(contest: &RunningContest) -> Self {
         let mut q = Self::empty();
         for team in contest.teams.values() {
             q.queue.push(team.score())
@@ -153,7 +154,7 @@ impl RunsQueue {
         q
     }
 
-    fn pop_run(&mut self, contest: &mut ContestFile) {
+    fn pop_run(&mut self, contest: &mut RunningContest) {
         let entry = self.queue.pop();
         match entry {
             None => (),

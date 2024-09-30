@@ -3,7 +3,7 @@ use std::{
     rc::Rc,
 };
 
-use data::{ContestFile, RunTuple};
+use data::{RunTuple, RunningContest};
 use itertools::Itertools;
 use leptos::{create_rw_signal, RwSignal, SignalSet};
 
@@ -15,7 +15,7 @@ pub struct ContestSignal {
 }
 
 impl ContestSignal {
-    pub fn new(contest_file: &ContestFile) -> Self {
+    pub fn new(contest_file: &RunningContest) -> Self {
         let letters = data::PROBLEM_LETTERS[..contest_file.number_problems]
             .chars()
             .map(|l| l.to_string())
@@ -39,14 +39,14 @@ impl ContestSignal {
     pub fn update<'a>(
         &self,
         team_logins: impl Iterator<Item = &'a str>,
-        fresh_contest: &ContestFile,
+        fresh_contest: &RunningContest,
     ) {
         let update_set: HashSet<_> = team_logins.collect();
 
         // FIXME traverse redblack in order
         let new_placements = fresh_contest
-            .teams
-            .values()
+            .team_placements
+            .keys()
             // .sorted_by_cached_key(|team| team.placement_global)
             //.map(|team| team.login.clone())
             .collect_vec();
@@ -66,7 +66,7 @@ impl ContestSignal {
             .set(new_placements.iter().map(|t| t.login.clone()).collect_vec());
     }
 
-    pub fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &ContestFile) {
+    pub fn update_tuples(&self, runs: &[RunTuple], fresh_contest: &RunningContest) {
         self.update(
             runs.iter().map(|run| run.team_login.as_str()),
             fresh_contest,
