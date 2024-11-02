@@ -1,0 +1,26 @@
+[titulo]
+name = "Latin America"
+codes = [""]
+
+[[sedes]]
+name = "Latin America"
+codes = [""]
+
+[[sedes]]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+[[sedes]]
+name = "Bolivia"
+codes = ["teamsobo"]
+
+[[sedes]]
+codes = ["teammx"]
+name = "Mexico"
+
+[[sedes]]
+codes = ["teamca"]
+name = "Centro America"

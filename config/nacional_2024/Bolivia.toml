@@ -1,0 +1,77 @@
+[titulo]
+name = "Bolivia"
+codes = ["teamsobo"]
+
+[[sedes]]
+name = "Bolivia"
+codes = ["sobo"]
+
+# soboco:Cobija
+[[sedes]]
+name = "Cobija"
+codes = ["soboco"]
+
+# sobolp:La Paz
+[[sedes]]
+name = "La Paz"
+codes = ["sobolp"]
+
+# sobobe:Bermejo
+[[sedes]]
+name = "Bermejo"
+codes = ["sobobe"]
+
+# sobopo:Potosí
+[[sedes]]
+name = "Potosí"
+codes = ["sobopo"]
+
+# soboll:Llallagua
+[[sedes]]
+name = "Llallagua"
+codes = ["soboll"]
+
+# sobotu:Tupiza
+[[sedes]]
+name = "Tupiza"
+codes = ["sobotu"]
+
+# soboya:Yacuiba
+[[sedes]]
+name = "Yacuiba"
+codes = ["soboya"]
+
+# sobota:Tarija
+[[sedes]]
+name = "Tarija"
+codes = ["sobota"]
+
+# sobosu:Sucre
+[[sedes]]
+name = "Sucre"
+codes = ["sobosu"]
+
+# soboea:El Alto
+[[sedes]]
+name = "El Alto"
+codes = ["soboea"]
+
+# sobotr:Trinidad
+[[sedes]]
+name = "Trinidad"
+codes = ["sobotr"]
+
+# soboor:Oruro
+[[sedes]]
+name = "Oruro"
+codes = ["soboor"]
+
+# sobosc:Santa Cruz
+[[sedes]]
+name = "Santa Cruz"
+codes = ["sobosc"]
+
+# soboch:Cochabamba
+[[sedes]]
+name = "Cochabamba"
+codes = ["soboch"]

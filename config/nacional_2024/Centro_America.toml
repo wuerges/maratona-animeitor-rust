@@ -1,0 +1,51 @@
+[titulo]
+name = "Centro America"
+codes = ["teamca"]
+
+[[sedes]]
+codes = ["teamca"]
+name = "Centro America"
+
+[[sedes]]
+codes = ["cacral"]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+
+[[sedes]]
+name = 'Universidad Centroamericana "José Simeón Cañas"'
+codes = ["cacejc"]
+
+[[sedes]]
+codes = ["cacrsp"]
+name = "Universidad de Costa Rica sede San Pedro"
+
+[[sedes]]
+codes = ["caunrl"]
+name = "Universidad Rafael Landívar"
+
+[[sedes]]
+codes = ["caurlq"]
+name = "Universidad Rafael Landívar sede Quetzaltenango"
+
+[[sedes]]
+codes = ["caunfg"]
+name = "Universidad Francisco Gavidia"
+
+[[sedes]]
+codes = ["caundb"]
+name = "Universidad Don Bosco"
+
+[[sedes]]
+codes = ["caunor"]
+name = "Universidad de Oriente"
+
+[[sedes]]
+codes = ["caunga"]
+name = "Universidad Galileo"
+
+[[sedes]]
+codes = ["cavagt"]
+name = "Universidad del Valle GT"
+
+[[sedes]]
+codes = ["caitgu"]
+name = "Universidad del Itsmo de Guatemala"
