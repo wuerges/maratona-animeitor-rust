@@ -1,26 +1,71 @@
 [titulo]
 name = "Latin America"
-codes = [""]
+codes = ["team"]
 
 [[sedes]]
 name = "Latin America"
 codes = [""]
 
 [[sedes]]
-name = "Brasil"
-codes = ["teambr"]
-ouro = 4
-prata = 8
-bronze = 12
+codes = ["24brbr"]
+name = "Brazilian Finals"
 
 [[sedes]]
+codes = ["24cacr"]
+name = "Costa Rica Site"
+
+[[sedes]]
+codes = ["24caes"]
+name = "El Salvador Site"
+
+[[sedes]]
+codes = ["24cagt"]
+name = "Guatemala Site"
+
+[[sedes]]
+codes = ["24cbab"]
+name = "Antigua & Barbuda (Regional Site)"
+
+[[sedes]]
+codes = ["24cbcu"]
+name = "Cuba (Regional Site)"
+
+[[sedes]]
+codes = ["24cbdr"]
+name = "Dominican Republic (Regional Site)"
+
+[[sedes]]
+codes = ["24cbpr"]
+name = "Puerto Rico (Regional Site)"
+
+[[sedes]]
+codes = ["24cbtt"]
+name = "Trinidad & Tobago (Regional Site)"
+
+[[sedes]]
+codes = ["24mxmx"]
+name = "Mexico Site"
+
+[[sedes]]
+codes = ["24noco"]
+name = "Colombia"
+
+[[sedes]]
+codes = ["24novz"]
+name = "Venezuela"
+
+[[sedes]]
+codes = ["24soar"]
+name = "Argentina"
+
+[[sedes]]
+codes = ["24sobo"]
 name = "Bolivia"
-codes = ["teamsobo"]
 
 [[sedes]]
-codes = ["teammx"]
-name = "Mexico"
+codes = ["24soch"]
+name = "Chile"
 
 [[sedes]]
-codes = ["teamca"]
-name = "Centro America"
+codes = ["24sopa", "24sope"]
+name = "Peru"

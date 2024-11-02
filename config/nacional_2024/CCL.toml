@@ -3,17 +3,13 @@ name = "CCL"
 codes = ["ccl"]
 
 [[sedes]]
-codes = ["ccl"]
 name = "CCL"
+codes = ["ccl"]
 
 [[sedes]]
 name = "CCL Brasil"
-codes = ["cclbr"]
+codes = ["brccl"]
 
 [[sedes]]
-name = "CCL Bolivia"
-codes = ["cclsobo"]
-
-[[sedes]]
-codes = ["cclca"]
-name = "CCL Centro America"
+name = "Invitados - Café con Leche"
+codes = ["24mxccl"]
