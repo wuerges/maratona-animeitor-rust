@@ -1,8 +1,8 @@
 include secret_env
 
 BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
-# SECRET=./config/regional_2024/Secrets.toml
-SECRET=./config/regional_2024/Secrets_secret.toml
+# SECRET=./config/nacional_2024/Secrets.toml
+SECRET=./config/nacional_2024/Secrets_secret.toml
 PUBLIC_PORT=80
 SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
 
@@ -52,29 +52,29 @@ run-standalone:
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
 		-v ./client-v2/naquadah: \
-		--sedes ./config/regional_2024/CCL.toml:ccl \
-		--sedes ./config/regional_2024/CCL_Bolivia.toml:ccl-bolivia \
-		--sedes ./config/regional_2024/CCL_Brasil.toml:ccl-brasil \
-		--sedes ./config/regional_2024/CCL_Centro_America.toml:ccl-centro \
-		--sedes ./config/regional_2024/LA.toml: \
-		--sedes ./config/regional_2024/Brasil.toml:brasil \
-		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
-		--sedes ./config/regional_2024/Centro_America.toml:centro \
-		--sedes ./config/regional_2024/Mexico.toml:mexico \
+		--sedes ./config/nacional_2024/CCL.toml:ccl \
+		--sedes ./config/nacional_2024/CCL_Bolivia.toml:ccl-bolivia \
+		--sedes ./config/nacional_2024/CCL_Brasil.toml:ccl-brasil \
+		--sedes ./config/nacional_2024/CCL_Centro_America.toml:ccl-centro \
+		--sedes ./config/nacional_2024/LA.toml: \
+		--sedes ./config/nacional_2024/Brasil.toml:brasil \
+		--sedes ./config/nacional_2024/Bolivia.toml:bolivia \
+		--sedes ./config/nacional_2024/Centro_America.toml:centro \
+		--sedes ./config/nacional_2024/Mexico.toml:mexico \
 		--secret ${SECRET} ${BOCA_URL} \
 	)
 
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
 		--prefix ${PREFIX} \
-		--sedes ./config/regional_2024/CCL.toml:ccl \
-		--sedes ./config/regional_2024/CCL_Bolivia.toml:ccl-bolivia \
-		--sedes ./config/regional_2024/CCL_Brasil.toml:ccl-brasil \
-		--sedes ./config/regional_2024/CCL_Centro_America.toml:ccl-centro \
-		--sedes ./config/regional_2024/LA.toml: \
-		--sedes ./config/regional_2024/Brasil.toml:brasil \
-		--sedes ./config/regional_2024/Bolivia.toml:bolivia \
-		--sedes ./config/regional_2024/Centro_America.toml:centro \
-		--sedes ./config/regional_2024/Mexico.toml:mexico \
+		--sedes ./config/nacional_2024/CCL.toml:ccl \
+		--sedes ./config/nacional_2024/CCL_Bolivia.toml:ccl-bolivia \
+		--sedes ./config/nacional_2024/CCL_Brasil.toml:ccl-brasil \
+		--sedes ./config/nacional_2024/CCL_Centro_America.toml:ccl-centro \
+		--sedes ./config/nacional_2024/LA.toml: \
+		--sedes ./config/nacional_2024/Brasil.toml:brasil \
+		--sedes ./config/nacional_2024/Bolivia.toml:bolivia \
+		--sedes ./config/nacional_2024/Centro_America.toml:centro \
+		--sedes ./config/nacional_2024/Mexico.toml:mexico \
 		--secret ${SECRET} \
 	)
