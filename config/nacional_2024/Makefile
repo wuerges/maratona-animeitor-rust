@@ -49,35 +49,32 @@ rebuild-release-server:
 		--target x86_64-unknown-linux-musl --features vendored \
 		--manifest-path server/Cargo.toml
 
+
+SEDES_PARS=\
+	--sedes ./config/nacional_2024/Brasil_CCL.toml:brasil-ccl \
+	--sedes ./config/nacional_2024/Brasil.toml:brasil \
+	--sedes ./config/nacional_2024/Caribe.toml:caribe \
+	--sedes ./config/nacional_2024/CCL.toml:ccl \
+	--sedes ./config/nacional_2024/Central.toml:central \
+	--sedes ./config/nacional_2024/LatAm.toml: \
+	--sedes ./config/nacional_2024/Mexico.toml:mexico \
+	--sedes ./config/nacional_2024/NO.toml:north \
+	--sedes ./config/nacional_2024/SO.toml:south
+
+
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
 		-v ./client-v2/naquadah: \
-		--sedes ./config/nacional_2024/CCL.toml:ccl \
-		--sedes ./config/nacional_2024/CCL_Bolivia.toml:ccl-bolivia \
-		--sedes ./config/nacional_2024/CCL_Brasil.toml:ccl-brasil \
-		--sedes ./config/nacional_2024/CCL_Centro_America.toml:ccl-centro \
-		--sedes ./config/nacional_2024/LA.toml: \
-		--sedes ./config/nacional_2024/Brasil.toml:brasil \
-		--sedes ./config/nacional_2024/Bolivia.toml:bolivia \
-		--sedes ./config/nacional_2024/Centro_America.toml:centro \
-		--sedes ./config/nacional_2024/Mexico.toml:mexico \
+		${SEDES_PARS} \
 		--secret ${SECRET} ${BOCA_URL} \
 	)
 
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
 		--prefix ${PREFIX} \
-		--sedes ./config/nacional_2024/CCL.toml:ccl \
-		--sedes ./config/nacional_2024/CCL_Bolivia.toml:ccl-bolivia \
-		--sedes ./config/nacional_2024/CCL_Brasil.toml:ccl-brasil \
-		--sedes ./config/nacional_2024/CCL_Centro_America.toml:ccl-centro \
-		--sedes ./config/nacional_2024/LA.toml: \
-		--sedes ./config/nacional_2024/Brasil.toml:brasil \
-		--sedes ./config/nacional_2024/Bolivia.toml:bolivia \
-		--sedes ./config/nacional_2024/Centro_America.toml:centro \
-		--sedes ./config/nacional_2024/Mexico.toml:mexico \
+		${SEDES_PARS} \
 		--secret ${SECRET} \
 	)

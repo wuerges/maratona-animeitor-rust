@@ -1,15 +1,31 @@
 [titulo]
-name = "CCL"
+name = "Latin America - Invitados - Café con Leche"
 codes = ["ccl"]
 
 [[sedes]]
-name = "CCL"
+name = "Latin America - Invitados - Café con Leche"
 codes = ["ccl"]
 
 [[sedes]]
-name = "CCL Brasil"
-codes = ["brccl"]
+codes = ["br"]
+name = "CCL - Brazilian Finals"
 
 [[sedes]]
-name = "Invitados - Café con Leche"
-codes = ["mxccl"]
+codes = ["ca"]
+name = "CCL - Central America Finals"
+
+[[sedes]]
+name = "CCL - Caribbean Finals"
+codes = ["cb"]
+
+[[sedes]]
+name = "CCL - Mexico Finals"
+codes = ["mxmx"]
+
+[[sedes]]
+name = "CCL - South America - North Finals"
+codes = ["no"]
+
+[[sedes]]
+name = "CCL - South America - South Finals"
+codes = ["so"]
