@@ -11,61 +11,21 @@ codes = ["teambrbr"]
 name = "Brazilian Finals"
 
 [[sedes]]
-codes = ["teamcacr"]
-name = "Costa Rica Site"
+codes = ["teamca"]
+name = "Central America Finals"
 
 [[sedes]]
-codes = ["teamcaes"]
-name = "El Salvador Site"
+name = "Caribbean Finals"
+codes = ["teamcb"]
 
 [[sedes]]
-codes = ["teamcagt"]
-name = "Guatemala Site"
-
-[[sedes]]
-codes = ["teamcbab"]
-name = "Antigua & Barbuda (Regional Site)"
-
-[[sedes]]
-codes = ["teamcbcu"]
-name = "Cuba (Regional Site)"
-
-[[sedes]]
-codes = ["teamcbdr"]
-name = "Dominican Republic (Regional Site)"
-
-[[sedes]]
-codes = ["teamcbpr"]
-name = "Puerto Rico (Regional Site)"
-
-[[sedes]]
-codes = ["teamcbtt"]
-name = "Trinidad & Tobago (Regional Site)"
-
-[[sedes]]
+name = "Mexico Finals"
 codes = ["teammxmx"]
-name = "Mexico Site"
 
 [[sedes]]
-codes = ["teamnoco"]
-name = "Colombia"
+name = "South America - North Finals"
+codes = ["teamno"]
 
 [[sedes]]
-codes = ["teamnovz"]
-name = "Venezuela"
-
-[[sedes]]
-codes = ["teamsoar"]
-name = "Argentina"
-
-[[sedes]]
-codes = ["teamsobo"]
-name = "Bolivia"
-
-[[sedes]]
-codes = ["teamsoch"]
-name = "Chile"
-
-[[sedes]]
-codes = ["teamsopa", "teamsope"]
-name = "Peru"
+name = "South America - South Finals"
+codes = ["teamso"]
