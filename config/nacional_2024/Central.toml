@@ -1,0 +1,19 @@
+[titulo]
+name = "Central America Finals"
+codes = ["teamca"]
+
+[[sedes]]
+name = "Central America Finals"
+codes = ["teamca"]
+
+[[sedes]]
+codes = ["teamcacr"]
+name = "Costa Rica Site"
+
+[[sedes]]
+codes = ["teamcaes"]
+name = "El Salvador Site"
+
+[[sedes]]
+codes = ["teamcagt"]
+name = "Guatemala Site"
