@@ -1,6 +1,5 @@
 include secret_env
 
-BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 BOCA_URL ?=./tests/inputs/pda-2024/pda-2024.zip
 SECRET=./config/latam_2024_2025/Secrets_secret.toml
 PUBLIC_PORT ?=80

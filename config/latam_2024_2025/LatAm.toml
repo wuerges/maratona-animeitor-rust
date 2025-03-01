@@ -6,26 +6,26 @@ codes = ["team"]
 name = "Latin America"
 codes = [""]
 
-[[sedes]]
-codes = ["teambrbr"]
-name = "Brazilian Finals"
+# [[sedes]]
+# codes = ["teambrbr"]
+# name = "Brazilian Finals"
 
-[[sedes]]
-codes = ["teamca"]
-name = "Central America Finals"
+# [[sedes]]
+# codes = ["teamca"]
+# name = "Central America Finals"
 
-[[sedes]]
-name = "Caribbean Finals"
-codes = ["teamcb"]
+# [[sedes]]
+# name = "Caribbean Finals"
+# codes = ["teamcb"]
 
-[[sedes]]
-name = "Mexico Finals"
-codes = ["teammxmx"]
+# [[sedes]]
+# name = "Mexico Finals"
+# codes = ["teammxmx"]
 
-[[sedes]]
-name = "South America - North Finals"
-codes = ["teamno"]
+# [[sedes]]
+# name = "South America - North Finals"
+# codes = ["teamno"]
 
-[[sedes]]
-name = "South America - South Finals"
-codes = ["teamso"]
+# [[sedes]]
+# name = "South America - South Finals"
+# codes = ["teamso"]
