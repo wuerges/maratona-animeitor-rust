@@ -3,7 +3,7 @@ include secret_env
 BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 BOCA_URL ?=./tests/inputs/pda-2024/pda-2024.zip
 SECRET=./config/latam_2024_2025/Secrets_secret.toml
-PUBLIC_PORT=80
+PUBLIC_PORT ?=80
 SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
 
 # PREFIX=http://localhost:8000
