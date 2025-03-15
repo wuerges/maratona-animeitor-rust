@@ -4,7 +4,7 @@ pub mod metrics;
 mod remote_control;
 mod volumes;
 
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::*;
@@ -15,6 +15,7 @@ use remote_control::remote_control_ws;
 use service::{
     app_config::AppConfig, dbupdate_v2::spawn_db_update, errors::ServiceResult, http::HttpConfig,
 };
+use tokio::sync::RwLock;
 use tracing_actix_web::TracingLogger;
 use volumes::configure_volumes;
 
@@ -28,7 +29,7 @@ pub async fn serve_config(
 ) -> ServiceResult<()> {
     let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url)?;
     let config = Arc::new(config);
-    let (sender, _) = tokio::sync::broadcast::channel(100);
+    let remote_control = Arc::new(RwLock::new(HashMap::new()));
 
     Ok(HttpServer::new(move || {
         App::new()
@@ -39,7 +40,7 @@ pub async fn serve_config(
                 runs_tx: runs_tx.clone(),
                 time_tx: time_tx.clone(),
                 config: config.clone(),
-                remote_control: sender.clone(),
+                remote_control: remote_control.clone(),
             }))
             .service(
                 web::scope("api")

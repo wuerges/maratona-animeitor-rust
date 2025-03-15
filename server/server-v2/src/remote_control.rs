@@ -26,6 +26,11 @@ async fn remote_control_ws(
 
 pub type ControlSender = Sender<ConnectionControlMessage>;
 
+pub(crate) fn create_sender() -> ControlSender {
+    let (sender, _) = tokio::sync::broadcast::channel(100);
+    sender
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConnectionControlMessage {
     request_id: u64,
@@ -110,8 +115,14 @@ async fn run_remote_control_ws(
     key: String,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
-    let mut sender = data.remote_control.clone();
-    let rec = data.remote_control.subscribe();
+
+    let sender = {
+        let mut guard = data.remote_control.write().await;
+        guard.entry(key).or_insert_with(|| create_sender()).clone()
+    };
+
+    let mut sender = sender.clone();
+    let rec = sender.subscribe();
 
     let request_id = rand::random();
     tracing::info!(?request_id, "established remote control");
