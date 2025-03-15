@@ -1,0 +1,12 @@
+--2024-11-09 20:49:49--  https://global.naquadah.com.br/limaojapones/admin/report/webcast.php?webcastcode=finaljampa
+Resolving global.naquadah.com.br (global.naquadah.com.br)... 104.236.91.36
+Connecting to global.naquadah.com.br (global.naquadah.com.br)|104.236.91.36|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [application/force-download]
+Saving to: ‘webcast.php?webcastcode=finaljampa.1’
+
+     0K .......... .......... .......... .......... ..........  169K
+    50K ......                                                 35.8M=0.3s
+
+2024-11-09 20:49:51 (190 KB/s) - ‘webcast.php?webcastcode=finaljampa.1’ saved [57424]
+
