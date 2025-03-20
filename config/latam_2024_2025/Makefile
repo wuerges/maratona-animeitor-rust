@@ -1,5 +1,7 @@
 include secret_env
 
+BOCA_URL=https://global.naquadah.com.br/boca/admin/report/webcast.php?webcastcode=globalMH2B54
+
 BOCA_URL ?=./tests/inputs/pda-2024/pda-2024.zip
 SECRET=./config/latam_2024_2025/Secrets_secret.toml
 PUBLIC_PORT ?=80
