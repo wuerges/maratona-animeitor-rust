@@ -30,7 +30,7 @@ docker compose run printurls
 
 Animeitor can be configured using a few environment variables, than can be set in the `.env` file:
 
-```bash filename=.env
+```bash
 # Path to the file that contains the secrets used as credentials for the Reveleitor.
 # There are many examples in the ./config/ folder
 SECRET=./config/basic_secret.toml
@@ -54,10 +54,12 @@ PUBLIC_PORT=8000
 
 # Customizing animeitor appearance
 
-There is a special CSS file that is included in the build, and mounted by docker.
-This file can be edited in real time and overwrites the CSS from animeitor.
+There is a special CSS file at `client-v2/static/user-styles.css`.
+This file included in the build and mounted by docker.
+It can be edited in real time and overwrites the CSS from animeitor
+(Reload the browser with `ctrl+shift+R` to see the changes once you edit).
 
-```css filename=client-v2/static/user-styles.css
+```css
 /* This file is intended to house user CSS */
 /* It will not be included in the minimizer, but it will be used in the app */
 
