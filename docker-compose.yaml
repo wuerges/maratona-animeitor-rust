@@ -1,6 +1,6 @@
 services:
   printurls:
-    image: wuerges/animeitor-v2:latest
+    image: wuerges/animeitor:latest
     entrypoint: "/printurls"
     command: "--prefix ${PREFIX} --sedes ${SEDES}: --secret ${SECRET}"
     volumes:
@@ -8,8 +8,8 @@ services:
     build:
       context: .
 
-  animeitor-v2:
-    image: wuerges/animeitor-v2:latest
+  animeitor:
+    image: wuerges/animeitor:latest
     command: "-v /photos:photos -v /sounds:sounds -v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
     volumes:
       - ./tests:/tests
@@ -25,7 +25,7 @@ services:
       - ${PUBLIC_PORT}:8000
 
     environment:
-      - RUST_LOG=debug
+      - RUST_LOG=info
 
     build:
       context: .
