@@ -79,11 +79,19 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 if !fresh_runs.is_empty() {
                     let runs = runs_file.sorted();
 
-                    let position = RunsPanelItemManager::position_in_last_submissions(&fresh_runs);
+                    let mut included_in_panel = HashSet::new();
 
-                    for (i, r) in fresh_runs.iter().enumerate() {
+                    for r in fresh_runs.iter().rev() {
+                        if included_in_panel.len() <= RunsPanelItemManager::MAX {
+                            included_in_panel.insert(r.id);
+                        } else {
+                            break;
+                        }
+                    }
+
+                    for r in fresh_runs.iter() {
                         running_contest.apply_run(r);
-                        if i >= position {
+                        if included_in_panel.contains(&r.id) {
                             running_contest.recalculate_placement();
                         }
                         if let Some(panel_item) = running_contest.build_panel_item(&r).ok() {
