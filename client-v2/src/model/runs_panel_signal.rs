@@ -80,17 +80,4 @@ impl RunsPanelItemManager {
             }
         }
     }
-
-    pub fn position_in_last_submissions(runs: &Vec<RunTuple>) -> usize {
-        let mut non_waits = 0;
-        for (i, run) in runs.iter().enumerate().rev() {
-            if !run.answer.is_wait() {
-                non_waits += 1;
-            }
-            if non_waits > Self::MAX + 1 {
-                return i;
-            }
-        }
-        return 0;
-    }
 }
