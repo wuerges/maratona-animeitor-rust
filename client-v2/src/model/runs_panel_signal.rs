@@ -69,15 +69,15 @@ impl RunsPanelItemManager {
     }
 
     pub fn push(&self, new_item: RunsPanelItem) {
-        if self.was_pushed_before(&new_item) {
-            if let Some(item) = self.find_item_in_panel(&new_item) {
-                item.set(Some(new_item));
-            }
+        if let Some(item) = self.find_item_in_panel(&new_item) {
+            item.set(Some(new_item));
         } else {
-            self.push_ids.update_untracked(|x| {
-                x.insert(new_item.id);
-            });
-            self.append(new_item)
+            if !self.was_pushed_before(&new_item) {
+                self.push_ids.update_untracked(|x| {
+                    x.insert(new_item.id);
+                });
+                self.append(new_item);
+            }
         }
     }
 
