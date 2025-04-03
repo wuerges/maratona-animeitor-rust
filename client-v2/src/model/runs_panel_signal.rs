@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use data::{RunTuple, RunsPanelItem};
+use data::RunsPanelItem;
 use itertools::Itertools;
 use leptos::{
     create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalUpdateUntracked,
