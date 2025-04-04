@@ -8,7 +8,7 @@ pub trait Enabler {
 }
 pub trait Compress {
     fn key(&self) -> String;
-    fn position(&self) -> Signal<u64>;
+    fn position(&self) -> Signal<usize>;
     fn view_in_position(self, position: Signal<Option<usize>>) -> impl IntoView;
 }
 

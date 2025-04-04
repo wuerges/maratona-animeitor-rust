@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use data::{configdata::Sede, ContestFile, TimerData};
 use itertools::Itertools;
@@ -10,6 +10,7 @@ use crate::{
         team_signal::TeamSignal,
     },
     views::{
+        compress_placements::compress_placements,
         placement::Placement,
         problem::Problem,
         team_media::{use_global_photo_state, PhotoState, TeamMedia},
@@ -18,6 +19,8 @@ use crate::{
         timer::Timer,
     },
 };
+
+use super::compress_placements::{Compress, Enabler};
 
 #[component]
 fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> impl IntoView {
@@ -140,6 +143,50 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: &'static str) -> imp
     }
 }
 
+impl Enabler for Rc<Sede> {
+    fn is_enabled(&self, t: &str) -> bool {
+        self.team_belongs_str(t)
+    }
+}
+
+struct ContestPanelLineWrap {
+    titulo: Signal<Option<Rc<Sede>>>,
+    team: Rc<TeamSignal>,
+    sede: Signal<Rc<Sede>>,
+    show_photo: RwSignal<PhotoState>,
+}
+
+impl Compress for ContestPanelLineWrap {
+    fn key(&self) -> String {
+        self.team.login.clone()
+    }
+
+    fn position(&self) -> Signal<usize> {
+        self.team.placement_global.into()
+    }
+
+    fn view_in_position(self, position: Signal<Option<usize>>) -> impl IntoView {
+        let Self {
+            titulo,
+            team,
+            sede,
+            show_photo,
+        } = self;
+        let local_placement = move || position.get().map(|p| p + 1);
+        let p_center = || None;
+        view! {
+            <ContestPanelLine
+                titulo
+                p_center=p_center.into()
+                local_placement=local_placement.into_signal()
+                team=team.clone()
+                sede
+                show_photo
+            />
+        }
+    }
+}
+
 #[component]
 pub fn ContestPanel(
     original_contest: Rc<ContestFile>,
@@ -154,56 +201,68 @@ pub fn ContestPanel(
 
     let show_photo = use_global_photo_state();
 
-    let placement_contest = contest_signal.clone();
+    // let placements = create_memo(move |_| {
+    //     sede.with(|sede| {
+    //         placement_contest.team_global_placements.with(|p| {
+    //             p.iter()
+    //                 .filter(|team| sede.team_belongs_str(team))
+    //                 .enumerate()
+    //                 .map(|(i, login)| (login.clone(), i + 1))
+    //                 .collect::<HashMap<String, usize>>()
+    //         })
+    //     })
+    // });
 
-    let placements = create_memo(move |_| {
-        sede.with(|sede| {
-            placement_contest.team_global_placements.with(|p| {
-                p.iter()
-                    .filter(|team| sede.team_belongs_str(team))
-                    .enumerate()
-                    .map(|(i, login)| (login.clone(), i + 1))
-                    .collect::<HashMap<String, usize>>()
+    // let p_center = (move || {
+    //     placements.with(|placements| {
+    //         center.with(|center| {
+    //             center
+    //                 .as_ref()
+    //                 .and_then(|center| placements.get(center).copied())
+    //         })
+    //     })
+    // })
+    // .into_signal();
+
+    // let panel_lines = contest_signal
+    //     .teams
+    //     .values()
+    //     .map(move |team| {
+    //         let login = team.login.clone();
+    //         let local_placement =
+    //             (move || placements.with(|ps| ps.get(&login).copied())).into_signal();
+    //         view! {
+    //             <ContestPanelLine
+    //                 titulo
+    //                 p_center=p_center.into()
+    //                 local_placement
+    //                 team=team.clone()
+    //                 sede
+    //                 show_photo
+    //             />
+    //         }
+    //     })
+    //     .collect_view();
+
+    let panel_lines = compress_placements(
+        contest_signal
+            .teams
+            .values()
+            .map(|team| ContestPanelLineWrap {
+                titulo,
+                team: team.clone(),
+                sede: sede.clone(),
+                show_photo,
             })
-        })
-    });
-
-    let p_center = (move || {
-        placements.with(|placements| {
-            center.with(|center| {
-                center
-                    .as_ref()
-                    .and_then(|center| placements.get(center).copied())
-            })
-        })
-    })
-    .into_signal();
-
-    let panel_lines = contest_signal
-        .teams
-        .values()
-        .map(move |team| {
-            let login = team.login.clone();
-            let local_placement =
-                (move || placements.with(|ps| ps.get(&login).copied())).into_signal();
-            view! {
-                <ContestPanelLine
-                    titulo
-                    p_center=p_center.into()
-                    local_placement
-                    team=team.clone()
-                    sede
-                    show_photo
-                />
-            }
-        })
-        .collect_view();
+            .collect_vec(),
+        sede.clone(),
+    );
 
     view! {
         <div class="runstable">
             <div class="run_box" style:top={move || {
-                log!("center {:?} {:?}", center.get(), p_center.get());
-                cell_top(0, &p_center.get())}}>
+                log!("center {:?}", center.get());
+                cell_top(0, &None)}}>
                 <ContestPanelHeader sede all_problems />
             </div>
             {panel_lines}
