@@ -9,10 +9,18 @@ pub trait Enabler {
 pub trait Compress {
     fn key(&self) -> String;
     fn position(&self) -> Signal<usize>;
-    fn view_in_position(self, position: Signal<Option<usize>>) -> impl IntoView;
+    fn view_in_position(
+        self,
+        position: Signal<Option<usize>>,
+        center: Signal<Option<usize>>,
+    ) -> impl IntoView;
 }
 
-pub fn compress_placements<T, E>(children: Vec<T>, enabler: Signal<E>) -> impl IntoView
+pub fn compress_placements<T, E>(
+    children: Vec<T>,
+    enabler: Signal<E>,
+    center: Signal<Option<String>>,
+) -> impl IntoView
 where
     T: Compress + 'static,
     E: Enabler,
@@ -22,24 +30,35 @@ where
         .map(|c| (c.key(), c.position()))
         .collect_vec();
 
-    let placements = create_memo(move |_| {
+    let placements = create_memo(move |_: Option<&HashMap<String, usize>>| {
         enabler.with(|e| {
             signals
                 .iter()
                 .filter(|(key, _position)| e.is_enabled(key))
+                .sorted_by_cached_key(|(_key, position)| position.get())
                 .enumerate()
-                .sorted_by_cached_key(|(_i, (_key, position))| position.get())
-                .map(|(i, (key, _position))| (key.clone(), i))
+                .map(|(i, (key, _position))| (key.clone(), i + 1))
                 .collect()
         })
     });
 
-    inner_compress_placements(children, placements.into())
+    let p_center = move || {
+        placements.with(|placements| {
+            center.with(|center| {
+                let center = center.as_ref()?;
+                let position = placements.get(center)?;
+                Some(*position)
+            })
+        })
+    };
+
+    inner_compress_placements(children, placements.into(), p_center.into())
 }
 
 fn inner_compress_placements<T>(
     children: Vec<T>,
     placements: Signal<HashMap<String, usize>>,
+    center: Signal<Option<usize>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
@@ -49,7 +68,7 @@ where
         .map(|c| (c.key(), c))
         .map(|(key, c)| {
             let signal = create_memo(move |_| placements.with(|p| p.get(&key).copied()));
-            c.view_in_position(signal.into())
+            c.view_in_position(signal.into(), center)
         })
         .collect_view()
 }

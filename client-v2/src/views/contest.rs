@@ -165,20 +165,22 @@ impl Compress for ContestPanelLineWrap {
         self.team.placement_global.into()
     }
 
-    fn view_in_position(self, position: Signal<Option<usize>>) -> impl IntoView {
+    fn view_in_position(
+        self,
+        position: Signal<Option<usize>>,
+        center: Signal<Option<usize>>,
+    ) -> impl IntoView {
         let Self {
             titulo,
             team,
             sede,
             show_photo,
         } = self;
-        let local_placement = move || position.get().map(|p| p + 1);
-        let p_center = || None;
         view! {
             <ContestPanelLine
                 titulo
-                p_center=p_center.into()
-                local_placement=local_placement.into_signal()
+                p_center=center
+                local_placement=position
                 team=team.clone()
                 sede
                 show_photo
@@ -201,49 +203,6 @@ pub fn ContestPanel(
 
     let show_photo = use_global_photo_state();
 
-    // let placements = create_memo(move |_| {
-    //     sede.with(|sede| {
-    //         placement_contest.team_global_placements.with(|p| {
-    //             p.iter()
-    //                 .filter(|team| sede.team_belongs_str(team))
-    //                 .enumerate()
-    //                 .map(|(i, login)| (login.clone(), i + 1))
-    //                 .collect::<HashMap<String, usize>>()
-    //         })
-    //     })
-    // });
-
-    // let p_center = (move || {
-    //     placements.with(|placements| {
-    //         center.with(|center| {
-    //             center
-    //                 .as_ref()
-    //                 .and_then(|center| placements.get(center).copied())
-    //         })
-    //     })
-    // })
-    // .into_signal();
-
-    // let panel_lines = contest_signal
-    //     .teams
-    //     .values()
-    //     .map(move |team| {
-    //         let login = team.login.clone();
-    //         let local_placement =
-    //             (move || placements.with(|ps| ps.get(&login).copied())).into_signal();
-    //         view! {
-    //             <ContestPanelLine
-    //                 titulo
-    //                 p_center=p_center.into()
-    //                 local_placement
-    //                 team=team.clone()
-    //                 sede
-    //                 show_photo
-    //             />
-    //         }
-    //     })
-    //     .collect_view();
-
     let panel_lines = compress_placements(
         contest_signal
             .teams
@@ -256,6 +215,7 @@ pub fn ContestPanel(
             })
             .collect_vec(),
         sede.clone(),
+        center,
     );
 
     view! {
