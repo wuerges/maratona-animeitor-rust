@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
+use data::configdata::Sede;
 use leptos::{create_memo, CollectView, IntoView, Signal, SignalWith};
 
 pub trait Compress {
@@ -13,12 +14,25 @@ pub trait Compress {
 
 pub fn compress_placements<T>(
     children: Vec<T>,
-    placements: Signal<HashMap<String, usize>>,
+    placements: Signal<Vec<String>>,
+    sede: Signal<Rc<Sede>>,
     center: Signal<Option<String>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
 {
+    let placements = create_memo(move |_| {
+        sede.with(|sede| {
+            placements.with(|p| {
+                p.iter()
+                    .filter(|team| sede.team_belongs_str(team))
+                    .enumerate()
+                    .map(|(i, login)| (login.clone(), i + 1))
+                    .collect::<HashMap<String, usize>>()
+            })
+        })
+    });
+
     let p_center = move || {
         placements.with(|placements| {
             center.with(|center| {
