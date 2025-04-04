@@ -1,4 +1,5 @@
 mod background_color;
+mod compress_placements;
 mod config;
 mod contest;
 mod control_scrolling;
