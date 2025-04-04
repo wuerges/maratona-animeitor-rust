@@ -2,9 +2,6 @@ use std::collections::HashMap;
 
 use leptos::{create_memo, CollectView, IntoView, Signal, SignalWith};
 
-pub trait Enabler {
-    fn is_enabled(&self, t: &str) -> bool;
-}
 pub trait Compress {
     fn key(&self) -> String;
     fn view_in_position(
@@ -14,29 +11,14 @@ pub trait Compress {
     ) -> impl IntoView;
 }
 
-pub fn compress_placements<T, E>(
+pub fn compress_placements<T>(
     children: Vec<T>,
-    enabler: Signal<E>,
     placements: Signal<HashMap<String, usize>>,
     center: Signal<Option<String>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
-    E: Enabler,
 {
-    let placements = create_memo(move |_: Option<&HashMap<String, usize>>| {
-        enabler.with(|e| {
-            placements.with(|placements| {
-                placements
-                    .iter()
-                    .filter(|(key, _position)| e.is_enabled(key))
-                    .enumerate()
-                    .map(|(i, (key, _position))| (key.clone(), i + 1))
-                    .collect()
-            })
-        })
-    });
-
     let p_center = move || {
         placements.with(|placements| {
             center.with(|center| {

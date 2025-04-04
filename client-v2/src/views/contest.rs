@@ -20,7 +20,7 @@ use crate::{
     },
 };
 
-use super::compress_placements::{Compress, Enabler};
+use super::compress_placements::Compress;
 
 #[component]
 fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> impl IntoView {
@@ -143,12 +143,6 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: &'static str) -> imp
     }
 }
 
-impl Enabler for Rc<Sede> {
-    fn is_enabled(&self, t: &str) -> bool {
-        self.team_belongs_str(t)
-    }
-}
-
 struct ContestPanelLineWrap {
     titulo: Signal<Option<Rc<Sede>>>,
     team: Rc<TeamSignal>,
@@ -223,7 +217,6 @@ pub fn ContestPanel(
                 show_photo,
             })
             .collect_vec(),
-        sede.clone(),
         placements.into(),
         center,
     );
