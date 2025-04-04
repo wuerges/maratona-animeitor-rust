@@ -32,6 +32,11 @@ pub struct ConnectionControlMessage {
     message: ControlMessage,
 }
 
+fn create_remote_control() -> ControlSender {
+    let (sender, _) = tokio::sync::broadcast::channel(100);
+    sender
+}
+
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)]
@@ -83,7 +88,7 @@ fn get_text(message: Message) -> Result<Option<ControlMessage>, Error> {
 #[instrument(skip(stream, sender), err)]
 async fn read_from_clients(
     stream: &mut MessageStream,
-    sender: &mut Sender<ConnectionControlMessage>,
+    sender: Sender<ConnectionControlMessage>,
     request_id: u64,
 ) -> Result<(), Error> {
     while let Some(Ok(raw_message)) = stream.next().await {
@@ -110,8 +115,14 @@ async fn run_remote_control_ws(
     key: String,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
-    let mut sender = data.remote_control.clone();
-    let rec = data.remote_control.subscribe();
+
+    let sender = {
+        let mut lock = data.remote_control.lock().await;
+
+        lock.entry(key).or_insert(create_remote_control()).clone()
+    };
+
+    let rec = sender.subscribe();
 
     let request_id = rand::random();
     tracing::info!(?request_id, "established remote control");
@@ -123,7 +134,7 @@ async fn run_remote_control_ws(
     });
 
     actix_web::rt::spawn(async move {
-        if let Err(err) = read_from_clients(&mut msg_stream, &mut sender, request_id).await {
+        if let Err(err) = read_from_clients(&mut msg_stream, sender, request_id).await {
             tracing::debug!(?err, "failed reading");
         }
     });

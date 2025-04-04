@@ -14,5 +14,5 @@ pub struct AppData {
     pub runs_tx: membroadcast::Sender<RunTuple>,
     pub time_tx: broadcast::Sender<TimerData>,
     pub config: Arc<HashMap<String, (ConfigContest, Contest, Secret)>>,
-    pub remote_control: remote_control::ControlSender,
+    pub remote_control: Arc<Mutex<HashMap<String, remote_control::ControlSender>>>,
 }
