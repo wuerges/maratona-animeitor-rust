@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
-use itertools::Itertools;
-use leptos::{create_memo, CollectView, IntoView, Signal, SignalGet, SignalWith};
+use leptos::{create_memo, CollectView, IntoView, Signal, SignalWith};
 
 pub trait Enabler {
     fn is_enabled(&self, t: &str) -> bool;
 }
 pub trait Compress {
     fn key(&self) -> String;
-    fn position(&self) -> Signal<usize>;
     fn view_in_position(
         self,
         position: Signal<Option<usize>>,
@@ -19,26 +17,23 @@ pub trait Compress {
 pub fn compress_placements<T, E>(
     children: Vec<T>,
     enabler: Signal<E>,
+    placements: Signal<HashMap<String, usize>>,
     center: Signal<Option<String>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
     E: Enabler,
 {
-    let signals = children
-        .iter()
-        .map(|c| (c.key(), c.position()))
-        .collect_vec();
-
     let placements = create_memo(move |_: Option<&HashMap<String, usize>>| {
         enabler.with(|e| {
-            signals
-                .iter()
-                .filter(|(key, _position)| e.is_enabled(key))
-                .sorted_by_cached_key(|(_key, position)| position.get())
-                .enumerate()
-                .map(|(i, (key, _position))| (key.clone(), i + 1))
-                .collect()
+            placements.with(|placements| {
+                placements
+                    .iter()
+                    .filter(|(key, _position)| e.is_enabled(key))
+                    .enumerate()
+                    .map(|(i, (key, _position))| (key.clone(), i + 1))
+                    .collect()
+            })
         })
     });
 

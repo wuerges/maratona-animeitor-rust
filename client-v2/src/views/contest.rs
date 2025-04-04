@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 
 use data::{configdata::Sede, ContestFile, TimerData};
 use itertools::Itertools;
@@ -161,10 +161,6 @@ impl Compress for ContestPanelLineWrap {
         self.team.login.clone()
     }
 
-    fn position(&self) -> Signal<usize> {
-        self.team.placement_global.into()
-    }
-
     fn view_in_position(
         self,
         position: Signal<Option<usize>>,
@@ -203,6 +199,19 @@ pub fn ContestPanel(
 
     let show_photo = use_global_photo_state();
 
+    let placement_signal = contest_signal.clone();
+    let placements = create_memo(move |_| {
+        sede.with(|sede| {
+            placement_signal.team_global_placements.with(|p| {
+                p.iter()
+                    .filter(|team| sede.team_belongs_str(team))
+                    .enumerate()
+                    .map(|(i, login)| (login.clone(), i + 1))
+                    .collect::<HashMap<String, usize>>()
+            })
+        })
+    });
+
     let panel_lines = compress_placements(
         contest_signal
             .teams
@@ -215,6 +224,7 @@ pub fn ContestPanel(
             })
             .collect_vec(),
         sede.clone(),
+        placements.into(),
         center,
     );
 
