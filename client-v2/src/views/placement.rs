@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use data::configdata::{Color, Sede};
-use leptos::*;
-use std::rc::Rc;
+use leptos::prelude::*;
 
 pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {
     sede.premio(n)
@@ -18,15 +19,14 @@ fn get_class(color: Color) -> &'static str {
 }
 
 #[component]
-pub fn Placement(placement: usize, sede: Signal<Rc<Sede>>) -> impl IntoView {
-    let background_color = (move || {
+pub fn Placement(placement: usize, sede: Signal<Arc<Sede>>) -> impl IntoView {
+    let background_color = Signal::derive(move || {
         sede.with(|sede| {
             get_color(placement, sede)
                 .map(get_class)
                 .unwrap_or_default()
         })
-    })
-    .into_signal();
+    });
 
     view! {
         <div
