@@ -1,9 +1,12 @@
+use codee::string::FromToStringCodec;
 use data::remote_control::{ControlMessage, QueryString, WindowScroll};
-use leptos::*;
-use leptos_dom::logging::console_error;
-use leptos_router::{use_navigate, use_query, use_query_map, Params};
+use leptos::{logging::error, prelude::*};
+use leptos_router::{
+    hooks::{use_navigate, use_query, use_query_map},
+    params::Params,
+};
 use leptos_use::{
-    signal_throttled, use_idle, use_websocket, use_window_scroll, UseIdleReturn, UseWebsocketReturn,
+    signal_throttled, use_idle, use_websocket, use_window_scroll, UseIdleReturn, UseWebSocketReturn,
 };
 use web_sys::ScrollToOptions;
 
@@ -11,25 +14,34 @@ use crate::api::remote_control_url;
 
 use super::team_media::{use_global_photo_state, PhotoState};
 
-#[derive(Params, PartialEq, Eq, Clone, Default)]
+#[derive(PartialEq, Eq, Clone, Default)]
 struct RemoteControlQuery {
     remote_control: Option<String>,
 }
 
+impl Params for RemoteControlQuery {
+    fn from_map(
+        map: &leptos_router::params::ParamsMap,
+    ) -> std::result::Result<Self, leptos_router::params::ParamsError> {
+        let remote_control = map.get("remote_control");
+        Ok(RemoteControlQuery { remote_control })
+    }
+}
+
 #[component]
-fn Tab<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> impl IntoView {
+fn Tab<SendFn: Fn(&String) + 'static>(idle: Signal<bool>, send: SendFn) -> impl IntoView {
     let query_params = use_query_map();
 
-    let memo = create_memo(move |_| (query_params.get(), idle.get()));
+    let memo = Memo::new(move |_| (query_params.get(), idle.get()));
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let (params, idle) = memo.get();
         if !idle {
             match serde_json::to_string(&QueryString {
                 query: params.to_query_string(),
             }) {
                 Ok(text) => send(&text),
-                Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
+                Err(err) => error!("failed serializing idle scroll {:?}", err),
             }
         }
     });
@@ -49,19 +61,19 @@ fn from_data_photo_state(photo_state: data::remote_control::PhotoState) -> Photo
 }
 
 #[component]
-fn ShowTeamPhoto<SendFn: Fn(&str) + 'static>(
+fn ShowTeamPhoto<SendFn: Fn(&String) + 'static>(
     idle: Signal<bool>,
     send: SendFn,
     photo_state: RwSignal<PhotoState>,
 ) -> impl IntoView {
-    let memo = create_memo(move |_| (photo_state.get(), idle.get()));
+    let memo = Memo::new(move |_| (photo_state.get(), idle.get()));
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let (photo_state, idle) = memo.get();
         if !idle {
             match serde_json::to_string(&into_data_photo_state(photo_state)) {
                 Ok(text) => send(&text),
-                Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
+                Err(err) => error!("failed serializing idle scroll {:?}", err),
             }
         }
     });
@@ -75,17 +87,17 @@ fn Effects(
 ) -> impl IntoView {
     let window = web_sys::window().unwrap();
     let navigate = use_navigate();
+    let options = ScrollToOptions::new();
+    options.set_behavior(web_sys::ScrollBehavior::Smooth);
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if idle.get() {
             if let Some(message) = message_signal.get() {
                 match message {
-                    ControlMessage::WindowScroll(WindowScroll { y }) => window
-                        .scroll_to_with_scroll_to_options(
-                            ScrollToOptions::new()
-                                .behavior(web_sys::ScrollBehavior::Smooth)
-                                .top(y),
-                        ),
+                    ControlMessage::WindowScroll(WindowScroll { y }) => {
+                        options.set_top(y);
+                        window.scroll_to_with_scroll_to_options(&options)
+                    }
                     ControlMessage::QueryString(QueryString { query }) => {
                         navigate(&query, Default::default())
                     }
@@ -99,20 +111,20 @@ fn Effects(
 }
 
 #[component]
-fn Scrolling<SendFn: Fn(&str) + 'static>(idle: Signal<bool>, send: SendFn) -> impl IntoView {
+fn Scrolling<SendFn: Fn(&String) + 'static>(idle: Signal<bool>, send: SendFn) -> impl IntoView {
     let (_get_x, get_y) = use_window_scroll();
 
-    let memo_y = create_memo(move |_| get_y.get());
+    let memo_y = Memo::new(move |_| get_y.get());
     let throttled_y = signal_throttled(memo_y, 300.0);
 
-    let memo = create_memo(move |_| (idle.get(), throttled_y.get()));
+    let memo = Memo::new(move |_| (idle.get(), throttled_y.get()));
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let (idle, y) = memo.get();
         if !idle {
             match serde_json::to_string(&WindowScroll { y }) {
                 Ok(text) => send(&text),
-                Err(err) => console_error(&format!("failed serializing idle scroll {:?}", err)),
+                Err(err) => error!("failed serializing idle scroll {:?}", err),
             }
         }
     });
@@ -130,11 +142,11 @@ pub fn RemoteControl() -> impl IntoView {
             .ok()
             .and_then(|key| key.remote_control)
             .map(|key| {
-                let UseWebsocketReturn { message, send, .. } =
-                    use_websocket(&remote_control_url(&key));
+                let UseWebSocketReturn { message, send, .. } =
+                    use_websocket::<String, String, FromToStringCodec>(&remote_control_url(&key));
                 let UseIdleReturn { idle, .. } = use_idle(5_000);
 
-                let message_signal = create_memo(move |_| {
+                let message_signal = Memo::new(move |_| {
                     message
                         .get()
                         .and_then(|text| serde_json::from_str::<ControlMessage>(&text).ok())
