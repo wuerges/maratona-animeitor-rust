@@ -1,8 +1,8 @@
-use std::{collections::HashMap, rc::Rc, sync::Mutex};
+use std::{collections::HashMap, sync::Arc, sync::Mutex};
 
 use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
-use leptos::{logging::*, *};
-use leptos_router::use_query_map;
+use leptos::{ev, logging::*, prelude::*};
+use leptos_router::hooks::use_query_map;
 
 use crate::{
     api::create_secret_runs, model::contest_signal::ContestSignal, views::contest::ContestPanel,
@@ -74,10 +74,10 @@ impl State {
 
 #[component]
 pub fn RevelationPanel(
-    original_contest: Rc<ContestFile>,
+    original_contest: Arc<ContestFile>,
     state: ReadSignal<State>,
-    contest_signal: Rc<ContestSignal>,
-    sede: Signal<Rc<Sede>>,
+    contest_signal: Arc<ContestSignal>,
+    sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
     let center = Signal::derive(move || {
         state
@@ -85,7 +85,7 @@ pub fn RevelationPanel(
             .flatten()
     });
 
-    view! { <ContestPanel original_contest contest_signal center titulo=(|| None).into() sede /> }
+    view! { <ContestPanel original_contest contest_signal center titulo=None.into() sede /> }
 }
 
 #[component]
@@ -136,20 +136,20 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 }
 
 #[component]
-pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
-    let contest_signal = Rc::new(ContestSignal::new(&contest));
+pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
+    let contest_signal = Arc::new(ContestSignal::new(&contest));
     let contest = contest.clone();
-    let original_contest = Rc::new(contest.clone());
+    let original_contest = Arc::new(contest.clone());
     let driver = State::new(contest, runs_file, &sede);
-    let (get_sede, _) = create_signal(sede.clone());
+    let (get_sede, _) = signal(sede.clone());
 
-    let (get_driver, set_driver) = create_signal(driver);
+    let (get_driver, set_driver) = signal(driver);
 
     let effect_contest_signal = contest_signal.clone();
 
-    let team_ids = Rc::new(Mutex::new(HashMap::new()));
+    let team_ids = Arc::new(Mutex::new(HashMap::new()));
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         get_driver.with(|state| {
             let contest = state.driver.contest();
             let mut id_map = team_ids.lock().unwrap();
@@ -177,20 +177,18 @@ pub fn Revelation(sede: Rc<Sede>, runs_file: RunsFile, contest: ContestFile) -> 
 }
 
 #[component]
-pub fn Reveleitor(sede: Rc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
+pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
     let query_map = use_query_map();
-    let all_runs = create_local_resource(
-        || (),
-        move |()| {
-            let secret = secret.clone();
-            let contest_name = query_map.get().get("contest").cloned();
-            create_secret_runs(secret, contest_name)
-        },
-    );
+    let all_runs = LocalResource::new(move || {
+        let secret = secret.clone();
+        let contest_name = query_map.get().get("contest");
+        create_secret_runs(secret, contest_name)
+    });
 
     move || {
         let contest = contest.clone();
         all_runs.get().map(|runs_file| {
+            let runs_file = runs_file.take();
             view! { <Revelation sede=sede.clone() runs_file contest /> }
         })
     }
