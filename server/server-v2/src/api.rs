@@ -35,7 +35,7 @@ async fn get_contest(
 
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
-async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder {
+async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder + use<> {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -61,7 +61,7 @@ async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>)
 
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
-async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder {
+async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder + use<> {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -84,7 +84,7 @@ async fn get_allruns_secret_fn(
     data: web::Data<AppData>,
     sede_config: &str,
     query: web::Query<SecretQuery>,
-) -> impl Responder {
+) -> impl Responder + use<> {
     let sede = data
         .config
         .get(&*sede_config)
