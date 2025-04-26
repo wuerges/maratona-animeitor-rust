@@ -1,11 +1,11 @@
-use std::rc::Rc;
+use std::rc::Arc;
 
 use data::{
     configdata::{ConfigContest, Sede},
     ContestFile, TimerData,
 };
-use leptos::*;
-use leptos_router::*;
+use leptos::prelude::*;
+use leptos_router::{hooks::use_query, params::Params, *};
 
 use crate::{
     api::{create_config, create_timer, ContestQuery},
@@ -34,11 +34,24 @@ impl IsNegative for (TimerData, TimerData) {
     }
 }
 
-#[derive(Params, PartialEq, Eq, Clone, Debug, Default)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
 struct QueryParams {
     sede: Option<String>,
     secret: Option<String>,
     settings: Option<bool>,
+}
+
+impl Params for QueryParams {
+    fn from_map(map: &params::ParamsMap) -> std::result::Result<Self, params::ParamsError> {
+        let sede = map.get("sede");
+        let secret = map.get("secret");
+        let settings = map.get("settings").and_then(|s| s.parse::<bool>().ok());
+        Ok(QueryParams {
+            sede,
+            secret,
+            settings,
+        })
+    }
 }
 
 impl QueryParams {
@@ -54,27 +67,27 @@ fn use_static_query() -> Signal<QueryParams> {
 
 fn use_configured_sede(
     config: ConfigContest,
-    titulo: Rc<Sede>,
+    titulo: Arc<Sede>,
     sede_param: Option<String>,
-) -> Rc<Sede> {
+) -> Arc<Sede> {
     let config = config.into_contest();
     let sub_sede = sede_param
         .and_then(|sede| config.get_sede_nome_sede(&sede))
         .cloned()
-        .map(Rc::new);
+        .map(Arc::new);
 
     sub_sede.unwrap_or(titulo)
 }
 
-fn use_titulo(config: ConfigContest) -> Rc<Sede> {
+fn use_titulo(config: ConfigContest) -> Arc<Sede> {
     let config = config.into_contest();
-    Rc::new(config.titulo)
+    Arc::new(config.titulo)
 }
 
 #[component]
 fn ProvideSede<'cs>(
-    original_contest: Rc<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    original_contest: Arc<ContestFile>,
+    contest_signal: Arc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     config_contest: ConfigContest,
     timer: ReadSignal<(TimerData, TimerData)>,
@@ -82,7 +95,7 @@ fn ProvideSede<'cs>(
 ) -> impl IntoView {
     let titulo = use_titulo(config_contest.clone());
     let titulo_sede = titulo.clone();
-    let sede = create_memo(move |_| {
+    let sede = Memo::new(move |_| {
         use_configured_sede(
             config_contest.clone(),
             titulo_sede.clone(),
@@ -105,7 +118,7 @@ fn ProvideSede<'cs>(
 
 #[component]
 fn ConfiguredReveleitor(
-    contest_provider: Resource<ContestQuery, ContestProvider>,
+    contest_provider: Resource<ContestProvider>,
     secret: String,
     sede_param: Option<String>,
 ) -> impl IntoView {
@@ -135,7 +148,7 @@ fn ConfiguredReveleitor(
 pub fn Sedes() -> impl IntoView {
     let timer = create_timer();
 
-    let negative_memo = create_memo(move |_| timer.get().is_negative());
+    let negative_memo = Memo::new(move |_| timer.get().is_negative());
 
     let global_settings = use_global_settings();
 
@@ -149,15 +162,14 @@ pub fn Sedes() -> impl IntoView {
                 })
         };
 
-        let secret = (move || {
+        let secret = Signal::derive(move || {
             query_params
                 .with(|q| q.secret.clone())
                 .or(global_settings.global.with(|g| g.get_secret()))
-        })
-        .into_signal();
-        let secret = create_memo(move |_| secret.get());
+        });
+        let secret = Memo::new(move |_| secret.get());
         let contest_query =
-            (|| use_query::<ContestQuery>().get().unwrap_or_default()).into_signal();
+            Signal::derive(|| use_query::<ContestQuery>().get().unwrap_or_default());
 
         let animeitor =
         (move || {
@@ -178,7 +190,7 @@ pub fn Sedes() -> impl IntoView {
                             contest_provider.as_ref().map(|provider|
                                 view!{
                                     <ProvideSede
-                                            original_contest=Rc::new(provider.starting_contest.clone())
+                                            original_contest=Arc::new(provider.starting_contest.clone())
                                             contest_signal=provider.new_contest_signal.clone()
                                             panel_items=&provider.runs_panel_item_manager
                                             timer
