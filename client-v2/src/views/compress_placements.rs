@@ -11,6 +11,14 @@ pub trait Compress {
     ) -> impl IntoView;
 }
 
+/// Takes a vector o children components
+/// each component must be identifiable by a Key
+/// and should be able to build its view from a position and center signals
+///
+/// - `children`: The array of components to compress.
+/// - `placements`: A signal with an array of string, that identify each component.
+///                 Only components in the `placements` array will be shown.
+/// - `center`: Which child should be the center component?
 pub fn compress_placements<T>(
     children: Vec<T>,
     placements: Signal<Vec<String>>,
