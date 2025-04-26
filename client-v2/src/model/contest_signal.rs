@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    rc::Rc,
+    sync::Arc,
 };
 
 use data::{ContestFile, RunTuple};
@@ -10,7 +10,7 @@ use leptos::prelude::*;
 use super::team_signal::TeamSignal;
 
 pub struct ContestSignal {
-    pub teams: HashMap<String, Rc<TeamSignal>>,
+    pub teams: HashMap<String, Arc<TeamSignal>>,
     pub team_global_placements: RwSignal<Vec<String>>,
 }
 
@@ -24,9 +24,9 @@ impl ContestSignal {
             teams: contest_file
                 .teams
                 .iter()
-                .map(|(login, team)| (login.clone(), Rc::new(TeamSignal::new(team, &letters))))
+                .map(|(login, team)| (login.clone(), Arc::new(TeamSignal::new(team, &letters))))
                 .collect(),
-            team_global_placements: create_rw_signal(
+            team_global_placements: RwSignal::new(
                 contest_file
                     .teams
                     .values()
