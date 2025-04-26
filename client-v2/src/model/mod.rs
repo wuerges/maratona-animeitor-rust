@@ -10,7 +10,7 @@ use data::{
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
-use leptos::{logging::log, *};
+use leptos::{logging::log, prelude::*, task::spawn_local};
 use runs_panel_signal::RunsPanelItemManager;
 
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
@@ -65,7 +65,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
             // get a new batch of runs
             let next_batch = runs_stream.next().await;
             let size = next_batch.as_ref().map(|v| v.len()).unwrap_or_default();
-            leptos_dom::logging::console_log(&format!("read next {size:?} runs"));
+            log!("read next {size:?} runs");
 
             if let Some(mut next_batch) = next_batch {
                 annotate_first_solved(&mut solved, next_batch.iter_mut());
