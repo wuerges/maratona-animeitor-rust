@@ -1,6 +1,6 @@
 use data::TimerData;
 use itertools::Itertools;
-use leptos::*;
+use leptos::prelude::*;
 
 fn f(n: i64) -> String {
     format!("{:0>2}", n)
