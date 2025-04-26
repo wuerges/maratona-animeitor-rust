@@ -2,10 +2,7 @@ use std::collections::HashSet;
 
 use data::RunsPanelItem;
 use itertools::Itertools;
-use leptos::{
-    create_rw_signal, RwSignal, SignalGetUntracked, SignalSet, SignalUpdate, SignalUpdateUntracked,
-    SignalWithUntracked,
-};
+use leptos::prelude::*;
 
 pub struct RunPanelItemSignal {
     pub panel_item: RwSignal<Option<RunsPanelItem>>,
