@@ -1,6 +1,6 @@
 use data::configdata::{ConfigContest, SedeEntry};
 use leptos::prelude::*;
-use leptos_router::{hooks::use_query_map, params::ParamsMap};
+use leptos_router::{components::A, hooks::use_query_map, params::ParamsMap};
 
 #[component]
 fn Sede(sede: SedeEntry, query: Memo<ParamsMap>) -> impl IntoView {
@@ -12,7 +12,7 @@ fn Sede(sede: SedeEntry, query: Memo<ParamsMap>) -> impl IntoView {
         params.insert("sede".to_string(), name.clone());
         view! {
             <span class="sedeslink">
-                <a href=params.to_query_string()> {name} </a>
+                <A href=params.to_query_string()> {name} </A>
             </span>
         }
     }
