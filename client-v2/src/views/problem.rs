@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 
 fn number_submissions(s: usize) -> Option<usize> {
     if s == 1 {
@@ -46,6 +46,7 @@ pub fn Problem(prob: char, problem: Signal<Option<data::ProblemView>>) -> impl I
                         </div>
                     </div>
                 }
+                .into_any()
             } else {
                 let pending = match p.pending {
                     0 => "X".to_string(),
@@ -57,9 +58,10 @@ pub fn Problem(prob: char, problem: Signal<Option<data::ProblemView>>) -> impl I
                     <div class="cima">{pending}</div>
                     <div class="baixo"> +{p.submissions}" "</div>
                 }
+                .into_any()
             })
-            .into_view(),
-            None => { "-" }.into_view(),
+            .into_any(),
+            None => { "-" }.into_any(),
         })
     };
 
