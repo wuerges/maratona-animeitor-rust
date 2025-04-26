@@ -158,7 +158,12 @@ pub fn TeamMedia(
     let escola = team.escola.clone();
 
     let settings = use_global_settings();
-    let background_color = move || settings.global.with(|g| g.team_background_color.clone());
+    let background_color = Signal::derive(move || {
+        settings
+            .global
+            .with(|g| g.team_background_color.clone())
+            .unwrap_or_default()
+    });
 
     let memo = Memo::new(move |_| show.get());
 
