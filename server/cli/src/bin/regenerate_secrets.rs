@@ -1,9 +1,9 @@
 use data::configdata::*;
 
-use rand::{distributions::Alphanumeric, Rng}; // 0.8
+use rand::{Rng, distr::Alphanumeric}; // 0.8
 
 fn secret() -> String {
-    rand::thread_rng()
+    rand::rng()
         .sample_iter(&Alphanumeric)
         .take(4)
         .map(char::from)
