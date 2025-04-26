@@ -193,6 +193,20 @@ pub fn ContestPanel(
 
     let show_photo = use_global_photo_state();
 
+    let placements_contest_signal = contest_signal.clone();
+
+    let placements = (move || {
+        sede.with(|s| {
+            placements_contest_signal.team_global_placements.with(|t| {
+                t.into_iter()
+                    .filter(|login| s.team_belongs_str(&login))
+                    .cloned()
+                    .collect_vec()
+            })
+        })
+    })
+    .into_signal();
+
     let panel_lines = compress_placements(
         contest_signal
             .teams
@@ -204,8 +218,7 @@ pub fn ContestPanel(
                 show_photo,
             })
             .collect_vec(),
-        contest_signal.team_global_placements.into(),
-        sede,
+        placements,
         center,
     );
 
