@@ -1,5 +1,6 @@
-use leptos::*;
-use leptos_use::{storage::use_local_storage, utils::JsonCodec};
+use codee::string::JsonSerdeCodec;
+use leptos::prelude::*;
+use leptos_use::storage::use_local_storage;
 use serde::{Deserialize, Serialize};
 
 use super::team_media::provide_global_photo_state;
@@ -40,7 +41,7 @@ impl GlobalSettings {
 }
 
 pub fn provide_global_settings() {
-    let (get, set, _) = use_local_storage::<GlobalSettings, JsonCodec>("global.settings");
+    let (get, set, _) = use_local_storage::<GlobalSettings, JsonSerdeCodec>("global.settings");
 
     provide_global_photo_state();
     provide_context(GlobalSettingsSignal {
