@@ -4,7 +4,7 @@ use crate::api::{create_config, ContestQuery};
 
 #[component]
 pub fn Config(query: Signal<ContestQuery>) -> impl IntoView {
-    let config = Resource::new_blocking(move || query.get(), |q| create_config(q));
+    let config = LocalResource::new(move || create_config(query.get()));
 
     move || match config.get() {
         Some(config) => view! {

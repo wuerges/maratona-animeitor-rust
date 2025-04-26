@@ -20,11 +20,11 @@ impl RunsPanelItemManager {
         Self {
             items: (0..=Self::MAX)
                 .map(|i| RunPanelItemSignal {
-                    panel_item: create_rw_signal(None),
-                    position: create_rw_signal(i),
+                    panel_item: RwSignal::new(None),
+                    position: RwSignal::new(i),
                 })
                 .collect_vec(),
-            push_ids: create_rw_signal(HashSet::new()),
+            push_ids: RwSignal::new(HashSet::new()),
         }
     }
 

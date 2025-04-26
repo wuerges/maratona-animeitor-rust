@@ -28,13 +28,13 @@ impl TeamSignal {
             login: login.clone(),
             name: name.clone(),
             escola: escola.clone(),
-            placement_global: create_rw_signal(*placement_global),
-            score: create_rw_signal(team.score()),
+            placement_global: RwSignal::new(*placement_global),
+            score: RwSignal::new(team.score()),
             problems: letters
                 .iter()
                 .map(|l| {
                     let view = problems.get(l).map(|p| p.view());
-                    (l.clone(), create_rw_signal(view))
+                    (l.clone(), RwSignal::new(view))
                 })
                 .collect(),
         }

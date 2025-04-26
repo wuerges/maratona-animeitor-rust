@@ -10,7 +10,7 @@ use data::{
 };
 use futures::StreamExt;
 use gloo_timers::future::TimeoutFuture;
-use leptos::{logging::log, prelude::*, task::spawn_local};
+use leptos::{logging::log, task::spawn_local};
 use runs_panel_signal::RunsPanelItemManager;
 
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
