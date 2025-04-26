@@ -164,6 +164,7 @@ dependencies = [
 name = "client-v2"
 version = "0.1.0"
 dependencies = [
+ "codee",
  "data",
  "futures",
  "gloo-net",
