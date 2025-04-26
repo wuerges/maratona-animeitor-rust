@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use data::{ProblemView, Score, Team};
-use leptos::{create_rw_signal, RwSignal, SignalUpdate};
+use leptos::prelude::*;
 
 pub struct TeamSignal {
     pub login: String,
