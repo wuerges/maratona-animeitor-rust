@@ -1,8 +1,8 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use data::{configdata::Sede, ContestFile, TimerData};
 use itertools::Itertools;
-use leptos::{logging::log, *};
+use leptos::{logging::log, prelude::*};
 
 use crate::{
     model::{
@@ -23,7 +23,7 @@ use crate::{
 use super::compress_placements::Compress;
 
 #[component]
-fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> impl IntoView {
+fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Arc<Sede>>) -> impl IntoView {
     let panel = items
         .items
         .iter()
@@ -41,12 +41,12 @@ fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Rc<Sede>>) -> i
                 p.as_ref().map(move |panel_item| {
                     let problem_view = panel_item.problem_view.clone();
                     view! {
-                        <div class="run_box" style:top={top} style:z-index={move || -(position.get() as i32)}>
+                        <div class="run_box" style:top={top} style:z-index={Signal::derive(move || (-(position.get() as i32)).to_string())}>
                             <div class="run">
                                 <Placement placement=panel_item.placement sede />
                                 <TeamName escola={panel_item.escola.clone()} name={panel_item.team_name.clone()} />
                                 <div class="cell quadrado">{panel_item.problem.clone()}</div>
-                                <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=(move || Some(problem_view.clone())).into_signal() />
+                                <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=Signal::derive(move || Some(problem_view.clone())) />
                             </div>
                         </div>
                     }
@@ -87,14 +87,14 @@ fn cell_top(i: usize, center: &Option<usize>) -> String {
 
 #[component]
 fn ContestPanelLine(
-    titulo: Signal<Option<Rc<Sede>>>,
+    titulo: Signal<Option<Arc<Sede>>>,
     p_center: Signal<Option<usize>>,
     local_placement: Signal<Option<usize>>,
-    team: Rc<TeamSignal>,
-    sede: Signal<Rc<Sede>>,
+    team: Arc<TeamSignal>,
+    sede: Signal<Arc<Sede>>,
     show_photo: RwSignal<PhotoState>,
 ) -> impl IntoView {
-    let memo_placement = create_memo(move |_| local_placement.get());
+    let memo_placement = Memo::new(move |_| local_placement.get());
     let style = move || {
         memo_placement.with(|t| match t {
             Some(placement) => format!(
@@ -109,10 +109,10 @@ fn ContestPanelLine(
     let team_login_1 = team.login.clone();
     let team_login = team.login.clone();
 
-    let is_center = move || match (p_center.get(), local_placement.get()) {
+    let is_center = Signal::derive(move || match (p_center.get(), local_placement.get()) {
         (Some(c), Some(p)) => c == p,
         _ => false,
-    };
+    });
 
     view! {
         <div
@@ -121,14 +121,14 @@ fn ContestPanelLine(
                 log!("clicked");
                 show_photo.update(|s| s.clicked(&team_login_1))}}
         >
-            <TeamScoreLine titulo is_center=is_center.into_signal() team=team.clone() sede local_placement />
+            <TeamScoreLine titulo is_center=is_center team=team.clone() sede local_placement />
         </div>
         <TeamMedia team_login show={show_photo} team titulo local_placement sede />
     }
 }
 
 #[component]
-fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: &'static str) -> impl IntoView {
+fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: &'static str) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
@@ -144,9 +144,9 @@ fn ContestPanelHeader(sede: Signal<Rc<Sede>>, all_problems: &'static str) -> imp
 }
 
 struct ContestPanelLineWrap {
-    titulo: Signal<Option<Rc<Sede>>>,
-    team: Rc<TeamSignal>,
-    sede: Signal<Rc<Sede>>,
+    titulo: Signal<Option<Arc<Sede>>>,
+    team: Arc<TeamSignal>,
+    sede: Signal<Arc<Sede>>,
     show_photo: RwSignal<PhotoState>,
 }
 
@@ -181,11 +181,11 @@ impl Compress for ContestPanelLineWrap {
 
 #[component]
 pub fn ContestPanel(
-    original_contest: Rc<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    original_contest: Arc<ContestFile>,
+    contest_signal: Arc<ContestSignal>,
     center: Signal<Option<String>>,
-    titulo: Signal<Option<Rc<Sede>>>,
-    sede: Signal<Rc<Sede>>,
+    titulo: Signal<Option<Arc<Sede>>>,
+    sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
     log!("contest panel refresh");
     let n = original_contest.number_problems;
@@ -195,7 +195,7 @@ pub fn ContestPanel(
 
     let placements_contest_signal = contest_signal.clone();
 
-    let placements = (move || {
+    let placements = Signal::derive(move || {
         sede.with(|s| {
             placements_contest_signal.team_global_placements.with(|t| {
                 t.into_iter()
@@ -204,8 +204,7 @@ pub fn ContestPanel(
                     .collect_vec()
             })
         })
-    })
-    .into_signal();
+    });
 
     let panel_lines = compress_placements(
         contest_signal
@@ -235,7 +234,7 @@ pub fn ContestPanel(
 }
 
 #[component]
-fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
+fn EmptyContestPanel(sede: Signal<Arc<Sede>>) -> impl IntoView {
     view! {
         <div class="runstable">
             <div class="run_box" style:top={cell_top(0, &None)}>
@@ -247,16 +246,16 @@ fn EmptyContestPanel(sede: Signal<Rc<Sede>>) -> impl IntoView {
 
 #[component]
 pub fn Contest<'cs>(
-    original_contest: Rc<ContestFile>,
-    contest_signal: Rc<ContestSignal>,
+    original_contest: Arc<ContestFile>,
+    contest_signal: Arc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
     timer: ReadSignal<(TimerData, TimerData)>,
-    titulo: Signal<Option<Rc<Sede>>>,
-    sede: Signal<Rc<Sede>>,
+    titulo: Signal<Option<Arc<Sede>>>,
+    sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
-    let (center, _) = create_signal(None);
+    let (center, _) = signal(None);
 
-    let is_frozen = (move || timer.with(|(current, _)| current.is_frozen())).into_signal();
+    let is_frozen = Signal::derive(move || timer.with(|(current, _)| current.is_frozen()));
 
     view! {
         <div class="root-container" class:is-frozen=is_frozen>
