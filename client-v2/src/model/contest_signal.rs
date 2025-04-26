@@ -5,7 +5,7 @@ use std::{
 
 use data::{ContestFile, RunTuple};
 use itertools::Itertools;
-use leptos::{create_rw_signal, RwSignal, SignalSet};
+use leptos::prelude::*;
 
 use super::team_signal::TeamSignal;
 
