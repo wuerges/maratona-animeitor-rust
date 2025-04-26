@@ -95,9 +95,9 @@ fn TeamAudio(team_login: String) -> impl IntoView {
     let settings = use_context::<GlobalSettingsSignal>().unwrap();
 
     let autoplay = move || volume_settings.with(|s| s.autoplay);
-    let mute = (move || settings.global.with(|g| g.mute)).into_signal();
+    let mute = Signal::derive(move || settings.global.with(|g| g.mute));
     let show_audio_controls =
-        (move || settings.global.with(|g| g.show_audio_controls)).into_signal();
+        Signal::derive(move || settings.global.with(|g| g.show_audio_controls));
 
     let should_autoplay = move || !mute.get() && autoplay();
 
