@@ -1,7 +1,7 @@
 use data::configdata::Sede;
 use itertools::Itertools;
-use leptos::*;
-use std::rc::Rc;
+use leptos::prelude::*;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{
     model::team_signal::TeamSignal,
@@ -12,9 +12,9 @@ use crate::{
 pub fn TeamScoreLine(
     team: Rc<TeamSignal>,
     is_center: Signal<bool>,
-    titulo: Signal<Option<Rc<Sede>>>,
+    titulo: Signal<Option<Arc<Sede>>>,
     local_placement: Signal<Option<usize>>,
-    sede: Signal<Rc<Sede>>,
+    sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
     let escola = team.escola.clone();
     let name = team.name.clone();
