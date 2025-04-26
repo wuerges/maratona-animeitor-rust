@@ -1,9 +1,9 @@
+use std::sync::Arc;
+
+use codee::string::JsonSerdeCodec;
 use data::configdata::Sede;
-use leptos::{
-    component, create_effect, create_node_ref, event_target_checked, event_target_value,
-    html::Audio, prelude::*, provide_context, use_context, view, IntoView,
-};
-use leptos_use::{storage::use_local_storage, utils::JsonCodec};
+use leptos::{html::Audio, prelude::*};
+use leptos_use::storage::use_local_storage;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -15,8 +15,6 @@ use super::{
     global_settings::{use_global_settings, GlobalSettingsSignal},
     team_score_line::TeamScoreLine,
 };
-
-use std::rc::Rc;
 
 #[derive(Clone, Default, PartialEq, Eq)]
 pub enum PhotoState {
@@ -32,7 +30,7 @@ pub struct PhotoStateSignal {
 
 pub fn provide_global_photo_state() {
     provide_context(PhotoStateSignal {
-        photo_state: create_rw_signal(PhotoState::default()),
+        photo_state: RwSignal::new(PhotoState::default()),
     })
 }
 
@@ -83,11 +81,11 @@ fn TeamAudio(team_login: String) -> impl IntoView {
     let key = format!("volume.{}", team_login);
 
     let (volume_settings, set_volume_settings, _) =
-        use_local_storage::<VolumeSettings, JsonCodec>(&key);
+        use_local_storage::<VolumeSettings, JsonSerdeCodec>(key);
 
-    let audio_ref = create_node_ref::<Audio>();
+    let audio_ref = NodeRef::<Audio>::new();
 
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let volume = volume_settings.with(|v| v.volume);
         if let Some(audio) = audio_ref.get() {
             audio.set_volume(volume as f64 / 100_f64);
@@ -132,7 +130,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
     let audio = move || {
         (!mute.get()).then_some(view! {
             <audio
-                ref=audio_ref
+                node_ref=audio_ref
                 src=team_sound_location(&team_login)
                 onerror=onerror_sound()
                 autoplay=should_autoplay
@@ -150,10 +148,10 @@ fn TeamAudio(team_login: String) -> impl IntoView {
 pub fn TeamMedia(
     team_login: String,
     show: RwSignal<PhotoState>,
-    team: Rc<TeamSignal>,
-    titulo: Signal<Option<Rc<Sede>>>,
+    team: Arc<TeamSignal>,
+    titulo: Signal<Option<Arc<Sede>>>,
     local_placement: Signal<Option<usize>>,
-    sede: Signal<Rc<Sede>>,
+    sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
     let foto_id = format!("foto_{}", team_login);
     let team_name = team.name.clone();
@@ -162,7 +160,7 @@ pub fn TeamMedia(
     let settings = use_global_settings();
     let background_color = move || settings.global.with(|g| g.team_background_color.clone());
 
-    let memo = create_memo(move |_| show.get());
+    let memo = Memo::new(move |_| show.get());
 
     move || {
         let team_login_click = team_login.clone();
@@ -182,7 +180,7 @@ pub fn TeamMedia(
                                 <div class="foto_team_name">{team_name.clone()} </div>
                                 <div class="foto_team_escola">{escola.clone()} </div>
                             </div>
-                            <TeamScoreLine team=team.clone() is_center=(|| false).into() titulo local_placement sede />
+                            <TeamScoreLine team=team.clone() is_center=false.into() titulo local_placement sede />
                             <TeamAudio team_login=team_login.clone() />
                         </div>
                     })
