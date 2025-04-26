@@ -2,7 +2,7 @@ pub(crate) mod contest_signal;
 pub mod runs_panel_signal;
 pub(crate) mod team_signal;
 
-use std::{collections::HashSet, rc::Rc};
+use std::{collections::HashSet, sync::Arc};
 
 use contest_signal::ContestSignal;
 use data::{
@@ -18,8 +18,8 @@ use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 pub struct ContestProvider {
     pub starting_contest: ContestFile,
     pub config_contest: ConfigContest,
-    pub new_contest_signal: Rc<ContestSignal>,
-    pub runs_panel_item_manager: Rc<RunsPanelItemManager>,
+    pub new_contest_signal: Arc<ContestSignal>,
+    pub runs_panel_item_manager: Arc<RunsPanelItemManager>,
 }
 
 #[derive(Debug)]
@@ -48,9 +48,9 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
 
     log!("fetched original contest");
 
-    let new_contest_signal = Rc::new(ContestSignal::new(&original_contest_file));
+    let new_contest_signal = Arc::new(ContestSignal::new(&original_contest_file));
     let new_contest_signal_ref = new_contest_signal.clone();
-    let runs_panel_item_manager = Rc::new(RunsPanelItemManager::new());
+    let runs_panel_item_manager = Arc::new(RunsPanelItemManager::new());
     let runs_panel_item_manager_ref = runs_panel_item_manager.clone();
 
     let mut running_contest = starting_contest.clone();
