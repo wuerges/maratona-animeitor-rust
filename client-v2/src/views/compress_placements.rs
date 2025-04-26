@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use leptos::{create_memo, CollectView, IntoView, Signal, SignalWith};
+use leptos::prelude::*;
 
 pub trait Compress {
     fn key(&self) -> String;
@@ -27,7 +27,7 @@ pub fn compress_placements<T>(
 where
     T: Compress + 'static,
 {
-    let placements = create_memo(move |_| {
+    let placements = Memo::new(move |_| {
         placements.with(|p| {
             p.iter()
                 .enumerate()
@@ -36,7 +36,7 @@ where
         })
     });
 
-    let p_center = move || {
+    let p_center = Signal::derive(move || {
         placements.with(|placements| {
             center.with(|center| {
                 let center = center.as_ref()?;
@@ -44,9 +44,9 @@ where
                 Some(*position)
             })
         })
-    };
+    });
 
-    inner_compress_placements(children, placements.into(), p_center.into())
+    inner_compress_placements(children, placements.into(), p_center)
 }
 
 fn inner_compress_placements<T>(
@@ -61,7 +61,7 @@ where
         .into_iter()
         .map(|c| (c.key(), c))
         .map(|(key, c)| {
-            let signal = create_memo(move |_| placements.with(|p| p.get(&key).copied()));
+            let signal = Memo::new(move |_| placements.with(|p| p.get(&key).copied()));
             c.view_in_position(signal.into(), center)
         })
         .collect_view()
