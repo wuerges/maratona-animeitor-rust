@@ -1,8 +1,6 @@
 use data::configdata::{ConfigContest, SedeEntry};
-use leptos::*;
-use leptos_router::*;
-
-use crate::api::ContestQuery;
+use leptos::prelude::*;
+use leptos_router::{hooks::use_query_map, params::ParamsMap};
 
 #[component]
 fn Sede(sede: SedeEntry, query: Memo<ParamsMap>) -> impl IntoView {
@@ -14,14 +12,14 @@ fn Sede(sede: SedeEntry, query: Memo<ParamsMap>) -> impl IntoView {
         params.insert("sede".to_string(), name.clone());
         view! {
             <span class="sedeslink">
-                <A href=params.to_query_string()> {name} </A>
+                <a href=params.to_query_string()> {name} </a>
             </span>
         }
     }
 }
 
 #[component]
-pub fn Navigation(config_contest: Resource<ContestQuery, ConfigContest>) -> impl IntoView {
+pub fn Navigation(config_contest: Resource<ConfigContest>) -> impl IntoView {
     let query = use_query_map();
 
     move || {
