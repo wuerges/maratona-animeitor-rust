@@ -38,7 +38,7 @@ pub fn TeamScoreLine(
                 {move || {
                     let placement = placement_global.get();
                     titulo.with(move |t| t.clone().map(move |t| view! {
-                        <Placement placement sede=(move || t.clone()).into() />
+                        <Placement placement sede=t.clone().into() />
                     }))
                 }}
                 {move || local_placement.get().map(|placement|
