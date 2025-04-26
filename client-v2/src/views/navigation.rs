@@ -19,7 +19,7 @@ fn Sede(sede: SedeEntry, query: Memo<ParamsMap>) -> impl IntoView {
 }
 
 #[component]
-pub fn Navigation(config_contest: Resource<ConfigContest>) -> impl IntoView {
+pub fn Navigation(config_contest: LocalResource<ConfigContest>) -> impl IntoView {
     let query = use_query_map();
 
     move || {
