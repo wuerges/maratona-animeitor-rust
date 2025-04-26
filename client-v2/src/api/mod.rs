@@ -132,7 +132,7 @@ pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
         ContestQuery { contest: None },
     ));
 
-    let (timer, set_timer) = create_signal((TimerData::fake(), data::TimerData::new(0, 1)));
+    let (timer, set_timer) = signal((TimerData::fake(), data::TimerData::new(0, 1)));
 
     spawn_local(async move {
         loop {
