@@ -2,6 +2,7 @@ use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 
 use leptos::{logging::*, prelude::*, task::spawn_local};
+use leptos_router::params::Params;
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
 
@@ -10,6 +11,15 @@ const DEFAULT_URL: &'static str = "http://0.0.0.0";
 #[derive(PartialEq, Eq, Clone, Default)]
 pub struct ContestQuery {
     pub contest: Option<String>,
+}
+
+impl Params for ContestQuery {
+    fn from_map(
+        map: &leptos_router::params::ParamsMap,
+    ) -> std::result::Result<Self, leptos_router::params::ParamsError> {
+        let contest = map.get("contest");
+        Ok(ContestQuery { contest })
+    }
 }
 
 #[cfg(not(test))]
