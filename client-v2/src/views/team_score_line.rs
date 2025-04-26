@@ -1,7 +1,7 @@
 use data::configdata::Sede;
 use itertools::Itertools;
 use leptos::prelude::*;
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     model::team_signal::TeamSignal,
@@ -10,7 +10,7 @@ use crate::{
 
 #[component]
 pub fn TeamScoreLine(
-    team: Rc<TeamSignal>,
+    team: Arc<TeamSignal>,
     is_center: Signal<bool>,
     titulo: Signal<Option<Arc<Sede>>>,
     local_placement: Signal<Option<usize>>,
@@ -25,7 +25,7 @@ pub fn TeamScoreLine(
         .into_iter()
         .sorted_by_cached_key(|(letter, _problem)| letter.clone())
         .map(|(letter, problem)| {
-            let memo_problem = create_memo(move |_| problem.get());
+            let memo_problem = Memo::new(move |_| problem.get());
             move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.into() /> }
         })
         .collect_view();
