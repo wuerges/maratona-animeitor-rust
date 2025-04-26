@@ -28,8 +28,8 @@ async fn update_runs_from_data(
     let delta = start.elapsed();
 
     time_tx.send(db.timer_data()).ok();
-    histogram!("update_runs_from_data_time", delta);
-    counter!("update_runs_from_data_fresh_runs", fresh_runs_count);
+    histogram!("update_runs_from_data_time").record(delta);
+    counter!("update_runs_from_data_fresh_runs").increment(fresh_runs_count);
     Ok(())
 }
 
@@ -65,8 +65,8 @@ pub fn spawn_db_update(
                 .map(|(_, _, runs)| runs.len())
                 .unwrap_or_default() as u64;
 
-            histogram!("load_data_from_url_time", delta);
-            counter!("load_data_from_url_all_new_runs_count", runs_fetched);
+            histogram!("load_data_from_url_time").record(delta);
+            counter!("load_data_from_url_all_new_runs_count").increment(runs_fetched);
 
             match data {
                 Ok(data_ok) => {

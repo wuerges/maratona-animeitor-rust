@@ -10,7 +10,7 @@ use utoipa::ToSchema;
 
 use crate::Team;
 
-#[derive(Debug, Clone, Default, Derivative)]
+#[derive(Debug, Clone, Default, Derivative, ToSchema)]
 #[derivative(PartialEq, Eq)]
 pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
 

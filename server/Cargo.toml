@@ -9,31 +9,31 @@ authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 
 [workspace.dependencies]
 # autometrics launched 2.0
-autometrics = { version = "1", features = ["prometheus-exporter", "metrics"] }
+autometrics = { version = "2", features = ["prometheus-exporter", "metrics"] }
 clap = { version = "4", features = ["derive"] }
 color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"
 reqwest = { version = "0.12", features = ["native-tls-vendored"] }
 regex = "1.10"
-itertools = "0.13"
+itertools = "0.14"
 # metrics is in 0.23
-metrics = "0.21"
+metrics = "0.24"
 openssl = { version = "0.10", features = ["vendored"] }
 parking_lot = "0.12"
-rand = "0.8"
-thiserror = "1"
+rand = "0.9"
+thiserror = "2"
 toml = "0.8"
-sentry = "0.34"
+sentry = "0.37"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.39", features = ["full"] }
 url = "2"
 # zip is in 2.1
-zip = "1"
+zip = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-utoipa = "4"
+utoipa = "5"
 actix-web = "4.8"
 actix-cors = "0.7"
 actix-files = "0.6"
@@ -41,7 +41,7 @@ actix-ws = "0.3"
 tracing-actix-web = "0.7"
 quickcheck = "1"
 quickcheck_macros = "1"
-rstest = "0.21"
+rstest = "0.25"
 futures-signals = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
 
