@@ -1,11 +1,16 @@
-use std::rc::Arc;
+use std::sync::Arc;
 
 use data::{
     configdata::{ConfigContest, Sede},
     ContestFile, TimerData,
 };
 use leptos::prelude::*;
-use leptos_router::{hooks::use_query, params::Params, *};
+use leptos_router::{
+    components::{Route, Router, Routes},
+    hooks::use_query,
+    params::Params,
+    *,
+};
 
 use crate::{
     api::{create_config, create_timer, ContestQuery},
@@ -62,7 +67,7 @@ impl QueryParams {
 
 fn use_static_query() -> Signal<QueryParams> {
     let query_params = use_query::<QueryParams>();
-    (move || query_params.get().ok().unwrap_or_default()).into_signal()
+    Signal::derive(move || query_params.get().ok().unwrap_or_default())
 }
 
 fn use_configured_sede(
@@ -103,7 +108,7 @@ fn ProvideSede<'cs>(
         )
     });
 
-    let titulo = move || {
+    let titulo = Signal::derive(move || {
         sede.with(|s| {
             if s.entry.name == titulo.entry.name {
                 None
@@ -111,14 +116,14 @@ fn ProvideSede<'cs>(
                 Some(titulo.clone())
             }
         })
-    };
+    });
 
-    view! { <Contest original_contest contest_signal panel_items timer titulo=titulo.into() sede=sede.into() /> }
+    view! { <Contest original_contest contest_signal panel_items timer titulo sede=sede.into() /> }
 }
 
 #[component]
 fn ConfiguredReveleitor(
-    contest_provider: Resource<ContestProvider>,
+    contest_provider: LocalResource<ContestProvider>,
     secret: String,
     sede_param: Option<String>,
 ) -> impl IntoView {
@@ -174,14 +179,18 @@ pub fn Sedes() -> impl IntoView {
         let animeitor =
         (move || {
             let contest_provider =
-                create_local_resource(move || contest_query.get(), |q| provide_contest(q));
+                LocalResource::new(move || {
+                    let q = contest_query.get();
+                    provide_contest(q)});
             let config_contest =
-                create_local_resource(move || contest_query.get(), |q| create_config(q));
+                LocalResource::new(move || {
+                    let q = contest_query.get();
+                    create_config(q)});
 
             match secret.get() {
                 Some(secret) => (move || view! {
-                    <ConfiguredReveleitor contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
-                }).into_view(),
+                    <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
+                }).into_any(),
                 None => view! {
                     <Navigation config_contest />
                     <Suspense fallback=|| view! { <p> Loading contest... </p> }>
@@ -202,13 +211,13 @@ pub fn Sedes() -> impl IntoView {
                                 )
                             }
                             </Suspense>
-                        }.into_view(),
+                        }.into_any(),
                     }
                 })
                 .into_view();
 
         if negative_memo.get() {
-            view! { <Timer timer /> }.into_view()
+            view! { <Timer timer /> }.into_any()
         } else {
             view! {
                 <BackgroundColor />
@@ -216,14 +225,17 @@ pub fn Sedes() -> impl IntoView {
                 {settings_panel}
                 {animeitor}
             }
-            .into_view()
+            .into_any()
         }
     };
 
     view! {
         <Router>
-            <Routes>
-                <Route path="*any" view=move || root />
+            <Routes fallback=move || root>
+                <Route
+                path=path!("")
+                view=move || root
+                />
             </Routes>
         </Router>
     }
