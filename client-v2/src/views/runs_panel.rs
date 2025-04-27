@@ -22,9 +22,9 @@ struct ItemWrap {
 impl Compress for ItemWrap {
     type Key = i64;
 
-    fn key(&self) -> Signal<Self::Key> {
+    fn key(&self) -> Signal<Option<Self::Key>> {
         let panel_item = self.panel_item.clone();
-        Signal::derive(move || panel_item.with(|p| p.as_ref().map(|p| p.id).unwrap_or_default()))
+        Signal::derive(move || panel_item.with(|p| p.as_ref().map(|p| p.id)))
     }
 
     fn view_in_position(

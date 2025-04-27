@@ -4,7 +4,7 @@ use leptos::prelude::*;
 
 pub trait Compress {
     type Key: Eq + Hash + Clone + Send + Sync + 'static;
-    fn key(&self) -> Signal<Self::Key>;
+    fn key(&self) -> Signal<Option<Self::Key>>;
     fn view_in_position(
         self,
         position: Signal<Option<usize>>,
@@ -58,13 +58,15 @@ fn inner_compress_placements<T>(
 ) -> impl IntoView
 where
     T: Compress + 'static,
-    T::Key: Send + Sync,
 {
     children
         .into_iter()
         .map(|c| {
             let key = c.key();
-            let signal = Memo::new(move |_| placements.with(|p| p.get(&key.get()).copied()));
+            let signal = Memo::new(move |_| {
+                let key = key.get()?;
+                placements.with(move |p| p.get(&key).copied())
+            });
             c.view_in_position(signal.into(), center)
         })
         .collect_view()
