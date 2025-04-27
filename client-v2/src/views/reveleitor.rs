@@ -182,6 +182,7 @@ pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: Arc<ContestFile>) ->
     log!("reveleitor");
     let query_map = use_query_map();
     let all_runs = LocalResource::new(move || {
+        log!("fetching secret runs");
         let secret = secret.clone();
         let contest_name = query_map.get().get("contest");
         create_secret_runs(secret, contest_name)

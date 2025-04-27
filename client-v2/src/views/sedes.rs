@@ -168,45 +168,43 @@ pub fn Sedes() -> impl IntoView {
         let contest_query =
             Signal::derive(|| use_query::<ContestQuery>().get().unwrap_or_default());
 
-        let animeitor =
-        (move || {
-            let contest_provider =
-                LocalResource::new(move || {
-                    let q = contest_query.get();
-                    provide_contest(q)});
-            let config_contest =
-                LocalResource::new(move || {
-                    let q = contest_query.get();
-                    create_config(q)});
+        let animeitor = move || {
+            let contest_provider = LocalResource::new(move || {
+                let q = contest_query.get();
+                provide_contest(q)
+            });
 
             match secret.get() {
                 Some(secret) => (move || view! {
                     <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
                 }).into_any(),
-                None => view! {
+                None => {
+                    let config_contest = LocalResource::new(move || {
+                        let q = contest_query.get();
+                        create_config(q)
+                    });
+                    let suspend = Suspend::new(async move {
+                        let provider = contest_provider.await;
+
+                        view! {
+                            <ProvideSede
+                                    original_contest=provider.starting_contest.clone()
+                                    contest_signal=provider.new_contest_signal.clone()
+                                    panel_items=&provider.runs_panel_item_manager
+                                    timer
+                                    config_contest=provider.config_contest.clone()
+                                    sede_param=query_params
+                                    />
+                        }
+                    });
+
+                    view! {
                     <Navigation config_contest />
-                    <Suspense fallback=|| view! { <p> Loading contest... </p> }>
-                    {
-                        move || contest_provider.with(|contest_provider|
-                            contest_provider.as_ref().map(|provider|
-                                view!{
-                                    <ProvideSede
-                                            original_contest=provider.starting_contest.clone()
-                                            contest_signal=provider.new_contest_signal.clone()
-                                            panel_items=&provider.runs_panel_item_manager
-                                            timer
-                                            config_contest=provider.config_contest.clone()
-                                            sede_param=query_params
-                                            />
-                                        }
-                                    )
-                                )
-                            }
-                            </Suspense>
-                        }.into_any(),
-                    }
-                })
-                .into_view();
+                    {suspend}
+                }.into_any()}
+            }
+                .into_view()
+        };
 
         if negative_memo.get() {
             view! { <Timer timer /> }.into_any()
