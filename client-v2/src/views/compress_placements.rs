@@ -1,9 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use leptos::prelude::*;
 
 pub trait Compress {
-    fn key(&self) -> String;
+    type Key: Eq + Hash + Clone;
+    fn key(&self) -> Self::Key;
     fn view_in_position(
         self,
         position: Signal<Option<usize>>,
@@ -21,18 +22,19 @@ pub trait Compress {
 /// - `center`: Which child should be the center component?
 pub fn compress_placements<T>(
     children: Vec<T>,
-    placements: Signal<Vec<String>>,
-    center: Signal<Option<String>>,
+    placements: Signal<Vec<T::Key>>,
+    center: Signal<Option<T::Key>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
+    T::Key: Send + Sync,
 {
     let placements = Memo::new(move |_| {
         placements.with(|p| {
             p.iter()
                 .enumerate()
                 .map(|(i, login)| (login.clone(), i + 1))
-                .collect::<HashMap<String, usize>>()
+                .collect::<HashMap<T::Key, usize>>()
         })
     });
 
@@ -51,11 +53,12 @@ where
 
 fn inner_compress_placements<T>(
     children: Vec<T>,
-    placements: Signal<HashMap<String, usize>>,
+    placements: Signal<HashMap<T::Key, usize>>,
     center: Signal<Option<usize>>,
 ) -> impl IntoView
 where
     T: Compress + 'static,
+    T::Key: Send + Sync,
 {
     children
         .into_iter()

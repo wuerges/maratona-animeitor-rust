@@ -151,6 +151,8 @@ struct ContestPanelLineWrap {
 }
 
 impl Compress for ContestPanelLineWrap {
+    type Key = String;
+
     fn key(&self) -> String {
         self.team.login.clone()
     }
