@@ -1,45 +1,83 @@
 use std::sync::Arc;
 
-use data::configdata::Sede;
+use data::{configdata::Sede, RunsPanelItem};
+use itertools::Itertools;
 use leptos::prelude::*;
 
 use crate::{
     model::runs_panel_signal::RunsPanelItemManager,
-    views::{placement::Placement, problem::Problem, team_name::TeamName},
+    views::{
+        compress_placements::compress_placements, placement::Placement, problem::Problem,
+        team_name::TeamName,
+    },
 };
+
+use super::compress_placements::Compress;
+
+struct ItemWrap {
+    panel_item: Signal<Option<RunsPanelItem>>,
+    sede: Signal<Arc<Sede>>,
+}
+
+impl Compress for ItemWrap {
+    type Key = i64;
+
+    fn key(&self) -> Self::Key {
+        // FIXME
+        self.panel_item
+            .with_untracked(|p| p.as_ref().map(|p| p.id).unwrap_or_default())
+    }
+
+    fn view_in_position(
+        self,
+        position: Signal<Option<usize>>,
+        _center: Signal<Option<usize>>,
+    ) -> impl IntoView {
+        let ItemWrap { panel_item, sede } = self;
+        move || {
+            let RunsPanelItem {
+                id: _,
+                placement,
+                escola,
+                team_name,
+                team_login: _,
+                problem,
+                problem_view,
+            } = panel_item.get()?;
+            let problem_view = problem_view.clone();
+            let position = position.get()?;
+            let top = format!("calc(var(--row-height) * {} + var(--root-top))", position);
+            let z_index = Signal::derive(move || (-(position as i32)).to_string());
+
+            Some(view! {
+                <div class="run_box" style:top={top} style:z-index={z_index}>
+                    <div class="run">
+                        <Placement placement=placement sede />
+                        <TeamName escola={escola.clone()} name={team_name.clone()} />
+                        <div class="cell quadrado">{problem.clone()}</div>
+                        <Problem prob=problem.chars().next().unwrap_or('Z') problem=Signal::derive(move || Some(problem_view.clone())) />
+                    </div>
+                </div>
+            })
+        }
+    }
+}
 
 #[component]
 pub fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Arc<Sede>>) -> impl IntoView {
-    let panel = items
+    let placements = items.placements_for_sede(sede);
+    let wraps = items
         .items
         .iter()
-        .map(|p| {
-            let position = p.position.clone();
-            let top = move || {
-                format!(
-                    "calc(var(--row-height) * {} + var(--root-top))",
-                    position.get()
-                )
-            };
-            let panel_item = p.panel_item.clone();
-
-            move || panel_item.with(move |p| {
-                p.as_ref().map(move |panel_item| {
-                    let problem_view = panel_item.problem_view.clone();
-                    view! {
-                        <div class="run_box" style:top={top} style:z-index={Signal::derive(move || (-(position.get() as i32)).to_string())}>
-                            <div class="run">
-                                <Placement placement=panel_item.placement sede />
-                                <TeamName escola={panel_item.escola.clone()} name={panel_item.team_name.clone()} />
-                                <div class="cell quadrado">{panel_item.problem.clone()}</div>
-                                <Problem prob=panel_item.problem.chars().next().unwrap_or('Z') problem=Signal::derive(move || Some(problem_view.clone())) />
-                            </div>
-                        </div>
-                    }
-                })
+        .filter_map(|item| {
+            Some(ItemWrap {
+                panel_item: item.panel_item.into(),
+                sede: sede.clone(),
             })
         })
-        .collect_view();
+        .collect_vec();
+
+    let panel = compress_placements(wraps, placements, None.into());
 
     view! {
         <div class="runstable">

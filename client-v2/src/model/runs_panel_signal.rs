@@ -1,9 +1,10 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Arc};
 
-use data::RunsPanelItem;
+use data::{configdata::Sede, RunsPanelItem};
 use itertools::Itertools;
 use leptos::prelude::*;
 
+#[derive(Clone)]
 pub struct RunPanelItemSignal {
     pub panel_item: RwSignal<Option<RunsPanelItem>>,
     pub position: RwSignal<usize>,
@@ -76,5 +77,28 @@ impl RunsPanelItemManager {
                 self.append(new_item);
             }
         }
+    }
+
+    pub fn placements_for_sede(&self, sede: Signal<Arc<Sede>>) -> Signal<Vec<i64>> {
+        let signals = self.items.iter().cloned().collect_vec();
+        let memo_signals = signals.clone();
+        Memo::new(move |_| {
+            sede.with(|sede| {
+                memo_signals
+                    .iter()
+                    .filter_map(|p| {
+                        let panel_item = p.panel_item.get()?;
+                        let id = panel_item.id;
+                        let placement = panel_item.placement;
+
+                        sede.team_belongs_str(&panel_item.team_login)
+                            .then_some((placement, id))
+                    })
+                    .sorted_by_key(|(placement, _)| *placement)
+                    .map(|(_, id)| id)
+                    .collect_vec()
+            })
+        })
+        .into()
     }
 }
