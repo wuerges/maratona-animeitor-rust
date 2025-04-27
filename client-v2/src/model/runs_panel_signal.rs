@@ -1,7 +1,4 @@
-use std::{
-    collections::{btree_map::Entry, BTreeMap},
-    sync::Arc,
-};
+use std::{collections::BTreeMap, sync::Arc};
 
 use data::{configdata::Sede, RunsPanelItem};
 use itertools::Itertools;
@@ -9,61 +6,77 @@ use leptos::prelude::*;
 
 #[derive(Clone)]
 pub struct RunPanelItemSignal {
-    pub panel_item: RwSignal<RunsPanelItem>,
-    pub team_login: String,
+    pub panel_item: RwSignal<Option<RunsPanelItem>>,
 }
 
 impl RunPanelItemSignal {
-    fn new(panel_item: RunsPanelItem) -> Self {
+    fn new() -> Self {
         Self {
-            team_login: panel_item.team_login.clone(),
-            panel_item: RwSignal::new(panel_item),
+            // id: panel_item.id,
+            // team_login: panel_item.team_login.clone(),
+            panel_item: RwSignal::new(None),
         }
     }
     fn set(&self, new_item: RunsPanelItem) {
-        self.panel_item.set(new_item);
+        self.panel_item.set(Some(new_item));
     }
 }
 
 pub struct RunsPanelItemManager {
-    pub items: RwSignal<BTreeMap<i64, RunPanelItemSignal>>,
+    pub items: Vec<RunPanelItemSignal>,
+    untracked: RwSignal<Untracked>,
+}
+
+#[derive(Debug, Default)]
+struct Untracked {
+    index: BTreeMap<i64, usize>,
+    rot: usize,
 }
 
 impl RunsPanelItemManager {
     pub const MAX: usize = 29;
     pub fn new() -> Self {
         Self {
-            items: Default::default(),
+            items: (0..=Self::MAX)
+                .map(|_| RunPanelItemSignal::new())
+                .collect_vec(),
+            untracked: Default::default(),
         }
     }
 
     pub fn push(&self, new_item: RunsPanelItem) {
-        self.items.update(|items| {
-            if items.len() > Self::MAX && !items.contains_key(&new_item.id) {
-                items.pop_first();
+        let found = self
+            .untracked
+            .with_untracked(|idx| idx.index.get(&new_item.id).copied());
+
+        match found {
+            Some(found) => self.items[found].set(new_item),
+            None => {
+                self.untracked.update_untracked(|u| {
+                    u.index.insert(new_item.id, u.rot);
+                    self.items[u.rot].set(new_item);
+                    u.rot += 1;
+                    u.rot = u.rot % Self::MAX;
+                });
             }
-            match items.entry(new_item.id) {
-                Entry::Vacant(vacant_entry) => {
-                    vacant_entry.insert(RunPanelItemSignal::new(new_item));
-                }
-                Entry::Occupied(occupied_entry) => occupied_entry.get().set(new_item),
-            }
-        });
+        }
     }
 
     pub fn placements_for_sede(&self, sede: Signal<Arc<Sede>>) -> Signal<Vec<i64>> {
-        let items = self.items.clone();
+        let signals = self.items.clone();
         Memo::new(move |_| {
             sede.with(|s| {
-                items.with(|tree| {
-                    tree.iter()
-                        .rev()
-                        .take(Self::MAX)
-                        .filter_map(move |(key, item)| {
-                            s.team_belongs_str(&item.team_login).then_some(*key)
-                        })
-                        .collect_vec()
-                })
+                signals
+                    .iter()
+                    .filter_map(move |item| {
+                        let (login, id) = item
+                            .panel_item
+                            .with(|v| v.as_ref().map(|i| (i.team_login.clone(), i.id)))?;
+                        s.team_belongs_str(&login).then_some(id)
+                    })
+                    .sorted()
+                    .rev()
+                    .collect_vec()
             })
         })
         .into()

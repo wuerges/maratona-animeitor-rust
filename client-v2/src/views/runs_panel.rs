@@ -15,8 +15,7 @@ use crate::{
 use super::compress_placements::Compress;
 
 struct ItemWrap {
-    id: i64,
-    panel_item: Signal<RunsPanelItem>,
+    panel_item: Signal<Option<RunsPanelItem>>,
     sede: Signal<Arc<Sede>>,
 }
 
@@ -24,7 +23,8 @@ impl Compress for ItemWrap {
     type Key = i64;
 
     fn key(&self) -> Signal<Option<Self::Key>> {
-        Some(self.id).into()
+        let sig = self.panel_item;
+        Signal::derive(move || sig.with(|item| item.as_ref().map(|p| p.id)))
     }
 
     fn view_in_position(
@@ -34,11 +34,7 @@ impl Compress for ItemWrap {
     ) -> impl IntoView {
         log!("view_in_position");
 
-        let ItemWrap {
-            id: _,
-            panel_item,
-            sede,
-        } = self;
+        let ItemWrap { panel_item, sede } = self;
         move || {
             let RunsPanelItem {
                 id: _,
@@ -48,7 +44,7 @@ impl Compress for ItemWrap {
                 team_login: _,
                 problem,
                 problem_view,
-            } = panel_item.get();
+            } = panel_item.get()?;
             let problem_view = problem_view.clone();
             let position = position.get()? as i32;
             let top = format!(
@@ -80,12 +76,10 @@ pub fn RunsPanel(items: Arc<RunsPanelItemManager>, sede: Signal<Arc<Sede>>) -> i
 
         let wraps = items
             .items
-            .get()
             .iter()
-            .filter_map(|(id, item)| {
+            .filter_map(|item_signal| {
                 Some(ItemWrap {
-                    id: *id,
-                    panel_item: item.panel_item.into(),
+                    panel_item: item_signal.panel_item.into(),
                     sede: sede.clone(),
                 })
             })
