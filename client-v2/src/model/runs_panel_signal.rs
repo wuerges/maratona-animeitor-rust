@@ -12,8 +12,6 @@ pub struct RunPanelItemSignal {
 impl RunPanelItemSignal {
     fn new() -> Self {
         Self {
-            // id: panel_item.id,
-            // team_login: panel_item.team_login.clone(),
             panel_item: RwSignal::new(None),
         }
     }
@@ -34,7 +32,7 @@ struct Untracked {
 }
 
 impl RunsPanelItemManager {
-    pub const MAX: usize = 29;
+    pub const MAX: usize = 299;
     pub fn new() -> Self {
         Self {
             items: (0..=Self::MAX)
