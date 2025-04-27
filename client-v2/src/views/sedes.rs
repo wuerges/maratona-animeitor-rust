@@ -90,10 +90,10 @@ fn use_titulo(config: Arc<ConfigContest>) -> Arc<Sede> {
 }
 
 #[component]
-fn ProvideSede<'cs>(
+fn ProvideSede(
     original_contest: Arc<ContestFile>,
     contest_signal: Arc<ContestSignal>,
-    panel_items: &'cs RunsPanelItemManager,
+    panel_items: Arc<RunsPanelItemManager>,
     config_contest: Arc<ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede_param: Signal<QueryParams>,
@@ -190,7 +190,7 @@ pub fn Sedes() -> impl IntoView {
                             <ProvideSede
                                     original_contest=provider.starting_contest.clone()
                                     contest_signal=provider.new_contest_signal.clone()
-                                    panel_items=&provider.runs_panel_item_manager
+                                    panel_items=provider.runs_panel_item_manager
                                     timer
                                     config_contest=provider.config_contest.clone()
                                     sede_param=query_params

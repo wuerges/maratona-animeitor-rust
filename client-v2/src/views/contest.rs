@@ -205,10 +205,10 @@ fn EmptyContestPanel(sede: Signal<Arc<Sede>>) -> impl IntoView {
 }
 
 #[component]
-pub fn Contest<'cs>(
+pub fn Contest(
     original_contest: Arc<ContestFile>,
     contest_signal: Arc<ContestSignal>,
-    panel_items: &'cs RunsPanelItemManager,
+    panel_items: Arc<RunsPanelItemManager>,
     timer: ReadSignal<(TimerData, TimerData)>,
     titulo: Signal<Option<Arc<Sede>>>,
     sede: Signal<Arc<Sede>>,

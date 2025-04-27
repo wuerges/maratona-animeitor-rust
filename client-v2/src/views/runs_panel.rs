@@ -15,7 +15,8 @@ use crate::{
 use super::compress_placements::Compress;
 
 struct ItemWrap {
-    panel_item: Signal<Option<RunsPanelItem>>,
+    id: i64,
+    panel_item: Signal<RunsPanelItem>,
     sede: Signal<Arc<Sede>>,
 }
 
@@ -23,8 +24,7 @@ impl Compress for ItemWrap {
     type Key = i64;
 
     fn key(&self) -> Signal<Option<Self::Key>> {
-        let panel_item = self.panel_item.clone();
-        Signal::derive(move || panel_item.with(|p| p.as_ref().map(|p| p.id)))
+        Some(self.id).into()
     }
 
     fn view_in_position(
@@ -34,7 +34,11 @@ impl Compress for ItemWrap {
     ) -> impl IntoView {
         log!("view_in_position");
 
-        let ItemWrap { panel_item, sede } = self;
+        let ItemWrap {
+            id: _,
+            panel_item,
+            sede,
+        } = self;
         move || {
             let RunsPanelItem {
                 id: _,
@@ -44,7 +48,7 @@ impl Compress for ItemWrap {
                 team_login: _,
                 problem,
                 problem_view,
-            } = panel_item.get()?;
+            } = panel_item.get();
             let problem_view = problem_view.clone();
             let position = position.get()? as i32;
             let top = format!(
@@ -68,25 +72,30 @@ impl Compress for ItemWrap {
 }
 
 #[component]
-pub fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Arc<Sede>>) -> impl IntoView {
-    let placements = items.placements_for_sede(sede);
-    let wraps = items
-        .items
-        .iter()
-        .filter_map(|item| {
-            Some(ItemWrap {
-                panel_item: item.panel_item.into(),
-                sede: sede.clone(),
+pub fn RunsPanel(items: Arc<RunsPanelItemManager>, sede: Signal<Arc<Sede>>) -> impl IntoView {
+    move || {
+        let placements = items.placements_for_sede(sede);
+
+        log!("runs_panel");
+
+        let wraps = items
+            .items
+            .get()
+            .iter()
+            .filter_map(|(id, item)| {
+                Some(ItemWrap {
+                    id: *id,
+                    panel_item: item.panel_item.into(),
+                    sede: sede.clone(),
+                })
             })
-        })
-        .collect_vec();
+            .collect_vec();
+        let panel = compress_placements(wraps, placements, None.into());
 
-    log!("runs_panel");
-    let panel = compress_placements(wraps, placements, None.into());
-
-    view! {
-        <div class="runstable">
-            {panel}
-        </div>
+        view! {
+            <div class="runstable">
+                {panel}
+            </div>
+        }
     }
 }
