@@ -95,6 +95,7 @@ impl RunsPanelItemManager {
                             .then_some((placement, id))
                     })
                     .sorted_by_key(|(placement, _)| *placement)
+                    .take(30)
                     .map(|(_, id)| id)
                     .collect_vec()
             })

@@ -3,8 +3,8 @@ use std::{collections::HashMap, hash::Hash};
 use leptos::prelude::*;
 
 pub trait Compress {
-    type Key: Eq + Hash + Clone;
-    fn key(&self) -> Self::Key;
+    type Key: Eq + Hash + Clone + Send + Sync + 'static;
+    fn key(&self) -> Signal<Self::Key>;
     fn view_in_position(
         self,
         position: Signal<Option<usize>>,
@@ -62,9 +62,9 @@ where
 {
     children
         .into_iter()
-        .map(|c| (c.key(), c))
-        .map(|(key, c)| {
-            let signal = Memo::new(move |_| placements.with(|p| p.get(&key).copied()));
+        .map(|c| {
+            let key = c.key();
+            let signal = Memo::new(move |_| placements.with(|p| p.get(&key.get()).copied()));
             c.view_in_position(signal.into(), center)
         })
         .collect_view()

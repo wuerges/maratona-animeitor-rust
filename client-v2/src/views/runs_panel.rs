@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use data::{configdata::Sede, RunsPanelItem};
 use itertools::Itertools;
-use leptos::prelude::*;
+use leptos::{logging::log, prelude::*};
 
 use crate::{
     model::runs_panel_signal::RunsPanelItemManager,
@@ -22,10 +22,9 @@ struct ItemWrap {
 impl Compress for ItemWrap {
     type Key = i64;
 
-    fn key(&self) -> Self::Key {
-        // FIXME
-        self.panel_item
-            .with_untracked(|p| p.as_ref().map(|p| p.id).unwrap_or_default())
+    fn key(&self) -> Signal<Self::Key> {
+        let panel_item = self.panel_item.clone();
+        Signal::derive(move || panel_item.with(|p| p.as_ref().map(|p| p.id).unwrap_or_default()))
     }
 
     fn view_in_position(
@@ -33,6 +32,8 @@ impl Compress for ItemWrap {
         position: Signal<Option<usize>>,
         _center: Signal<Option<usize>>,
     ) -> impl IntoView {
+        log!("view_in_position");
+
         let ItemWrap { panel_item, sede } = self;
         move || {
             let RunsPanelItem {
@@ -45,9 +46,12 @@ impl Compress for ItemWrap {
                 problem_view,
             } = panel_item.get()?;
             let problem_view = problem_view.clone();
-            let position = position.get()?;
-            let top = format!("calc(var(--row-height) * {} + var(--root-top))", position);
-            let z_index = Signal::derive(move || (-(position as i32)).to_string());
+            let position = position.get()? as i32;
+            let top = format!(
+                "calc(var(--row-height) * {} + var(--root-top))",
+                position - 1
+            );
+            let z_index = Signal::derive(move || (-position).to_string());
 
             Some(view! {
                 <div class="run_box" style:top={top} style:z-index={z_index}>
@@ -77,6 +81,7 @@ pub fn RunsPanel<'cs>(items: &'cs RunsPanelItemManager, sede: Signal<Arc<Sede>>)
         })
         .collect_vec();
 
+    log!("runs_panel");
     let panel = compress_placements(wraps, placements, None.into());
 
     view! {
