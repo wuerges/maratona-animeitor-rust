@@ -136,9 +136,10 @@ pub struct ConfigContest {
 }
 
 impl ConfigContest {
-    pub fn into_contest(self) -> Contest {
+    pub fn into_contest(&self) -> Contest {
         let entry_map: HashMap<String, SedeEntry> = self
             .sedes
+            .clone()
             .unwrap_or_default()
             .into_iter()
             .map(|sede| (sede.name.clone(), sede))
@@ -240,67 +241,97 @@ mod tests {
         };
         let secret = config_secret.into_secret(None, &contest);
 
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("teambr$"),);
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("teammx$"));
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$teammx$"));
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$teammx$"));
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$teammx"));
-        assert!(secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$teammx"));
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("teambr$"),
+        );
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("teammx$")
+        );
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$teammx$")
+        );
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$teammx$")
+        );
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$teammx")
+        );
+        assert!(
+            secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$teammx")
+        );
 
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("tea#mbr$"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("tea#mmx$"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$te#ammx$"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$te#ammx$"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$te#ammx"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$te#ammx"));
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("tea#mbr$")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("tea#mmx$")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$te#ammx$")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$te#ammx$")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$te#ammx")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$te#ammx")
+        );
 
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("teamag"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("teamag$"));
-        assert!(!secret
-            .get_sede_by_secret("key")
-            .unwrap()
-            .team_belongs_str("$teamag$"));
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("teamag")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("teamag$")
+        );
+        assert!(
+            !secret
+                .get_sede_by_secret("key")
+                .unwrap()
+                .team_belongs_str("$teamag$")
+        );
     }
 }

@@ -71,7 +71,7 @@ fn use_static_query() -> Signal<QueryParams> {
 }
 
 fn use_configured_sede(
-    config: ConfigContest,
+    config: Arc<ConfigContest>,
     titulo: Arc<Sede>,
     sede_param: Option<String>,
 ) -> Arc<Sede> {
@@ -84,7 +84,7 @@ fn use_configured_sede(
     sub_sede.unwrap_or(titulo)
 }
 
-fn use_titulo(config: ConfigContest) -> Arc<Sede> {
+fn use_titulo(config: Arc<ConfigContest>) -> Arc<Sede> {
     let config = config.into_contest();
     Arc::new(config.titulo)
 }
@@ -94,7 +94,7 @@ fn ProvideSede<'cs>(
     original_contest: Arc<ContestFile>,
     contest_signal: Arc<ContestSignal>,
     panel_items: &'cs RunsPanelItemManager,
-    config_contest: ConfigContest,
+    config_contest: Arc<ConfigContest>,
     timer: ReadSignal<(TimerData, TimerData)>,
     sede_param: Signal<QueryParams>,
 ) -> impl IntoView {
@@ -127,26 +127,18 @@ fn ConfiguredReveleitor(
     secret: String,
     sede_param: Option<String>,
 ) -> impl IntoView {
-    let configured_reveleitor = move || {
+    let secret = secret.clone();
+    let sede_param = sede_param.clone();
+
+    Suspend::new(async move {
+        let provider = contest_provider.await;
+        let titulo = use_titulo(provider.config_contest.clone());
+        let sede = use_configured_sede(provider.config_contest.clone(), titulo, sede_param);
+
         {
-            let secret = secret.clone();
-            let sede_param = sede_param.clone();
-            contest_provider.with(|provider| {
-                provider.as_ref().map(|provider| {
-                    let titulo = use_titulo(provider.config_contest.clone());
-                    let sede =
-                        use_configured_sede(provider.config_contest.clone(), titulo, sede_param);
-                    view! { <Reveleitor sede secret contest=provider.starting_contest.clone() /> }
-                })
-            })
+            view! { <Reveleitor sede secret contest=provider.starting_contest.clone() /> }
         }
-        .into_view()
-    };
-    view! {
-        <Suspense fallback=|| view! { <p> Preparing reveleitor... </p> }>
-            {configured_reveleitor()}
-        </Suspense>
-    }
+    })
 }
 
 #[component]
@@ -199,7 +191,7 @@ pub fn Sedes() -> impl IntoView {
                             contest_provider.as_ref().map(|provider|
                                 view!{
                                     <ProvideSede
-                                            original_contest=Arc::new(provider.starting_contest.clone())
+                                            original_contest=provider.starting_contest.clone()
                                             contest_signal=provider.new_contest_signal.clone()
                                             panel_items=&provider.runs_panel_item_manager
                                             timer

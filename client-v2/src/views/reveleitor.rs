@@ -137,6 +137,7 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 
 #[component]
 pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
+    log!("revelation");
     let contest_signal = Arc::new(ContestSignal::new(&contest));
     let contest = contest.clone();
     let original_contest = Arc::new(contest.clone());
@@ -177,7 +178,8 @@ pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) ->
 }
 
 #[component]
-pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: ContestFile) -> impl IntoView {
+pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: Arc<ContestFile>) -> impl IntoView {
+    log!("reveleitor");
     let query_map = use_query_map();
     let all_runs = LocalResource::new(move || {
         let secret = secret.clone();
@@ -185,11 +187,10 @@ pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: ContestFile) -> impl
         create_secret_runs(secret, contest_name)
     });
 
-    move || {
-        let contest = contest.clone();
-        all_runs.get().map(|runs_file| {
-            let runs_file = runs_file.take();
-            view! { <Revelation sede=sede.clone() runs_file contest /> }
-        })
-    }
+    let contest = ContestFile::clone(&contest);
+    Suspend::new(async move {
+        let runs_file = all_runs.await;
+
+        view! { <Revelation sede=sede.clone() runs_file contest /> }
+    })
 }

@@ -15,9 +15,10 @@ use runs_panel_signal::RunsPanelItemManager;
 
 use crate::api::{create_config, create_contest, create_runs, ContestQuery};
 
+#[derive(Clone)]
 pub struct ContestProvider {
-    pub starting_contest: ContestFile,
-    pub config_contest: ConfigContest,
+    pub starting_contest: Arc<ContestFile>,
+    pub config_contest: Arc<ConfigContest>,
     pub new_contest_signal: Arc<ContestSignal>,
     pub runs_panel_item_manager: Arc<RunsPanelItemManager>,
 }
@@ -108,8 +109,8 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
 
     log!("provided contest");
     ContestProvider {
-        starting_contest,
-        config_contest: config,
+        starting_contest: Arc::new(starting_contest),
+        config_contest: Arc::new(config),
         new_contest_signal: new_contest_signal_ref,
         runs_panel_item_manager: runs_panel_item_manager_ref,
     }
