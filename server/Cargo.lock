@@ -611,7 +611,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "cli"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "clap",
  "color-eyre",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "derivative",
  "itertools",
@@ -2788,7 +2788,7 @@ dependencies = [
 
 [[package]]
 name = "server-v2"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "actix-cors",
  "actix-files",
@@ -2812,7 +2812,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "data",
  "futures",

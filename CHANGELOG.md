@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.1]
+
+- Updated rust and leptos.
+
+## [0.13.0]
 
 - Update clap from 2 to 4. Changed command line parsing.
 - Serving api requests on /api instead of /.
