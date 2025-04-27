@@ -7,6 +7,7 @@ mod navigation;
 mod placement;
 mod problem;
 mod reveleitor;
+mod runs_panel;
 mod team_media;
 mod team_name;
 mod team_score_line;
