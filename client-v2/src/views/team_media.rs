@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use codee::string::JsonSerdeCodec;
 use data::configdata::Sede;
-use leptos::{html::Audio, prelude::*};
+use leptos::{ev, html::Audio, logging::log, prelude::*};
 use leptos_use::storage::use_local_storage;
 use serde::{Deserialize, Serialize};
 
@@ -66,14 +66,14 @@ fn onerror_sound() -> String {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct VolumeSettings {
-    autoplay: bool,
+    autoplay: Option<bool>,
     volume: u32,
 }
 
 impl Default for VolumeSettings {
     fn default() -> Self {
         Self {
-            autoplay: true,
+            autoplay: None,
             volume: 100,
         }
     }
@@ -96,13 +96,24 @@ fn TeamAudio(team_login: String) -> impl IntoView {
     });
 
     let settings = use_context::<GlobalSettingsSignal>().unwrap();
+    let global_autoplay = Signal::derive(move || settings.global.with(|g| g.autoplay));
 
-    let autoplay = move || volume_settings.with(|s| s.autoplay);
+    let autoplay = Signal::derive(move || {
+        volume_settings.with(|s| s.autoplay.unwrap_or(global_autoplay.get()))
+    });
+
+    let handle = window_event_listener(ev::keydown, move |ev| match ev.code().as_str() {
+        "KeyM" => {
+            let autoplay = autoplay.get();
+            set_volume_settings.update(|s| s.autoplay = Some(!autoplay))
+        }
+        code => log!("ev code: {code}"),
+    });
+    on_cleanup(move || handle.remove());
+
     let mute = Signal::derive(move || settings.global.with(|g| g.mute));
     let show_audio_controls =
         Signal::derive(move || settings.global.with(|g| g.show_audio_controls));
-
-    let should_autoplay = move || !mute.get() && autoplay();
 
     let controls = move || {
         (show_audio_controls.get()).then_some(view! {
@@ -112,7 +123,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                     <input
                         type="checkbox"
                         prop:checked=autoplay
-                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = event_target_checked(&ev))
+                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = Some(event_target_checked(&ev)))
                     />
                 </div>
                 <div class="control">
@@ -136,7 +147,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                 node_ref=audio_ref
                 src=team_sound_location(&team_login)
                 onerror=onerror_sound()
-                autoplay=should_autoplay
+                autoplay=autoplay.get()
             />
         })
     };
