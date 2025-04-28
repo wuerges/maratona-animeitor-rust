@@ -183,12 +183,26 @@ pub fn TeamMedia(
 
     move || {
         let team_login_click = team_login.clone();
-        let team_details = settings.global.with(|g| g.team_details).then_some(view! {
-            <div class="foto_team_label">
-                <div class="foto_team_name">{team_name.clone()} </div>
-                <div class="foto_team_escola">{escola.clone()} </div>
-            </div>
-        });
+        let team_details =
+            settings
+                .global
+                .with(|g| g.team_details)
+                .then_some(if team_name.contains(&escola) {
+                    view! {
+                        <div class="foto_team_label">
+                            <div class="foto_team_name">{team_name.clone()} </div>
+                        </div>
+                    }
+                    .into_any()
+                } else {
+                    view! {
+                        <div class="foto_team_label">
+                            <div class="foto_team_name">{team_name.clone()} </div>
+                            <div class="foto_team_escola">{escola.clone()} </div>
+                        </div>
+                    }
+                    .into_any()
+                });
         match memo.get() {
             PhotoState::Hidden => None,
             PhotoState::Show(team_login) => {
