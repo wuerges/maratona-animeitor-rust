@@ -64,29 +64,24 @@ fn onerror_sound() -> String {
     )
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-struct VolumeSettings {
-    autoplay: Option<bool>,
-    volume: u32,
-}
-
-impl Default for VolumeSettings {
-    fn default() -> Self {
-        Self {
-            autoplay: None,
-            volume: 100,
-        }
-    }
-}
-
 #[component]
 fn TeamAudio(team_login: String) -> impl IntoView {
-    let key = format!("volume.{}", team_login);
+    // let key = format!("volume.{}", team_login);
 
-    let (volume_settings, set_volume_settings, _) =
-        use_local_storage::<VolumeSettings, JsonSerdeCodec>(key);
+    // let (volume_settings, set_volume_settings, _) =
+    //     use_local_storage::<VolumeSettings, JsonSerdeCodec>(key);
 
     let audio_ref = NodeRef::<Audio>::new();
+    let settings = use_context::<GlobalSettingsSignal>().unwrap();
+    let volume_login = team_login.clone();
+    let volume_settings = Signal::derive(move || {
+        settings.global.with(|g| {
+            g.team_settings
+                .get(&volume_login)
+                .cloned()
+                .unwrap_or_default()
+        })
+    });
 
     Effect::new(move |_| {
         let volume = volume_settings.with(|v| v.volume);
@@ -95,17 +90,18 @@ fn TeamAudio(team_login: String) -> impl IntoView {
         }
     });
 
-    let settings = use_context::<GlobalSettingsSignal>().unwrap();
     let global_autoplay = Signal::derive(move || settings.global.with(|g| g.autoplay));
 
     let autoplay = Signal::derive(move || {
         volume_settings.with(|s| s.autoplay.unwrap_or(global_autoplay.get()))
     });
 
+    let handle_settings = settings.clone();
+    let handle_login = team_login.clone();
     let handle = window_event_listener(ev::keydown, move |ev| match ev.code().as_str() {
         "KeyM" => {
             let autoplay = autoplay.get();
-            set_volume_settings.update(|s| s.autoplay = Some(!autoplay))
+            handle_settings.update_team_settings(&handle_login, |s| s.autoplay = Some(!autoplay));
         }
         code => log!("ev code: {code}"),
     });
@@ -115,7 +111,13 @@ fn TeamAudio(team_login: String) -> impl IntoView {
     let show_audio_controls =
         Signal::derive(move || settings.global.with(|g| g.show_audio_controls));
 
+    let settings = settings.clone();
+    let control_login = team_login.clone();
     let controls = move || {
+        let control_autoplay_settings = settings.clone();
+        let control_volume_settings = settings.clone();
+        let control_autoplay_team_login = control_login.clone();
+        let control_volume_team_login = control_login.clone();
         (show_audio_controls.get()).then_some(view! {
             <div class="volume_controls">
                 <div class="control">
@@ -123,7 +125,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                     <input
                         type="checkbox"
                         prop:checked=autoplay
-                        on:input=move |ev| set_volume_settings.update(|v| v.autoplay = Some(event_target_checked(&ev)))
+                        on:input=move |ev| control_autoplay_settings.update_team_settings(&control_autoplay_team_login, |s| s.autoplay = Some(event_target_checked(&ev)))
                     />
                 </div>
                 <div class="control">
@@ -134,7 +136,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
                             min="0" max="100"
                             value="100"
                             prop:value=move || volume_settings.with(|v| v.volume)
-                            on:input=move |ev| set_volume_settings.update(|v| v.volume = event_target_value(&ev).parse().unwrap_or_default())
+                            on:input=move |ev| control_volume_settings.update_team_settings(&control_volume_team_login, |s| s.volume = event_target_value(&ev).parse().unwrap_or_default())
                         />
                     </div>
                 </div>

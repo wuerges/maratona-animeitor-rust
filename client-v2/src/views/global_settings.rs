@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use codee::string::JsonSerdeCodec;
 use leptos::prelude::*;
 use leptos_use::storage::use_local_storage;
@@ -15,6 +17,22 @@ pub struct GlobalSettings {
     pub secret_enabled: bool,
     pub secret: Option<String>,
     pub team_details: bool,
+    pub team_settings: HashMap<String, TeamSettings>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub struct TeamSettings {
+    pub autoplay: Option<bool>,
+    pub volume: u32,
+}
+
+impl Default for TeamSettings {
+    fn default() -> Self {
+        Self {
+            autoplay: None,
+            volume: 100,
+        }
+    }
 }
 
 impl Default for GlobalSettings {
@@ -28,6 +46,7 @@ impl Default for GlobalSettings {
             secret: None,
             autoplay: false,
             team_details: true,
+            team_settings: Default::default(),
         }
     }
 }
@@ -38,9 +57,31 @@ pub struct GlobalSettingsSignal {
     pub set_global: WriteSignal<GlobalSettings>,
 }
 
+impl GlobalSettingsSignal {
+    pub fn update_team_settings(
+        &self,
+        team_login: &str,
+        team_settings: impl Fn(&mut TeamSettings),
+    ) {
+        self.set_global
+            .update(|u| u.update_team_settings(team_login, team_settings));
+    }
+}
+
 impl GlobalSettings {
     pub fn get_secret(&self) -> Option<String> {
         self.secret_enabled.then_some(self.secret.clone()).flatten()
+    }
+    fn update_team_settings(
+        &mut self,
+        team_login: &str,
+        team_settings: impl Fn(&mut TeamSettings),
+    ) {
+        let ts = self
+            .team_settings
+            .entry(team_login.to_string())
+            .or_default();
+        team_settings(ts)
     }
 }
 
