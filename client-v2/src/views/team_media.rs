@@ -142,7 +142,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
         })
     };
     let audio = move || {
-        (!mute.get()).then_some(view! {
+        (!mute.get() && autoplay.get()).then_some(view! {
             <audio
                 node_ref=audio_ref
                 src=team_sound_location(&team_login)
