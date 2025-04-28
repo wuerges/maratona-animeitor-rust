@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use data::{configdata::Sede, ContestFile, TimerData};
 use itertools::Itertools;
-use leptos::{logging::log, prelude::*};
+use leptos::{ev, logging::log, prelude::*};
 
 use crate::{
     model::{
@@ -148,10 +148,22 @@ pub fn ContestPanel(
     sede: Signal<Arc<Sede>>,
 ) -> impl IntoView {
     log!("contest panel refresh");
+
     let n = original_contest.number_problems;
     let all_problems = &data::PROBLEM_LETTERS[..n];
 
     let show_photo = use_global_photo_state();
+
+    let handle = window_event_listener(ev::keydown, move |ev| match ev.code().as_str() {
+        "KeyY" => {
+            center.with(|center| match center {
+                Some(center) => show_photo.update(|s| s.clicked(center)),
+                None => show_photo.update(|s| s.hide()),
+            });
+        }
+        code => log!("ev code: {code}"),
+    });
+    on_cleanup(move || handle.remove());
 
     let placements_contest_signal = contest_signal.clone();
 

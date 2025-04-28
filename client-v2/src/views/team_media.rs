@@ -45,6 +45,9 @@ impl PhotoState {
             PhotoState::Hidden => PhotoState::Show(team_login.to_string()),
         }
     }
+    pub fn hide(&mut self) {
+        *self = PhotoState::Hidden
+    }
 }
 
 fn onerror_photo() -> String {
