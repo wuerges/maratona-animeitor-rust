@@ -20,8 +20,8 @@ pub struct GlobalSettings {
 impl Default for GlobalSettings {
     fn default() -> Self {
         Self {
-            mute: true,
-            show_audio_controls: false,
+            mute: false,
+            show_audio_controls: true,
             background_color: None,
             team_background_color: Some("black".to_string()),
             secret_enabled: false,
