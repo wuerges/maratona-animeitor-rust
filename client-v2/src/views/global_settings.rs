@@ -14,6 +14,7 @@ pub struct GlobalSettings {
     pub team_background_color: Option<String>,
     pub secret_enabled: bool,
     pub secret: Option<String>,
+    pub team_details: bool,
 }
 
 impl Default for GlobalSettings {
@@ -22,10 +23,11 @@ impl Default for GlobalSettings {
             mute: true,
             show_audio_controls: false,
             background_color: None,
-            team_background_color: None,
+            team_background_color: Some("black".to_string()),
             secret_enabled: false,
             secret: None,
             autoplay: false,
+            team_details: true,
         }
     }
 }
@@ -108,6 +110,14 @@ pub fn SettingsPanel() -> impl IntoView {
                     type="text"
                     prop:value=move || global.global.with(|g| g.team_background_color.clone().unwrap_or_default())
                     on:input=move |ev| global.set_global.update(|g| g.team_background_color = maybe_text(event_target_value(&ev)))
+                />
+            </div>
+            <div class="control">
+                <label>team_details</label>
+                <input
+                    type="checkbox"
+                    prop:checked=move || global.global.with(|g| g.team_details)
+                    on:input=move |ev| global.set_global.update(|g| g.team_details = event_target_checked(&ev))
                 />
             </div>
             <div class="control">

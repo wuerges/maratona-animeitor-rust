@@ -183,6 +183,12 @@ pub fn TeamMedia(
 
     move || {
         let team_login_click = team_login.clone();
+        let team_details = settings.global.with(|g| g.team_details).then_some(view! {
+            <div class="foto_team_label">
+                <div class="foto_team_name">{team_name.clone()} </div>
+                <div class="foto_team_escola">{escola.clone()} </div>
+            </div>
+        });
         match memo.get() {
             PhotoState::Hidden => None,
             PhotoState::Show(team_login) => {
@@ -195,10 +201,7 @@ pub fn TeamMedia(
                                 onerror=onerror_photo()
                                 on:click=move |_| show.update(|s| s.clicked(&team_login_click))
                             />
-                            <div class="foto_team_label">
-                                <div class="foto_team_name">{team_name.clone()} </div>
-                                <div class="foto_team_escola">{escola.clone()} </div>
-                            </div>
+                            {team_details}
                             <TeamScoreLine team=team.clone() is_center=false.into() titulo local_placement sede />
                             <TeamAudio team_login=team_login.clone() />
                         </div>
