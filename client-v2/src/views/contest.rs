@@ -165,6 +165,20 @@ pub fn ContestPanel(
     });
     on_cleanup(move || handle.remove());
 
+    Effect::new(move |_| {
+        center.with(|center| match center {
+            Some(center) => show_photo.update(|s| match s {
+                PhotoState::Hidden => (),
+                PhotoState::Show(old) => {
+                    if old != center {
+                        s.clicked(center)
+                    }
+                }
+            }),
+            None => show_photo.update(|s| s.hide()),
+        })
+    });
+
     let placements_contest_signal = contest_signal.clone();
 
     let placements = Signal::derive(move || {

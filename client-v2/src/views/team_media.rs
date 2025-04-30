@@ -41,7 +41,13 @@ pub fn use_global_photo_state() -> RwSignal<PhotoState> {
 impl PhotoState {
     pub fn clicked(&mut self, team_login: &str) {
         *self = match self {
-            PhotoState::Show(_) => PhotoState::Hidden,
+            PhotoState::Show(old) => {
+                if old != team_login {
+                    PhotoState::Show(team_login.to_string())
+                } else {
+                    PhotoState::Hidden
+                }
+            }
             PhotoState::Hidden => PhotoState::Show(team_login.to_string()),
         }
     }
