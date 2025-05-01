@@ -69,11 +69,6 @@ fn onerror_sound() -> String {
 
 #[component]
 fn TeamAudio(team_login: String) -> impl IntoView {
-    // let key = format!("volume.{}", team_login);
-
-    // let (volume_settings, set_volume_settings, _) =
-    //     use_local_storage::<VolumeSettings, JsonSerdeCodec>(key);
-
     let audio_ref = NodeRef::<Audio>::new();
     let settings = use_context::<GlobalSettingsSignal>().unwrap();
     let volume_login = team_login.clone();
