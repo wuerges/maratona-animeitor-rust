@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use data::{ContestFile, RunTuple};
+use data::{problem_letters, ContestFile, RunTuple};
 use itertools::Itertools;
 use leptos::prelude::*;
 
@@ -16,11 +16,7 @@ pub struct ContestSignal {
 
 impl ContestSignal {
     pub fn new(contest_file: &ContestFile) -> Self {
-        let letters = data::PROBLEM_LETTERS
-            .chars()
-            .take(contest_file.number_problems)
-            .map(|l| l.to_string())
-            .collect::<Vec<_>>();
+        let letters = problem_letters(contest_file.number_problems);
 
         ContestSignal {
             teams: contest_file

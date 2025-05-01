@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use data::{configdata::Sede, ContestFile, TimerData};
+use data::{configdata::Sede, problem_letters, ContestFile, TimerData};
 use itertools::Itertools;
 use leptos::{ev, logging::log, prelude::*};
 
@@ -86,7 +86,7 @@ fn ContestPanelLine(
 }
 
 #[component]
-fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<char>) -> impl IntoView {
+fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<String>) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
@@ -149,8 +149,7 @@ pub fn ContestPanel(
 ) -> impl IntoView {
     log!("contest panel refresh");
 
-    let n = original_contest.number_problems;
-    let all_problems = data::PROBLEM_LETTERS.chars().take(n).collect_vec();
+    let all_problems = problem_letters(original_contest.number_problems);
 
     let show_photo = use_global_photo_state();
 

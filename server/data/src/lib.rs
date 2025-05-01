@@ -4,7 +4,9 @@ pub mod remote_control;
 pub mod revelation;
 
 use configdata::Sede;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
+use std::cell::LazyCell;
 use std::cmp::{Eq, Ordering};
 use std::collections::{BTreeMap, HashSet, btree_map};
 use std::fmt;
@@ -374,7 +376,27 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
-pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZΓΔΘΛΞΠΣΦΨΩ";
+const PROBLEM_LETTERS: LazyCell<Vec<char>> =
+    LazyCell::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
+
+fn problem_letter(mut i: usize) -> String {
+    let n = PROBLEM_LETTERS.len();
+    let mut ret = vec![];
+
+    ret.push(i % n);
+    i = i / n;
+
+    while i != 0 {
+        i = i / n;
+        ret.push(i % n);
+    }
+
+    ret.iter().rev().map(|r| PROBLEM_LETTERS[*r]).collect()
+}
+
+pub fn problem_letters(i: usize) -> Vec<String> {
+    (0..i).map(problem_letter).collect()
+}
 
 pub trait BelongsToContest {
     fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool;
