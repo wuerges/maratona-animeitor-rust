@@ -1,6 +1,6 @@
 use data::configdata::Sede;
 use itertools::Itertools;
-use leptos::prelude::*;
+use leptos::{logging::log, prelude::*};
 use std::sync::Arc;
 
 use crate::{
@@ -26,7 +26,8 @@ pub fn TeamScoreLine(
         .sorted_by_cached_key(|(letter, _problem)| letter.clone())
         .map(|(letter, problem)| {
             let memo_problem = Memo::new(move |_| problem.get());
-            move || view! { <Problem prob=letter.chars().next().unwrap() problem=memo_problem.into() /> }
+            log!("problem letter: {:?}", letter);
+            move || view! { <Problem prob=letter.clone() problem=memo_problem.into() /> }
         })
         .collect_view();
 

@@ -1,3 +1,4 @@
+use data::BadLetter;
 use thiserror::Error;
 
 use crate::webcast::{FetchErr, ZipErr};
@@ -38,4 +39,7 @@ pub enum Error {
 
     #[error("Error::Parse: {0}")]
     Parse(String),
+
+    #[error(transparent)]
+    BadLetter(#[from] BadLetter),
 }

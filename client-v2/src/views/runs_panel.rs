@@ -58,8 +58,8 @@ impl Compress for ItemWrap {
                     <div class="run">
                         <Placement placement=placement sede />
                         <TeamName escola={escola.clone()} name={team_name.clone()} />
-                        <div class="cell quadrado">{problem.clone()}</div>
-                        <Problem prob=problem.chars().next().unwrap_or('Z') problem=Signal::derive(move || Some(problem_view.clone())) />
+                        <div class="cell quadrado">{problem.to_string()}</div>
+                        <Problem prob=problem problem=Signal::derive(move || Some(problem_view.clone())) />
                     </div>
                 </div>
             })

@@ -50,7 +50,7 @@ impl FromString for RunTuple {
             id,
             time,
             team_login: v[2].to_string(),
-            prob: v[3].to_string(),
+            prob: v[3].parse()?,
             answer: ans,
         })
     }
@@ -212,7 +212,7 @@ mod tests {
         assert_eq!(t.id, 375971416);
         assert_eq!(t.time, 299);
         assert_eq!(t.team_login, "teambrbr3");
-        assert_eq!(t.prob, "B");
+        assert_eq!(t.prob, "B".parse().unwrap());
         assert_eq!(t.answer, Answer::No { run_id: 375971416 });
         Ok(())
     }

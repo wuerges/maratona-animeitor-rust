@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use data::{ProblemView, Score, Team};
+use data::{Letter, ProblemView, Score, Team};
 use leptos::prelude::*;
 
 pub struct TeamSignal {
@@ -9,11 +9,11 @@ pub struct TeamSignal {
     pub escola: String,
     pub placement_global: RwSignal<usize>,
     pub score: RwSignal<Score>,
-    pub problems: HashMap<String, RwSignal<Option<ProblemView>>>,
+    pub problems: HashMap<Letter, RwSignal<Option<ProblemView>>>,
 }
 
 impl TeamSignal {
-    pub fn new(team: &Team, letters: &[String]) -> Self {
+    pub fn new(team: &Team, letters: &[Letter]) -> Self {
         let Team {
             login,
             escola,

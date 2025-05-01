@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use data::{configdata::Sede, problem_letters, ContestFile, TimerData};
+use data::{configdata::Sede, problem_letters, ContestFile, Letter, TimerData};
 use itertools::Itertools;
 use leptos::{ev, logging::log, prelude::*};
 
@@ -86,8 +86,8 @@ fn ContestPanelLine(
 }
 
 #[component]
-fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<String>) -> impl IntoView {
-    log!("header refresh");
+fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<Letter>) -> impl IntoView {
+    log!("header refresh {:?}", all_problems);
     view! {
         <div id="runheader" class="run">
             <div class={move ||
@@ -95,7 +95,7 @@ fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<String>) -> imp
                 {move || nome_sede(&sede.get()).to_string()}
             </div>
             {all_problems.into_iter().map(|p| view! {
-                <div class="cell problema quadrado">{p}</div>
+                <div class="cell problema quadrado">{p.to_string()}</div>
             }).collect_view()}
         </div>
     }

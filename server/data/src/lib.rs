@@ -10,6 +10,7 @@ use std::cell::LazyCell;
 use std::cmp::{Eq, Ordering};
 use std::collections::{BTreeMap, HashSet, btree_map};
 use std::fmt::{self, Display};
+use std::str::FromStr;
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
 use utoipa::ToSchema;
@@ -45,7 +46,7 @@ pub enum ContestError {
     #[error("unmatched team: {}", 0.)]
     UnmatchedTeam(String),
     #[error("unmatched problem: {}", 0.)]
-    UnmatchedProblem(String),
+    UnmatchedProblem(Letter),
 }
 
 impl fmt::Display for Answer {
@@ -238,7 +239,7 @@ pub struct Team {
     /// Global placement across all sites.
     pub placement_global: usize,
     /// State of the problems that the team is solving.
-    pub problems: BTreeMap<String, Problem>,
+    pub problems: BTreeMap<Letter, Problem>,
 
     pub id: u64,
 }
@@ -376,8 +377,25 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Letter(String);
+
+#[derive(Debug, Error)]
+#[error("bad letter: {}", .0)]
+pub struct BadLetter(String);
+
+impl FromStr for Letter {
+    type Err = BadLetter;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let candidate = Letter(s.to_string());
+        if CALCULATED.contains(&candidate) {
+            Ok(candidate)
+        } else {
+            Err(BadLetter(s.to_string()))
+        }
+    }
+}
 
 impl Display for Letter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -410,22 +428,27 @@ impl Ord for Letter {
 const PROBLEM_LETTERS: LazyCell<Vec<char>> =
     LazyCell::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
 
-fn problem_letter(mut i: usize) -> Letter {
-    let n = PROBLEM_LETTERS.len();
-    let mut ret = vec![];
+const CALCULATED: LazyCell<Vec<Letter>> =
+    LazyCell::new(|| (0..=3).flat_map(permutations).sorted().collect_vec());
 
-    while {
-        ret.push(i % n);
-        i > 0
-    } {
-        i = i / n;
+fn permutations(l: usize) -> Vec<Letter> {
+    if l == 0 {
+        PROBLEM_LETTERS
+            .iter()
+            .map(|l| Letter(l.to_string()))
+            .collect()
+    } else {
+        let prev = permutations(l - 1);
+
+        PROBLEM_LETTERS
+            .iter()
+            .flat_map(|l| prev.iter().map(|Letter(p)| Letter(l.to_string() + p)))
+            .collect()
     }
-
-    Letter(ret.iter().rev().map(|r| PROBLEM_LETTERS[*r]).collect())
 }
 
 pub fn problem_letters(i: usize) -> Vec<Letter> {
-    (0..i).map(problem_letter).collect()
+    CALCULATED.iter().take(i).cloned().collect_vec()
 }
 
 pub trait BelongsToContest {
@@ -553,7 +576,7 @@ pub struct RunTuple {
     /// The team login.
     pub team_login: String,
     /// The problem letter.
-    pub prob: String,
+    pub prob: Letter,
     /// The answer for this submission.
     pub answer: Answer,
 }
@@ -583,7 +606,7 @@ pub struct RunsPanelItem {
     pub escola: String,
     pub team_name: String,
     pub team_login: String,
-    pub problem: String,
+    pub problem: Letter,
     pub problem_view: ProblemView,
 }
 
@@ -696,15 +719,44 @@ impl RunsFile {
 #[cfg(test)]
 
 mod tests {
-    use crate::problem_letters;
+    use crate::{Letter, problem_letters};
 
     #[test]
-    fn check_letter_ordering() {
-        let letters = problem_letters(10000);
+    fn check_first_letters() {
+        let letters = problem_letters(30);
 
-        let mut ordered = letters.clone();
-
-        ordered.sort();
+        let ordered = vec![
+            Letter("A".to_string()),
+            Letter("B".to_string()),
+            Letter("C".to_string()),
+            Letter("D".to_string()),
+            Letter("E".to_string()),
+            Letter("F".to_string()),
+            Letter("G".to_string()),
+            Letter("H".to_string()),
+            Letter("I".to_string()),
+            Letter("J".to_string()),
+            Letter("K".to_string()),
+            Letter("L".to_string()),
+            Letter("M".to_string()),
+            Letter("N".to_string()),
+            Letter("O".to_string()),
+            Letter("P".to_string()),
+            Letter("Q".to_string()),
+            Letter("R".to_string()),
+            Letter("S".to_string()),
+            Letter("T".to_string()),
+            Letter("U".to_string()),
+            Letter("V".to_string()),
+            Letter("W".to_string()),
+            Letter("X".to_string()),
+            Letter("Y".to_string()),
+            Letter("Z".to_string()),
+            Letter("AA".to_string()),
+            Letter("AB".to_string()),
+            Letter("AC".to_string()),
+            Letter("AD".to_string()),
+        ];
 
         assert_eq!(letters, ordered)
     }

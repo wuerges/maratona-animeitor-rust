@@ -1,3 +1,4 @@
+use data::Letter;
 use leptos::prelude::*;
 
 fn number_submissions(s: usize) -> Option<usize> {
@@ -9,7 +10,7 @@ fn number_submissions(s: usize) -> Option<usize> {
 }
 
 #[component]
-pub fn Problem(prob: char, problem: Signal<Option<data::ProblemView>>) -> impl IntoView {
+pub fn Problem(prob: Letter, problem: Signal<Option<data::ProblemView>>) -> impl IntoView {
     let problem_class = move || {
         problem.with(|p| match &p {
             Some(p) => {
