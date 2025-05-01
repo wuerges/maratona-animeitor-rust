@@ -86,7 +86,7 @@ fn ContestPanelLine(
 }
 
 #[component]
-fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: &'static str) -> impl IntoView {
+fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<char>) -> impl IntoView {
     log!("header refresh");
     view! {
         <div id="runheader" class="run">
@@ -94,7 +94,7 @@ fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: &'static str) -> im
                 estilo_sede(&sede.get()).iter().chain(&["cell", "titulo"]).join(" ")}>
                 {move || nome_sede(&sede.get()).to_string()}
             </div>
-            {all_problems.chars().map(|p| view! {
+            {all_problems.into_iter().map(|p| view! {
                 <div class="cell problema quadrado">{p}</div>
             }).collect_view()}
         </div>
@@ -150,7 +150,7 @@ pub fn ContestPanel(
     log!("contest panel refresh");
 
     let n = original_contest.number_problems;
-    let all_problems = &data::PROBLEM_LETTERS[..n];
+    let all_problems = data::PROBLEM_LETTERS.chars().take(n).collect_vec();
 
     let show_photo = use_global_photo_state();
 

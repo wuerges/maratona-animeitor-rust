@@ -16,8 +16,9 @@ pub struct ContestSignal {
 
 impl ContestSignal {
     pub fn new(contest_file: &ContestFile) -> Self {
-        let letters = data::PROBLEM_LETTERS[..contest_file.number_problems]
+        let letters = data::PROBLEM_LETTERS
             .chars()
+            .take(contest_file.number_problems)
             .map(|l| l.to_string())
             .collect::<Vec<_>>();
 
