@@ -1,6 +1,7 @@
 use crate::errors::{Error, ServiceResult};
 use data::*;
 use html_escape::decode_html_entities_to_string;
+use tracing::{Level, instrument};
 
 pub trait FromString {
     fn from_string(s: &str) -> ServiceResult<Self>
@@ -56,6 +57,7 @@ impl FromString for RunTuple {
 }
 
 impl FromString for ContestFile {
+    #[instrument(ret(level = Level::DEBUG), err)]
     fn from_string(s: &str) -> ServiceResult<Self> {
         let mut lines = s.lines();
 
