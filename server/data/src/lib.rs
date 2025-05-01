@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::cell::LazyCell;
 use std::cmp::{Eq, Ordering};
 use std::collections::{BTreeMap, HashSet, btree_map};
-use std::fmt;
+use std::fmt::{self, Display};
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
 use utoipa::ToSchema;
@@ -376,25 +376,55 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+pub struct Letter(String);
+
+impl Display for Letter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl AsRef<str> for Letter {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl PartialOrd for Letter {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Letter {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.0.len().cmp(&other.0.len()) {
+            Ordering::Equal => self.0.cmp(&other.0),
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+        }
+    }
+}
+
 const PROBLEM_LETTERS: LazyCell<Vec<char>> =
     LazyCell::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
 
-fn problem_letter(mut i: usize) -> String {
+fn problem_letter(mut i: usize) -> Letter {
     let n = PROBLEM_LETTERS.len();
     let mut ret = vec![];
 
-    ret.push(i % n);
-    i = i / n;
-
-    while i != 0 {
-        i = i / n;
+    while {
         ret.push(i % n);
+        i > 0
+    } {
+        i = i / n;
     }
 
-    ret.iter().rev().map(|r| PROBLEM_LETTERS[*r]).collect()
+    Letter(ret.iter().rev().map(|r| PROBLEM_LETTERS[*r]).collect())
 }
 
-pub fn problem_letters(i: usize) -> Vec<String> {
+pub fn problem_letters(i: usize) -> Vec<Letter> {
     (0..i).map(problem_letter).collect()
 }
 
@@ -660,5 +690,22 @@ impl RunsFile {
         }
 
         rec
+    }
+}
+
+#[cfg(test)]
+
+mod tests {
+    use crate::problem_letters;
+
+    #[test]
+    fn check_letter_ordering() {
+        let letters = problem_letters(10000);
+
+        let mut ordered = letters.clone();
+
+        ordered.sort();
+
+        assert_eq!(letters, ordered)
     }
 }
