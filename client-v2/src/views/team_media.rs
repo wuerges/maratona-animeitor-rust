@@ -1,10 +1,7 @@
 use std::sync::Arc;
 
-use codee::string::JsonSerdeCodec;
 use data::configdata::Sede;
 use leptos::{ev, html::Audio, logging::log, prelude::*};
-use leptos_use::storage::use_local_storage;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     api::{team_photo_location, team_sound_location},

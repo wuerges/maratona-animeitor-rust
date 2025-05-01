@@ -220,17 +220,6 @@ pub fn ContestPanel(
 }
 
 #[component]
-fn EmptyContestPanel(sede: Signal<Arc<Sede>>) -> impl IntoView {
-    view! {
-        <div class="runstable">
-            <div class="run_box" style:top={cell_top(0, &None)}>
-                <ContestPanelHeader sede all_problems="" />
-            </div>
-        </div>
-    }
-}
-
-#[component]
 pub fn Contest(
     original_contest: Arc<ContestFile>,
     contest_signal: Arc<ContestSignal>,
