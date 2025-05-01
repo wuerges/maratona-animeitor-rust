@@ -6,7 +6,7 @@ pub mod revelation;
 use configdata::Sede;
 use serde::{Deserialize, Serialize};
 use std::cmp::{Eq, Ordering};
-use std::collections::{btree_map, BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashSet, btree_map};
 use std::fmt;
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
@@ -374,7 +374,7 @@ pub struct ContestFile {
     pub number_problems: usize,
 }
 
-pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+pub const PROBLEM_LETTERS: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZΓΔΘΛΞΠΣΦΨΩ";
 
 pub trait BelongsToContest {
     fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool;

@@ -20,6 +20,7 @@ impl ContestSignal {
             .chars()
             .map(|l| l.to_string())
             .collect::<Vec<_>>();
+
         ContestSignal {
             teams: contest_file
                 .teams
