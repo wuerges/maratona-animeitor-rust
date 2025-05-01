@@ -1,42 +1,74 @@
 use crate::dataio::{read_contest, read_runs};
-use crate::errors::{Error, ServiceResult};
+use crate::errors::ServiceResult;
 use std::io::Read;
+use std::string::FromUtf8Error;
+use thiserror::Error;
 use zip;
 
-async fn read_bytes_from_path(path: &str) -> ServiceResult<Vec<u8>> {
-    read_bytes_from_url(path)
-        .await
-        .or_else(|_| read_bytes_from_file(path))
+#[derive(Debug, Error)]
+#[error(
+    "failed to read from BOCA_URL: {:?}\n{}\n{}",
+    path,
+    reqwest_err,
+    file_err
+)]
+pub struct FetchErr {
+    path: String,
+    file_err: std::io::Error,
+    reqwest_err: reqwest::Error,
 }
 
-fn read_bytes_from_file(path: &str) -> ServiceResult<Vec<u8>> {
+async fn read_bytes_from_path(path: &str) -> Result<Vec<u8>, FetchErr> {
+    read_bytes_from_url(path).await.or_else(|reqwest_err| {
+        read_bytes_from_file(path).map_err(|file_err| FetchErr {
+            path: path.to_string(),
+            file_err,
+            reqwest_err,
+        })
+    })
+}
+
+fn read_bytes_from_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
     Ok(std::fs::read(path)?)
 }
 
-async fn read_bytes_from_url(uri: &str) -> ServiceResult<Vec<u8>> {
+async fn read_bytes_from_url(uri: &str) -> Result<Vec<u8>, reqwest::Error> {
     let resp = reqwest::get(uri).await?.bytes().await?;
 
     Ok(resp.into())
 }
 
+#[derive(Debug, Error)]
+pub enum ZipErr {
+    #[error("failed to unpack file: {}\n{}", file, error)]
+    ZipError {
+        file: String,
+        error: zip::result::ZipError,
+    },
+    #[error("failed to read buffer:\n{}", .0)]
+    Io(#[from] std::io::Error),
+    #[error("failed to parse utf8:\n{}", .0)]
+    Utf8(#[from] FromUtf8Error),
+}
+
 fn try_read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> ServiceResult<String> {
-    let mut runs_zip = zip
-        .by_name(name)
-        .map_err(|e| Error::Info(format!("Could not unpack file: {} {:?}", name, e)))?;
+) -> Result<String, ZipErr> {
+    let mut runs_zip = zip.by_name(name).map_err(|error| ZipErr::ZipError {
+        file: name.to_string(),
+        error,
+    })?;
     let mut buffer = Vec::new();
     runs_zip.read_to_end(&mut buffer)?;
-    let runs_data = String::from_utf8(buffer)
-        .map_err(|_| Error::Info("Could not parse to UTF8".to_string()))?;
+    let runs_data = String::from_utf8(buffer)?;
     Ok(runs_data)
 }
 
 fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
-) -> ServiceResult<String> {
+) -> Result<String, ZipErr> {
     try_read_from_zip(zip, name)
         .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
         .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))

@@ -1,14 +1,19 @@
 use thiserror::Error;
 
+use crate::webcast::{FetchErr, ZipErr};
+
 pub type ServiceResult<T> = std::result::Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    IO(#[from] std::io::Error),
+    Fetch(#[from] FetchErr),
 
     #[error(transparent)]
-    Reqwest(#[from] reqwest::Error),
+    WebcastZipError(#[from] ZipErr),
+
+    #[error(transparent)]
+    IO(#[from] std::io::Error),
 
     #[error(transparent)]
     ZipError(#[from] zip::result::ZipError),
@@ -30,9 +35,6 @@ pub enum Error {
 
     #[error(transparent)]
     ConfigParse(#[from] toml::de::Error),
-
-    #[error("Error: {0}")]
-    Info(String),
 
     #[error("Error::Parse: {0}")]
     Parse(String),
