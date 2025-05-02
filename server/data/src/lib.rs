@@ -388,9 +388,8 @@ impl FromStr for Letter {
     type Err = BadLetter;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let candidate = Letter(s.to_string());
-        if CALCULATED.contains(&candidate) {
-            Ok(candidate)
+        if !s.is_empty() && s.chars().all(|c| ALPHABET.contains(&c)) {
+            Ok(Letter(s.to_string()))
         } else {
             Err(BadLetter(s.to_string()))
         }
@@ -425,27 +424,21 @@ impl Ord for Letter {
     }
 }
 
-const PROBLEM_LETTERS: LazyCell<Vec<char>> =
+const ALPHABET: LazyCell<Vec<char>> =
     LazyCell::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
 
-const CALCULATED: LazyCell<Vec<Letter>> =
-    LazyCell::new(|| (0..=3).flat_map(permutations).sorted().collect_vec());
-
-fn permutations(l: usize) -> Vec<Letter> {
-    if l == 0 {
-        PROBLEM_LETTERS
-            .iter()
-            .map(|l| Letter(l.to_string()))
-            .collect()
-    } else {
-        let prev = permutations(l - 1);
-
-        PROBLEM_LETTERS
-            .iter()
-            .flat_map(|l| prev.iter().map(|Letter(p)| Letter(l.to_string() + p)))
-            .collect()
-    }
-}
+const CALCULATED: LazyCell<Vec<Letter>> = LazyCell::new(|| {
+    (1..=3)
+        .flat_map(|l| {
+            ALPHABET
+                .iter()
+                .combinations_with_replacement(l)
+                .map(|t| Letter(t.into_iter().collect()))
+                .collect_vec()
+        })
+        .sorted()
+        .collect_vec()
+});
 
 pub fn problem_letters(i: usize) -> Vec<Letter> {
     CALCULATED.iter().take(i).cloned().collect_vec()
