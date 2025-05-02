@@ -85,3 +85,13 @@ To execute client with trunk:
 ```
 make run-debug-client
 ```
+
+# Keyboard shortcuts:
+
+- `y`: open/close team photo
+- `m`: enable/disable autoplay for team song
+- `⌫` (backspace): Reset revelation
+- `←` (arrow left): Step back one submission.
+- `→` (arrow right): Step forward one submission.
+- `↑` (arrow up): Step up one team.
+- `↓` (arrow down): Step down one team.
