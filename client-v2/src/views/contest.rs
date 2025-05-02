@@ -87,7 +87,6 @@ fn ContestPanelLine(
 
 #[component]
 fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<Letter>) -> impl IntoView {
-    log!("header refresh {:?}", all_problems);
     view! {
         <div id="runheader" class="run">
             <div class={move ||

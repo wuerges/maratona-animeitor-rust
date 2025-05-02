@@ -32,8 +32,6 @@ impl Compress for ItemWrap {
         position: Signal<Option<usize>>,
         _center: Signal<Option<usize>>,
     ) -> impl IntoView {
-        log!("view_in_position");
-
         let ItemWrap { panel_item, sede } = self;
         move || {
             let RunsPanelItem {

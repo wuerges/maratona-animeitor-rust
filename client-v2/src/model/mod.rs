@@ -91,7 +91,6 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                     }
 
                     for r in fresh_runs.iter() {
-                        log!("apply tuple: {:?}", r);
                         running_contest.apply_run(r);
                         if included_in_panel.contains(&r.id) {
                             running_contest.recalculate_placement();
@@ -101,8 +100,6 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                         }
                     }
                     running_contest.recalculate_placement();
-
-                    log!("running contest: {:?}", running_contest);
 
                     new_contest_signal.update_tuples(&runs, &running_contest);
                 }
