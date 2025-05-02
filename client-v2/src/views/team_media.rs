@@ -68,7 +68,7 @@ fn onerror_sound() -> String {
 }
 
 #[component]
-fn TeamAudio(team_login: String) -> impl IntoView {
+fn TeamAudio(team_login: String, is_resolved: Signal<bool>) -> impl IntoView {
     let audio_ref = NodeRef::<Audio>::new();
     let settings = use_context::<GlobalSettingsSignal>().unwrap();
     let volume_login = team_login.clone();
@@ -142,7 +142,7 @@ fn TeamAudio(team_login: String) -> impl IntoView {
         })
     };
     let audio = move || {
-        (!mute.get() && autoplay.get()).then_some(view! {
+        (is_resolved.get() && !mute.get() && autoplay.get()).then_some(view! {
             <audio
                 node_ref=audio_ref
                 src=team_sound_location(&team_login)
@@ -180,6 +180,7 @@ pub fn TeamMedia(
     });
 
     let memo = Memo::new(move |_| show.get());
+    let is_resolved = team.is_resolved();
 
     move || {
         let team_login_click = team_login.clone();
@@ -217,7 +218,7 @@ pub fn TeamMedia(
                             />
                             {team_details}
                             <TeamScoreLine team=team.clone() is_center=false.into() titulo local_placement sede />
-                            <TeamAudio team_login=team_login.clone() />
+                            <TeamAudio team_login=team_login.clone() is_resolved=is_resolved.into() />
                         </div>
                     })
                 } else {

@@ -96,6 +96,12 @@ pub struct ProblemView {
     pub pending: usize,
 }
 
+impl ProblemView {
+    pub fn is_resolved(&self) -> bool {
+        self.solved || self.pending == 0
+    }
+}
+
 impl PartialEq for ProblemView {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id

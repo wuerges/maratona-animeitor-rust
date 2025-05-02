@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use data::{Letter, ProblemView, Score, Team};
+use itertools::Itertools;
 use leptos::prelude::*;
 
 pub struct TeamSignal {
@@ -48,5 +49,15 @@ impl TeamSignal {
         for (letter, problem_view) in &self.problems {
             problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))
         }
+    }
+
+    pub fn is_resolved(&self) -> Memo<bool> {
+        let signals = self.problems.values().cloned().collect_vec();
+
+        Memo::new(move |_| {
+            signals
+                .iter()
+                .all(|p| p.with(move |p| p.as_ref().is_none_or(|p| p.is_resolved())))
+        })
     }
 }
