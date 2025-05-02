@@ -88,10 +88,12 @@ make run-debug-client
 
 # Keyboard shortcuts:
 
-- `y`: open/close team photo
-- `m`: enable/disable autoplay for team song
-- `⌫` (backspace): Reset revelation
-- `←` (arrow left): Step back one submission.
-- `→` (arrow right): Step forward one submission.
-- `↑` (arrow up): Step up one team.
-- `↓` (arrow down): Step down one team.
+| Key | Name        | Function                              |
+| --- | :---------- | :------------------------------------ |
+| `y` |             | Open/close team photo                 |
+| `m` |             | Enable/disable autoplay for team song |
+| `⌫` | Backspace   | Reset revelation                      |
+| `←` | Arrow left  | Step back one submission              |
+| `→` | Arrow right | Step forward one submission           |
+| `↑` | Arrow up    | Step up one team                      |
+| `↓` | Arrow down  | Step down one team                    |
