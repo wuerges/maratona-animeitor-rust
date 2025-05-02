@@ -68,7 +68,11 @@ fn onerror_sound() -> String {
 }
 
 #[component]
-fn TeamAudio(team_login: String, is_resolved: Signal<bool>) -> impl IntoView {
+fn TeamAudio(
+    team_login: String,
+    is_resolved: Signal<bool>,
+    show: RwSignal<PhotoState>,
+) -> impl IntoView {
     let audio_ref = NodeRef::<Audio>::new();
     let settings = use_context::<GlobalSettingsSignal>().unwrap();
     let volume_login = team_login.clone();
@@ -141,15 +145,27 @@ fn TeamAudio(team_login: String, is_resolved: Signal<bool>) -> impl IntoView {
             </div>
         })
     };
-    let audio = move || {
-        (is_resolved.get() && !mute.get() && autoplay.get()).then_some(view! {
-            <audio
-                node_ref=audio_ref
-                src=team_sound_location(&team_login)
-                onerror=onerror_sound()
-                autoplay=autoplay.get()
-            />
+
+    let correct_team_login = team_login.clone();
+
+    let is_correct_team = Signal::derive(move || {
+        show.with(|s| match s {
+            PhotoState::Hidden => false,
+            PhotoState::Show(login) => &correct_team_login == login,
         })
+    });
+
+    let audio = move || {
+        (is_correct_team.get() && !mute.get() && is_resolved.get() && autoplay.get()).then_some(
+            view! {
+                <audio
+                    node_ref=audio_ref
+                    src=team_sound_location(&team_login)
+                    onerror=onerror_sound()
+                    autoplay=is_resolved.get() && autoplay.get()
+                />
+            },
+        )
     };
 
     view! {
@@ -218,7 +234,7 @@ pub fn TeamMedia(
                             />
                             {team_details}
                             <TeamScoreLine team=team.clone() is_center=false.into() titulo local_placement sede />
-                            <TeamAudio team_login=team_login.clone() is_resolved=is_resolved.into() />
+                            <TeamAudio team_login=team_login.clone() is_resolved=is_resolved.into() show />
                         </div>
                     })
                 } else {
