@@ -553,6 +553,7 @@ impl ContestFile {
 
         Ok(RunsPanelItem {
             id: run.id,
+            order: run.order,
             placement: team.placement_global,
             escola: team.escola.clone(),
             team_name: team.name.clone(),
@@ -601,6 +602,7 @@ impl fmt::Display for RunTuple {
 #[derive(Debug, Clone)]
 pub struct RunsPanelItem {
     pub id: i64,
+    pub order: u64,
     pub placement: usize,
     pub escola: String,
     pub team_name: String,

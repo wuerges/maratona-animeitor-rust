@@ -20,11 +20,11 @@ struct ItemWrap {
 }
 
 impl Compress for ItemWrap {
-    type Key = i64;
+    type Key = u64;
 
     fn key(&self) -> Signal<Option<Self::Key>> {
         let sig = self.panel_item;
-        Signal::derive(move || sig.with(|item| item.as_ref().map(|p| p.id)))
+        Signal::derive(move || sig.with(|item| item.as_ref().map(|p| p.order)))
     }
 
     fn view_in_position(
@@ -40,6 +40,7 @@ impl Compress for ItemWrap {
                 escola,
                 team_name,
                 team_login: _,
+                order: _,
                 problem,
                 problem_view,
             } = panel_item.get()?;

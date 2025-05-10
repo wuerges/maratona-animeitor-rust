@@ -60,17 +60,17 @@ impl RunsPanelItemManager {
         }
     }
 
-    pub fn placements_for_sede(&self, sede: Signal<Arc<Sede>>) -> Signal<Vec<i64>> {
+    pub fn placements_for_sede(&self, sede: Signal<Arc<Sede>>) -> Signal<Vec<u64>> {
         let signals = self.items.clone();
         Memo::new(move |_| {
             sede.with(|s| {
                 signals
                     .iter()
                     .filter_map(move |item| {
-                        let (login, id) = item
+                        let (login, order) = item
                             .panel_item
-                            .with(|v| v.as_ref().map(|i| (i.team_login.clone(), i.id)))?;
-                        s.team_belongs_str(&login).then_some(id)
+                            .with(|v| v.as_ref().map(|i| (i.team_login.clone(), i.order)))?;
+                        s.team_belongs_str(&login).then_some(order)
                     })
                     .sorted()
                     .rev()
