@@ -45,7 +45,7 @@ impl Default for GlobalSettings {
             secret_enabled: false,
             secret: None,
             autoplay: false,
-            team_details: true,
+            team_details: false,
             team_settings: Default::default(),
         }
     }
