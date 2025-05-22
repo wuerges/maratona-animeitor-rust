@@ -5,7 +5,30 @@ ouro = 1
 prata = 2
 bronze = 3
 
-# Países - South America South
+# Regiões
+
+[[sedes]]
+codes = [""]
+name = "Fase Zero - Maratona"
+
+[[sedes]]
+codes = ["teambr"]
+name = "Brasil"
+
+[[sedes]]
+codes = ["teamcb"]
+name = "Caribe"
+
+[[sedes]]
+codes = ["teammxmx"]
+name = "México"
+
+[[sedes]]
+codes = ["teamso"]
+name = "South America South"
+
+# Países 
+
 [[sedes]]
 codes = ["teamsoar"]
 name = "Argentina"
@@ -19,22 +42,38 @@ codes = ["teamsoch"]
 name = "Chile"
 
 [[sedes]]
-codes = ["teamsope"]
-name = "Peru"
-
-# Países - Caribe
-[[sedes]]
 codes = ["teamcbcu"]
 name = "Cuba"
+
+[[sedes]]
+codes = ["teamsope"]
+name = "Peru"
 
 [[sedes]]
 codes = ["teamcbdr"]
 name = "República Dominicana"
 
-# Países - Outros
+# Regioes
+
 [[sedes]]
-codes = ["teammxmx"]
-name = "México"
+codes = ["teambrco"]
+name = "Brasil: Centro-oeste"
+
+[[sedes]]
+codes = ["teambrne"]
+name = "Brasil: Nordeste"
+
+[[sedes]]
+codes = ["teambrno"]
+name = "Brasil: Norte"
+
+[[sedes]]
+codes = ["teambrse"]
+name = "Brasil: Sudeste"
+
+[[sedes]]
+codes = ["teambrsu"]
+name = "Brasil: Sul"
 
 # Estados - Centro-oeste
 [[sedes]]
@@ -137,35 +176,4 @@ name = "Rio Grande do Sul"
 codes = ["teambrsusc"]
 name = "Santa Catarina"
 
-# Regiões
-[[sedes]]
-codes = ["teamso"]
-name = "South America South"
 
-[[sedes]]
-codes = ["teamcb"]
-name = "Caribe"
-
-[[sedes]]
-codes = ["teambrco"]
-name = "Brasil: Centro-oeste"
-
-[[sedes]]
-codes = ["teambrne"]
-name = "Brasil: Nordeste"
-
-[[sedes]]
-codes = ["teambrno"]
-name = "Brasil: Norte"
-
-[[sedes]]
-codes = ["teambrse"]
-name = "Brasil: Sudeste"
-
-[[sedes]]
-codes = ["teambrsu"]
-name = "Brasil: Sul"
-
-[[sedes]]
-codes = ["teambr"]
-name = "Brasil"
