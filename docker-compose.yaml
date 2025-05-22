@@ -7,6 +7,9 @@ services:
       - ./config:/config
     build:
       context: .
+      platforms:
+      - linux/amd64/v2
+
 
   animeitor:
     image: wuerges/animeitor:latest
@@ -29,3 +32,5 @@ services:
 
     build:
       context: .
+      platforms:
+      - linux/amd64/v2

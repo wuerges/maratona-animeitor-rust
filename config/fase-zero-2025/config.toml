@@ -1,0 +1,171 @@
+[titulo]
+name = "Fase Zero - Maratona"
+codes = [""]
+ouro = 1
+prata = 2
+bronze = 3
+
+# Países - South America South
+[[sedes]]
+codes = ["teamsoar"]
+name = "Argentina"
+
+[[sedes]]
+codes = ["teamsobo"]
+name = "Bolívia"
+
+[[sedes]]
+codes = ["teamsoch"]
+name = "Chile"
+
+[[sedes]]
+codes = ["teamsope"]
+name = "Peru"
+
+# Países - Caribe
+[[sedes]]
+codes = ["teamcbcu"]
+name = "Cuba"
+
+[[sedes]]
+codes = ["teamcbdr"]
+name = "República Dominicana"
+
+# Países - Outros
+[[sedes]]
+codes = ["teammxmx"]
+name = "México"
+
+# Estados - Centro-oeste
+[[sedes]]
+codes = ["teambrcodf"]
+name = "Distrito Federal"
+
+[[sedes]]
+codes = ["teambrcogo"]
+name = "Goiás"
+
+[[sedes]]
+codes = ["teambrcoms"]
+name = "Mato Grosso do Sul"
+
+[[sedes]]
+codes = ["teambrcomt"]
+name = "Mato Grosso"
+
+# Estados - Nordeste
+[[sedes]]
+codes = ["teambrneal"]
+name = "Alagoas"
+
+[[sedes]]
+codes = ["teambrneba"]
+name = "Bahia"
+
+[[sedes]]
+codes = ["teambrnece"]
+name = "Ceará"
+
+[[sedes]]
+codes = ["teambrnema"]
+name = "Maranhão"
+
+[[sedes]]
+codes = ["teambrnepb"]
+name = "Paraíba"
+
+[[sedes]]
+codes = ["teambrnepe"]
+name = "Pernambuco"
+
+[[sedes]]
+codes = ["teambrnepi"]
+name = "Piauí"
+
+[[sedes]]
+codes = ["teambrnern"]
+name = "Rio Grande do Norte"
+
+[[sedes]]
+codes = ["teambrnese"]
+name = "Sergipe"
+
+# Estados - Norte
+[[sedes]]
+codes = ["teambrnoac"]
+name = "Acre"
+
+[[sedes]]
+codes = ["teambrnoam"]
+name = "Amazonas"
+
+[[sedes]]
+codes = ["teambrnopa"]
+name = "Pará"
+
+[[sedes]]
+codes = ["teambrnoro"]
+name = "Rondônia"
+
+# Estados - Sudeste
+[[sedes]]
+codes = ["teambrsees"]
+name = "Espírito Santo"
+
+[[sedes]]
+codes = ["teambrsemg"]
+name = "Minas Gerais"
+
+[[sedes]]
+codes = ["teambrserj"]
+name = "Rio de Janeiro"
+
+[[sedes]]
+codes = ["teambrsesp"]
+name = "São Paulo"
+
+# Estados - Sul
+[[sedes]]
+codes = ["teambrsupr"]
+name = "Paraná"
+
+[[sedes]]
+codes = ["teambrsurs"]
+name = "Rio Grande do Sul"
+
+[[sedes]]
+codes = ["teambrsusc"]
+name = "Santa Catarina"
+
+# Regiões
+[[sedes]]
+codes = ["teamso"]
+name = "South America South"
+
+[[sedes]]
+codes = ["teamcb"]
+name = "Caribe"
+
+[[sedes]]
+codes = ["teambrco"]
+name = "Brasil: Centro-oeste"
+
+[[sedes]]
+codes = ["teambrne"]
+name = "Brasil: Nordeste"
+
+[[sedes]]
+codes = ["teambrno"]
+name = "Brasil: Norte"
+
+[[sedes]]
+codes = ["teambrse"]
+name = "Brasil: Sudeste"
+
+[[sedes]]
+codes = ["teambrsu"]
+name = "Brasil: Sul"
+
+[[sedes]]
+codes = ["teambr"]
+name = "Brasil"
