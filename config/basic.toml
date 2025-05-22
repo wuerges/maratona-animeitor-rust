@@ -5,6 +5,18 @@ ouro = 1
 prata = 2
 bronze = 3
 
+[[sedes]]
+name = "Geral"
+codes = [""]
+
+[[sedes]]
+name = "ARQ"
+codes = ["arq"]
+
+[[sedes]]
+name = "CTD"
+codes = ["ctd"]
+
 # [[sedes]]
 # # Nome da sede, usado no basic_secret.toml
 # name = "Sede Exemplo"
