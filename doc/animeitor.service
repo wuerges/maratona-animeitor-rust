@@ -1,0 +1,13 @@
+[Unit]
+Description=Animeitor
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c "docker compose -f /home/ew/maratona-animeitor-rust/docker-compose.yaml up --detach"
+ExecStop=/bin/bash -c "docker compose -f /home/ew/maratona-animeitor-rust/docker-compose.yaml stop"
+
+[Install]
+WantedBy=multi-user.target
