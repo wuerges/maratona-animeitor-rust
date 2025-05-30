@@ -85,10 +85,20 @@ fn TeamAudio(
         })
     });
 
+    let (node_volume, set_node_volume) = signal(None::<u32>);
+
     Effect::new(move |_| {
         let volume = volume_settings.with(|v| v.volume);
         if let Some(audio) = audio_ref.get() {
             audio.set_volume(volume as f64 / 100_f64);
+        }
+    });
+
+    Effect::new(move |_| {
+        if let Some(node_volume) = node_volume.get() {
+            if let Some(audio) = audio_ref.get() {
+                audio.set_volume(node_volume as f64 / 100_f64);
+            }
         }
     });
 
@@ -138,7 +148,12 @@ fn TeamAudio(
                             min="0" max="100"
                             value="100"
                             prop:value=move || volume_settings.with(|v| v.volume)
-                            on:input=move |ev| control_volume_settings.update_team_settings(&control_volume_team_login, |s| s.volume = event_target_value(&ev).parse().unwrap_or_default())
+                            on:input=move |ev| {
+                                let new_volume = event_target_value(&ev).parse().unwrap_or_default();
+                                control_volume_settings.update_team_settings_untracked(&control_volume_team_login,
+                                    |s| s.volume = new_volume);
+                                set_node_volume.set(Some(new_volume))
+                            }
                         />
                     </div>
                 </div>

@@ -66,6 +66,15 @@ impl GlobalSettingsSignal {
         self.set_global
             .update(|u| u.update_team_settings(team_login, team_settings));
     }
+
+    pub fn update_team_settings_untracked(
+        &self,
+        team_login: &str,
+        team_settings: impl Fn(&mut TeamSettings),
+    ) {
+        self.set_global
+            .update_untracked(|u| u.update_team_settings(team_login, team_settings));
+    }
 }
 
 impl GlobalSettings {
