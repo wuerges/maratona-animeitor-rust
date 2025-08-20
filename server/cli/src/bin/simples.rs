@@ -1,13 +1,10 @@
-use std::str::FromStr;
-
 use clap::Parser;
 use cli::SimpleArgs;
-use color_eyre::eyre::eyre;
 
 use service::{
     app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, sentry, volume::Volume,
 };
-use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -29,25 +26,6 @@ struct SimpleParser {
     ///
     /// Expected format: FOLDER:PATH
     volume: Vec<FromPairArg<Volume>>,
-}
-
-#[derive(Default, Debug, Clone)]
-enum Version {
-    V1,
-    #[default]
-    V2,
-}
-
-impl FromStr for Version {
-    type Err = color_eyre::eyre::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "v1" => Ok(Version::V1),
-            "v2" => Ok(Version::V2),
-            _ => Err(eyre!("unknown version: {s}")),
-        }
-    }
 }
 
 #[tokio::main]
