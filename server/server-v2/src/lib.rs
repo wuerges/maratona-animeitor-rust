@@ -1,5 +1,7 @@
 mod api;
 mod app_data;
+mod app_v2;
+mod endpoints;
 pub mod metrics;
 mod remote_control;
 mod volumes;
@@ -27,6 +29,7 @@ pub async fn serve_config(
         boca_url,
         server_config: HttpConfig { port },
         volumes,
+        server_api_key,
     }: AppConfig,
 ) -> ServiceResult<()> {
     let config = Arc::new(config);
@@ -54,6 +57,7 @@ pub async fn serve_config(
                 time_tx: time_tx.clone(),
                 config: config.clone(),
                 remote_control: remote_control.clone(),
+                server_api_key: server_api_key.clone(),
             }))
             .service(
                 web::scope("api")

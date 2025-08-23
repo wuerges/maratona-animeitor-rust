@@ -7,7 +7,7 @@ use metrics::{counter, histogram};
 use tokio::sync::Mutex;
 use tokio::sync::broadcast;
 
-async fn update_runs_from_data(
+pub async fn update_runs_from_data(
     data: (i64, data::ContestFile, data::RunsFile),
     runs: &Arc<Mutex<DB>>,
     runs_tx: &membroadcast::Sender<data::RunTuple>,

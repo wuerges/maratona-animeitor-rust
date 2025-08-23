@@ -18,6 +18,7 @@ run-standalone:
 		-v ./client-v2/release: \
 		--sedes ${SEDES}: \
 		--secret ${SECRET} ${BOCA_URL} \
+		-k api-key \
 	)
 
 rebuild-client-for-release:
