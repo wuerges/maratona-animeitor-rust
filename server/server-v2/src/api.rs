@@ -2,7 +2,7 @@ use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
 use serde::Deserialize;
-use tracing::{debug, warn, Level};
+use tracing::{Level, debug, warn};
 
 use crate::app_data::AppData;
 
