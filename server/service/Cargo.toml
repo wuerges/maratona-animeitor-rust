@@ -21,5 +21,6 @@ sentry.workspace = true
 metrics.workspace = true
 tracing.workspace = true
 futures-signals.workspace = true
+tokio-stream.workspace = true
 
 data.workspace = true

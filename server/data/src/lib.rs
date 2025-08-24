@@ -15,7 +15,7 @@ use std::sync::atomic::AtomicU64;
 use thiserror::Error;
 use utoipa::ToSchema;
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, ToSchema, Hash)]
 /// The judge answer to a submission.
 pub enum Answer {
     /// Accepted, with the time of the submission, and a bool that
@@ -561,7 +561,7 @@ impl ContestFile {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, ToSchema, Hash)]
 /// A submission being judged.
 pub struct RunTuple {
     /// Id of submission.

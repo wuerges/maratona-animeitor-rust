@@ -23,6 +23,8 @@ thiserror.workspace = true
 futures.workspace = true
 tokio-stream.workspace = true
 rand.workspace = true
+futures-signals.workspace = true
+itertools.workspace = true
 
 service.workspace = true
 data.workspace = true

@@ -1,6 +1,8 @@
+use futures::Stream;
 use parking_lot::RwLock;
 use std::{collections::VecDeque, sync::Arc};
 use tokio::sync::broadcast;
+use tokio_stream::{StreamExt, wrappers::BroadcastStream};
 
 pub struct Receiver<T: Clone> {
     rx: broadcast::Receiver<T>,
@@ -26,6 +28,14 @@ impl<T: Clone> Receiver<T> {
             None => self.rx.recv().await,
             Some(message) => Ok(message),
         }
+    }
+
+    pub fn recv_stream(self) -> impl Stream<Item = T>
+    where
+        T: Send + 'static,
+    {
+        let broadcast = BroadcastStream::new(self.rx.resubscribe()).filter_map(|m| m.ok());
+        tokio_stream::iter(self.messages.into_iter()).chain(broadcast)
     }
 }
 
