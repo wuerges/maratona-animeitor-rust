@@ -1,6 +1,6 @@
 include .env
 
-.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone
+.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone gcloud-deploy gcloud-push gcloud-build gcloud-knative
 
 run-debug-client:
 	( cd client-v2 && \
@@ -34,3 +34,20 @@ rebuild-docker-image: rebuild-server-for-release rebuild-client-for-release
 
 republish-docker-image: rebuild-docker-image
 	docker compose push
+
+gcloud-build:
+	docker build . -t us-central1-docker.pkg.dev/maratona-animeitor/repo/animeitor
+
+gcloud-push:
+	docker push us-central1-docker.pkg.dev/maratona-animeitor/repo/animeitor
+
+
+gcloud-knative:
+	gcloud run services replace service.yaml --region us-central1
+
+gcloud-deploy:
+	gcloud run deploy animeitor \
+	--image us-central1-docker.pkg.dev/maratona-animeitor/repo/animeitor \
+	--region=us-central1 \
+	--allow-unauthenticated \
+	--args="--port=8080,--volume=/photos:photos,--volume=/sounds:sounds,--volume=/dist:,--secret=/config/regional_2024/Secrets.toml,--sedes=/config/regional_2024/Brasil.toml:,/tests/inputs/webcast-2023-1a-fase-final-prova.zip"
