@@ -16,7 +16,7 @@ spec:
           - "--volume=/dist:"
           - "--secret=/config/regional_2024/Secrets.toml"
           - "--sedes=/config/regional_2024/Brasil.toml:"
-          - "/tests/inputs/webcast-2023-1a-fase-final-prova.zip"
+          - "https://storage.googleapis.com/maratona-animeitor/inputs/webcast.zip"
     metadata:
       annotations:
         autoscaling.knative.dev/minScale: "0"

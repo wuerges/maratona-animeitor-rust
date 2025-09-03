@@ -1,6 +1,8 @@
 include .env
 
-.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone gcloud-deploy gcloud-push gcloud-build gcloud-knative
+.PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone \
+	gcloud-deploy gcloud-push gcloud-build gcloud-knative gcloud-bucket-create gcloud-bucket-upload
+
 
 run-debug-client:
 	( cd client-v2 && \
@@ -50,4 +52,11 @@ gcloud-deploy:
 	--image us-central1-docker.pkg.dev/maratona-animeitor/repo/animeitor \
 	--region=us-central1 \
 	--allow-unauthenticated \
-	--args="--port=8080,--volume=/photos:photos,--volume=/sounds:sounds,--volume=/dist:,--secret=/config/regional_2024/Secrets.toml,--sedes=/config/regional_2024/Brasil.toml:,/tests/inputs/webcast-2023-1a-fase-final-prova.zip"
+	--args="--port=8080,--volume=/photos:photos,--volume=/sounds:sounds,--volume=/dist:,--secret=/config/regional_2024/Secrets.toml,--sedes=/config/regional_2024/Brasil.toml:,https://storage.googleapis.com/maratona-animeitor/inputs/webcast.zip"
+
+gcloud-bucket-create:
+	gcloud storage buckets create gs://maratona-animeitor --location=us-central1 --default-storage-class=STANDARD
+
+gcloud-bucket-upload:
+	gcloud storage cp ${BOCA_URL} gs://maratona-animeitor/inputs/webcast.zip
+	gcloud storage objects update gs://maratona-animeitor/inputs/webcast.zip --add-acl-grant=role=READER,entity=allUsers
