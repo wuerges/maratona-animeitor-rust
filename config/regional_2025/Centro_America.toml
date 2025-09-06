@@ -1,0 +1,7 @@
+[titulo]
+name = "Centro America"
+codes = ["teamca"]
+
+[[sedes]]
+codes = ["teamca"]
+name = "Centro America"

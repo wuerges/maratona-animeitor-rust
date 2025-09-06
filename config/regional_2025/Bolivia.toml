@@ -1,0 +1,63 @@
+[titulo]
+name = "Bolivia"
+codes = ["teamsobo"]
+
+[[sedes]]
+name = "Bolivia"
+codes = ["sobo"]
+
+[[sedes]]
+name = "El Alto"
+codes = ["soboea"]
+[[sedes]]
+
+name = "Yacuiba"
+codes = ["soboya"]
+[[sedes]]
+
+name = "Cobija"
+codes = ["soboco"]
+[[sedes]]
+
+name = "Llallagua"
+codes = ["soboll"]
+[[sedes]]
+
+name = "Oruro"
+codes = ["soboor"]
+[[sedes]]
+
+name = "Trinidad"
+codes = ["sobotr"]
+[[sedes]]
+
+name = "Potosí"
+codes = ["sobopo"]
+[[sedes]]
+
+name = "Santa Cruz"
+codes = ["sobosc"]
+[[sedes]]
+
+name = "Sucre"
+codes = ["sobosu"]
+[[sedes]]
+
+name = "Tupiza"
+codes = ["sobotu"]
+[[sedes]]
+
+name = "Cochabamba"
+codes = ["soboch"]
+[[sedes]]
+
+name = "La Paz"
+codes = ["sobolp"]
+[[sedes]]
+
+name = "Bermejo"
+codes = ["sobobe"]
+[[sedes]]
+
+name = "Tarija"
+codes = ["sobota"]

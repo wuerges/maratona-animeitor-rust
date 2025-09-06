@@ -1,0 +1,19 @@
+[titulo]
+name = "CCL"
+codes = ["ccl"]
+
+[[sedes]]
+codes = ["ccl"]
+name = "CCL"
+
+[[sedes]]
+name = "CCL Brasil"
+codes = ["cclbr"]
+
+[[sedes]]
+name = "CCL Bolivia"
+codes = ["cclsobo"]
+
+[[sedes]]
+codes = ["cclca"]
+name = "CCL Centro America"

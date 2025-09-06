@@ -1,0 +1,8 @@
+[titulo]
+name = "Mexico"
+codes = ["teammx"]
+
+# MEXICO
+[[sedes]]
+codes = ["teammx"]
+name = "Mexico"
