@@ -6,11 +6,11 @@ pub mod revelation;
 use configdata::Sede;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::cell::LazyCell;
 use std::cmp::{Eq, Ordering};
 use std::collections::{BTreeMap, HashSet, btree_map};
 use std::fmt::{self, Display};
 use std::str::FromStr;
+use std::sync::LazyLock;
 use std::sync::atomic::AtomicU64;
 use thiserror::Error;
 use utoipa::ToSchema;
@@ -34,10 +34,7 @@ pub enum Answer {
 
 impl Answer {
     pub fn is_wait(&self) -> bool {
-        match self {
-            Answer::Wait { .. } => true,
-            _ => false,
-        }
+        matches!(self, Answer::Wait { .. })
     }
 }
 
@@ -331,7 +328,7 @@ impl Team {
     }
 
     pub fn wait(&self) -> bool {
-        self.problems.values().map(|p| p.wait()).any(|e| e)
+        self.problems.values().any(|p| p.wait())
     }
 
     pub fn reveal_run_frozen(&mut self) -> bool {
@@ -430,10 +427,10 @@ impl Ord for Letter {
     }
 }
 
-const ALPHABET: LazyCell<Vec<char>> =
-    LazyCell::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
+static ALPHABET: LazyLock<Vec<char>> =
+    LazyLock::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
 
-const CALCULATED: LazyCell<Vec<Letter>> = LazyCell::new(|| {
+static CALCULATED: LazyLock<Vec<Letter>> = LazyLock::new(|| {
     (1..=3)
         .flat_map(|l| {
             ALPHABET
@@ -504,7 +501,7 @@ impl ContestFile {
             teams: self
                 .teams
                 .into_iter()
-                .filter(|(login, _t)| sede.team_belongs_str(&login))
+                .filter(|(login, _t)| sede.team_belongs_str(login))
                 .collect(),
             ..self
         }
@@ -571,7 +568,7 @@ pub struct RunTuple {
     pub id: i64,
     /// Order in input.
     pub order: u64,
-    /// Time of the submision.
+    /// Time of the submission.
     pub time: i64,
     /// The team login.
     pub team_login: String,
@@ -581,6 +578,7 @@ pub struct RunTuple {
     pub answer: Answer,
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for RunTuple {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.time.cmp(&other.time))
@@ -718,7 +716,6 @@ impl RunsFile {
 }
 
 #[cfg(test)]
-
 mod tests {
     use crate::{Letter, problem_letters};
 

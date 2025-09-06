@@ -24,7 +24,7 @@ impl State {
     }
 
     fn step_forward(&mut self) {
-        if self.is_started && self.driver.len() > 0 {
+        if self.is_started && !self.driver.is_empty() {
             self.driver.reveal_step();
         } else {
             self.is_started = true;
@@ -157,7 +157,7 @@ pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) ->
 
             let mut changed_logins = vec![];
             for team in contest.teams.values() {
-                let id_changed = !id_map.get(&team.login).is_some_and(|id| &team.id == id);
+                let id_changed = id_map.get(&team.login).is_none_or(|id| &team.id != id);
 
                 if id_changed {
                     changed_logins.push(team.login.as_str());

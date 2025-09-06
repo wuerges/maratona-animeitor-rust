@@ -1,7 +1,7 @@
 use clap::Parser;
 use cli::SimpleArgs;
 use data::configdata::{Contest, Secret, Sede};
-use tracing_subscriber::{util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 use url::Url;
 
 #[derive(Parser)]
@@ -47,7 +47,7 @@ fn print_reveleitor(
 ) -> color_eyre::eyre::Result<()> {
     let mut url = Url::parse(&parse.prefix)?;
     url.query_pairs_mut()
-        .append_pair("secret", &secret)
+        .append_pair("secret", secret)
         .append_pair("sede", &sede.entry.name)
         .append_pair("contest", contest_name);
 
@@ -72,7 +72,7 @@ fn print_urls(
     // }
 
     for (secret, sede) in &config_secret.sedes_by_secret {
-        print_reveleitor(parse, sede, &secret, contest_name)?;
+        print_reveleitor(parse, sede, secret, contest_name)?;
     }
     Ok(())
 }

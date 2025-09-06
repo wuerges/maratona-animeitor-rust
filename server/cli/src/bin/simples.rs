@@ -48,7 +48,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
-    let _autometrics = server_v2::metrics::setup();
+    server_v2::metrics::setup();
 
     let app_config = AppConfig {
         config: complete,

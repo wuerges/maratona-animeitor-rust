@@ -72,7 +72,7 @@ impl SimpleArgs {
             secret,
         } = self;
 
-        let main_config_secret = gather_secrets(&secret)?;
+        let main_config_secret = gather_secrets(secret)?;
 
         let mut result = HashMap::new();
 

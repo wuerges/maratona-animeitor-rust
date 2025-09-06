@@ -76,11 +76,9 @@ pub fn RunsPanel(items: Arc<RunsPanelItemManager>, sede: Signal<Arc<Sede>>) -> i
         let wraps = items
             .items
             .iter()
-            .filter_map(|item_signal| {
-                Some(ItemWrap {
-                    panel_item: item_signal.panel_item.into(),
-                    sede: sede.clone(),
-                })
+            .map(|item_signal| ItemWrap {
+                panel_item: item_signal.panel_item.into(),
+                sede,
             })
             .collect_vec();
         let panel = compress_placements(wraps, placements, None.into());

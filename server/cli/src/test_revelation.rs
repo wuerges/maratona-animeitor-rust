@@ -34,9 +34,7 @@ mod test {
         input_file: &str,
         golden_model: &str,
     ) -> color_eyre::eyre::Result<()> {
-        let model = read_lines(golden_model)?
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+        let model = read_lines(golden_model)?.collect::<Result<Vec<_>, _>>()?;
         let reveals = super::build_revelation(input_file).await?;
 
         assert_eq!(model, reveals, "golden models differ {}", input_file);

@@ -18,7 +18,7 @@ pub trait Compress {
 ///
 /// - `children`: The array of components to compress.
 /// - `placements`: A signal with an array of string, that identify each component.
-///                 Only components in the `placements` array will be shown.
+///   Only components in the `placements` array will be shown.
 /// - `center`: Which child should be the center component?
 pub fn compress_placements<T>(
     children: Vec<T>,

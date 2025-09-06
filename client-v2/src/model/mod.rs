@@ -95,7 +95,7 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                         if included_in_panel.contains(&r.id) {
                             running_contest.recalculate_placement();
                         }
-                        if let Some(panel_item) = running_contest.build_panel_item(&r).ok() {
+                        if let Ok(panel_item) = running_contest.build_panel_item(r) {
                             runs_panel_item_manager.push(panel_item)
                         }
                     }

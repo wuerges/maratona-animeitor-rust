@@ -22,7 +22,7 @@ fn parse_message<M: for<'a> Deserialize<'a>>(
     let msg = message.map_err(Error::WebSocket)?;
     Ok(match &msg {
         Message::Text(txt) => serde_json::from_str(txt).map_err(Error::Serde)?,
-        Message::Bytes(bytes) => serde_json::from_slice(&bytes).map_err(Error::Serde)?,
+        Message::Bytes(bytes) => serde_json::from_slice(bytes).map_err(Error::Serde)?,
     })
 }
 
@@ -53,7 +53,7 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
                                     Error::WebSocket(err) => {
                                         console_error(&format!("websocket error: {err:?}"))
                                     }
-                                    Error::EmptyMessage => console_error(&format!("empty message")),
+                                    Error::EmptyMessage => console_error("empty message"),
                                 }
                                 break;
                             }
