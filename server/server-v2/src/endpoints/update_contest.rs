@@ -14,15 +14,10 @@ struct ContestState {
 
 const API_KEY: &str = "apikey";
 
-#[put("/contests")]
-pub async fn update_contest(
-    data: web::Data<AppData>,
-    create_runs: web::Json<ContestState>,
-    req: HttpRequest,
-) -> impl Responder {
+fn authorize(data: &web::Data<AppData>, req: &HttpRequest) -> Result<(), actix_web::Error> {
     let contest_key = match &data.server_api_key {
         Some(key) => key,
-        None => return HttpResponse::Unauthorized().finish(),
+        None => return Err(actix_web::error::ErrorUnauthorized("missing credentials")),
     };
 
     if req
@@ -30,8 +25,19 @@ pub async fn update_contest(
         .get(API_KEY)
         .is_none_or(|k| k.as_bytes() != contest_key.as_bytes())
     {
-        return HttpResponse::Unauthorized().finish();
+        return Err(actix_web::error::ErrorUnauthorized("incorrect credentials"));
     };
+
+    Ok(())
+}
+
+#[put("/contests")]
+pub async fn update_contest(
+    data: web::Data<AppData>,
+    create_runs: web::Json<ContestState>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    authorize(&data, &req)?;
 
     let ContestState {
         runs,
@@ -49,11 +55,13 @@ pub async fn update_contest(
     )
     .await
     {
-        Ok(()) => HttpResponse::Created().finish(),
+        Ok(()) => Ok(HttpResponse::Created().finish()),
         Err(e) => {
             tracing::error!(?e, "failed updating runs from data");
 
-            HttpResponse::InternalServerError().finish()
+            Err(actix_web::error::ErrorInternalServerError(
+                "failed updating runs",
+            ))
         }
     }
 }

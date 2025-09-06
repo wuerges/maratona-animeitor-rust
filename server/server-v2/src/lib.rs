@@ -1,5 +1,6 @@
 mod api;
 mod app_data;
+mod components;
 mod endpoints;
 pub mod metrics;
 mod model;
