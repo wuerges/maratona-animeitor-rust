@@ -2,20 +2,24 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use data::configdata::ConfigContest;
+use data::configdata::{ConfigContest, SedeEntry};
+use data::{ContestFile, RunTuple};
+use futures::{Stream, StreamExt};
+use itertools::Itertools;
 use tokio::sync::RwLock;
 
 use crate::components::rejection::{Conflict, NotFound};
+use crate::endpoints::update_contest::ContestState;
 
 use super::runs::Runs;
 use super::timer::Timer;
 
-pub struct App {
+pub struct AppV2 {
     pub contests: RwLock<HashMap<String, Arc<ContestApp>>>,
     timeout: Duration,
 }
 
-impl App {
+impl AppV2 {
     pub fn new(timeout: Duration) -> Self {
         Self {
             contests: RwLock::new(HashMap::new()),
@@ -48,8 +52,8 @@ impl App {
 pub struct ContestApp {
     pub runs: Runs,
     pub time: Timer,
-    pub sedes: RwLock<HashMap<String, ConfigContest>>,
-    timeout: Duration,
+    pub sedes: RwLock<HashMap<String, SedeEntry>>,
+    pub file: RwLock<ContestFile>,
 }
 
 impl ContestApp {
@@ -57,9 +61,41 @@ impl ContestApp {
         Self {
             runs: Runs::new(timeout),
             time: Timer::new(timeout),
-
-            timeout,
+            file: RwLock::new(ContestFile::dummy()),
             sedes: RwLock::new(HashMap::new()),
         }
+    }
+
+    pub async fn update_state(&self, create_runs: ContestState) {
+        let ContestState { runs, time } = create_runs;
+
+        self.runs.push_ordered(runs).await;
+        self.time.update(time);
+    }
+
+    pub async fn update_config(&self, contest_file: ContestFile) {
+        let mut file = self.file.write().await;
+
+        *file = contest_file;
+    }
+
+    pub async fn update_sedes(&self, ConfigContest { titulo, sedes }: ConfigContest) {
+        let new_config = [("".to_string(), titulo)]
+            .into_iter()
+            .chain(sedes.into_iter().flatten().map(|s| (s.name.clone(), s)))
+            .collect::<HashMap<_, _>>();
+
+        *self.sedes.write().await = new_config;
+    }
+
+    pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<RunTuple>>> {
+        self.runs.stream().map(async |r| {
+            let hash_map = self.sedes.read().await;
+            let sede = hash_map.get("");
+
+            r.into_iter()
+                .filter(|r| sede.is_some_and(|s| s.into_sede().team_belongs_str(&r.team_login)))
+                .collect_vec()
+        })
     }
 }

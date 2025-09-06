@@ -1,15 +1,19 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use data::{ContestFile, RunTuple, RunsFile};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, put, web};
+use data::{ContestFile, RunTuple, RunsFile, configdata::ConfigContest};
 use serde::Deserialize;
 use service::dbupdate_v2::update_runs_from_data;
 
 use crate::app_data::AppData;
 
 #[derive(Deserialize, Debug)]
-struct ContestState {
-    runs: Vec<RunTuple>,
-    time: data::TimeFile,
-    contest: ContestFile,
+pub struct ContestState {
+    pub runs: Vec<RunTuple>,
+    pub time: data::TimeFile,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ContestConfig {
+    pub config: ContestFile,
 }
 
 const API_KEY: &str = "apikey";
@@ -31,37 +35,62 @@ fn authorize(data: &web::Data<AppData>, req: &HttpRequest) -> Result<(), actix_w
     Ok(())
 }
 
-#[put("/contests")]
-pub async fn update_contest(
+#[put("/contests/{contest}/state")]
+pub async fn update_contest_state(
     data: web::Data<AppData>,
     create_runs: web::Json<ContestState>,
+    contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let ContestState {
-        runs,
-        time,
-        contest,
-    } = create_runs.into_inner();
+    let contest = data.app_v2.get_contest(&contest).await?;
 
-    let run_file = RunsFile::new(runs);
+    contest.update_state(create_runs.into_inner()).await;
 
-    match update_runs_from_data(
-        (time, contest, run_file),
-        &data.shared_db,
-        &data.runs_tx,
-        &data.time_tx,
-    )
-    .await
-    {
-        Ok(()) => Ok(HttpResponse::Created().finish()),
-        Err(e) => {
-            tracing::error!(?e, "failed updating runs from data");
+    Ok(HttpResponse::Created().finish())
+}
 
-            Err(actix_web::error::ErrorInternalServerError(
-                "failed updating runs",
-            ))
-        }
-    }
+#[put("/contests/{contest}/config")]
+pub async fn update_contest_config(
+    data: web::Data<AppData>,
+    config: web::Json<ContestFile>,
+    contest: web::Path<String>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    authorize(&data, &req)?;
+
+    let contest = data.app_v2.get_contest(&contest).await?;
+
+    contest.update_config(config.into_inner()).await;
+
+    Ok(HttpResponse::Created().finish())
+}
+
+#[put("/contests/{contest}/sedes")]
+pub async fn update_contest_sedes(
+    data: web::Data<AppData>,
+    config: web::Json<ConfigContest>,
+    contest: web::Path<String>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    authorize(&data, &req)?;
+
+    let contest = data.app_v2.get_contest(&contest).await?;
+
+    contest.update_sedes(config.into_inner()).await;
+
+    Ok(HttpResponse::Created().finish())
+}
+
+#[get("/contests/{contest}/runs")]
+pub async fn get_contest_runs(
+    data: web::Data<AppData>,
+    contest: web::Path<String>,
+) -> Result<impl Responder, actix_web::Error> {
+    let contest = data.app_v2.get_contest(&contest).await?;
+
+    let runs = contest.get_runs().await;
+
+    Ok(HttpResponse::Created().finish())
 }
