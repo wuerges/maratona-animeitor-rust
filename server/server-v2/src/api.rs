@@ -18,7 +18,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
         get_config,
         get_allruns_ws,
         get_allruns_secret,
-        endpoints::update_contest::update_contest,
+        endpoints::update_contest::update_contest_config,
+        endpoints::update_contest::update_contest_state,
     ));
 }
 

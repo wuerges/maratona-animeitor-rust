@@ -37,7 +37,7 @@ impl Runs {
         }
     }
 
-    async fn push_ordered(&mut self, new_runs: Vec<RunTuple>) {
+    pub async fn push_ordered(&self, new_runs: Vec<RunTuple>) {
         let fresh = {
             let read = self.known.read().await;
             new_runs
@@ -49,6 +49,8 @@ impl Runs {
         let mut write = self.known.write().await;
 
         for mut run in fresh {
+            // Order stamp is added with order = 0
+            run.order = 0;
             if write.insert(run.clone()) {
                 run.order = self.count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                 self.sender.send_memo(run);
