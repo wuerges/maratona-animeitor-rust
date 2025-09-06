@@ -82,15 +82,3 @@ pub async fn update_contest_sedes(
 
     Ok(HttpResponse::Created().finish())
 }
-
-#[get("/contests/{contest}/runs")]
-pub async fn get_contest_runs(
-    data: web::Data<AppData>,
-    contest: web::Path<String>,
-) -> Result<impl Responder, actix_web::Error> {
-    let contest = data.app_v2.get_contest(&contest).await?;
-
-    let runs = contest.get_runs().await;
-
-    Ok(HttpResponse::Created().finish())
-}
