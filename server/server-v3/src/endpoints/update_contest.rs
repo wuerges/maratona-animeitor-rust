@@ -1,14 +1,12 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, get, put, web};
-use data::{ContestFile, RunTuple, RunsFile, configdata::ConfigContest};
 use serde::Deserialize;
-use service::dbupdate_v2::update_runs_from_data;
 
-use crate::app_data::AppData;
+use crate::model::app::AppV2;
 
 #[derive(Deserialize, Debug)]
 pub struct ContestState {
-    pub runs: Vec<RunTuple>,
-    pub time: data::TimeFile,
+    pub runs: Vec<sdk::Run>,
+    pub time: sdk::Time,
 }
 
 #[derive(Deserialize, Debug)]
@@ -18,7 +16,7 @@ pub struct ContestConfig {
 
 const API_KEY: &str = "apikey";
 
-fn authorize(data: &web::Data<AppData>, req: &HttpRequest) -> Result<(), actix_web::Error> {
+fn authorize(data: &web::Data<AppV2>, req: &HttpRequest) -> Result<(), actix_web::Error> {
     let contest_key = match &data.server_api_key {
         Some(key) => key,
         None => return Err(actix_web::error::ErrorUnauthorized("missing credentials")),
@@ -37,14 +35,14 @@ fn authorize(data: &web::Data<AppData>, req: &HttpRequest) -> Result<(), actix_w
 
 #[put("/contests/{contest}/state")]
 pub async fn update_contest_state(
-    data: web::Data<AppData>,
+    data: web::Data<AppV2>,
     create_runs: web::Json<ContestState>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.app_v2.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await?;
 
     contest.update_state(create_runs.into_inner()).await;
 
@@ -53,14 +51,14 @@ pub async fn update_contest_state(
 
 #[put("/contests/{contest}/config")]
 pub async fn update_contest_config(
-    data: web::Data<AppData>,
+    data: web::Data<AppV2>,
     config: web::Json<ContestFile>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.app_v2.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await?;
 
     contest.update_config(config.into_inner()).await;
 
@@ -69,14 +67,14 @@ pub async fn update_contest_config(
 
 #[put("/contests/{contest}/sedes")]
 pub async fn update_contest_sedes(
-    data: web::Data<AppData>,
+    data: web::Data<AppV2>,
     config: web::Json<ConfigContest>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.app_v2.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await?;
 
     contest.update_sedes(config.into_inner()).await;
 

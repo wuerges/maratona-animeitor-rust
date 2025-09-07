@@ -9,5 +9,4 @@ pub struct AppConfig {
     pub boca_url: String,
     pub server_config: HttpConfig,
     pub volumes: Vec<Volume>,
-    pub server_api_key: Option<String>,
 }

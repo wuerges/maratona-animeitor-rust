@@ -2,8 +2,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use data::configdata::{ConfigContest, SedeEntry};
-use data::{ContestFile, RunTuple};
 use futures::{Stream, StreamExt};
 use itertools::Itertools;
 use tokio::sync::RwLock;
@@ -16,14 +14,16 @@ use super::timer::Timer;
 
 pub struct AppV2 {
     pub contests: RwLock<HashMap<String, Arc<ContestApp>>>,
+    pub server_api_key: Option<String>,
     timeout: Duration,
 }
 
 impl AppV2 {
-    pub fn new(timeout: Duration) -> Self {
+    pub fn new(timeout: Duration, server_api_key: Option<String>) -> Self {
         Self {
             contests: RwLock::new(HashMap::new()),
             timeout,
+            server_api_key,
         }
     }
 

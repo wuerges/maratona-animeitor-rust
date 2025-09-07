@@ -1,13 +1,9 @@
 mod api;
 mod app_data;
-mod components;
-mod endpoints;
 pub mod metrics;
-pub mod model;
 mod remote_control;
 mod volumes;
 
-use std::time::Duration;
 use std::{collections::HashMap, sync::Arc};
 
 use actix_cors::Cors;
@@ -25,15 +21,12 @@ use tokio::sync::Mutex;
 use tracing_actix_web::TracingLogger;
 use volumes::configure_volumes;
 
-use crate::model::app::AppV2;
-
 pub async fn serve_config(
     AppConfig {
         config,
         boca_url,
         server_config: HttpConfig { port },
         volumes,
-        server_api_key,
     }: AppConfig,
 ) -> ServiceResult<()> {
     let config = Arc::new(config);
@@ -51,8 +44,6 @@ pub async fn serve_config(
         time_tx.clone(),
     ));
 
-    let default_timeout = Duration::from_secs(3);
-
     HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
@@ -63,8 +54,6 @@ pub async fn serve_config(
                 time_tx: time_tx.clone(),
                 config: config.clone(),
                 remote_control: remote_control.clone(),
-                server_api_key: server_api_key.clone(),
-                app_v2: Arc::new(AppV2::new(default_timeout)),
             }))
             .service(
                 web::scope("api")

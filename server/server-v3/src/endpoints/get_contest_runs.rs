@@ -3,16 +3,16 @@ use tokio::pin;
 use tokio_stream::StreamExt;
 use tracing::{debug, warn};
 
-use crate::app_data::AppData;
+use crate::model::app::AppV2;
 
 #[get("/contests/{contest}/runs")]
 pub async fn get_contest_runs(
-    data: web::Data<AppData>,
+    data: web::Data<AppV2>,
     contest: web::Path<String>,
     body: web::Payload,
     req: HttpRequest,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let contest = data.app_v2.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await?;
 
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
 

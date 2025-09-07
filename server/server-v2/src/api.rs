@@ -4,7 +4,7 @@ use autometrics::autometrics;
 use serde::Deserialize;
 use tracing::{Level, debug, warn};
 
-use crate::{app_data::AppData, endpoints};
+use crate::app_data::AppData;
 
 #[derive(Deserialize, Debug)]
 struct ContestQuery {
@@ -18,8 +18,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
         get_config,
         get_allruns_ws,
         get_allruns_secret,
-        endpoints::update_contest::update_contest_config,
-        endpoints::update_contest::update_contest_state,
     ));
 }
 
