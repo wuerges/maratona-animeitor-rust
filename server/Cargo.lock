@@ -2790,6 +2790,7 @@ version = "2.1.0"
 dependencies = [
  "assert2",
  "itertools",
+ "regex_set_field",
  "rstest",
  "serde",
  "serde_json",

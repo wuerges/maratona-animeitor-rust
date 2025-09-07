@@ -5,15 +5,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Default, Derivative, Deserialize, Serialize)]
 #[serde(try_from = "Vec<String>", into = "Vec<String>")]
 #[derivative(PartialEq, Eq)]
-pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
+pub struct RegexSetField {
+    expressions: Vec<String>,
+    #[derivative(PartialEq = "ignore")]
+    automata: RegexSet,
+}
 
 impl RegexSetField {
     pub fn as_strings(&self) -> &[String] {
-        &self.0
+        &self.expressions
     }
 
     pub fn as_regex_set(&self) -> &RegexSet {
-        &self.1
+        &self.automata
     }
 }
 
@@ -23,13 +27,16 @@ impl TryFrom<Vec<String>> for RegexSetField {
     fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
         let automata = RegexSet::new(value.clone())?;
 
-        Ok(RegexSetField(value, automata))
+        Ok(RegexSetField {
+            expressions: value,
+            automata,
+        })
     }
 }
 
 impl From<RegexSetField> for Vec<String> {
     fn from(value: RegexSetField) -> Self {
-        value.0
+        value.expressions
     }
 }
 

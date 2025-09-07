@@ -95,7 +95,7 @@ impl ContestApp {
             let sede = hash_map.get("");
 
             r.into_iter()
-                .filter(|r| sede.is_some_and(|s| s.team_belongs_str(&r.team_login)))
+                .filter(|r| sede.is_some_and(|s| s.team_belongs(&r.team_login)))
                 .collect_vec()
         })
     }
