@@ -1,0 +1,15 @@
+[package]
+name = "regex_set_field"
+authors.workspace = true
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+derivative.workspace = true
+regex.workspace = true
+serde.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+assert2.workspace = true
+serde_json.workspace = true
