@@ -47,10 +47,7 @@ impl Runs {
         let mut write = self.known.write().await;
 
         for mut run in fresh {
-            // Order stamp is added with order = 0
-            run.order = 0;
             if write.insert(run.clone()) {
-                run.order = self.count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                 self.sender.send_memo(run);
             }
         }

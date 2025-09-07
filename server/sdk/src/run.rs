@@ -11,6 +11,7 @@ use serde_with::{DeserializeFromStr, SerializeDisplay};
     strum::EnumString,
     PartialEq,
     Eq,
+    Hash,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum Answer {
@@ -22,7 +23,7 @@ pub enum Answer {
 
 /// A run, modeled from a webcast run
 /// 361626341239teammxmx12E?
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Run {
     pub id: u64,
     pub time_in_seconds: u64,
