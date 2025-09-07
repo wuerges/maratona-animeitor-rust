@@ -4,7 +4,7 @@ use data::{
     RunTuple, TimerData,
     configdata::{ConfigContest, Contest, Secret},
 };
-use service::{DB, membroadcast};
+use service::DB;
 use tokio::sync::{Mutex, broadcast};
 
 use crate::remote_control;

@@ -22,6 +22,7 @@ autometrics.workspace = true
 thiserror.workspace = true
 futures.workspace = true
 tokio-stream.workspace = true
+membroadcast.workspace = true
 rand.workspace = true
 futures-signals.workspace = true
 itertools.workspace = true
