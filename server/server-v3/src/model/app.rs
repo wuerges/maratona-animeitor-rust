@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use futures::{Stream, StreamExt};
 use itertools::Itertools;
+use sdk::{Site, SiteConfiguration};
 use tokio::sync::RwLock;
 
 use crate::components::rejection::{Conflict, NotFound};
@@ -52,7 +53,7 @@ impl AppV2 {
 pub struct ContestApp {
     pub runs: Runs,
     pub time: Timer,
-    pub sedes: RwLock<HashMap<String, SedeEntry>>,
+    pub sedes: RwLock<HashMap<String, Site>>,
     pub file: RwLock<ContestFile>,
 }
 
@@ -79,10 +80,10 @@ impl ContestApp {
         *file = contest_file;
     }
 
-    pub async fn update_sedes(&self, ConfigContest { titulo, sedes }: ConfigContest) {
-        let new_config = [("".to_string(), titulo)]
+    pub async fn update_sedes(&self, SiteConfiguration { base, sites }: SiteConfiguration) {
+        let new_config = [("".to_string(), base)]
             .into_iter()
-            .chain(sedes.into_iter().flatten().map(|s| (s.name.clone(), s)))
+            .chain(sites.into_iter().map(|s| (s.name.clone(), s)))
             .collect::<HashMap<_, _>>();
 
         *self.sedes.write().await = new_config;
@@ -94,7 +95,7 @@ impl ContestApp {
             let sede = hash_map.get("");
 
             r.into_iter()
-                .filter(|r| sede.is_some_and(|s| s.into_sede().team_belongs_str(&r.team_login)))
+                .filter(|r| sede.is_some_and(|s| s.team_belongs_str(&r.team_login)))
                 .collect_vec()
         })
     }
