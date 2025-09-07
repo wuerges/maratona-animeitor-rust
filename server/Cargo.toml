@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "cli", "service", "server-v2"]
+members = ["data", "cli", "service", "server-v2", "server-v3", "sdk"]
 resolver = "2"
 
 [workspace.package]
@@ -41,8 +41,13 @@ quickcheck_macros = "1"
 rstest = "0.26"
 futures-signals = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
+serde_with = "*"
+strum = { version = "*", features = ["derive"] }
+assert2 = "*"
 
 data = { path = "data" }
 cli = { path = "cli" }
+sdk = { path = "sdk" }
 service = { path = "service" }
 server-v2 = { path = "server-v2" }
+server-v3 = { path = "server-v3" }

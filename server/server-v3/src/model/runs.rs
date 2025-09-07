@@ -4,22 +4,20 @@ use std::{
     time::Duration,
 };
 
-use data::RunTuple;
 use futures::Stream;
 use itertools::Itertools;
-use service::membroadcast;
 use tokio::sync::RwLock;
 use tokio_stream::StreamExt;
 
 pub struct Runs {
-    known: Arc<RwLock<HashSet<RunTuple>>>,
+    known: Arc<RwLock<HashSet<sdk::Run>>>,
     count: AtomicU64,
-    sender: membroadcast::Sender<RunTuple>,
+    sender: membroadcast::Sender<sdk::Run>,
     timeout: Duration,
 }
 
 impl Runs {
-    pub fn stream(&self) -> impl Stream<Item = Vec<RunTuple>> {
+    pub fn stream(&self) -> impl Stream<Item = Vec<sdk::Run>> {
         self.sender
             .subscribe()
             .recv_stream()
@@ -37,7 +35,7 @@ impl Runs {
         }
     }
 
-    pub async fn push_ordered(&self, new_runs: Vec<RunTuple>) {
+    pub async fn push_ordered(&self, new_runs: Vec<sdk::Run>) {
         let fresh = {
             let read = self.known.read().await;
             new_runs

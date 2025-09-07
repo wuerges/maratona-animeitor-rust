@@ -35,7 +35,7 @@ impl<T: Clone> Receiver<T> {
         T: Send + 'static,
     {
         let broadcast = BroadcastStream::new(self.rx.resubscribe()).filter_map(|m| m.ok());
-        tokio_stream::iter(self.messages.into_iter()).chain(broadcast)
+        tokio_stream::iter(self.messages).chain(broadcast)
     }
 }
 
