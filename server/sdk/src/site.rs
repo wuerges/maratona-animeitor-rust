@@ -1,3 +1,4 @@
+use regex_set_field::RegexSetField;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
@@ -7,7 +8,7 @@ pub struct Site {
     pub name: String,
 
     /// Site codes, using in filtering groups of sites.
-    pub codes: Vec<String>,
+    pub codes: RegexSetField,
 
     /// Golden medal position.
     #[serde(default = "one", alias = "ouro")]
@@ -42,4 +43,10 @@ fn two() -> u32 {
 
 fn three() -> u32 {
     3
+}
+
+impl Site {
+    pub fn team_belongs(&self, team_login: &str) -> bool {
+        self.codes.as_regex_set().is_match(team_login)
+    }
 }

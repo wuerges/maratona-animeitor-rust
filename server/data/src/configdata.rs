@@ -1,10 +1,7 @@
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use std::{collections::HashMap, fmt::Debug};
 
-use derivative::Derivative;
 use regex::RegexSet;
+use regex_set_field::RegexSetField;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -16,6 +13,7 @@ pub struct SedeEntry {
     /// Site name.
     pub name: String,
     /// Site codes, using in filtering groups of sites.
+    #[schema(value_type = Vec<String>)]
     pub codes: RegexSetField,
     /// Style of the site (For CSS)
     pub style: Option<String>,
@@ -88,7 +86,7 @@ impl SedeEntry {
     pub fn into_sede(&self) -> Sede {
         Sede {
             entry: self.clone(),
-            automata: self.codes.1.clone(),
+            automata: self.codes.as_regex_set().clone(),
         }
     }
 }
