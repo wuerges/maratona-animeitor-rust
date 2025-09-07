@@ -10,39 +10,6 @@ use utoipa::ToSchema;
 
 use crate::Team;
 
-#[derive(Debug, Clone, Default, Derivative, ToSchema)]
-#[derivative(PartialEq, Eq)]
-pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
-
-impl<'de> Deserialize<'de> for RegexSetField {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-        let v = Vec::<String>::deserialize(deserializer)?;
-
-        let automata = RegexSet::new(v.clone()).map_err(D::Error::custom)?;
-
-        Ok(RegexSetField(v, automata))
-    }
-}
-
-impl Serialize for RegexSetField {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        self.0.serialize(serializer)
-    }
-}
-
-impl Display for RegexSetField {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
 #[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema, PartialEq, Eq)]
 /// A site entry.
 pub struct SedeEntry {

@@ -12,7 +12,7 @@ thiserror.workspace = true
 tracing.workspace = true
 itertools.workspace = true
 regex.workspace = true
-derivative = "2.2"
+regex_set_field.workspace = true
 
 [dev-dependencies]
 quickcheck.workspace = true

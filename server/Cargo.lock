@@ -824,11 +824,11 @@ dependencies = [
 name = "data"
 version = "2.1.0"
 dependencies = [
- "derivative",
  "itertools",
  "quickcheck",
  "quickcheck_macros",
  "regex",
+ "regex_set_field",
  "serde",
  "serde_json",
  "thiserror 2.0.16",
@@ -2559,6 +2559,18 @@ name = "regex-syntax"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
+
+[[package]]
+name = "regex_set_field"
+version = "2.1.0"
+dependencies = [
+ "assert2",
+ "derivative",
+ "regex",
+ "rstest",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "relative-path"

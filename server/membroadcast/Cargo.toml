@@ -8,20 +8,3 @@ version.workspace = true
 tokio.workspace = true
 tokio-stream.workspace = true
 futures.workspace = true
-
-# zip.workspace = true
-# rand.workspace = true
-# toml.workspace = true
-# html-escape.workspace = true
-# parking_lot.workspace = true
-# reqwest.workspace = true
-# thiserror.workspace = true
-# serde.workspace = true
-# serde_json.workspace = true
-# itertools.workspace = true
-# sentry.workspace = true
-# metrics.workspace = true
-# tracing.workspace = true
-# futures-signals.workspace = true
-
-# data.workspace = true
