@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use crate::errors::ServiceResult;
-use crate::{DB, membroadcast, webcast};
+use crate::{DB, webcast};
 use metrics::{counter, histogram};
 use tokio::sync::Mutex;
 use tokio::sync::broadcast;
@@ -22,7 +22,7 @@ pub async fn update_runs_from_data(
 
     let fresh_runs_count = fresh_runs.len() as u64;
     for r in fresh_runs {
-        runs_tx.send_memo(r.clone());
+        runs_tx.send_memo(r.clone()).await;
     }
 
     let delta = start.elapsed();

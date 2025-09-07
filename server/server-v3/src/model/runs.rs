@@ -17,15 +17,16 @@ pub struct Runs {
 }
 
 impl Runs {
-    pub fn stream(&self) -> impl Stream<Item = Vec<sdk::Run>> {
+    pub async fn stream(&self) -> impl Stream<Item = Vec<sdk::Run>> {
         self.sender
             .subscribe()
+            .await
             .recv_stream()
             .chunks_timeout(1_000_000, Duration::from_secs(1))
     }
 
-    pub fn new(timeout: Duration) -> Self {
-        let (sender, _) = membroadcast::channel(1_000_000);
+    pub async fn new(timeout: Duration) -> Self {
+        let (sender, _) = membroadcast::channel(1_000_000).await;
 
         Self {
             known: Arc::new(RwLock::new(HashSet::new())),
@@ -46,7 +47,7 @@ impl Runs {
 
         let mut write = self.known.write().await;
 
-        for mut run in fresh {
+        for run in fresh {
             if write.insert(run.clone()) {
                 self.sender.send_memo(run);
             }

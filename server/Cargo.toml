@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "cli", "service", "server-v2", "server-v3", "sdk"]
+members = ["data", "cli", "service", "server-v2", "server-v3", "sdk", "membroadcast"]
 resolver = "2"
 
 [workspace.package]
@@ -51,3 +51,4 @@ sdk = { path = "sdk" }
 service = { path = "service" }
 server-v2 = { path = "server-v2" }
 server-v3 = { path = "server-v3" }
+membroadcast = { path = "membroadcast" }

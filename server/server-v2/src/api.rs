@@ -142,7 +142,7 @@ async fn get_allruns_ws_fn(
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
-    let mut runs_rx = data.runs_tx.subscribe();
+    let mut runs_rx = data.runs_tx.subscribe().await;
 
     let sede = data
         .config

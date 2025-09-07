@@ -1,7 +1,6 @@
 use futures::Stream;
-use parking_lot::RwLock;
 use std::{collections::VecDeque, sync::Arc};
-use tokio::sync::broadcast;
+use tokio::sync::{RwLock, broadcast};
 use tokio_stream::{StreamExt, wrappers::BroadcastStream};
 
 pub struct Receiver<T: Clone> {
@@ -10,11 +9,10 @@ pub struct Receiver<T: Clone> {
 }
 
 impl<T: Clone> Receiver<T> {
-    fn new(rx: broadcast::Receiver<T>, messages: &Vec<T>) -> Self {
+    fn new(rx: broadcast::Receiver<T>, messages: Vec<T>) -> Self {
         let mut deque = VecDeque::new();
-        for m in messages {
-            deque.push_back(m.clone())
-        }
+        deque.extend(messages);
+
         Self {
             rx,
             messages: deque,
@@ -53,14 +51,14 @@ impl<T: Clone> Sender<T> {
         }
     }
 
-    pub fn send_memo(&self, value: T) -> usize {
-        self.messages.write().push(value.clone());
+    pub async fn send_memo(&self, value: T) -> usize {
+        self.messages.write().await.push(value.clone());
         self.tx.send(value).unwrap_or(0)
     }
 
-    pub fn subscribe(&self) -> Receiver<T> {
+    pub async fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
-        Receiver::new(rx, &self.messages.read())
+        Receiver::new(rx, self.messages.read().await.clone())
     }
 
     #[cfg(test)]
@@ -69,10 +67,10 @@ impl<T: Clone> Sender<T> {
     }
 }
 
-pub fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
+pub async fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let (tx, rx) = broadcast::channel(capacity);
     let mem_tx = Sender::new(tx);
-    let mem_rx = Receiver::new(rx, &mem_tx.messages.read());
+    let mem_rx = Receiver::new(rx, mem_tx.messages.read().await.clone());
     (mem_tx, mem_rx)
 }
 
@@ -82,7 +80,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_mem_broadcast() {
-        let (tx, mut rx1) = channel(1_000_000);
+        let (tx, mut rx1) = channel(1_000_000).await;
 
         let t1 = tokio::spawn(async move {
             println!("rx1 started");
@@ -94,10 +92,10 @@ mod tests {
 
         assert_eq!(tx.receiver_count_memo(), 1);
 
-        tx.send_memo(10);
+        tx.send_memo(10).await;
         println!("send_memo 10");
 
-        let mut rx2 = tx.subscribe();
+        let mut rx2 = tx.subscribe().await;
         let t2 = tokio::spawn(async move {
             println!("rx2 started");
             assert_eq!(rx2.recv().await.unwrap(), 10);
@@ -107,10 +105,10 @@ mod tests {
         });
         assert_eq!(tx.receiver_count_memo(), 2);
 
-        tx.send_memo(20);
+        tx.send_memo(20).await;
         println!("send_memo 20");
 
-        let mut rx3 = tx.subscribe();
+        let mut rx3 = tx.subscribe().await;
         let t3 = tokio::spawn(async move {
             println!("rx3 started");
             assert_eq!(rx3.recv().await.unwrap(), 10);
@@ -120,7 +118,7 @@ mod tests {
         });
 
         assert_eq!(tx.receiver_count_memo(), 3);
-        tx.send_memo(30);
+        tx.send_memo(30).await;
         println!("send_memo 30");
 
         t1.await.expect("t1");

@@ -32,7 +32,7 @@ impl AppV2 {
             return Err(Conflict);
         }
 
-        let contest = Arc::new(ContestApp::new(self.timeout));
+        let contest = Arc::new(ContestApp::new(self.timeout).await);
 
         self.contests
             .write()
@@ -57,9 +57,9 @@ pub struct ContestApp {
 }
 
 impl ContestApp {
-    fn new(timeout: Duration) -> Self {
+    async fn new(timeout: Duration) -> Self {
         Self {
-            runs: Runs::new(timeout),
+            runs: Runs::new(timeout).await,
             time: Timer::new(timeout),
             file: RwLock::new(ContestFile::dummy()),
             sedes: RwLock::new(HashMap::new()),
@@ -88,8 +88,8 @@ impl ContestApp {
         *self.sedes.write().await = new_config;
     }
 
-    pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<RunTuple>>> {
-        self.runs.stream().map(async |r| {
+    pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
+        self.runs.stream().await.map(async |r| {
             let hash_map = self.sedes.read().await;
             let sede = hash_map.get("");
 

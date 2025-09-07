@@ -15,7 +15,6 @@ use metrics::get_metrics;
 use remote_control::remote_control_ws;
 use service::DB;
 use service::dbupdate_v2::db_update;
-use service::membroadcast;
 use service::{app_config::AppConfig, errors::ServiceResult, http::HttpConfig};
 use tokio::sync::Mutex;
 use tracing_actix_web::TracingLogger;
@@ -32,7 +31,7 @@ pub async fn serve_config(
     let config = Arc::new(config);
 
     let shared_db = Arc::new(Mutex::new(DB::empty()));
-    let (runs_tx, _) = membroadcast::channel(1000000);
+    let (runs_tx, _) = membroadcast::channel(1000000).await;
     let (time_tx, _) = broadcast::channel(1000000);
 
     let remote_control = Arc::new(Mutex::new(HashMap::new()));

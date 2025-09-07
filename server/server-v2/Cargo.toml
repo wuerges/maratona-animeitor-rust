@@ -21,6 +21,7 @@ tracing.workspace = true
 autometrics.workspace = true
 thiserror.workspace = true
 futures.workspace = true
+membroadcast.workspace = true
 tokio-stream.workspace = true
 rand.workspace = true
 futures-signals.workspace = true
