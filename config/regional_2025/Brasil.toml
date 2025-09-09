@@ -54,14 +54,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brspsc SP, São Carlos
-[[sedes]]
-codes = ["teambrspsc"]
-name = "SP, São Carlos"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brbasa BA, Salvador
 [[sedes]]
 codes = ["teambrbasa"]
@@ -152,21 +144,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brsprp SP, Ribeirão Preto
-[[sedes]]
-codes = ["teambrsprp"]
-name = "SP, Ribeirão Preto"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brspsa SP, Santos
-[[sedes]]
-codes = ["teambrspsa"]
-name = "SP, Santos"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brscch SC, Chapecó
 [[sedes]]
@@ -488,17 +465,38 @@ ouro = 0
 prata = 0
 bronze = 0
 
-
-
-
-###
-
+# Supersede São Paulo - 1 vaga
 [[sedes]]
-name = "Supersede "
+name = "Supersede São Paulo"
 codes = []
 ouro = 1
 prata = 0
 bronze = 0
+
+# Sede brsprp SP, Ribeirão Preto
+[[sedes]]
+codes = ["teambrsprp"]
+name = "SP, Ribeirão Preto"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brspsa SP, Santos
+[[sedes]]
+codes = ["teambrspsa"]
+name = "SP, Santos"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brspsc SP, São Carlos
+[[sedes]]
+codes = ["teambrspsc"]
+name = "SP, São Carlos"
+ouro = 0
+prata = 0
+bronze = 0
+
 ###
 
 [[sedes]]
