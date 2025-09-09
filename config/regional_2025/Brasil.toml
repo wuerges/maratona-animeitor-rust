@@ -54,15 +54,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brrspe RS, Pelotas
-[[sedes]]
-codes = ["teambrrspe"]
-name = "RS, Pelotas"
-ouro = 1
-prata = 0
-bronze = 0
-
-
 # Sede brspsc SP, São Carlos
 [[sedes]]
 codes = ["teambrspsc"]
@@ -190,14 +181,6 @@ bronze = 0
 codes = ["teambrspso"]
 name = "SP, Sorocaba"
 ouro = 2
-prata = 0
-bronze = 0
-
-# Sede brrspa RS, Porto Alegre
-[[sedes]]
-codes = ["teambrrspa"]
-name = "RS, Porto Alegre"
-ouro = 1
 prata = 0
 bronze = 0
 
@@ -443,7 +426,7 @@ bronze = 0
 [[sedes]]
 codes = ["teambrpabe"]
 name = "PA, Belém"
-ouro = 1
+ouro = 0
 prata = 0
 bronze = 0
 
@@ -451,7 +434,7 @@ bronze = 0
 [[sedes]]
 codes = ["teambrpaps"]
 name = "PA, Paragominas"
-ouro = 1
+ouro = 0
 prata = 0
 bronze = 0
 
@@ -468,7 +451,7 @@ bronze = 0
 [[sedes]]
 codes = ["teambrrnna"]
 name = "RN, Natal"
-ouro = 1
+ouro = 0
 prata = 0
 bronze = 0
 
@@ -476,20 +459,38 @@ bronze = 0
 [[sedes]]
 codes = ["teambrrnpf"]
 name = "RN, Pau dos Ferros"
-ouro = 1
+ouro = 0
 prata = 0
 bronze = 0
 
-
-
-###
+# Supersede Rio Grande do Sul - 1 vaga
 
 [[sedes]]
-name = "Supersede "
-codes = []
+name = "Supersede Rio Grande do Sul"
+codes = [""]
 ouro = 1
 prata = 0
 bronze = 0
+
+# Sede brrspe RS, Pelotas
+[[sedes]]
+codes = ["teambrrspe"]
+name = "RS, Pelotas"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brrspa RS, Porto Alegre
+[[sedes]]
+codes = ["teambrrspa"]
+name = "RS, Porto Alegre"
+ouro = 0
+prata = 0
+bronze = 0
+
+
+
+
 ###
 
 [[sedes]]
