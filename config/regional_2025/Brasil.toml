@@ -12,16 +12,6 @@ ouro = 4
 prata = 8
 bronze = 12
 
-
-
-# Sede bresse ES, Serra
-[[sedes]]
-codes = ["teambresse"]
-name = "ES, Serra"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brmgud MG, Uberlândia
 [[sedes]]
 codes = ["teambrmgud"]
@@ -95,15 +85,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede bramma AM, Manaus
-[[sedes]]
-codes = ["teambramma"]
-name = "AM, Manaus"
-ouro = 1
-prata = 0
-bronze = 0
-
-
 # Sede brscch SC, Chapecó
 [[sedes]]
 codes = ["teambrscch"]
@@ -144,13 +125,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede bracrb AC, Rio Branco
-[[sedes]]
-codes = ["teambracrb"]
-name = "AC, Rio Branco"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brrsij RS, Ijuí
 [[sedes]]
@@ -197,14 +171,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrpite"]
 name = "PI, Teresina"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brropv RO, Porto Velho
-[[sedes]]
-codes = ["teambrropv"]
-name = "RO, Porto Velho"
 ouro = 1
 prata = 0
 bronze = 0
@@ -521,11 +487,52 @@ ouro = 0
 prata = 0
 bronze = 0
 
-###
+# Supersede Região Norte - 1 vaga
 
 [[sedes]]
-name = "Supersede "
-codes = []
+name = "Supersede Região Norte"
+codes = ["teambracrb", "teambramma", "teambrropv"]
 ouro = 1
+prata = 0
+bronze = 0
+
+# Sede bracrb AC, Rio Branco
+[[sedes]]
+codes = ["teambracrb"]
+name = "AC, Rio Branco"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede bramma AM, Manaus
+[[sedes]]
+codes = ["teambramma"]
+name = "AM, Manaus"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brropv RO, Porto Velho
+[[sedes]]
+codes = ["teambrropv"]
+name = "RO, Porto Velho"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Supersede Brasil - 1 vaga
+
+[[sedes]]
+name = "Supersede Brasil"
+codes = ["teambresse"]
+ouro = 1
+prata = 0
+bronze = 0
+
+# Sede bresse ES, Serra
+[[sedes]]
+codes = ["teambresse"]
+name = "ES, Serra"
+ouro = 0
 prata = 0
 bronze = 0
