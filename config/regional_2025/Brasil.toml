@@ -127,21 +127,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brmgmc MG, Montes Claros
-[[sedes]]
-codes = ["teambrmgmc"]
-name = "MG, Montes Claros"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brmgti MG, Timóteo
-[[sedes]]
-codes = ["teambrmgti"]
-name = "MG, Timóteo"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brmsdo MS, Dourados
 [[sedes]]
@@ -252,14 +237,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrsplo"]
 name = "SP, Lorena"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brmgvi MG, Viçosa
-[[sedes]]
-codes = ["teambrmgvi"]
-name = "MG, Viçosa"
 ouro = 1
 prata = 0
 bronze = 0
@@ -450,3 +427,37 @@ ouro = 0
 prata = 0
 bronze = 0
 
+
+# Supersede Minas Gerais, 1 vaga
+
+[[sedes]]
+name = "Supersede Minas Gerais"
+codes = ["teambrmgmc", "teambrmgti", "teambrmgvi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+# Sede brmgmc MG, Montes Claros
+[[sedes]]
+codes = ["teambrmgmc"]
+name = "MG, Montes Claros"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmgti MG, Timóteo
+[[sedes]]
+codes = ["teambrmgti"]
+name = "MG, Timóteo"
+ouro = 0
+prata = 0
+bronze = 0
+
+
+# Sede brmgvi MG, Viçosa
+[[sedes]]
+codes = ["teambrmgvi"]
+name = "MG, Viçosa"
+ouro = 0
+prata = 0
+bronze = 0
