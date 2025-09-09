@@ -241,14 +241,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brpabe PA, Belém
-[[sedes]]
-codes = ["teambrpabe"]
-name = "PA, Belém"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brspma SP, Marília
 [[sedes]]
 codes = ["teambrspma"]
@@ -269,14 +261,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambracrb"]
 name = "AC, Rio Branco"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brpaps PA, Paragominas
-[[sedes]]
-codes = ["teambrpaps"]
-name = "PA, Paragominas"
 ouro = 1
 prata = 0
 bronze = 0
@@ -459,5 +443,30 @@ bronze = 0
 codes = ["teambrmgvi"]
 name = "MG, Viçosa"
 ouro = 0
+prata = 0
+bronze = 0
+
+# Supersede Pará - 1 vaga
+[[sedes]]
+name = "Supersede Pará"
+codes = ["teambrpabe", "teambrpaps"]
+ouro = 1
+prata = 0
+bronze = 0
+
+
+# Sede brpabe PA, Belém
+[[sedes]]
+codes = ["teambrpabe"]
+name = "PA, Belém"
+ouro = 1
+prata = 0
+bronze = 0
+
+# Sede brpaps PA, Paragominas
+[[sedes]]
+codes = ["teambrpaps"]
+name = "PA, Paragominas"
+ouro = 1
 prata = 0
 bronze = 0
