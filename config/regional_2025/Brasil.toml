@@ -20,7 +20,6 @@ ouro = 2
 prata = 0
 bronze = 0
 
-
 # Sede brrjrj RJ, Rio de Janeiro
 [[sedes]]
 codes = ["teambrrjrj"]
@@ -37,10 +36,10 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brmasl MA, São Luis
+# Sede brmasl MA, São Luís
 [[sedes]]
 codes = ["teambrmasl"]
-name = "MA, São Luis"
+name = "MA, São Luís"
 ouro = 1
 prata = 0
 bronze = 0
@@ -125,7 +124,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-
 # Sede brrsij RS, Ijuí
 [[sedes]]
 codes = ["teambrrsij"]
@@ -157,7 +155,6 @@ name = "SC, Joinville"
 ouro = 1
 prata = 0
 bronze = 0
-
 
 # Sede brmgub MG, Uberaba
 [[sedes]]
@@ -199,7 +196,6 @@ ouro = 3
 prata = 0
 bronze = 0
 
-
 # Supersede Ceará, 2 vagas
 [[sedes]]
 name = "Supersede Ceará"
@@ -240,9 +236,7 @@ ouro = 0
 prata = 0
 bronze = 0
 
-
 # Supersede Minas Gerais, 1 vaga
-
 [[sedes]]
 name = "Supersede Minas Gerais"
 codes = ["teambrmgmc", "teambrmgti", "teambrmgvi"]
@@ -266,7 +260,6 @@ ouro = 0
 prata = 0
 bronze = 0
 
-
 # Sede brmgvi MG, Viçosa
 [[sedes]]
 codes = ["teambrmgvi"]
@@ -283,7 +276,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-
 # Sede brpabe PA, Belém
 [[sedes]]
 codes = ["teambrpabe"]
@@ -299,7 +291,6 @@ name = "PA, Paragominas"
 ouro = 0
 prata = 0
 bronze = 0
-
 
 # Supersede Rio Grande do Norte - 1 vaga
 [[sedes]]
@@ -326,7 +317,6 @@ prata = 0
 bronze = 0
 
 # Supersede Rio Grande do Sul - 1 vaga
-
 [[sedes]]
 name = "Supersede Rio Grande do Sul"
 codes = ["teambrrspe", "teambrrspa"]
@@ -414,7 +404,6 @@ ouro = 0
 prata = 0
 bronze = 0
 
-
 # Supersede Região Nordeste - 3 vagas
 [[sedes]]
 name = "Supersede Região Nordeste"
@@ -455,10 +444,10 @@ ouro = 0
 prata = 0
 bronze = 0
 
-# Sede brmasl MA, São Luis
+# Sede brmasl MA, São Luís
 [[sedes]]
 codes = ["teambrmasl"]
-name = "MA, São Luis"
+name = "MA, São Luís"
 ouro = 0
 prata = 0
 bronze = 0
@@ -488,7 +477,6 @@ prata = 0
 bronze = 0
 
 # Supersede Região Norte - 1 vaga
-
 [[sedes]]
 name = "Supersede Região Norte"
 codes = ["teambracrb", "teambramma", "teambrropv"]
@@ -521,7 +509,6 @@ prata = 0
 bronze = 0
 
 # Supersede Brasil - 1 vaga
-
 [[sedes]]
 name = "Supersede Brasil"
 codes = ["teambresse"]
