@@ -30,13 +30,6 @@ ouro = 2
 prata = 0
 bronze = 0
 
-# Sede bralma AL, Maceió
-[[sedes]]
-codes = ["teambralma"]
-name = "AL, Maceió"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brrjrj RJ, Rio de Janeiro
 [[sedes]]
@@ -94,14 +87,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brpbcg PB, Campina Grande
-[[sedes]]
-codes = ["teambrpbcg"]
-name = "PB, Campina Grande"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brmgjf MG, Juiz de Fora
 [[sedes]]
 codes = ["teambrmgjf"]
@@ -109,15 +94,6 @@ name = "MG, Juiz de Fora"
 ouro = 1
 prata = 0
 bronze = 0
-
-# Sede brpere PE, Recife
-[[sedes]]
-codes = ["teambrpere"]
-name = "PE, Recife"
-ouro = 1
-prata = 0
-bronze = 0
-
 
 # Sede bramma AM, Manaus
 [[sedes]]
@@ -141,30 +117,6 @@ bronze = 0
 codes = ["teambrspso"]
 name = "SP, Sorocaba"
 ouro = 2
-prata = 0
-bronze = 0
-
-# Sede brmaim MA, Imperatriz
-[[sedes]]
-codes = ["teambrmaim"]
-name = "MA, Imperatriz"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brmaba MA, Balsas
-[[sedes]]
-codes = ["teambrmaba"]
-name = "MA, Balsas"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brsesc SE, São Cristóvão
-[[sedes]]
-codes = ["teambrsesc"]
-name = "SE, São Cristóvão"
-ouro = 1
 prata = 0
 bronze = 0
 
@@ -261,14 +213,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrgogo"]
 name = "GO, Goiânia"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brbaju BA, Juazeiro
-[[sedes]]
-codes = ["teambrbaju"]
-name = "BA, Juazeiro"
 ouro = 1
 prata = 0
 bronze = 0
@@ -505,14 +449,78 @@ prata = 0
 bronze = 0
 
 
-###
-
+# Supersede Região Nordeste - 3 vagas
 [[sedes]]
-name = "Supersede "
-codes = []
-ouro = 1
+name = "Supersede Região Nordeste"
+codes = ["teambralma", "teambrbaju", "teambrmaba", "teambrmaim", "teambrmasl", "teambrpbcg", "teambrpere", "teambrsesc"]
+ouro = 3
 prata = 0
 bronze = 0
+
+# Sede bralma AL, Maceió
+[[sedes]]
+codes = ["teambralma"]
+name = "AL, Maceió"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brbaju BA, Juazeiro
+[[sedes]]
+codes = ["teambrbaju"]
+name = "BA, Juazeiro"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmaba MA, Balsas
+[[sedes]]
+codes = ["teambrmaba"]
+name = "MA, Balsas"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmaim MA, Imperatriz
+[[sedes]]
+codes = ["teambrmaim"]
+name = "MA, Imperatriz"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmasl MA, São Luis
+[[sedes]]
+codes = ["teambrmasl"]
+name = "MA, São Luis"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brpbcg PB, Campina Grande
+[[sedes]]
+codes = ["teambrpbcg"]
+name = "PB, Campina Grande"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brpere PE, Recife
+[[sedes]]
+codes = ["teambrpere"]
+name = "PE, Recife"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brsesc SE, São Cristóvão
+[[sedes]]
+codes = ["teambrsesc"]
+name = "SE, São Cristóvão"
+ouro = 0
+prata = 0
+bronze = 0
+
 ###
 
 [[sedes]]
