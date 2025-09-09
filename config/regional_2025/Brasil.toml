@@ -201,14 +201,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brrnpf RN, Pau dos Ferros
-[[sedes]]
-codes = ["teambrrnpf"]
-name = "RN, Pau dos Ferros"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brmaim MA, Imperatriz
 [[sedes]]
 codes = ["teambrmaim"]
@@ -277,14 +269,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrmgit"]
 name = "MG, Itajubá"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brrnna RN, Natal
-[[sedes]]
-codes = ["teambrrnna"]
-name = "RN, Natal"
 ouro = 1
 prata = 0
 bronze = 0
@@ -467,6 +451,74 @@ bronze = 0
 [[sedes]]
 codes = ["teambrpaps"]
 name = "PA, Paragominas"
+ouro = 1
+prata = 0
+bronze = 0
+
+
+# Supersede Rio Grande do Norte - 1 vaga
+[[sedes]]
+name = "Supersede Rio Grande do Norte"
+codes = ["teambrrnna", "teambrrnpf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+# Sede brrnna RN, Natal
+[[sedes]]
+codes = ["teambrrnna"]
+name = "RN, Natal"
+ouro = 1
+prata = 0
+bronze = 0
+
+# Sede brrnpf RN, Pau dos Ferros
+[[sedes]]
+codes = ["teambrrnpf"]
+name = "RN, Pau dos Ferros"
+ouro = 1
+prata = 0
+bronze = 0
+
+
+
+###
+
+[[sedes]]
+name = "Supersede "
+codes = []
+ouro = 1
+prata = 0
+bronze = 0
+###
+
+[[sedes]]
+name = "Supersede "
+codes = []
+ouro = 1
+prata = 0
+bronze = 0
+###
+
+[[sedes]]
+name = "Supersede "
+codes = []
+ouro = 1
+prata = 0
+bronze = 0
+###
+
+[[sedes]]
+name = "Supersede "
+codes = []
+ouro = 1
+prata = 0
+bronze = 0
+###
+
+[[sedes]]
+name = "Supersede "
+codes = []
 ouro = 1
 prata = 0
 bronze = 0
