@@ -36,14 +36,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brmasl MA, São Luís
-[[sedes]]
-codes = ["teambrmasl"]
-name = "MA, São Luís"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brpapa PA, Parauapebas
 [[sedes]]
 codes = ["teambrpapa"]
