@@ -62,21 +62,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brcefo CE, Fortaleza
-[[sedes]]
-codes = ["teambrcefo"]
-name = "CE, Fortaleza"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brceqx CE, Quixadá
-[[sedes]]
-codes = ["teambrceqx"]
-name = "CE, Quixadá"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brspsc SP, São Carlos
 [[sedes]]
@@ -182,13 +167,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brcecr CE, Crateús
-[[sedes]]
-codes = ["teambrcecr"]
-name = "CE, Crateús"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede bramma AM, Manaus
 [[sedes]]
@@ -374,13 +352,6 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brcejn CE, Juazeiro do Norte
-[[sedes]]
-codes = ["teambrcejn"]
-name = "CE, Juazeiro do Norte"
-ouro = 1
-prata = 0
-bronze = 0
 
 # Sede brmgub MG, Uberaba
 [[sedes]]
@@ -437,3 +408,45 @@ name = "SP, São Paulo"
 ouro = 3
 prata = 0
 bronze = 0
+
+
+# Supersede Ceará, 2 vagas
+[[sedes]]
+name = "Supersede Ceará"
+codes = ["teambrcecr", "teambrcefo", "teambrceqx", "teambrcejn"]
+ouro = 2
+prata = 0
+bronze = 0
+
+# Sede brcecr CE, Crateús
+[[sedes]]
+codes = ["teambrcecr"]
+name = "CE, Crateús"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brcefo CE, Fortaleza
+[[sedes]]
+codes = ["teambrcefo"]
+name = "CE, Fortaleza"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brceqx CE, Quixadá
+[[sedes]]
+codes = ["teambrceqx"]
+name = "CE, Quixadá"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brcejn CE, Juazeiro do Norte
+[[sedes]]
+codes = ["teambrcejn"]
+name = "CE, Juazeiro do Norte"
+ouro = 0
+prata = 0
+bronze = 0
+
