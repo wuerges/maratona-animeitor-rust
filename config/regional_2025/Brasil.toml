@@ -46,14 +46,6 @@ ouro = 2
 prata = 0
 bronze = 0
 
-# Sede brmtcu MT, Cuiabá
-[[sedes]]
-codes = ["teambrmtcu"]
-name = "MT, Cuiabá"
-ouro = 1
-prata = 0
-bronze = 0
-
 # Sede brbasa BA, Salvador
 [[sedes]]
 codes = ["teambrbasa"]
@@ -106,15 +98,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrpbcg"]
 name = "PB, Campina Grande"
-ouro = 1
-prata = 0
-bronze = 0
-
-
-# Sede brmsdo MS, Dourados
-[[sedes]]
-codes = ["teambrmsdo"]
-name = "MS, Dourados"
 ouro = 1
 prata = 0
 bronze = 0
@@ -237,14 +220,6 @@ bronze = 0
 [[sedes]]
 codes = ["teambrrsca"]
 name = "RS, Canoas"
-ouro = 1
-prata = 0
-bronze = 0
-
-# Sede brmscg MS, Campo Grande
-[[sedes]]
-codes = ["teambrmscg"]
-name = "MS, Campo Grande"
 ouro = 1
 prata = 0
 bronze = 0
@@ -500,10 +475,36 @@ bronze = 0
 # Supersede Região Centro-Oeste - 1 vaga
 [[sedes]]
 name = "Supersede Região Centro-Oeste"
-codes = []
+codes = ["teambrmscg", "teambrmsdo", "teambrmtcu"]
 ouro = 1
 prata = 0
 bronze = 0
+
+# Sede brmscg MS, Campo Grande
+[[sedes]]
+codes = ["teambrmscg"]
+name = "MS, Campo Grande"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmsdo MS, Dourados
+[[sedes]]
+codes = ["teambrmsdo"]
+name = "MS, Dourados"
+ouro = 0
+prata = 0
+bronze = 0
+
+# Sede brmtcu MT, Cuiabá
+[[sedes]]
+codes = ["teambrmtcu"]
+name = "MT, Cuiabá"
+ouro = 0
+prata = 0
+bronze = 0
+
+
 ###
 
 [[sedes]]
