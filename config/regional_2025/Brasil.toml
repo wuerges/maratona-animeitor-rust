@@ -11,3 +11,270 @@ codes = ["teambr"]
 ouro = 4
 prata = 8
 bronze = 12
+
+
+
+# Sede bresse ES, Serra
+[[sedes]]
+codes = ["teambresse"]
+name = "ES, Serra"
+
+# Sede brmgud MG, Uberlândia
+[[sedes]]
+codes = ["teambrmgud"]
+name = "MG, Uberlândia"
+
+# Sede bralma AL, Maceió
+[[sedes]]
+codes = ["teambralma"]
+name = "AL, Maceió"
+
+# Sede brrjrj RJ, Rio de Janeiro
+[[sedes]]
+codes = ["teambrrjrj"]
+name = "RJ, Rio de Janeiro"
+
+# Sede brmtcu MT, Cuiabá
+[[sedes]]
+codes = ["teambrmtcu"]
+name = "MT, Cuiabá"
+
+# Sede brrspe RS, Pelotas
+[[sedes]]
+codes = ["teambrrspe"]
+name = "RS, Pelotas"
+
+# Sede brcefo CE, Fortaleza
+[[sedes]]
+codes = ["teambrcefo"]
+name = "CE, Fortaleza"
+
+# Sede brceqx CE, Quixadá
+[[sedes]]
+codes = ["teambrceqx"]
+name = "CE, Quixadá"
+
+# Sede brspsc SP, São Carlos
+[[sedes]]
+codes = ["teambrspsc"]
+name = "SP, São Carlos"
+
+# Sede brbasa BA, Salvador
+[[sedes]]
+codes = ["teambrbasa"]
+name = "BA, Salvador"
+
+# Sede brmasl MA, São Luis
+[[sedes]]
+codes = ["teambrmasl"]
+name = "MA, São Luis"
+
+# Sede brpapa PA, Parauapebas
+[[sedes]]
+codes = ["teambrpapa"]
+name = "PA, Parauapebas"
+
+# Sede brpaob PA, Óbidos
+[[sedes]]
+codes = ["teambrpaob"]
+name = "PA, Óbidos"
+
+# Sede brprcm PR, Campo Mourão
+[[sedes]]
+codes = ["teambrprcm"]
+name = "PR, Campo Mourão"
+
+# Sede brdfdf DF, Brasília
+[[sedes]]
+codes = ["teambrdfdf"]
+name = "DF, Brasília"
+
+# Sede brpbcg PB, Campina Grande
+[[sedes]]
+codes = ["teambrpbcg"]
+name = "PB, Campina Grande"
+
+# Sede brmgmc MG, Montes Claros
+[[sedes]]
+codes = ["teambrmgmc"]
+name = "MG, Montes Claros"
+
+# Sede brmgti MG, Timóteo
+[[sedes]]
+codes = ["teambrmgti"]
+name = "MG, Timóteo"
+
+# Sede brmsdo MS, Dourados
+[[sedes]]
+codes = ["teambrmsdo"]
+name = "MS, Dourados"
+
+# Sede brmgjf MG, Juiz de Fora
+[[sedes]]
+codes = ["teambrmgjf"]
+name = "MG, Juiz de Fora"
+
+# Sede brpere PE, Recife
+[[sedes]]
+codes = ["teambrpere"]
+name = "PE, Recife"
+
+# Sede brcecr CE, Crateús
+[[sedes]]
+codes = ["teambrcecr"]
+name = "CE, Crateús"
+
+# Sede bramma AM, Manaus
+[[sedes]]
+codes = ["teambramma"]
+name = "AM, Manaus"
+
+# Sede brsprp SP, Ribeirão Preto
+[[sedes]]
+codes = ["teambrsprp"]
+name = "SP, Ribeirão Preto"
+
+# Sede brspsa SP, Santos
+[[sedes]]
+codes = ["teambrspsa"]
+name = "SP, Santos"
+
+# Sede brscch SC, Chapecó
+[[sedes]]
+codes = ["teambrscch"]
+name = "SC, Chapecó"
+
+# Sede brspso SP, Sorocaba
+[[sedes]]
+codes = ["teambrspso"]
+name = "SP, Sorocaba"
+
+# Sede brrspa RS, Porto Alegre
+[[sedes]]
+codes = ["teambrrspa"]
+name = "RS, Porto Alegre"
+
+# Sede brrnpf RN, Pau dos Ferros
+[[sedes]]
+codes = ["teambrrnpf"]
+name = "RN, Pau dos Ferros"
+
+# Sede brmaim MA, Imperatriz
+[[sedes]]
+codes = ["teambrmaim"]
+name = "MA, Imperatriz"
+
+# Sede brmaba MA, Balsas
+[[sedes]]
+codes = ["teambrmaba"]
+name = "MA, Balsas"
+
+# Sede brsesc SE, São Cristóvão
+[[sedes]]
+codes = ["teambrsesc"]
+name = "SE, São Cristóvão"
+
+# Sede brsplo SP, Lorena
+[[sedes]]
+codes = ["teambrsplo"]
+name = "SP, Lorena"
+
+# Sede brmgvi MG, Viçosa
+[[sedes]]
+codes = ["teambrmgvi"]
+name = "MG, Viçosa"
+
+# Sede brpabe PA, Belém
+[[sedes]]
+codes = ["teambrpabe"]
+name = "PA, Belém"
+
+# Sede brspma SP, Marília
+[[sedes]]
+codes = ["teambrspma"]
+name = "SP, Marília"
+
+# Sede brmgbe MG, Belo Horizonte
+[[sedes]]
+codes = ["teambrmgbe"]
+name = "MG, Belo Horizonte"
+
+# Sede bracrb AC, Rio Branco
+[[sedes]]
+codes = ["teambracrb"]
+name = "AC, Rio Branco"
+
+# Sede brpaps PA, Paragominas
+[[sedes]]
+codes = ["teambrpaps"]
+name = "PA, Paragominas"
+
+# Sede brrsij RS, Ijuí
+[[sedes]]
+codes = ["teambrrsij"]
+name = "RS, Ijuí"
+
+# Sede brmgit MG, Itajubá
+[[sedes]]
+codes = ["teambrmgit"]
+name = "MG, Itajubá"
+
+# Sede brrnna RN, Natal
+[[sedes]]
+codes = ["teambrrnna"]
+name = "RN, Natal"
+
+# Sede brrsca RS, Canoas
+[[sedes]]
+codes = ["teambrrsca"]
+name = "RS, Canoas"
+
+# Sede brmscg MS, Campo Grande
+[[sedes]]
+codes = ["teambrmscg"]
+name = "MS, Campo Grande"
+
+# Sede brscjo SC, Joinville
+[[sedes]]
+codes = ["teambrscjo"]
+name = "SC, Joinville"
+
+# Sede brcejn CE, Juazeiro do Norte
+[[sedes]]
+codes = ["teambrcejn"]
+name = "CE, Juazeiro do Norte"
+
+# Sede brmgub MG, Uberaba
+[[sedes]]
+codes = ["teambrmgub"]
+name = "MG, Uberaba"
+
+# Sede brpite PI, Teresina
+[[sedes]]
+codes = ["teambrpite"]
+name = "PI, Teresina"
+
+# Sede brropv RO, Porto Velho
+[[sedes]]
+codes = ["teambrropv"]
+name = "RO, Porto Velho"
+
+# Sede brgogo GO, Goiânia
+[[sedes]]
+codes = ["teambrgogo"]
+name = "GO, Goiânia"
+
+# Sede brbaju BA, Juazeiro
+[[sedes]]
+codes = ["teambrbaju"]
+name = "BA, Juazeiro"
+
+# Sede brpipa PI, Parnaíba
+[[sedes]]
+codes = ["teambrpipa"]
+name = "PI, Parnaíba"
+
+# Sede brspsp SP, São Paulo
+[[sedes]]
+codes = ["teambrspsp"]
+name = "SP, São Paulo"
