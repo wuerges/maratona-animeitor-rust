@@ -444,7 +444,7 @@ bronze = 0
 
 [[sedes]]
 name = "Supersede Rio Grande do Sul"
-codes = [""]
+codes = ["teambrrspe", "teambrrspa"]
 ouro = 1
 prata = 0
 bronze = 0
@@ -468,7 +468,7 @@ bronze = 0
 # Supersede São Paulo - 1 vaga
 [[sedes]]
 name = "Supersede São Paulo"
-codes = []
+codes = ["teambrsprp", "teambrspsa", "teambrspsc"]
 ouro = 1
 prata = 0
 bronze = 0
@@ -497,10 +497,9 @@ ouro = 0
 prata = 0
 bronze = 0
 
-###
-
+# Supersede Região Centro-Oeste - 1 vaga
 [[sedes]]
-name = "Supersede "
+name = "Supersede Região Centro-Oeste"
 codes = []
 ouro = 1
 prata = 0
