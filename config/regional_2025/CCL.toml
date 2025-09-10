@@ -17,3 +17,7 @@ codes = ["cclsobo"]
 [[sedes]]
 codes = ["cclca"]
 name = "CCL Centro America"
+
+[[sedes]]
+codes = ["cclmx"]
+name = "Mexico CCL"
