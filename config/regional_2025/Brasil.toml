@@ -132,13 +132,13 @@ ouro = 1
 prata = 0
 bronze = 0
 
-# Sede brrsca RS, Canoas
-[[sedes]]
-codes = ["teambrrsca"]
-name = "RS, Canoas"
-ouro = 1
-prata = 0
-bronze = 0
+# # Sede brrsca RS, Canoas
+# [[sedes]]
+# codes = ["teambrrsca"]
+# name = "RS, Canoas"
+# ouro = 1
+# prata = 0
+# bronze = 0
 
 # Sede brscjo SC, Joinville
 [[sedes]]
@@ -428,13 +428,13 @@ ouro = 0
 prata = 0
 bronze = 0
 
-# Sede brmaim MA, Imperatriz
-[[sedes]]
-codes = ["teambrmaim"]
-name = "MA, Imperatriz"
-ouro = 0
-prata = 0
-bronze = 0
+# # Sede brmaim MA, Imperatriz
+# [[sedes]]
+# codes = ["teambrmaim"]
+# name = "MA, Imperatriz"
+# ouro = 0
+# prata = 0
+# bronze = 0
 
 # Sede brmasl MA, São Luís
 [[sedes]]
