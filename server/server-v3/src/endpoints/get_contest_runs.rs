@@ -1,10 +1,11 @@
 use actix_web::{HttpRequest, HttpResponse, get, web};
 use tokio::pin;
 use tokio_stream::StreamExt;
-use tracing::{debug, warn};
+use tracing::{debug, instrument, warn};
 
 use crate::model::app::AppV2;
 
+#[instrument(skip_all)]
 #[get("/contests/{contest}/runs")]
 pub async fn get_contest_runs(
     data: web::Data<AppV2>,
@@ -12,6 +13,7 @@ pub async fn get_contest_runs(
     body: web::Payload,
     req: HttpRequest,
 ) -> Result<HttpResponse, actix_web::Error> {
+    debug!(?contest, "get_contest_runs");
     let contest = data.get_contest(&contest).await?;
 
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
