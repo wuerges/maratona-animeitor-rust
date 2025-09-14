@@ -11,7 +11,7 @@ use crate::{
 
 pub struct Args {
     pub port: u16,
-    pub server_api_key: String,
+    pub server_api_key: Option<String>,
 }
 
 pub async fn serve(
@@ -28,7 +28,7 @@ pub async fn serve(
             .wrap(Cors::permissive())
             .app_data(web::Data::new(AppV2::new(
                 default_timeout,
-                Some(server_api_key.clone()),
+                server_api_key.clone(),
             )))
             .service(web::scope("admin").configure(contest_admin::as_service))
             .service(
