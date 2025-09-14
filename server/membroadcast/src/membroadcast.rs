@@ -52,13 +52,28 @@ impl<T: Clone> Sender<T> {
     }
 
     pub async fn send_memo(&self, value: T) -> usize {
-        self.messages.write().await.push(value.clone());
+        let mut lock = self.messages.write().await;
+
+        lock.push(value.clone());
         self.tx.send(value).unwrap_or(0)
+    }
+
+    pub async fn send_batch_memo(&self, batch: Vec<T>) {
+        let mut lock = self.messages.write().await;
+
+        lock.extend(batch.clone());
+        for value in batch {
+            self.tx.send(value).unwrap_or(0);
+        }
     }
 
     pub async fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
         Receiver::new(rx, self.messages.read().await.clone())
+    }
+
+    pub async fn clear(&self) {
+        self.messages.write().await.clear();
     }
 
     #[cfg(test)]
