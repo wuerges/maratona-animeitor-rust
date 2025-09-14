@@ -10,6 +10,10 @@ use utoipa::OpenApi;
     endpoints::get_contest_time::get_contest_time,
     endpoints::get_site_configuration::get_site_configuration,
     endpoints::list_contests::list_contests,
+    endpoints::contest_admin::update_contest_parameters,
+    endpoints::contest_admin::update_contest_sites,
+    endpoints::contest_admin::update_contest_state,
+    endpoints::contest_admin::create_contest,
 ))]
 struct ApiDoc;
 

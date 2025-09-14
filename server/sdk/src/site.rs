@@ -24,7 +24,7 @@ pub struct Site {
     pub bronze: u32,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, ToSchema)]
 /// Site configuration for contest.
 pub struct SiteConfiguration {
     /// The contest base.

@@ -2,7 +2,10 @@ use actix_web::{HttpRequest, post, put, web};
 use sdk::{Contest, ContestParameters, ContestState, SiteConfiguration};
 
 use crate::{
-    components::{rejection::NotFound, success::Success},
+    components::{
+        rejection::{NotFoundContest, Unauthorized},
+        success::Success,
+    },
     model::app::AppV2,
 };
 
@@ -34,6 +37,7 @@ fn authorize(data: &web::Data<AppV2>, req: &HttpRequest) -> Result<(), actix_web
     Ok(())
 }
 
+#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
 #[put("/contests/{contest}/state")]
 pub async fn update_contest_state(
     data: web::Data<AppV2>,
@@ -43,13 +47,14 @@ pub async fn update_contest_state(
 ) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     contest.update_state(create_runs.into_inner()).await;
 
     Ok(Success)
 }
 
+#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
 #[put("/contests/{contest}/secret")]
 pub async fn update_contest_secret(
     data: web::Data<AppV2>,
@@ -59,13 +64,14 @@ pub async fn update_contest_secret(
 ) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     contest.set_secret(&secret.secret).await;
 
     Ok(Success)
 }
 
+#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
 #[put("/contests/{contest}/parameters")]
 pub async fn update_contest_parameters(
     data: web::Data<AppV2>,
@@ -75,13 +81,14 @@ pub async fn update_contest_parameters(
 ) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     contest.update_parameters(parameters.into_inner()).await;
 
     Ok(Success)
 }
 
+#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
 #[put("/contests/{contest}/sites")]
 pub async fn update_contest_sites(
     data: web::Data<AppV2>,
@@ -91,13 +98,14 @@ pub async fn update_contest_sites(
 ) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     contest.update_site_configuration(config.into_inner()).await;
 
     Ok(Success)
 }
 
+#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
 #[post("/contests")]
 pub async fn create_contest(
     data: web::Data<AppV2>,

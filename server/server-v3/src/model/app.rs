@@ -8,7 +8,7 @@ use sdk::{ContestParameters, ContestState, SiteConfiguration};
 use tokio::sync::RwLock;
 use tracing::{Level, debug, instrument};
 
-use crate::components::rejection::Conflict;
+use crate::components::rejection::ConflictContest;
 
 use super::runs::Runs;
 use super::timer::Timer;
@@ -30,14 +30,17 @@ impl AppV2 {
     }
 
     #[instrument(skip_all)]
-    pub async fn create_contest(&self, contest: sdk::Contest) -> Result<Arc<ContestApp>, Conflict> {
+    pub async fn create_contest(
+        &self,
+        contest: sdk::Contest,
+    ) -> Result<Arc<ContestApp>, ConflictContest> {
         if self
             .contests
             .read()
             .await
             .contains_key(&contest.contest_name)
         {
-            return Err(Conflict);
+            return Err(ConflictContest);
         }
 
         let name = contest.contest_name.clone();
