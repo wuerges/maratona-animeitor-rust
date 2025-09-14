@@ -25,6 +25,11 @@ pub struct ContestState {
 }
 
 #[derive(Deserialize, Debug, ToSchema)]
+pub struct ContestSecret {
+    pub secret: String,
+}
+
+#[derive(Deserialize, Debug, ToSchema)]
 pub struct Contest {
     /// Name of the contest.
     pub contest_name: String,

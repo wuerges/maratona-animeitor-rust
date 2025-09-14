@@ -34,6 +34,12 @@ pub struct Run {
     pub answer: Answer,
 }
 
+impl Run {
+    pub fn mask_answer(&mut self) {
+        self.answer = Answer::Undecided;
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
