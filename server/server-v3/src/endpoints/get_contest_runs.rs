@@ -4,7 +4,7 @@ use tokio_stream::StreamExt;
 use tracing::{debug, instrument, warn};
 
 use crate::{
-    components::rejection::NotFound,
+    components::rejection::NotFoundContest,
     model::app::{AppV2, ContestApp},
 };
 
@@ -28,11 +28,7 @@ async fn check_secret(contest: &ContestApp, req: &HttpRequest) -> Result<(), act
     }
 }
 
-#[utoipa::path(
-    responses(
-        (status = NOT_FOUND, description = "Contest was not found")
-    ),
-)]
+#[utoipa::path(responses(NotFoundContest))]
 #[instrument(skip_all)]
 #[get("/contests/{contest}/runs-unmasked")]
 pub async fn get_contest_runs_unmasked(
@@ -42,7 +38,7 @@ pub async fn get_contest_runs_unmasked(
     req: HttpRequest,
 ) -> Result<HttpResponse, actix_web::Error> {
     debug!(?contest);
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     check_secret(&contest, &req).await?;
 
@@ -72,11 +68,7 @@ pub async fn get_contest_runs_unmasked(
     Ok(response)
 }
 
-#[utoipa::path(
-    responses(
-        (status = NOT_FOUND, description = "Contest was not found")
-    ),
-)]
+#[utoipa::path(responses(NotFoundContest))]
 #[instrument(skip_all)]
 #[get("/contests/{contest}/runs")]
 pub async fn get_contest_runs(
@@ -86,7 +78,7 @@ pub async fn get_contest_runs(
     req: HttpRequest,
 ) -> Result<HttpResponse, actix_web::Error> {
     debug!(?contest);
-    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFoundContest)?;
 
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
 
