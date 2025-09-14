@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
+use utoipa::ToSchema;
 
 #[derive(
     Debug,
@@ -12,6 +13,7 @@ use serde_with::{DeserializeFromStr, SerializeDisplay};
     PartialEq,
     Eq,
     Hash,
+    ToSchema,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum Answer {
@@ -23,7 +25,7 @@ pub enum Answer {
 
 /// A run, modeled from a webcast run
 /// 361626341239teammxmx12E?
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, ToSchema)]
 pub struct Run {
     pub id: u64,
     pub time_in_seconds: u64,

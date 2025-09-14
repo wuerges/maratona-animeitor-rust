@@ -13,6 +13,7 @@ itertools.workspace = true
 serde_with.workspace = true
 strum.workspace = true
 regex_set_field.workspace = true
+utoipa.workspace = true
 
 [dev-dependencies]
 rstest.workspace = true

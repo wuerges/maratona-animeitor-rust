@@ -1,19 +1,8 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use sdk::SiteConfiguration;
+use sdk::{ContestParameters, SiteConfiguration};
 use serde::Deserialize;
 
 use crate::model::app::AppV2;
-
-#[derive(Deserialize, Debug)]
-pub struct ContestState {
-    pub runs: Vec<sdk::Run>,
-    pub time: sdk::Time,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ContestConfig {
-    pub config: ContestFile,
-}
 
 const API_KEY: &str = "apikey";
 
@@ -53,7 +42,7 @@ pub async fn update_contest_state(
 #[put("/contests/{contest}/config")]
 pub async fn update_contest_config(
     data: web::Data<AppV2>,
-    config: web::Json<ContestFile>,
+    config: web::Json<ContestParameters>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
