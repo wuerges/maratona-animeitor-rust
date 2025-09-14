@@ -4,11 +4,10 @@ use std::time::Duration;
 
 use futures::{Stream, StreamExt};
 use itertools::Itertools;
-use sdk::{Site, SiteConfiguration};
+use sdk::{ContestParameters, ContestState, Site, SiteConfiguration};
 use tokio::sync::RwLock;
 
 use crate::components::rejection::{Conflict, NotFound};
-use crate::endpoints::update_contest::ContestState;
 
 use super::runs::Runs;
 use super::timer::Timer;
@@ -28,12 +27,18 @@ impl AppV2 {
         }
     }
 
-    pub async fn create_contest(&self, name: &str) -> Result<Arc<ContestApp>, Conflict> {
-        if self.contests.read().await.contains_key(name) {
+    pub async fn create_contest(&self, contest: sdk::Contest) -> Result<Arc<ContestApp>, Conflict> {
+        if self
+            .contests
+            .read()
+            .await
+            .contains_key(&contest.contest_name)
+        {
             return Err(Conflict);
         }
 
-        let contest = Arc::new(ContestApp::new(self.timeout).await);
+        let name = contest.contest_name.clone();
+        let contest = Arc::new(ContestApp::new(self.timeout, contest).await);
 
         self.contests
             .write()
@@ -54,15 +59,15 @@ pub struct ContestApp {
     pub runs: Runs,
     pub time: Timer,
     pub sedes: RwLock<HashMap<String, Site>>,
-    pub file: RwLock<ContestFile>,
+    pub contest: RwLock<sdk::Contest>,
 }
 
 impl ContestApp {
-    async fn new(timeout: Duration) -> Self {
+    async fn new(timeout: Duration, contest: sdk::Contest) -> Self {
         Self {
             runs: Runs::new(timeout).await,
             time: Timer::new(timeout),
-            file: RwLock::new(ContestFile::dummy()),
+            contest: RwLock::new(contest),
             sedes: RwLock::new(HashMap::new()),
         }
     }
@@ -74,13 +79,21 @@ impl ContestApp {
         self.time.update(time);
     }
 
-    pub async fn update_config(&self, contest_file: ContestFile) {
-        let mut file = self.file.write().await;
-
-        *file = contest_file;
+    pub async fn reset_state(&self) {
+        self.time.reset();
+        self.runs.reset().await;
     }
 
-    pub async fn update_sedes(&self, SiteConfiguration { base, sites }: SiteConfiguration) {
+    pub async fn update_parameters(&self, parameters: ContestParameters) {
+        let mut file = self.contest.write().await;
+
+        file.parameters = parameters;
+    }
+
+    pub async fn update_site_configuration(
+        &self,
+        SiteConfiguration { base, sites }: SiteConfiguration,
+    ) {
         let new_config = [("".to_string(), base)]
             .into_iter()
             .chain(sites.into_iter().map(|s| (s.name.clone(), s)))

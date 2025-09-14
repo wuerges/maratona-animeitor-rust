@@ -1,6 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use sdk::{ContestParameters, SiteConfiguration};
-use serde::Deserialize;
+use sdk::{ContestParameters, ContestState, SiteConfiguration};
 
 use crate::model::app::AppV2;
 
@@ -50,7 +49,7 @@ pub async fn update_contest_config(
 
     let contest = data.get_contest(&contest).await?;
 
-    contest.update_config(config.into_inner()).await;
+    contest.update_parameters(config.into_inner()).await;
 
     Ok(HttpResponse::Created().finish())
 }
@@ -66,7 +65,7 @@ pub async fn update_contest_sedes(
 
     let contest = data.get_contest(&contest).await?;
 
-    contest.update_sedes(config.into_inner()).await;
+    contest.update_site_configuration(config.into_inner()).await;
 
     Ok(HttpResponse::Created().finish())
 }
