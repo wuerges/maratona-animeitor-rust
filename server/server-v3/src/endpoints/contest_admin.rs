@@ -5,6 +5,15 @@ use crate::model::app::AppV2;
 
 const API_KEY: &str = "apikey";
 
+pub fn as_service(service_config: &mut web::ServiceConfig) {
+    service_config.service((
+        update_contest_parameters,
+        update_contest_sites,
+        update_contest_state,
+        create_contest,
+    ));
+}
+
 fn authorize(data: &web::Data<AppV2>, req: &HttpRequest) -> Result<(), actix_web::Error> {
     let contest_key = match &data.server_api_key {
         Some(key) => key,
