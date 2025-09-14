@@ -29,6 +29,7 @@ impl AppV2 {
         }
     }
 
+    #[instrument(skip_all)]
     pub async fn create_contest(&self, contest: sdk::Contest) -> Result<Arc<ContestApp>, Conflict> {
         if self
             .contests
@@ -42,19 +43,28 @@ impl AppV2 {
         let name = contest.contest_name.clone();
         let contest = Arc::new(ContestApp::new(self.timeout, contest).await);
 
-        self.contests
-            .write()
-            .await
-            .insert(name.to_string(), contest.clone());
+        debug!(?name);
+        self.contests.write().await.insert(name, contest.clone());
 
         Ok(contest)
     }
 
     #[instrument(skip(self),  err(level = Level::DEBUG))]
     pub async fn get_contest(&self, name: &str) -> Result<Arc<ContestApp>, NotFound> {
+        debug!(?name);
         let contests = self.contests.read().await.get(name).cloned();
 
         contests.ok_or(NotFound)
+    }
+
+    #[instrument(skip(self), ret(level = Level::DEBUG))]
+    pub async fn list_contests(&self) -> Vec<String> {
+        self.contests
+            .read()
+            .await
+            .values()
+            .map(|c| c.contest_name.clone())
+            .collect()
     }
 }
 
