@@ -1,10 +1,10 @@
 [titulo]
 name = "Latin America"
-codes = [""]
+codes = ["team"]
 
 [[sedes]]
 name = "Latin America"
-codes = [""]
+codes = ["team"]
 
 [[sedes]]
 name = "Brasil"

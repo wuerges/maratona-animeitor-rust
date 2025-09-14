@@ -2,31 +2,7 @@ services:
   printurls:
     image: wuerges/animeitor:latest
     entrypoint: "/printurls"
-    command:
-      - "--prefix"
-      - ${PREFIX}
-      - "--sedes"
-      - "/config/regional_2025/CCL.toml:ccl"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Bolivia.toml:ccl-bolivia"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Brasil.toml:ccl-brasil"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Centro_America.toml:ccl-centro"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Mexico.toml:ccl-mexico"
-      - "--sedes"
-      - "/config/regional_2025/LA.toml:"
-      - "--sedes"
-      - "/config/regional_2025/Brasil.toml:brasil"
-      - "--sedes"
-      - "/config/regional_2025/Bolivia.toml:bolivia"
-      - "--sedes"
-      - "/config/regional_2025/Centro_America.toml:centro"
-      - "--sedes"
-      - "/config/regional_2025/Mexico.toml:mexico"
-      - --secret
-      - "/config/regional_2025/Secrets_secret.toml"
+    command: "--prefix ${PREFIX} --sedes ${SEDES}: --secret ${SECRET}"
     volumes:
       - ./config:/config
     build:
@@ -39,37 +15,7 @@ services:
 
   animeitor:
     image: wuerges/animeitor:latest
-    command:
-      - "-v"
-      - "/photos:photos"
-      - "-v"
-      - "/sounds:sounds"
-      - "-v"
-      - "/dist:"
-      - "--sedes"
-      - "/config/regional_2025/CCL.toml:ccl"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Bolivia.toml:ccl-bolivia"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Brasil.toml:ccl-brasil"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Centro_America.toml:ccl-centro"
-      - "--sedes"
-      - "/config/regional_2025/CCL_Mexico.toml:ccl-mexico"
-      - "--sedes"
-      - "/config/regional_2025/LA.toml:"
-      - "--sedes"
-      - "/config/regional_2025/Brasil.toml:brasil"
-      - "--sedes"
-      - "/config/regional_2025/Bolivia.toml:bolivia"
-      - "--sedes"
-      - "/config/regional_2025/Centro_America.toml:centro"
-      - "--sedes"
-      - "/config/regional_2025/Mexico.toml:mexico"
-      - --secret
-      - "/config/regional_2025/Secrets_secret.toml"
-      - ${BOCA_URL}
-
+    command: "-v /photos:photos -v /sounds:sounds -v /dist: --sedes ${SEDES}: --secret ${SECRET} ${BOCA_URL}"
     volumes:
       - ./tests:/tests
       - ./config:/config
