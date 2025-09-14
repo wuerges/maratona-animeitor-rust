@@ -1,13 +1,15 @@
 use regex_set_field::RegexSetField;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq, ToSchema)]
 /// A site entry.
 pub struct Site {
     /// Site name.
     pub name: String,
 
     /// Site codes, using in filtering groups of sites.
+    #[schema(value_type = Vec<String>)]
     pub codes: RegexSetField,
 
     /// Golden medal position.
