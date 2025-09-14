@@ -6,14 +6,14 @@ use tokio::time::sleep;
 
 pub struct Timer {
     current: Mutable<sdk::Time>,
-    timeout: Duration,
+    resolution: Duration,
 }
 
 impl Timer {
     pub fn new(timeout: Duration) -> Self {
         Self {
             current: Mutable::new(sdk::Time::unknown()),
-            timeout,
+            resolution: timeout,
         }
     }
 
@@ -24,7 +24,7 @@ impl Timer {
     pub fn stream(&self) -> impl Stream<Item = sdk::Time> {
         self.current
             .signal()
-            .throttle(|| sleep(self.timeout))
+            .throttle(|| sleep(self.resolution))
             .to_stream()
     }
 
