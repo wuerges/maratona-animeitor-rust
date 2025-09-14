@@ -4,6 +4,7 @@ use futures::Stream;
 use itertools::Itertools;
 use tokio::sync::RwLock;
 use tokio_stream::StreamExt;
+use tracing::{debug, instrument};
 
 pub struct Runs {
     known: Arc<RwLock<HashSet<sdk::Run>>>,
@@ -28,12 +29,14 @@ impl Runs {
         }
     }
 
+    #[instrument(skip_all)]
     pub async fn push_ordered(&self, new_runs: Vec<sdk::Run>) {
+        debug!(?new_runs);
         let fresh = {
             let read = self.known.read().await;
             new_runs
                 .into_iter()
-                .filter(|r| read.contains(r))
+                .filter(|r| !read.contains(r))
                 .collect_vec()
         };
 
@@ -44,10 +47,12 @@ impl Runs {
             if write.insert(run.clone()) {
                 to_send.push(run);
             }
+            debug!(?to_send, "sent new batch");
             self.sender.send_batch_memo(to_send).await;
         }
     }
 
+    #[instrument(skip_all)]
     pub async fn reset(&self) {
         self.known.write().await.clear();
         self.sender.clear().await;

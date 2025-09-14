@@ -22,14 +22,12 @@ pub async fn serve(
 ) -> color_eyre::eyre::Result<()> {
     let default_timeout = Duration::from_secs(1);
 
+    let app = AppV2::new(default_timeout, server_api_key.clone());
+
     HttpServer::new(move || {
         App::new()
-            .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
-            .app_data(web::Data::new(AppV2::new(
-                default_timeout,
-                server_api_key.clone(),
-            )))
+            .app_data(web::Data::new(app.clone()))
             .service(web::scope("admin").configure(contest_admin::as_service))
             .service(
                 web::scope("api").service(endpoints::get_contest_runs::get_contest_runs),
@@ -37,6 +35,7 @@ pub async fn serve(
                 // .service(get_metrics)
                 // .service(remote_control_ws),
             )
+            .wrap(TracingLogger::default())
         // .service(factory)
         // .service(configure_volumes(volumes.clone()))
     })

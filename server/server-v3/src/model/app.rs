@@ -6,14 +6,16 @@ use futures::{Stream, StreamExt};
 use itertools::Itertools;
 use sdk::{ContestParameters, ContestState, Site, SiteConfiguration};
 use tokio::sync::RwLock;
+use tracing::{Level, debug, instrument};
 
 use crate::components::rejection::{Conflict, NotFound};
 
 use super::runs::Runs;
 use super::timer::Timer;
 
+#[derive(Clone)]
 pub struct AppV2 {
-    pub contests: RwLock<HashMap<String, Arc<ContestApp>>>,
+    pub contests: Arc<RwLock<HashMap<String, Arc<ContestApp>>>>,
     pub server_api_key: Option<String>,
     timeout: Duration,
 }
@@ -21,7 +23,7 @@ pub struct AppV2 {
 impl AppV2 {
     pub fn new(timeout: Duration, server_api_key: Option<String>) -> Self {
         Self {
-            contests: RwLock::new(HashMap::new()),
+            contests: Arc::new(RwLock::new(HashMap::new())),
             timeout,
             server_api_key,
         }
@@ -48,6 +50,7 @@ impl AppV2 {
         Ok(contest)
     }
 
+    #[instrument(skip(self),  err(level = Level::DEBUG))]
     pub async fn get_contest(&self, name: &str) -> Result<Arc<ContestApp>, NotFound> {
         let contests = self.contests.read().await.get(name).cloned();
 
@@ -110,13 +113,15 @@ impl ContestApp {
         *self.sedes.write().await = new_config;
     }
 
+    #[instrument(skip_all)]
     pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
         self.runs.stream().await.map(async |r| {
+            debug!(?r, "batch of runs");
             let hash_map = self.sedes.read().await;
             let sede = hash_map.get("");
 
             r.into_iter()
-                .filter(|r| sede.is_some_and(|s| s.team_belongs(&r.team_login)))
+                .filter(|r| sede.is_none_or(|s| s.team_belongs(&r.team_login)))
                 .collect_vec()
         })
     }
