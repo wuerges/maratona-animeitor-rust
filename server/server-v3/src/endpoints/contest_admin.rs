@@ -1,7 +1,7 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, post, put, web};
 use sdk::{Contest, ContestParameters, ContestState, SiteConfiguration};
 
-use crate::model::app::AppV2;
+use crate::{components::rejection::NotFound, model::app::AppV2};
 
 const API_KEY: &str = "apikey";
 
@@ -40,7 +40,7 @@ pub async fn update_contest_state(
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_state(create_runs.into_inner()).await;
 
@@ -56,7 +56,7 @@ pub async fn update_contest_parameters(
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_parameters(parameters.into_inner()).await;
 
@@ -72,7 +72,7 @@ pub async fn update_contest_sites(
 ) -> Result<impl Responder, actix_web::Error> {
     authorize(&data, &req)?;
 
-    let contest = data.get_contest(&contest).await?;
+    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_site_configuration(config.into_inner()).await;
 

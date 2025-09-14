@@ -4,11 +4,11 @@ use std::time::Duration;
 
 use futures::{Stream, StreamExt};
 use itertools::Itertools;
-use sdk::{ContestParameters, ContestState, Site, SiteConfiguration};
+use sdk::{ContestParameters, ContestState, SiteConfiguration};
 use tokio::sync::RwLock;
 use tracing::{Level, debug, instrument};
 
-use crate::components::rejection::{Conflict, NotFound};
+use crate::components::rejection::Conflict;
 
 use super::runs::Runs;
 use super::timer::Timer;
@@ -49,12 +49,10 @@ impl AppV2 {
         Ok(contest)
     }
 
-    #[instrument(skip(self),  err(level = Level::DEBUG))]
-    pub async fn get_contest(&self, name: &str) -> Result<Arc<ContestApp>, NotFound> {
+    #[instrument(skip(self))]
+    pub async fn get_contest(&self, name: &str) -> Option<Arc<ContestApp>> {
         debug!(?name);
-        let contests = self.contests.read().await.get(name).cloned();
-
-        contests.ok_or(NotFound)
+        self.contests.read().await.get(name).cloned()
     }
 
     #[instrument(skip(self), ret(level = Level::DEBUG))]
@@ -71,7 +69,7 @@ impl AppV2 {
 pub struct ContestApp {
     runs: Runs,
     time: Timer,
-    sedes: RwLock<HashMap<String, Site>>,
+    sedes: RwLock<Option<SiteConfiguration>>,
     contest_name: String,
     contest: RwLock<sdk::ContestParameters>,
 }
@@ -88,7 +86,7 @@ impl ContestApp {
             runs: Runs::new().await,
             time: Timer::new(timeout),
             contest: RwLock::new(parameters),
-            sedes: RwLock::new(HashMap::new()),
+            sedes: RwLock::new(None),
             contest_name,
         }
     }
@@ -115,27 +113,26 @@ impl ContestApp {
         *file = parameters;
     }
 
-    pub async fn update_site_configuration(
-        &self,
-        SiteConfiguration { base, sites }: SiteConfiguration,
-    ) {
-        let new_config = [("".to_string(), base)]
-            .into_iter()
-            .chain(sites.into_iter().map(|s| (s.name.clone(), s)))
-            .collect::<HashMap<_, _>>();
+    pub async fn update_site_configuration(&self, sites: SiteConfiguration) {
+        *self.sedes.write().await = Some(sites);
+    }
 
-        *self.sedes.write().await = new_config;
+    pub async fn get_site_configuration(&self) -> Option<SiteConfiguration> {
+        self.sedes.read().await.clone()
     }
 
     #[instrument(skip_all)]
     pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
         self.runs.stream().await.map(async |r| {
             debug!(?r, "batch of runs");
-            let hash_map = self.sedes.read().await;
-            let sede = hash_map.get("");
+            let sites = self.sedes.read().await;
 
             r.into_iter()
-                .filter(|r| sede.is_none_or(|s| s.team_belongs(&r.team_login)))
+                .filter(|r| {
+                    sites
+                        .as_ref()
+                        .is_none_or(|s| s.base.team_belongs(&r.team_login))
+                })
                 .collect_vec()
         })
     }
