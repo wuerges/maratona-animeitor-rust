@@ -59,16 +59,24 @@ pub struct ContestApp {
     pub runs: Runs,
     pub time: Timer,
     pub sedes: RwLock<HashMap<String, Site>>,
-    pub contest: RwLock<sdk::Contest>,
+    pub contest_name: String,
+    pub contest: RwLock<sdk::ContestParameters>,
 }
 
 impl ContestApp {
-    async fn new(timeout: Duration, contest: sdk::Contest) -> Self {
+    async fn new(
+        timeout: Duration,
+        sdk::Contest {
+            contest_name,
+            parameters,
+        }: sdk::Contest,
+    ) -> Self {
         Self {
             runs: Runs::new().await,
             time: Timer::new(timeout),
-            contest: RwLock::new(contest),
+            contest: RwLock::new(parameters),
             sedes: RwLock::new(HashMap::new()),
+            contest_name,
         }
     }
 
@@ -87,7 +95,7 @@ impl ContestApp {
     pub async fn update_parameters(&self, parameters: ContestParameters) {
         let mut file = self.contest.write().await;
 
-        file.parameters = parameters;
+        *file = parameters;
     }
 
     pub async fn update_site_configuration(

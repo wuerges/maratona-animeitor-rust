@@ -1,5 +1,5 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use sdk::{ContestParameters, ContestState, SiteConfiguration};
+use actix_web::{HttpRequest, HttpResponse, Responder, post, put, web};
+use sdk::{Contest, ContestParameters, ContestState, SiteConfiguration};
 
 use crate::model::app::AppV2;
 
@@ -38,10 +38,10 @@ pub async fn update_contest_state(
     Ok(HttpResponse::Created().finish())
 }
 
-#[put("/contests/{contest}/config")]
-pub async fn update_contest_config(
+#[put("/contests/{contest}/parameters")]
+pub async fn update_contest_parameters(
     data: web::Data<AppV2>,
-    config: web::Json<ContestParameters>,
+    parameters: web::Json<ContestParameters>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
@@ -49,13 +49,13 @@ pub async fn update_contest_config(
 
     let contest = data.get_contest(&contest).await?;
 
-    contest.update_parameters(config.into_inner()).await;
+    contest.update_parameters(parameters.into_inner()).await;
 
     Ok(HttpResponse::Created().finish())
 }
 
-#[put("/contests/{contest}/sedes")]
-pub async fn update_contest_sedes(
+#[put("/contests/{contest}/sites")]
+pub async fn update_contest_sites(
     data: web::Data<AppV2>,
     config: web::Json<SiteConfiguration>,
     contest: web::Path<String>,
@@ -66,6 +66,19 @@ pub async fn update_contest_sedes(
     let contest = data.get_contest(&contest).await?;
 
     contest.update_site_configuration(config.into_inner()).await;
+
+    Ok(HttpResponse::Created().finish())
+}
+
+#[post("/contests")]
+pub async fn create_contest(
+    data: web::Data<AppV2>,
+    contest: web::Json<Contest>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    authorize(&data, &req)?;
+
+    data.create_contest(contest.into_inner()).await?;
 
     Ok(HttpResponse::Created().finish())
 }
