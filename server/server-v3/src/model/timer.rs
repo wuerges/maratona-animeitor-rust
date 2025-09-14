@@ -27,4 +27,8 @@ impl Timer {
             .throttle(|| sleep(self.timeout))
             .to_stream()
     }
+
+    pub fn reset(&self) {
+        self.current.set(sdk::Time::unknown());
+    }
 }
