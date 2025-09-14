@@ -9,6 +9,7 @@ mod list_contests;
 pub fn as_service(service_config: &mut web::ServiceConfig) {
     service_config.service((
         get_contest_runs::get_contest_runs,
+        get_contest_runs::get_contest_runs_unmasked,
         get_contest_time::get_contest_time,
         get_site_configuration::get_site_configuration,
         list_contests::list_contests,

@@ -3,7 +3,7 @@ use sdk::{Contest, ContestParameters, ContestState, SiteConfiguration};
 
 use crate::{components::rejection::NotFound, model::app::AppV2};
 
-const API_KEY: &str = "apikey";
+const API_KEY: &str = "x-api-key";
 
 pub fn as_service(service_config: &mut web::ServiceConfig) {
     service_config.service((
@@ -43,6 +43,22 @@ pub async fn update_contest_state(
     let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_state(create_runs.into_inner()).await;
+
+    Ok(HttpResponse::Created().finish())
+}
+
+#[put("/contests/{contest}/secret")]
+pub async fn update_contest_secret(
+    data: web::Data<AppV2>,
+    secret: web::Json<sdk::ContestSecret>,
+    contest: web::Path<String>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    authorize(&data, &req)?;
+
+    let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
+
+    contest.set_secret(&secret.secret).await;
 
     Ok(HttpResponse::Created().finish())
 }

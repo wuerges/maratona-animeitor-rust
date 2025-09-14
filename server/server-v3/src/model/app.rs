@@ -72,6 +72,7 @@ pub struct ContestApp {
     sedes: RwLock<Option<SiteConfiguration>>,
     contest_name: String,
     contest: RwLock<sdk::ContestParameters>,
+    secret: RwLock<Option<String>>,
 }
 
 impl ContestApp {
@@ -87,6 +88,7 @@ impl ContestApp {
             time: Timer::new(timeout),
             contest: RwLock::new(parameters),
             sedes: RwLock::new(None),
+            secret: RwLock::new(None),
             contest_name,
         }
     }
@@ -121,8 +123,23 @@ impl ContestApp {
         self.sedes.read().await.clone()
     }
 
+    pub async fn get_secret(&self) -> Option<String> {
+        self.secret.read().await.clone()
+    }
+
+    pub async fn set_secret(&self, secret: &str) {
+        *self.secret.write().await = Some(secret.to_string())
+    }
+
     #[instrument(skip_all)]
-    pub async fn get_runs(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
+    pub async fn get_runs_unmasked(
+        &self,
+    ) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
+        self.get_runs_for_site().await
+    }
+
+    #[instrument(skip_all)]
+    async fn get_runs_for_site(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
         self.runs.stream().await.map(async |r| {
             debug!(?r, "batch of runs");
             let sites = self.sedes.read().await;
@@ -132,6 +149,24 @@ impl ContestApp {
                     sites
                         .as_ref()
                         .is_none_or(|s| s.base.team_belongs(&r.team_login))
+                })
+                .collect_vec()
+        })
+    }
+
+    #[instrument(skip_all)]
+    pub async fn get_runs_masked(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
+        self.get_runs_for_site().await.map(async |r| {
+            let batch = r.await;
+            let frozen_time = self.contest.read().await.score_freeze_time;
+
+            batch
+                .into_iter()
+                .map(|mut run| {
+                    if run.time_in_seconds >= frozen_time {
+                        run.mask_answer()
+                    }
+                    run
                 })
                 .collect_vec()
         })
