@@ -1,12 +1,12 @@
-use actix_web::{HttpResponse, get, web};
+use actix_web::{get, web};
 use tracing::instrument;
 
-use crate::model::app::AppV2;
+use crate::{components::success::Data, model::app::AppV2};
 
 #[instrument(skip_all)]
 #[get("/contests")]
-pub async fn list_contests(data: web::Data<AppV2>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn list_contests(data: web::Data<AppV2>) -> Data<Vec<String>> {
     let contests = data.list_contests().await;
 
-    Ok(HttpResponse::Ok().json(contests))
+    Data::new(contests)
 }
