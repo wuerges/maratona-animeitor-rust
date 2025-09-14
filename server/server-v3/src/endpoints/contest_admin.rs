@@ -1,7 +1,10 @@
-use actix_web::{HttpRequest, HttpResponse, Responder, post, put, web};
+use actix_web::{HttpRequest, post, put, web};
 use sdk::{Contest, ContestParameters, ContestState, SiteConfiguration};
 
-use crate::{components::rejection::NotFound, model::app::AppV2};
+use crate::{
+    components::{rejection::NotFound, success::Success},
+    model::app::AppV2,
+};
 
 const API_KEY: &str = "x-api-key";
 
@@ -37,14 +40,14 @@ pub async fn update_contest_state(
     create_runs: web::Json<ContestState>,
     contest: web::Path<String>,
     req: HttpRequest,
-) -> Result<impl Responder, actix_web::Error> {
+) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
     let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_state(create_runs.into_inner()).await;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(Success)
 }
 
 #[put("/contests/{contest}/secret")]
@@ -53,14 +56,14 @@ pub async fn update_contest_secret(
     secret: web::Json<sdk::ContestSecret>,
     contest: web::Path<String>,
     req: HttpRequest,
-) -> Result<impl Responder, actix_web::Error> {
+) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
     let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.set_secret(&secret.secret).await;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(Success)
 }
 
 #[put("/contests/{contest}/parameters")]
@@ -69,14 +72,14 @@ pub async fn update_contest_parameters(
     parameters: web::Json<ContestParameters>,
     contest: web::Path<String>,
     req: HttpRequest,
-) -> Result<impl Responder, actix_web::Error> {
+) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
     let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_parameters(parameters.into_inner()).await;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(Success)
 }
 
 #[put("/contests/{contest}/sites")]
@@ -85,14 +88,14 @@ pub async fn update_contest_sites(
     config: web::Json<SiteConfiguration>,
     contest: web::Path<String>,
     req: HttpRequest,
-) -> Result<impl Responder, actix_web::Error> {
+) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
     let contest = data.get_contest(&contest).await.ok_or(NotFound)?;
 
     contest.update_site_configuration(config.into_inner()).await;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(Success)
 }
 
 #[post("/contests")]
@@ -100,10 +103,10 @@ pub async fn create_contest(
     data: web::Data<AppV2>,
     contest: web::Json<Contest>,
     req: HttpRequest,
-) -> Result<impl Responder, actix_web::Error> {
+) -> Result<Success, actix_web::Error> {
     authorize(&data, &req)?;
 
     data.create_contest(contest.into_inner()).await?;
 
-    Ok(HttpResponse::Created().finish())
+    Ok(Success)
 }
