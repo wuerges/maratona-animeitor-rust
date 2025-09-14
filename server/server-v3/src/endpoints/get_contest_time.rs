@@ -6,8 +6,8 @@ use tracing::{debug, instrument, warn};
 use crate::model::app::AppV2;
 
 #[instrument(skip_all)]
-#[get("/contests/{contest}/runs")]
-pub async fn get_contest_runs(
+#[get("/contests/{contest}/time")]
+pub async fn get_contest_time(
     data: web::Data<AppV2>,
     contest: web::Path<String>,
     body: web::Payload,
@@ -19,20 +19,16 @@ pub async fn get_contest_runs(
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
 
     actix_web::rt::spawn(async move {
-        let runs = contest.get_runs().await;
+        let runs = contest.get_time().await;
         pin!(runs);
 
-        while let Some(batch) = runs.next().await {
-            let batch = batch.await;
-
-            for run in batch {
-                match serde_json::to_string(&run) {
-                    Err(err) => warn!(?err, ?run, "failed serializing run"),
-                    Ok(run) => {
-                        if let Err(err) = session.text(run).await {
-                            debug!(?err, "websocket closed");
-                            return;
-                        }
+        while let Some(time) = runs.next().await {
+            match serde_json::to_string(&time) {
+                Err(err) => warn!(?err, ?time, "failed serializing time"),
+                Ok(run) => {
+                    if let Err(err) = session.text(run).await {
+                        debug!(?err, "websocket closed");
+                        return;
                     }
                 }
             }

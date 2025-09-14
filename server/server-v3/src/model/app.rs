@@ -59,11 +59,11 @@ impl AppV2 {
 }
 
 pub struct ContestApp {
-    pub runs: Runs,
-    pub time: Timer,
-    pub sedes: RwLock<HashMap<String, Site>>,
-    pub contest_name: String,
-    pub contest: RwLock<sdk::ContestParameters>,
+    runs: Runs,
+    time: Timer,
+    sedes: RwLock<HashMap<String, Site>>,
+    contest_name: String,
+    contest: RwLock<sdk::ContestParameters>,
 }
 
 impl ContestApp {
@@ -88,6 +88,10 @@ impl ContestApp {
 
         self.runs.push_ordered(runs).await;
         self.time.update(time);
+    }
+
+    pub async fn get_time(&self) -> impl Stream<Item = sdk::Time> {
+        self.time.stream()
     }
 
     pub async fn reset_state(&self) {
