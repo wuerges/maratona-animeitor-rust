@@ -1,8 +1,4 @@
-use std::{
-    collections::HashSet,
-    sync::{Arc, atomic::AtomicU64},
-    time::Duration,
-};
+use std::{collections::HashSet, sync::Arc, time::Duration};
 
 use futures::Stream;
 use itertools::Itertools;
@@ -11,9 +7,7 @@ use tokio_stream::StreamExt;
 
 pub struct Runs {
     known: Arc<RwLock<HashSet<sdk::Run>>>,
-    count: AtomicU64,
     sender: membroadcast::Sender<sdk::Run>,
-    timeout: Duration,
 }
 
 impl Runs {
@@ -25,14 +19,12 @@ impl Runs {
             .chunks_timeout(1_000_000, Duration::from_secs(1))
     }
 
-    pub async fn new(timeout: Duration) -> Self {
+    pub async fn new() -> Self {
         let (sender, _) = membroadcast::channel(1_000_000).await;
 
         Self {
             known: Arc::new(RwLock::new(HashSet::new())),
             sender,
-            count: AtomicU64::new(0),
-            timeout,
         }
     }
 
@@ -41,7 +33,7 @@ impl Runs {
             let read = self.known.read().await;
             new_runs
                 .into_iter()
-                .filter(|r| read.contains(&r))
+                .filter(|r| read.contains(r))
                 .collect_vec()
         };
 
@@ -49,8 +41,13 @@ impl Runs {
 
         for run in fresh {
             if write.insert(run.clone()) {
-                self.sender.send_memo(run);
+                self.sender.send_memo(run).await;
             }
         }
+    }
+
+    pub async fn reset(&self) {
+        self.known.write().await.clear();
+        self.sender.clear().await;
     }
 }

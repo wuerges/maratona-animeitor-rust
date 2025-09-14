@@ -65,7 +65,7 @@ pub struct ContestApp {
 impl ContestApp {
     async fn new(timeout: Duration, contest: sdk::Contest) -> Self {
         Self {
-            runs: Runs::new(timeout).await,
+            runs: Runs::new().await,
             time: Timer::new(timeout),
             contest: RwLock::new(contest),
             sedes: RwLock::new(HashMap::new()),
