@@ -3,6 +3,11 @@ use tracing::instrument;
 
 use crate::{components::success::Data, model::app::AppV2};
 
+#[utoipa::path(
+    responses(
+        (status = 200, description = "List of contests", body = Vec<String>),
+    ),
+)]
 #[instrument(skip_all)]
 #[get("/contests")]
 pub async fn list_contests(data: web::Data<AppV2>) -> Data<Vec<String>> {

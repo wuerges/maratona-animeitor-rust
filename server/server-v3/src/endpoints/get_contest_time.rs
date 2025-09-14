@@ -5,6 +5,11 @@ use tracing::{debug, instrument, warn};
 
 use crate::{components::rejection::NotFound, model::app::AppV2};
 
+#[utoipa::path(
+    responses(
+        (status = NOT_FOUND, description = "Contest was not found")
+    ),
+)]
 #[instrument(skip_all)]
 #[get("/contests/{contest}/time")]
 pub async fn get_contest_time(

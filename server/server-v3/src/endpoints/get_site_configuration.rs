@@ -7,6 +7,12 @@ use crate::{
     model::app::AppV2,
 };
 
+#[utoipa::path(
+    responses(
+        (status = NOT_FOUND, description = "Contest was not found"),
+        (status = NOT_FOUND, description = "Site configuration was not found")
+    ),
+)]
 #[instrument(skip_all)]
 #[get("/contests/{contest}/sites")]
 pub async fn get_site_configuration(
