@@ -9,6 +9,8 @@ services:
       context: .
       platforms:
       - linux/amd64/v2
+    environment:
+      - RUST_LOG=info
 
 
   animeitor:

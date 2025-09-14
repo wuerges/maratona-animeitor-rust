@@ -1,0 +1,51 @@
+[titulo]
+name = "Centro America"
+codes = ["teamca"]
+
+[[sedes]]
+codes = ["teamca"]
+name = "Centro America"
+
+[[sedes]]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+codes = ["cacral"]
+
+[[sedes]]
+name = "Universidad Centroamericana \"José Simeón Cañas\""
+codes = ["cacejc"]
+
+[[sedes]]
+name = "Universidad Rafael Landívar"
+codes = ["caunrl"]
+
+[[sedes]]
+name = "Universidad Rafael Landívar sede Quetzaltenango"
+codes = ["caurlq"]
+
+[[sedes]]
+name = "Universidad Galileo"
+codes = ["caunga"]
+
+[[sedes]]
+name = "Universidad del Valle GT"
+codes = ["cavagt"]
+
+[[sedes]]
+name = "Universidad del Itsmo de Guatemala"
+codes = ["caitgu"]
+
+[[sedes]]
+name = "Tecnológico de Costa Rica Centro Académico de Limón"
+codes = ["cacalm"]
+
+[[sedes]]
+name = "Universidad Cenfotec"
+codes = ["cacenf"]
+
+[[sedes]]
+name = "Universidad San Carlos de Guatemala"
+codes = ["cascgt"]
+
+[[sedes]]
+name = "Universidad Fidélitas (San Pedro)"
+codes = ["cafisp"]
