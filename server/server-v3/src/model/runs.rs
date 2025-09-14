@@ -40,9 +40,11 @@ impl Runs {
         let mut write = self.known.write().await;
 
         for run in fresh {
+            let mut to_send = vec![];
             if write.insert(run.clone()) {
-                self.sender.send_memo(run).await;
+                to_send.push(run);
             }
+            self.sender.send_batch_memo(to_send).await;
         }
     }
 
