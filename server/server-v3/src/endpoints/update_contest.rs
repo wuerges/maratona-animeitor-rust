@@ -1,4 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
+use sdk::SiteConfiguration;
 use serde::Deserialize;
 
 use crate::model::app::AppV2;
@@ -68,7 +69,7 @@ pub async fn update_contest_config(
 #[put("/contests/{contest}/sedes")]
 pub async fn update_contest_sedes(
     data: web::Data<AppV2>,
-    config: web::Json<ConfigContest>,
+    config: web::Json<SiteConfiguration>,
     contest: web::Path<String>,
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
