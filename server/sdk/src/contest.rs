@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::{Run, Time};
+use crate::{Run, Team, Time};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 /// A contest serialized in the api response.
