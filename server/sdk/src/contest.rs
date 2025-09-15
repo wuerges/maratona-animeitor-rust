@@ -15,7 +15,7 @@ pub struct ContestParameters {
     /// Penalty per wrong answer.
     pub penalty_per_wrong_answer: u32,
     /// Number of problems in the contest.
-    pub number_problems: usize,
+    pub problem_letters: Vec<String>,
 }
 
 #[derive(Deserialize, Debug, ToSchema)]

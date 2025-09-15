@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 
 use futures_signals::signal::{Mutable, Signal};
 
-use crate::{TeamSites, scoreboard::Score};
+use crate::{scoreboard::Score, sites::TeamSites};
 
 pub struct Team {
     team: sdk::Team,
@@ -75,13 +75,13 @@ impl Problem {
             team_login: _,
             problem_letter: _,
             answer,
-        }: sdk::Run,
+        }: &sdk::Run,
         contest: &mut impl ContestService,
     ) -> bool {
         if !self.is_solved {
             match answer {
                 sdk::Answer::Yes => {
-                    self.mark_solved(time_in_minutes, contest);
+                    self.mark_solved(*time_in_minutes, contest);
                     self.update_state();
                     true
                 }
@@ -116,7 +116,7 @@ impl Problem {
 
     fn pop_run(&mut self, contest: &mut impl ContestService) -> bool {
         if let Some(run) = self.pending.pop_back() {
-            self.judge_run(run, contest);
+            self.judge_run(&run, contest);
         }
         !self.pending.is_empty()
     }
@@ -142,7 +142,7 @@ pub enum ProblemState {
 }
 
 impl Team {
-    pub fn new(team: sdk::Team, sites: Vec<String>, letters: &[&str]) -> Self {
+    pub fn new(team: sdk::Team, sites: Vec<String>, letters: &[String]) -> Self {
         Self {
             score_mutable: Default::default(),
             team,
@@ -164,7 +164,7 @@ impl Team {
             .or_insert_with(|| Problem::new(letter))
     }
 
-    pub fn judge_run(&mut self, run: sdk::Run, contest: &mut impl ContestService) {
+    pub fn judge_run(&mut self, run: &sdk::Run, contest: &mut impl ContestService) {
         if self
             .get_problem(&run.problem_letter)
             .judge_run(run, contest)

@@ -15,7 +15,7 @@ pub trait TeamSites {
     fn score(&self) -> Score;
 }
 
-pub struct Game<Team>
+pub struct Sites<Team>
 where
     Team: TeamSites,
 {
@@ -23,7 +23,7 @@ where
     scores: BTreeMap<Team::Login, Score>,
 }
 
-impl<Team> Game<Team>
+impl<Team> Sites<Team>
 where
     Team: TeamSites,
     Team::Site: Hash + Eq + Clone,

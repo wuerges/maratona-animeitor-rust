@@ -1,5 +1,7 @@
+mod contest;
 mod scoreboard;
 mod sites;
 mod team;
 
-pub use sites::{Game, TeamSites};
+pub use contest::Contest;
+pub use sites::Sites;
