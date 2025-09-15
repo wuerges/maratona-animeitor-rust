@@ -28,7 +28,7 @@ pub enum Answer {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, ToSchema)]
 pub struct Run {
     pub id: u64,
-    pub time_in_seconds: u64,
+    pub time_in_minutes: u32,
     pub team_login: String,
     pub problem_letter: String,
     pub answer: Answer,
@@ -51,7 +51,7 @@ mod tests {
     #[case(
         Run {
             id: 1,
-            time_in_seconds: 255,
+            time_in_minutes: 255,
             team_login: "teambrsc001".to_string(),
             problem_letter: "A".to_string(),
             answer: Answer::Yes
