@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "cli", "service", "server-v2", "server-v3", "sdk", "membroadcast", "regex_set_field"]
+members = ["data", "cli", "service", "server-v2", "server-v3", "sdk", "membroadcast", "regex_set_field", "game"]
 resolver = "2"
 
 [workspace.package]
