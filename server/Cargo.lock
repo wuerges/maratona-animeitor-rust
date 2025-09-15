@@ -1196,6 +1196,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "game"
+version = "2.1.0"
+dependencies = [
+ "itertools",
+ "sdk",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
