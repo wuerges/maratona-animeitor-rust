@@ -5,47 +5,53 @@ use std::{
 
 use futures_signals::signal::{Mutable, Signal};
 
-use crate::scoreboard::{Placements, Score};
+use crate::{
+    scoreboard::{Placements, Score},
+    team::ContestService,
+};
 
-pub trait GetSites {
-    type SiteName;
-    type TeamName;
-    fn sites(&self) -> impl Iterator<Item = &Self::SiteName>;
-    fn name(&self) -> &Self::TeamName;
-    fn score(&self) -> Score;
+pub trait TeamSites {
+    type Site;
+    type Login;
+    fn sites(&self) -> impl Iterator<Item = &Self::Site>;
+    fn login(&self) -> &Self::Login;
+    fn score(&self, contest: &impl ContestService) -> Score;
 }
 
 pub struct Game<Team>
 where
-    Team: GetSites,
+    Team: TeamSites,
 {
-    placements: HashMap<Team::SiteName, Placements<Team::TeamName>>,
-    score_signals: HashMap<Team::TeamName, Mutable<Score>>,
-    scores: BTreeMap<Team::TeamName, Score>,
+    placements: HashMap<Team::Site, Placements<Team::Login>>,
+    score_signals: HashMap<Team::Login, Mutable<Score>>,
+    scores: BTreeMap<Team::Login, Score>,
 }
 
 impl<Team> Game<Team>
 where
-    Team: GetSites,
-    Team::SiteName: Hash + Eq + Clone,
-    Team::TeamName: Hash + Eq + Clone + Ord,
+    Team: TeamSites,
+    Team::Site: Hash + Eq + Clone,
+    Team::Login: Hash + Eq + Clone + Ord,
 {
-    pub fn update<'t>(&mut self, teams: impl Iterator<Item = &'t Team>)
-    where
+    pub fn update<'t>(
+        &mut self,
+        teams: impl Iterator<Item = &'t Team>,
+        contest: &impl ContestService,
+    ) where
         Team: 't,
     {
         let mut updated_teams = vec![];
         let mut update_sites = HashSet::new();
 
         for team in teams {
-            let new_score = team.score();
+            let new_score = team.score(contest);
 
-            if self.update_score(team.name(), new_score) {
+            if self.update_score(team.login(), new_score) {
                 updated_teams.push((team, new_score));
 
                 for site in team.sites() {
                     if let Some(site_placements) = self.placements.get_mut(site)
-                        && site_placements.update(team.name(), new_score)
+                        && site_placements.update(team.login(), new_score)
                     {
                         update_sites.insert(site);
                     }
@@ -64,7 +70,7 @@ where
         }
     }
 
-    fn update_score(&mut self, team_name: &Team::TeamName, new_score: Score) -> bool {
+    fn update_score(&mut self, team_name: &Team::Login, new_score: Score) -> bool {
         let old_score = self.scores.insert(team_name.clone(), new_score);
 
         old_score.is_none_or(|old| old != new_score)
@@ -74,18 +80,14 @@ where
         self.score_mutable(team).signal()
     }
 
-    pub fn placement_signal(
-        &mut self,
-        team: &Team,
-        site: &Team::SiteName,
-    ) -> impl Signal<Item = u32> {
+    pub fn placement_signal(&mut self, team: &Team, site: &Team::Site) -> impl Signal<Item = u32> {
         self.placements
             .entry(site.clone())
             .or_default()
-            .placement_signal(team.name())
+            .placement_signal(team.login())
     }
 
     fn score_mutable(&mut self, team: &Team) -> &Mutable<Score> {
-        self.score_signals.entry(team.name().clone()).or_default()
+        self.score_signals.entry(team.login().clone()).or_default()
     }
 }
