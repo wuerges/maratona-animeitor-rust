@@ -6,15 +6,15 @@ use crate::{TeamSites, scoreboard::Score};
 
 pub struct Team {
     team: sdk::Team,
-    score: Mutable<Score>,
+    score_mutable: Mutable<Score>,
     placements: HashMap<String, Mutable<u32>>,
     problems: HashMap<String, Problem>,
+    score: Score,
 }
 
 pub struct Problem {
     letter: String,
     state_mutable: Mutable<ProblemState>,
-    judged: Vec<sdk::Run>,
     pending: VecDeque<sdk::Run>,
     is_solved: bool,
     solve_time_in_minutes: u32,
@@ -24,10 +24,9 @@ pub struct Problem {
 }
 
 impl Problem {
-    pub fn new(letter: &str) -> Self {
+    fn new(letter: &str) -> Self {
         Self {
             letter: letter.to_string(),
-            judged: Default::default(),
             state_mutable: Default::default(),
             pending: Default::default(),
             is_solved: false,
@@ -78,22 +77,27 @@ impl Problem {
             answer,
         }: sdk::Run,
         contest: &mut impl ContestService,
-    ) {
+    ) -> bool {
         if !self.is_solved {
             match answer {
                 sdk::Answer::Yes => {
                     self.mark_solved(time_in_minutes, contest);
                     self.update_state();
+                    true
                 }
                 sdk::Answer::No => {
                     self.failed_attempts += 1;
                     self.update_state();
+                    false
                 }
-                sdk::Answer::Undecided => (),
+                sdk::Answer::Undecided => false,
                 sdk::Answer::NoWithoutPenalty => {
                     self.update_state();
+                    false
                 }
             }
+        } else {
+            false
         }
     }
 
@@ -140,6 +144,7 @@ pub enum ProblemState {
 impl Team {
     pub fn new(team: sdk::Team, sites: Vec<String>, letters: &[&str]) -> Self {
         Self {
+            score_mutable: Default::default(),
             team,
             score: Default::default(),
             placements: sites
@@ -160,8 +165,24 @@ impl Team {
     }
 
     pub fn judge_run(&mut self, run: sdk::Run, contest: &mut impl ContestService) {
-        self.get_problem(&run.problem_letter)
+        if self
+            .get_problem(&run.problem_letter)
             .judge_run(run, contest)
+        {
+            let mut total_penalty = 0;
+            let mut total_solved = 0;
+
+            for problem in self.problems.values() {
+                if problem.is_solved {
+                    total_penalty += problem.penalty;
+                    total_solved += 1;
+                }
+            }
+
+            self.score = Score::new(total_solved, total_penalty);
+
+            self.score_mutable.set(self.score);
+        }
     }
 
     pub fn push_run(&mut self, run: sdk::Run) {
@@ -170,6 +191,10 @@ impl Team {
 
     pub fn pop_run(&mut self, run: sdk::Run, contest: &mut impl ContestService) -> bool {
         self.get_problem(&run.problem_letter).pop_run(contest)
+    }
+
+    pub fn signal(&self) -> impl Signal<Item = Score> {
+        self.score_mutable.signal()
     }
 }
 
@@ -192,34 +217,7 @@ impl TeamSites for Team {
         &self.team.login
     }
 
-    fn score(&self, contest: &impl ContestService) -> Score {
-        let mut total_solved = 0;
-        let mut total_penalty = 0;
-
-        for problem in self.problems.values() {
-            let mut problem_penalty = 0;
-
-            for sdk::Run {
-                id: _,
-                time_in_minutes,
-                team_login: _,
-                problem_letter: _,
-                answer,
-            } in &problem.judged
-            {
-                match answer {
-                    sdk::Answer::Yes => {
-                        total_solved += 1;
-                        total_penalty += problem_penalty + *time_in_minutes;
-                    }
-                    sdk::Answer::No => {
-                        problem_penalty += contest.contest_penalty();
-                    }
-                    sdk::Answer::Undecided | sdk::Answer::NoWithoutPenalty => (),
-                }
-            }
-        }
-
-        Score::new(total_solved, total_penalty)
+    fn score(&self) -> Score {
+        self.score
     }
 }

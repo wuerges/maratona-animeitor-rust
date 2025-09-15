@@ -3,19 +3,16 @@ use std::{
     hash::Hash,
 };
 
-use futures_signals::signal::{Mutable, Signal};
+use futures_signals::signal::Signal;
 
-use crate::{
-    scoreboard::{Placements, Score},
-    team::ContestService,
-};
+use crate::scoreboard::{Placements, Score};
 
 pub trait TeamSites {
     type Site;
     type Login;
     fn sites(&self) -> impl Iterator<Item = &Self::Site>;
     fn login(&self) -> &Self::Login;
-    fn score(&self, contest: &impl ContestService) -> Score;
+    fn score(&self) -> Score;
 }
 
 pub struct Game<Team>
@@ -23,7 +20,6 @@ where
     Team: TeamSites,
 {
     placements: HashMap<Team::Site, Placements<Team::Login>>,
-    score_signals: HashMap<Team::Login, Mutable<Score>>,
     scores: BTreeMap<Team::Login, Score>,
 }
 
@@ -33,18 +29,15 @@ where
     Team::Site: Hash + Eq + Clone,
     Team::Login: Hash + Eq + Clone + Ord,
 {
-    pub fn update<'t>(
-        &mut self,
-        teams: impl Iterator<Item = &'t Team>,
-        contest: &impl ContestService,
-    ) where
+    pub fn update<'t>(&mut self, teams: impl Iterator<Item = &'t Team>)
+    where
         Team: 't,
     {
         let mut updated_teams = vec![];
         let mut update_sites = HashSet::new();
 
         for team in teams {
-            let new_score = team.score(contest);
+            let new_score = team.score();
 
             if self.update_score(team.login(), new_score) {
                 updated_teams.push((team, new_score));
@@ -64,10 +57,6 @@ where
                 placements.recalculate();
             }
         }
-
-        for (team, new_score) in updated_teams {
-            self.score_mutable(team).set(new_score);
-        }
     }
 
     fn update_score(&mut self, team_name: &Team::Login, new_score: Score) -> bool {
@@ -76,18 +65,10 @@ where
         old_score.is_none_or(|old| old != new_score)
     }
 
-    pub fn score_signal(&mut self, team: &Team) -> impl Signal<Item = Score> {
-        self.score_mutable(team).signal()
-    }
-
     pub fn placement_signal(&mut self, team: &Team, site: &Team::Site) -> impl Signal<Item = u32> {
         self.placements
             .entry(site.clone())
             .or_default()
             .placement_signal(team.login())
-    }
-
-    fn score_mutable(&mut self, team: &Team) -> &Mutable<Score> {
-        self.score_signals.entry(team.login().clone()).or_default()
     }
 }
