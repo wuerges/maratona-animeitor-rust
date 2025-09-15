@@ -7,5 +7,6 @@ version.workspace = true
 [dependencies]
 sdk.workspace = true
 itertools.workspace = true
+futures-signals.workspace = true
 
 [dev-dependencies]

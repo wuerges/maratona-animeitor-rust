@@ -1199,6 +1199,7 @@ dependencies = [
 name = "game"
 version = "2.1.0"
 dependencies = [
+ "futures-signals",
  "itertools",
  "sdk",
 ]
