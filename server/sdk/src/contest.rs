@@ -9,13 +9,13 @@ pub struct ContestParameters {
     /// Map of the teams.
     pub teams: Vec<Team>,
     /// Maximum time (contest ends).
-    pub maximum_time: u64,
+    pub maximum_time_in_minutes: u32,
     /// Time that score gets frozen.
-    pub score_freeze_time: u64,
+    pub score_freeze_time_in_minutes: u32,
     /// Penalty per wrong answer.
-    pub penalty_per_wrong_answer: u64,
+    pub penalty_per_wrong_answer: u32,
     /// Number of problems in the contest.
-    pub number_problems: usize,
+    pub problem_letters: Vec<String>,
 }
 
 #[derive(Deserialize, Debug, ToSchema)]

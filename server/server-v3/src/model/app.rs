@@ -161,12 +161,12 @@ impl ContestApp {
     pub async fn get_runs_masked(&self) -> impl Stream<Item = impl Future<Output = Vec<sdk::Run>>> {
         self.get_runs_for_site().await.map(async |r| {
             let batch = r.await;
-            let frozen_time = self.contest.read().await.score_freeze_time;
+            let frozen_time = self.contest.read().await.score_freeze_time_in_minutes;
 
             batch
                 .into_iter()
                 .map(|mut run| {
-                    if run.time_in_seconds >= frozen_time {
+                    if run.time_in_minutes >= frozen_time {
                         run.mask_answer()
                     }
                     run
