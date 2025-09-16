@@ -14,31 +14,31 @@ color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"
 reqwest = { version = "0.12", features = ["native-tls-vendored"] }
-regex = "1.10"
+regex = "1.11"
 itertools = "0.14"
 metrics = "0.24"
 openssl = { version = "0.10", features = ["vendored"] }
 parking_lot = "0.12"
 rand = "0.9"
 thiserror = "2"
-toml = "0.8"
-sentry = "0.37"
+toml = "0.9"
+sentry = "0.42"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1.39", features = ["full"] }
+tokio = { version = "1.47", features = ["full"] }
 url = "2"
 zip = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 utoipa = "5"
-actix-web = "4.8"
+actix-web = "4.11"
 actix-cors = "0.7"
 actix-files = "0.6"
 actix-ws = "0.3"
 tracing-actix-web = "0.7"
 quickcheck = "1"
 quickcheck_macros = "1"
-rstest = "0.25"
+rstest = "0.26"
 futures-signals = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
 
