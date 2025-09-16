@@ -6,6 +6,7 @@ use crate::{
         rejection::{NotFoundContest, Unauthorized},
         success::Success,
     },
+    endpoints::api::open_api_internal,
     model::app::AppV2,
 };
 
@@ -17,6 +18,7 @@ pub fn as_service(service_config: &mut web::ServiceConfig) {
         update_contest_sites,
         update_contest_state,
         create_contest,
+        open_api_internal,
     ));
 }
 
@@ -37,7 +39,10 @@ fn authorize(data: &web::Data<AppV2>, req: &HttpRequest) -> Result<(), actix_web
     Ok(())
 }
 
-#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
+#[utoipa::path(
+    responses(NotFoundContest, Success, Unauthorized),
+    context_path = "/internal"
+)]
 #[put("/contests/{contest}/state")]
 pub async fn update_contest_state(
     data: web::Data<AppV2>,
@@ -54,7 +59,10 @@ pub async fn update_contest_state(
     Ok(Success)
 }
 
-#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
+#[utoipa::path(
+    responses(NotFoundContest, Success, Unauthorized),
+    context_path = "/internal"
+)]
 #[put("/contests/{contest}/secret")]
 pub async fn update_contest_secret(
     data: web::Data<AppV2>,
@@ -71,7 +79,10 @@ pub async fn update_contest_secret(
     Ok(Success)
 }
 
-#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
+#[utoipa::path(
+    responses(NotFoundContest, Success, Unauthorized),
+    context_path = "/internal"
+)]
 #[put("/contests/{contest}/parameters")]
 pub async fn update_contest_parameters(
     data: web::Data<AppV2>,
@@ -88,7 +99,10 @@ pub async fn update_contest_parameters(
     Ok(Success)
 }
 
-#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
+#[utoipa::path(
+    responses(NotFoundContest, Success, Unauthorized),
+    context_path = "/internal"
+)]
 #[put("/contests/{contest}/sites")]
 pub async fn update_contest_sites(
     data: web::Data<AppV2>,
@@ -105,7 +119,10 @@ pub async fn update_contest_sites(
     Ok(Success)
 }
 
-#[utoipa::path(responses(NotFoundContest, Success, Unauthorized))]
+#[utoipa::path(
+    responses(NotFoundContest, Success, Unauthorized),
+    context_path = "/internal"
+)]
 #[post("/contests")]
 pub async fn create_contest(
     data: web::Data<AppV2>,
