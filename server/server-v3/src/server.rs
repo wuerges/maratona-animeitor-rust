@@ -28,7 +28,7 @@ pub async fn serve(
         App::new()
             .wrap(Cors::permissive())
             .app_data(web::Data::new(app.clone()))
-            .service(web::scope("admin").configure(contest_admin::as_service))
+            .service(web::scope("api/internal").configure(contest_admin::as_service))
             .service(
                 web::scope("api").configure(endpoints::as_service),
                 // .configure(api::configure)
