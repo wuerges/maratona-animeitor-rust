@@ -6,7 +6,7 @@ use leptos_router::params::Params;
 
 use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
 
-const DEFAULT_URL: &'static str = "http://0.0.0.0";
+const DEFAULT_URL: &str = "http://0.0.0.0";
 
 #[derive(PartialEq, Eq, Clone, Default)]
 pub struct ContestQuery {
@@ -48,10 +48,8 @@ fn url_prefix() -> String {
         None => format!("{}/api", guess_prefix()),
     };
 
-    if window_protocol_is_https() {
-        if prefix.starts_with("http:") {
-            prefix.replace_range(.."http:".len(), "https:")
-        }
+    if window_protocol_is_https() && prefix.starts_with("http:") {
+        prefix.replace_range(.."http:".len(), "https:")
     }
 
     prefix
@@ -86,7 +84,7 @@ fn push_contest_query(url: &mut String, query: ContestQuery) {
 
 fn url(path: &str, query: ContestQuery) -> String {
     let mut prefix = url_prefix();
-    prefix.push_str("/");
+    prefix.push('/');
     prefix.push_str(path);
     push_contest_query(&mut prefix, query);
     prefix
@@ -94,7 +92,7 @@ fn url(path: &str, query: ContestQuery) -> String {
 
 fn contest_query_ws(path: &str, query: ContestQuery) -> String {
     let mut prefix = ws_url_prefix();
-    prefix.push_str("/");
+    prefix.push('/');
     prefix.push_str(path);
     push_contest_query(&mut prefix, query);
     prefix

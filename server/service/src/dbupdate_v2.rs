@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use crate::errors::ServiceResult;
-use crate::{membroadcast, webcast, DB};
+use crate::{DB, membroadcast, webcast};
 use metrics::{counter, histogram};
 use tokio::sync::broadcast;
 use tokio::{spawn, sync::Mutex};
@@ -33,6 +33,7 @@ async fn update_runs_from_data(
     Ok(())
 }
 
+#[allow(clippy::type_complexity)]
 pub fn spawn_db_update(
     boca_url: &str,
 ) -> ServiceResult<(

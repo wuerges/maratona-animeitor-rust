@@ -54,7 +54,7 @@ impl RunsPanelItemManager {
                     u.index.insert(new_item.id, u.rot);
                     self.items[u.rot].set(new_item);
                     u.rot += 1;
-                    u.rot = u.rot % Self::MAX;
+                    u.rot %= Self::MAX;
                 });
             }
         }
@@ -78,5 +78,11 @@ impl RunsPanelItemManager {
             })
         })
         .into()
+    }
+}
+
+impl Default for RunsPanelItemManager {
+    fn default() -> Self {
+        Self::new()
     }
 }

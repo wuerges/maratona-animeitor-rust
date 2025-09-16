@@ -182,8 +182,8 @@ pub fn ContestPanel(
     let placements = Signal::derive(move || {
         sede.with(|s| {
             placements_contest_signal.team_global_placements.with(|t| {
-                t.into_iter()
-                    .filter(|login| s.team_belongs_str(&login))
+                t.iter()
+                    .filter(|login| s.team_belongs_str(login))
                     .cloned()
                     .collect_vec()
             })
@@ -197,7 +197,7 @@ pub fn ContestPanel(
             .map(|team| ContestPanelLineWrap {
                 titulo,
                 team: team.clone(),
-                sede: sede.clone(),
+                sede,
                 show_photo,
             })
             .collect_vec(),

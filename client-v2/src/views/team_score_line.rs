@@ -18,7 +18,7 @@ pub fn TeamScoreLine(
 ) -> impl IntoView {
     let escola = team.escola.clone();
     let name = team.name.clone();
-    let score = team.score.clone();
+    let score = team.score;
 
     let problems = team.problems.clone();
     let problems = problems

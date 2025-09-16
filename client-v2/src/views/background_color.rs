@@ -22,18 +22,18 @@ pub fn BackgroundColor() -> impl IntoView {
                 Some(color) => {
                     body.style()
                         .set_property("background-color", &color)
-                        .and_then(|()| Ok(log!("updated background color")))
+                        .map(|()| log!("updated background color"))
                         .ok();
                 }
                 None => {
                     body.style()
                         .remove_property("background-color")
-                        .and_then(|x| Ok(log!("removed background color: {}", x)))
+                        .map(|x| log!("removed background color: {}", x))
                         .ok();
                 }
             }
         }
     });
 
-    view! {}
+    View::new(())
 }

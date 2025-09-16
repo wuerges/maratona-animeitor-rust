@@ -41,7 +41,7 @@ async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Res
         return HttpResponse::Forbidden().finish();
     }
 
-    match data.config.get(&*sede_config) {
+    match data.config.get(sede_config) {
         Some((_, contest, _)) => {
             let result = db.contest_file_begin.clone().filter_sede(&contest.titulo);
             HttpResponse::Ok().json(result)
@@ -67,7 +67,7 @@ async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Resp
         return HttpResponse::Forbidden().finish();
     }
 
-    match data.config.get(&*sede_config) {
+    match data.config.get(sede_config) {
         Some((config, _, _)) => HttpResponse::Ok().json(config),
         None => HttpResponse::NotFound().finish(),
     }
@@ -87,9 +87,8 @@ async fn get_allruns_secret_fn(
 ) -> impl Responder + use<> {
     let sede = data
         .config
-        .get(&*sede_config)
-        .map(|(_, _, s)| s.get_sede_by_secret(&query.secret).cloned())
-        .flatten();
+        .get(sede_config)
+        .and_then(|(_, _, s)| s.get_sede_by_secret(&query.secret).cloned());
 
     match sede {
         None => HttpResponse::Forbidden().finish(),
@@ -147,7 +146,7 @@ async fn get_allruns_ws_fn(
 
     let sede = data
         .config
-        .get(&*sede_config)
+        .get(sede_config)
         .map(|(_config, contest, _secret)| contest.titulo.clone());
 
     match sede {

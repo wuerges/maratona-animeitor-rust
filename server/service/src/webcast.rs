@@ -29,7 +29,7 @@ async fn read_bytes_from_path(path: &str) -> Result<Vec<u8>, FetchErr> {
 }
 
 fn read_bytes_from_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
-    Ok(std::fs::read(path)?)
+    std::fs::read(path)
 }
 
 async fn read_bytes_from_url(uri: &str) -> Result<Vec<u8>, reqwest::Error> {
@@ -80,7 +80,7 @@ fn read_from_zip(
 pub async fn load_data_from_url_maybe(
     uri: &str,
 ) -> ServiceResult<(i64, data::ContestFile, data::RunsFile)> {
-    let zip_data = read_bytes_from_path(&uri).await?;
+    let zip_data = read_bytes_from_path(uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)?;
