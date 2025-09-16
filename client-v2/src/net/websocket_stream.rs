@@ -1,10 +1,15 @@
+use std::time::Duration;
+
 use futures::{
-    channel::mpsc::{self, UnboundedReceiver},
-    SinkExt, StreamExt,
+    channel::mpsc::{self, SendError, UnboundedReceiver, UnboundedSender},
+    SinkExt, Stream, StreamExt,
 };
 use gloo_net::websocket::{futures::WebSocket, Message, WebSocketError};
-use gloo_timers::future::TimeoutFuture;
-use leptos::leptos_dom::logging::{console_error, console_log, console_warn};
+use gloo_timers::future::{sleep, TimeoutFuture};
+use leptos::{
+    leptos_dom::logging::{console_error, console_log, console_warn},
+    logging::error,
+};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 
@@ -65,6 +70,58 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
             }
             console_log("Wait 5 seconds to reconnect.");
             TimeoutFuture::new(5_000).await;
+        }
+    });
+
+    rx
+}
+
+async fn open_ws(url: &str) -> WebSocket {
+    loop {
+        match WebSocket::open(url) {
+            Ok(websocket) => return websocket,
+            Err(err) => {
+                error!("could not open websocket: {err}");
+                sleep(Duration::from_secs(5)).await
+            }
+        }
+    }
+}
+
+async fn send_messages<M: for<'a> Deserialize<'a> + Clone + 'static>(
+    ws: &mut WebSocket,
+    mut tx: UnboundedSender<M>,
+) -> Result<(), SendError> {
+    loop {
+        match parse_message::<M>(ws.next().await) {
+            Ok(m) => tx.send(m).await?,
+            Err(err) => {
+                error!("parse message: {err:?}");
+                return Ok(());
+            }
+        }
+    }
+}
+
+pub fn create_websocket_stream_2<M: for<'a> Deserialize<'a> + Clone + 'static>(
+    url: &str,
+) -> impl Stream<Item = M> {
+    let (tx, rx) = mpsc::unbounded::<M>();
+
+    let url = url.to_string();
+
+    spawn_local(async move {
+        loop {
+            let mut ws = open_ws(&url).await;
+            console_log(&format!("connected: {url}"));
+
+            match send_messages(&mut ws, tx.clone()).await {
+                Ok(()) => (),
+                Err(err) => {
+                    error!("client disconnected: {err}");
+                    break;
+                }
+            }
         }
     });
 

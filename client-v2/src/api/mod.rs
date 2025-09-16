@@ -1,10 +1,13 @@
 use data::{configdata::ConfigContest, ContestFile, RunTuple, TimerData};
-use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
+use futures::{channel::mpsc::UnboundedReceiver, Stream, StreamExt};
 
 use leptos::{logging::*, prelude::*, task::spawn_local};
 use leptos_router::params::Params;
 
-use crate::net::{request_signal::create_request, websocket_stream::create_websocket_stream};
+use crate::net::{
+    request_signal::create_request,
+    websocket_stream::{create_websocket_stream, create_websocket_stream_2},
+};
 
 const DEFAULT_URL: &str = "http://0.0.0.0";
 
@@ -155,6 +158,11 @@ pub fn create_timer() -> ReadSignal<(TimerData, TimerData)> {
     });
 
     timer
+}
+
+pub fn create_timer_v3(contest: String) -> impl Stream<Item = sdk::Time> {
+    let url = format!("{}/contests/{contest}/time-websocket", ws_url_prefix());
+    create_websocket_stream_2::<sdk::Time>(&url)
 }
 
 fn photos_prefix() -> String {

@@ -3,7 +3,7 @@ use utoipa::ToSchema;
 
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, ToSchema)]
 pub struct Time {
-    time_in_seconds: i64,
+    pub time_in_seconds: i64,
 }
 
 impl Time {

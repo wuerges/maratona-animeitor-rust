@@ -19,6 +19,7 @@ use crate::{
         ContestProvider,
     },
     views::{
+        animeitor_v3,
         background_color::BackgroundColor,
         contest::Contest,
         control_scrolling::RemoteControl,
@@ -225,6 +226,10 @@ pub fn Sedes() -> impl IntoView {
                 <Route
                 path=path!("")
                 view=move || root
+                />
+                <Route
+                path=path!("v3")
+                view=move || animeitor_v3::Root()
                 />
             </Routes>
         </Router>
