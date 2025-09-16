@@ -656,7 +656,22 @@ impl RunsFile {
         Self::new(
             self.sorted()
                 .into_iter()
-                .filter(|r| r.time < frozen_time)
+                .map(|mut r| {
+                    if r.time >= frozen_time {
+                        let run_id = match r.answer {
+                            Answer::Yes {
+                                time: _,
+                                is_first: _,
+                                run_id,
+                            } => run_id,
+                            Answer::No { run_id } => run_id,
+                            Answer::Wait { run_id } => run_id,
+                            Answer::Unk { run_id } => run_id,
+                        };
+                        r.answer = Answer::Wait { run_id };
+                    }
+                    r
+                })
                 .collect(),
         )
     }
