@@ -28,9 +28,10 @@ async fn check_secret(contest: &ContestApp, req: &HttpRequest) -> Result<(), act
     }
 }
 
+/// Create a websocket connection to return all runs of the current contest.
 #[utoipa::path(responses(NotFoundContest))]
 #[instrument(skip_all)]
-#[get("/contests/{contest}/runs-unmasked")]
+#[get("/contests/{contest}/runs-unmasked-websocket")]
 pub async fn get_contest_runs_unmasked(
     data: web::Data<AppV2>,
     contest: web::Path<String>,
@@ -68,9 +69,10 @@ pub async fn get_contest_runs_unmasked(
     Ok(response)
 }
 
+/// Create a websocket connection to return all runs of the current contest, masked if the contest is frozen.
 #[utoipa::path(responses(NotFoundContest))]
 #[instrument(skip_all)]
-#[get("/contests/{contest}/runs")]
+#[get("/contests/{contest}/runs-websocket")]
 pub async fn get_contest_runs(
     data: web::Data<AppV2>,
     contest: web::Path<String>,

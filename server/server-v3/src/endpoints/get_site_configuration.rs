@@ -10,6 +10,7 @@ use crate::{
     model::app::AppV2,
 };
 
+/// Returns the site configuration for this contest
 #[utoipa::path(
     responses(
         NotFoundContest,
