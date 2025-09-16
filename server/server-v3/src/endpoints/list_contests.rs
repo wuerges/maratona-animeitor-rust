@@ -3,6 +3,7 @@ use tracing::instrument;
 
 use crate::{components::success::Data, model::app::AppV2};
 
+/// List contests
 #[utoipa::path(
     responses(Data<Vec<String>>),
 )]

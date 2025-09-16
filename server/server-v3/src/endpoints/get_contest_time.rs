@@ -5,9 +5,10 @@ use tracing::{debug, instrument, warn};
 
 use crate::{components::rejection::NotFoundContest, model::app::AppV2};
 
+/// Create a websocket connection, returning time in seconds for the contest
 #[utoipa::path(responses(NotFoundContest))]
 #[instrument(skip_all)]
-#[get("/contests/{contest}/time")]
+#[get("/contests/{contest}/time-websocket")]
 pub async fn get_contest_time(
     data: web::Data<AppV2>,
     contest: web::Path<String>,

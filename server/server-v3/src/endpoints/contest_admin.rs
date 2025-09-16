@@ -17,6 +17,7 @@ pub fn as_service(service_config: &mut web::ServiceConfig) {
         update_contest_parameters,
         update_contest_sites,
         update_contest_state,
+        update_contest_secret,
         create_contest,
         open_api_internal,
     ));
