@@ -114,6 +114,21 @@ Then check your browser:
 
 All project dependencies have been updated in september 16, 2025.
 
+## Rebuilding the docker image:
+
+The docker image uses the `musl` cross compiler.
+You need to install the `musl` target to be able to build it.
+
+```
+rustup target add x86_64-unknown-linux-musl
+```
+
+Then you can rebuild the docker image:
+
+```
+rebuild-docker-image
+```
+
 # Keyboard shortcuts:
 
 | Key | Name        | Function                              |
