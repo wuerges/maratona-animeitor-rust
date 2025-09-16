@@ -26,6 +26,11 @@ To see the urls served by Animeitor:
 docker compose run printurls
 ```
 
+By default these are the URLs to visit:
+
+- Animeitor: http://localhost:8000/?sede=Contest+Exemplo
+- Reveleitor: http://localhost:8000/?secret=abc&sede=Contest+Exemplo&contest=
+
 # Basic configuration
 
 Animeitor can be configured using a few environment variables, than can be set in the `.env` file:
@@ -74,17 +79,40 @@ Animeitor was made to be customizable using CSS.
 
 # Run without docker
 
-The `Makefile` has an example of how to run animeitor without docker:
+The `Makefile` has an example of how to run animeitor without docker.
+
+## Running local server using the prebuilt release client
 
 ```
+make rebuild-client-for-release
 make run-standalone
 ```
 
-To execute client with trunk:
+Then check your browser:
+
+- Animeitor: http://localhost:8000/
+- Reveleitor: http://localhost:8000?secret=abc
+
+## Running the debug client
+
+In other terminal, without closing the server above:
 
 ```
 make run-debug-client
 ```
+
+Then check your browser:
+
+- Animeitor: http://localhost:8080/
+- Reveleitor: http://localhost:8080?secret=abc
+
+
+## Dependencies
+
+- `rust`: https://rustup.rs/
+- `trunk`: To install `trunk`, visit the project page: https://trunkrs.dev/
+
+All project dependencies have been updated in september 16, 2025.
 
 # Keyboard shortcuts:
 
