@@ -28,6 +28,7 @@ pub async fn open_api() -> Result<String, serde_json::Error> {
     endpoints::contest_admin::update_contest_state,
     endpoints::contest_admin::create_contest,
     endpoints::contest_admin::update_contest_secret,
+    endpoints::get_contest_parameters::get_contest_parameters,
     open_api_internal
 ))]
 struct InternalApiDoc;

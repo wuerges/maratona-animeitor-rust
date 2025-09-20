@@ -118,6 +118,10 @@ impl ContestApp {
         *file = parameters;
     }
 
+    pub async fn get_parameters(&self) -> ContestParameters {
+        self.contest.read().await.clone()
+    }
+
     pub async fn update_site_configuration(&self, sites: SiteConfiguration) {
         *self.sedes.write().await = Some(sites);
     }
