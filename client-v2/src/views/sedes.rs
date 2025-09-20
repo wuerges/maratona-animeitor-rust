@@ -143,39 +143,37 @@ fn ConfiguredReveleitor(
 }
 
 #[component]
-pub fn Sedes() -> impl IntoView {
+pub fn Root() -> impl IntoView {
     let timer = create_timer();
 
     let negative_memo = Memo::new(move |_| timer.get().is_negative());
 
     let global_settings = use_global_settings();
 
-    let root = move || {
-        let query_params = use_static_query();
-        let settings_panel = move || {
-            query_params
-                .with(|q| q.is_settings_enabled())
-                .then_some(view! {
-                    <SettingsPanel />
-                })
-        };
+    let query_params = use_static_query();
+    let settings_panel = move || {
+        query_params
+            .with(|q| q.is_settings_enabled())
+            .then_some(view! {
+                <SettingsPanel />
+            })
+    };
 
-        let secret = Signal::derive(move || {
-            query_params
-                .with(|q| q.secret.clone())
-                .or(global_settings.global.with(|g| g.get_secret()))
+    let secret = Signal::derive(move || {
+        query_params
+            .with(|q| q.secret.clone())
+            .or(global_settings.global.with(|g| g.get_secret()))
+    });
+    let secret = Memo::new(move |_| secret.get());
+    let contest_query = Signal::derive(|| use_query::<ContestQuery>().get().unwrap_or_default());
+
+    let animeitor = move || {
+        let contest_provider = LocalResource::new(move || {
+            let q = contest_query.get();
+            provide_contest(q)
         });
-        let secret = Memo::new(move |_| secret.get());
-        let contest_query =
-            Signal::derive(|| use_query::<ContestQuery>().get().unwrap_or_default());
 
-        let animeitor = move || {
-            let contest_provider = LocalResource::new(move || {
-                let q = contest_query.get();
-                provide_contest(q)
-            });
-
-            match secret.get() {
+        match secret.get() {
                 Some(secret) => (move || view! {
                     <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
                 }).into_any(),
@@ -205,27 +203,29 @@ pub fn Sedes() -> impl IntoView {
                 }.into_any()}
             }
                 .into_view()
-        };
-
-        if negative_memo.get() {
-            view! { <Timer timer /> }.into_any()
-        } else {
-            view! {
-                <BackgroundColor />
-                <RemoteControl />
-                {settings_panel}
-                {animeitor}
-            }
-            .into_any()
-        }
     };
 
+    if negative_memo.get() {
+        view! { <Timer timer /> }.into_any()
+    } else {
+        view! {
+            <BackgroundColor />
+            <RemoteControl />
+            {settings_panel}
+            {animeitor}
+        }
+        .into_any()
+    }
+}
+
+#[component]
+pub fn Sedes() -> impl IntoView {
     view! {
         <Router>
-            <Routes fallback=move || root>
+            <Routes fallback=move || Root()>
                 <Route
                 path=path!("")
-                view=move || root
+                view=move || Root()
                 />
                 <Route
                 path=path!("v3")
