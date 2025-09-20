@@ -1,7 +1,7 @@
 use std::{collections::HashMap, hash::Hash};
 
-use futures_signals::signal::{Mutable, Signal};
 use itertools::Itertools;
+use leptos::prelude::{RwSignal, Set, Signal};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Score {
@@ -20,7 +20,7 @@ pub struct Placements<Key = String> {
     scores: HashMap<Key, Score>,
     placements: HashMap<Key, u32>,
     placements_are_stale: bool,
-    placement_signals: HashMap<Key, Mutable<u32>>,
+    placement_signals: HashMap<Key, RwSignal<u32>>,
 }
 
 impl<Key> Default for Placements<Key> {
@@ -80,11 +80,14 @@ where
         }
     }
 
-    pub fn placement_signal(&mut self, team: &Key) -> impl Signal<Item = u32> {
-        self.placement_mutable(team).signal()
+    pub fn placement_signal(&mut self, team: &Key) -> Signal<u32> {
+        self.placement_mutable(team).into()
     }
 
-    fn placement_mutable(&mut self, team: &Key) -> &Mutable<u32> {
-        self.placement_signals.entry(team.clone()).or_default()
+    fn placement_mutable(&mut self, team: &Key) -> RwSignal<u32> {
+        self.placement_signals
+            .entry(team.clone())
+            .or_default()
+            .clone()
     }
 }

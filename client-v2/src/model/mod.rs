@@ -2,6 +2,8 @@ pub(crate) mod contest_signal;
 pub mod runs_panel_signal;
 pub(crate) mod team_signal;
 
+pub mod animeitor_v3;
+
 use std::{collections::HashSet, sync::Arc};
 
 use contest_signal::ContestSignal;

@@ -1,20 +1,17 @@
 use std::collections::{HashMap, VecDeque};
 
-use futures_signals::signal::{Mutable, Signal};
+use leptos::prelude::{RwSignal, Set, Signal};
 
-use crate::{scoreboard::Score, sites::TeamSites};
+use super::scoreboard::Score;
 
 pub struct Team {
     team: sdk::Team,
-    score_mutable: Mutable<Score>,
-    placements: HashMap<String, Mutable<u32>>,
     problems: HashMap<String, Problem>,
     score: Score,
 }
 
 pub struct Problem {
     letter: String,
-    state_mutable: Mutable<ProblemState>,
     pending: VecDeque<sdk::Run>,
     is_solved: bool,
     solve_time_in_minutes: u32,
@@ -27,7 +24,6 @@ impl Problem {
     fn new(letter: &str) -> Self {
         Self {
             letter: letter.to_string(),
-            state_mutable: Default::default(),
             pending: Default::default(),
             is_solved: false,
             is_first_solved: false,
@@ -36,10 +32,6 @@ impl Problem {
             penalty: 0,
         }
     }
-    pub fn signal(&self) -> impl Signal<Item = ProblemState> {
-        self.state_mutable.signal()
-    }
-
     fn mark_solved(&mut self, time_in_minutes: u32, contest: &mut impl ContestService) {
         self.is_solved = true;
         self.is_first_solved = contest.problem_was_solved(&self.letter);
@@ -47,23 +39,23 @@ impl Problem {
         self.pending.clear();
     }
 
-    fn update_state(&self) {
+    pub fn state(&self) -> ProblemState {
         if self.is_solved {
-            self.state_mutable.set(ProblemState::Solved {
+            ProblemState::Solved {
                 is_first: self.is_first_solved,
                 time_in_minutes: self.solve_time_in_minutes,
                 penalty: self.penalty,
                 attempts: self.failed_attempts,
-            });
+            }
         } else if self.pending.is_empty() {
-            self.state_mutable.set(ProblemState::WrongAnswer {
+            ProblemState::WrongAnswer {
                 judged_attempts: self.failed_attempts,
-            });
+            }
         } else {
-            self.state_mutable.set(ProblemState::UnderJudgement {
+            ProblemState::UnderJudgement {
                 failed_attempts: self.failed_attempts,
                 new_attempts: self.pending.len() as u32,
-            });
+            }
         }
     }
 
@@ -82,19 +74,14 @@ impl Problem {
             match answer {
                 sdk::Answer::Yes => {
                     self.mark_solved(*time_in_minutes, contest);
-                    self.update_state();
                     true
                 }
                 sdk::Answer::No => {
                     self.failed_attempts += 1;
-                    self.update_state();
                     false
                 }
                 sdk::Answer::Undecided => false,
-                sdk::Answer::NoWithoutPenalty => {
-                    self.update_state();
-                    false
-                }
+                sdk::Answer::NoWithoutPenalty => false,
             }
         } else {
             false
@@ -110,7 +97,6 @@ impl Problem {
                 }
             }
             self.pending.push_back(new_run);
-            self.update_state();
         }
     }
 
@@ -142,15 +128,10 @@ pub enum ProblemState {
 }
 
 impl Team {
-    pub fn new(team: sdk::Team, sites: Vec<String>, letters: &[String]) -> Self {
+    pub fn new(team: sdk::Team, letters: &[String]) -> Self {
         Self {
-            score_mutable: Default::default(),
             team,
             score: Default::default(),
-            placements: sites
-                .into_iter()
-                .map(|site| (site, Default::default()))
-                .collect(),
             problems: letters
                 .iter()
                 .map(|l| (l.to_string(), Problem::new(l)))
@@ -180,8 +161,6 @@ impl Team {
             }
 
             self.score = Score::new(total_solved, total_penalty);
-
-            self.score_mutable.set(self.score);
         }
     }
 
@@ -189,12 +168,17 @@ impl Team {
         self.get_problem(&run.problem_letter).push_run(run)
     }
 
-    pub fn pop_run(&mut self, run: sdk::Run, contest: &mut impl ContestService) -> bool {
-        self.get_problem(&run.problem_letter).pop_run(contest)
+    pub fn pop_run(&mut self, contest: &mut impl ContestService) -> bool {
+        for (_, p) in self.problems.iter_mut() {
+            if p.pop_run(contest) {
+                return true;
+            }
+        }
+        false
     }
 
-    pub fn signal(&self) -> impl Signal<Item = Score> {
-        self.score_mutable.signal()
+    pub fn score(&self) -> Score {
+        self.score
     }
 }
 
@@ -203,21 +187,4 @@ pub trait ContestService {
     /// Mark that problem was solved.
     /// return if it was previously solved
     fn problem_was_solved(&mut self, letter: &str) -> bool;
-}
-
-impl TeamSites for Team {
-    type Site = String;
-    type Login = String;
-
-    fn sites(&self) -> impl Iterator<Item = &Self::Site> {
-        self.placements.keys()
-    }
-
-    fn login(&self) -> &Self::Login {
-        &self.team.login
-    }
-
-    fn score(&self) -> Score {
-        self.score
-    }
 }
