@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::model::animeitor_v3::{scoreboard::Score, team::ContestService};
 
@@ -74,12 +74,35 @@ impl Contest {
 }
 
 #[derive(Debug, Default)]
-pub struct ScoreQueue {}
+struct ScoreQueue {
+    score_map: BTreeMap<Score, BTreeSet<String>>,
+    team_set: BTreeSet<String>,
+}
 
 impl ScoreQueue {
-    pub fn push_team(&mut self, team: &Team) {}
+    pub fn push_team(&mut self, team: &Team) {
+        let login = team.info().login.clone();
+
+        if self.team_set.insert(login.clone()) {
+            self.score_map
+                .entry(team.score())
+                .or_default()
+                .insert(login);
+        }
+    }
 
     pub fn pop_team(&mut self) -> Option<String> {
-        None
+        let mut entry = self.score_map.last_entry()?;
+
+        let teams = entry.get_mut();
+
+        let found = teams.pop_last()?;
+        self.team_set.remove(&found);
+
+        if teams.is_empty() {
+            entry.remove();
+        }
+
+        Some(found)
     }
 }

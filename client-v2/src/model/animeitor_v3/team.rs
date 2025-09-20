@@ -32,6 +32,7 @@ impl Problem {
             penalty: 0,
         }
     }
+
     fn mark_solved(&mut self, time_in_minutes: u32, contest: &mut impl ContestService) {
         self.is_solved = true;
         self.is_first_solved = contest.problem_was_solved(&self.letter);
@@ -179,6 +180,10 @@ impl Team {
 
     pub fn score(&self) -> Score {
         self.score
+    }
+
+    pub fn info(&self) -> &sdk::Team {
+        &self.team
     }
 }
 
