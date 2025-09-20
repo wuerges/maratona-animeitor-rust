@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 leptos = { version = "0.8", features = ["csr"] }
 leptos_router = { version = "0.8" }
+leptos-fetch = { version = "0.4" }
 gloo-net = "0"
 gloo-timers = { version = "0", features = ["futures"] }
 wasm-bindgen-futures = "0.4"

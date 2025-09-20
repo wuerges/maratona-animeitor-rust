@@ -1,5 +1,7 @@
+use std::time::Duration;
+
 use gloo_net::http::Request;
-use gloo_timers::future::TimeoutFuture;
+use gloo_timers::future::sleep;
 use leptos::logging::*;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +37,7 @@ pub async fn create_request<M: for<'a> Deserialize<'a> + Serialize + Clone>(url:
                     }
                 }
                 log!("Wait 5 seconds to reconnect.");
-                TimeoutFuture::new(5_000).await;
+                sleep(Duration::from_secs(5)).await
             }
         }
     }

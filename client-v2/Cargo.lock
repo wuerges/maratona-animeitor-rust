@@ -177,6 +177,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "chrono-humanize"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "799627e6b4d27827a814e837b9d8a504832086081806d45b1afa34dc982b023b"
+dependencies = [
+ "chrono",
+]
+
+[[package]]
 name = "client-v2"
 version = "2.1.0"
 dependencies = [
@@ -187,6 +196,7 @@ dependencies = [
  "gloo-timers",
  "itertools",
  "leptos",
+ "leptos-fetch",
  "leptos-use",
  "leptos_router",
  "sdk",
@@ -1007,6 +1017,27 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm_split_helpers",
+ "web-sys",
+]
+
+[[package]]
+name = "leptos-fetch"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe255fd08c2b90e171c721519df08544a1ae31546a8104720736eedfbaa54ebd"
+dependencies = [
+ "chrono",
+ "chrono-humanize",
+ "codee",
+ "futures",
+ "leptos",
+ "parking_lot",
+ "paste",
+ "pin-project-lite",
+ "rustc_version",
+ "send_wrapper",
+ "task-local",
+ "tracing",
  "web-sys",
 ]
 
@@ -2002,6 +2033,15 @@ dependencies = [
  "throw_error",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "task-local"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2c821daee0efdf6414970c8185a1c22e259a7ed87b2fd9f7d3c5f5503fd2863"
+dependencies = [
+ "pin-project-lite",
 ]
 
 [[package]]

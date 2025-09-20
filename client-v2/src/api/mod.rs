@@ -45,7 +45,7 @@ fn guess_prefix() -> String {
     }
 }
 
-fn url_prefix() -> String {
+pub fn url_prefix() -> String {
     let mut prefix = match option_env!("URL_PREFIX") {
         Some(prefix) => prefix.to_string(),
         None => format!("{}/api", guess_prefix()),
