@@ -34,7 +34,6 @@ fn create_updater(
                 {
                     let mut lock = contest.write().await;
                     for run in runs {
-                        console_log(&format!("judged run {run:?}"));
                         lock.judge_run(&run);
                     }
                     console_log(&format!("sites {:?}", sites));

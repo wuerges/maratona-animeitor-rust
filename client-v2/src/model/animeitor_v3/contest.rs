@@ -60,7 +60,6 @@ impl Contest {
 
     pub fn judge_run(&mut self, run: &sdk::Run) {
         if let Some(team) = self.teams.get_mut(&run.team_login) {
-            console_log(&format!("team judge run {run:?}"));
             team.judge_run(run, &mut self.service)
         }
     }
