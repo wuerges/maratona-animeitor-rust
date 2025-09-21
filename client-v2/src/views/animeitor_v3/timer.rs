@@ -1,4 +1,4 @@
-use leptos::{leptos_dom::logging::console_log, prelude::*};
+use leptos::prelude::*;
 
 fn f(n: i64) -> String {
     format!("{:0>2}", n)
@@ -43,29 +43,23 @@ pub fn Timer(
         });
     });
 
-    move || {
-        time.with(|(previous, current)| {
-            let is_frozen = *current >= score_freeze_time_in_minutes as i64 * 60;
+    let is_frozen = move || time.with(|t| t.1 >= score_freeze_time_in_minutes as i64 * 60);
 
-            let (hours, mins, secs) = (hor(*current), min(*current), seg(*current));
+    let hour_class = move || time.with(|(p, c)| format!("hora {}", changed(hor(*p), hor(*c))));
+    let mins_class = move || time.with(|(p, c)| format!("minuto {}", changed(min(*p), min(*c))));
+    let secs_class = move || time.with(|(p, c)| format!("segundo {}", changed(seg(*p), seg(*c))));
 
-            let (previous_hours, previous_mins, previous_secs) =
-                (hor(*previous), min(*previous), seg(*previous));
+    let hours = move || time.with(|t| f(hor(t.1)));
+    let mins = move || time.with(|t| f(min(t.1)));
+    let secs = move || time.with(|t| f(seg(t.1)));
 
-            let hour_class = format!("hora {}", changed(hours, previous_hours));
-            let mins_class = format!("minuto {}", changed(mins, previous_mins));
-            let secs_class = format!("segundo {}", changed(secs, previous_secs));
-
-            view! {
-                <div class="timer" class:frozen=is_frozen>
-                    <span class=hour_class>{hours} </span>
-                    <span class="sep"> ":" </span>
-                    <span class=mins_class>{mins} </span>
-                    <span class="sep"> ":" </span>
-                    <span class=secs_class>{secs} </span>
-
-                </div>
-            }
-        })
+    view! {
+        <div class="timer" class:frozen=is_frozen>
+            <span class=hour_class>{hours} </span>
+            <span class="sep"> ":" </span>
+            <span class=mins_class>{mins} </span>
+            <span class="sep"> ":" </span>
+            <span class=secs_class>{secs} </span>
+        </div>
     }
 }

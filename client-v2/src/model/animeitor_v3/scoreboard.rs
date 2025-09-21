@@ -5,8 +5,8 @@ use leptos::prelude::{RwSignal, Set, Signal};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Score {
-    solved: u32,
-    penalty: u32,
+    pub solved: u32,
+    pub penalty: u32,
 }
 
 impl Score {
