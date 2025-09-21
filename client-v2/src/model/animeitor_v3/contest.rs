@@ -49,6 +49,14 @@ impl Contest {
         }
     }
 
+    pub fn parameters(&self) -> &ContestParameters {
+        &self.parameters
+    }
+
+    pub fn teams(&self) -> impl Iterator<Item = &Team> {
+        self.teams.values()
+    }
+
     pub fn judge_run(&mut self, run: &sdk::Run) {
         if let Some(team) = self.teams.get_mut(&run.team_login) {
             team.judge_run(run, &mut self.service)
