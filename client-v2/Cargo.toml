@@ -20,6 +20,7 @@ sdk = { path = "../server/sdk" }
 itertools = "0"
 leptos-use = { version = "0.16" }
 codee = "0.3.0"
+async-lock = "3.4"
 
 [dependencies.web-sys]
 features = ["WebSocket", "MessageEvent"]

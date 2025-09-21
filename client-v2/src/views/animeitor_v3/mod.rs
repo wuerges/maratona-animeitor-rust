@@ -1,11 +1,16 @@
 mod timer;
 
-use futures::StreamExt;
-use leptos::prelude::*;
-use sdk::{components::Data, ContestParameters, SiteConfiguration};
+use std::sync::Arc;
+
+use async_lock::RwLock;
+use futures::{Stream, StreamExt};
+use leptos::{leptos_dom::logging::console_log, prelude::*, task::spawn};
+use sdk::{components::Data, ContestParameters, Run, SiteConfiguration};
 
 use crate::{
-    api::url_prefix, model::animeitor_v3::contest::Contest, net::request_signal::create_request,
+    api::url_prefix,
+    model::animeitor_v3::contest::Contest,
+    net::{request_signal::create_request, websocket_stream::create_websocket_stream_2},
 };
 
 fn create_timer(contest: String) -> ArcReadSignal<Option<(sdk::Time, sdk::Time)>> {
@@ -19,6 +24,32 @@ fn create_timer(contest: String) -> ArcReadSignal<Option<(sdk::Time, sdk::Time)>
     });
 
     ArcReadSignal::from_stream(scanned)
+}
+
+fn create_runs(contest: String) -> impl Stream<Item = Run> {
+    let prefix = url_prefix();
+    create_websocket_stream_2(&format!("{prefix}/contests/{contest}/runs-websocket"))
+}
+
+fn create_updater(
+    runs_stream: impl Stream<Item = Run> + Send + 'static,
+    contest: Arc<RwLock<Contest>>,
+    sites: Arc<SiteConfiguration>,
+) {
+    spawn(async move {
+        console_log("updater started");
+        runs_stream
+            .ready_chunks(1000)
+            .for_each(async |runs| {
+                let mut lock = contest.write().await;
+                for run in runs {
+                    lock.judge_run(&run);
+                }
+                console_log(&format!("sites {:?}", sites));
+            })
+            .await;
+        console_log("updater finished");
+    });
 }
 
 async fn create_contest_parameters(contest: String) -> Data<ContestParameters> {
@@ -57,17 +88,10 @@ pub fn Root() -> impl IntoView {
 
     let parameters = move || {
         let parameters = parameters_resource.get()?.data;
-        let sites = site_resource.get()?.data;
-        let contest = Contest::new(parameters);
+        let sites = Arc::new(site_resource.get()?.data);
+        let contest = Arc::new(RwLock::new(Contest::new(parameters)));
 
-        let teams = contest
-            .teams()
-            .map(|t| {
-                view! {
-                    <p> Team: {t.info().name.to_string()}</p>
-                }
-            })
-            .collect_view();
+        let runs_stream = create_runs("brasil".to_string());
 
         let sites_view = sites
             .sites
@@ -77,11 +101,21 @@ pub fn Root() -> impl IntoView {
             })
             .collect_view();
 
+        create_updater(runs_stream, contest, sites.clone());
+        // let teams = contest.
+        //     .teams()
+        //     .map(|t| {
+        //         view! {
+        //             <p> Team: {t.info().name.to_string()}</p>
+        //         }
+        //     })
+        //     .collect_view();
+
         Some(view! {
             <>
                 <p> contest was loaded </p>
                 <h1> Teams </h1>
-                {teams}
+
                 <h1> Sites </h1>
                 {sites_view}
             </>

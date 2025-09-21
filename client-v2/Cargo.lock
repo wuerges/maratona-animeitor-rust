@@ -189,6 +189,7 @@ dependencies = [
 name = "client-v2"
 version = "2.1.0"
 dependencies = [
+ "async-lock",
  "codee",
  "data",
  "futures",
