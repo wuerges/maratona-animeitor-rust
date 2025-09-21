@@ -1,3 +1,4 @@
+mod problem;
 mod timer;
 
 use std::{collections::HashMap, sync::Arc};
