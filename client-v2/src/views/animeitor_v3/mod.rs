@@ -11,20 +11,8 @@ use crate::{
     api::url_prefix,
     model::animeitor_v3::contest::Contest,
     net::{request_signal::create_request, websocket_stream::create_websocket_stream_2},
+    views::animeitor_v3::timer::Timer,
 };
-
-fn create_timer(contest: String) -> ArcReadSignal<Option<(sdk::Time, sdk::Time)>> {
-    let stream = crate::api::create_timer_v3(contest);
-
-    let scanned = stream.scan(sdk::Time::unknown(), |state, next| {
-        let previous = *state;
-        *state = next;
-
-        std::future::ready(Some((previous, next)))
-    });
-
-    ArcReadSignal::from_stream(scanned)
-}
 
 fn create_runs(contest: String) -> impl Stream<Item = Run> {
     let prefix = url_prefix();
@@ -62,35 +50,26 @@ async fn create_site_configuration(contest: String) -> Data<SiteConfiguration> {
     create_request(&format!("{prefix}/contests/{contest}/sites")).await
 }
 
+fn create_timer(contest: String) -> ArcReadSignal<Option<sdk::Time>> {
+    let stream = crate::api::create_timer_v3(contest);
+
+    ArcReadSignal::from_stream(stream)
+}
+
 #[component]
 pub fn Root() -> impl IntoView {
-    let timer = create_timer("brasil".to_string());
-
     let parameters_resource =
         LocalResource::new(|| create_contest_parameters("brasil".to_string()));
 
     let site_resource = LocalResource::new(|| create_site_configuration("brasil".to_string()));
 
-    let timer_view = move || {
-        timer.get().map(
-            |(
-                sdk::Time {
-                    time_in_seconds: prev,
-                },
-                sdk::Time {
-                    time_in_seconds: next,
-                },
-            )| {
-                view! { <p> Time: {prev}/{next} </p> }
-            },
-        )
-    };
-
     let parameters = move || {
         let parameters = parameters_resource.get()?.data;
+        let score_freeze_time_in_minutes = parameters.score_freeze_time_in_minutes;
         let sites = Arc::new(site_resource.get()?.data);
         let contest = Arc::new(RwLock::new(Contest::new(parameters)));
 
+        let current_time = create_timer("brasil".to_string());
         let runs_stream = create_runs("brasil".to_string());
 
         let sites_view = sites
@@ -113,10 +92,12 @@ pub fn Root() -> impl IntoView {
 
         Some(view! {
             <>
+                <Timer current_time=current_time.into() score_freeze_time_in_minutes />
                 <p> contest was loaded </p>
                 <h1> Teams </h1>
 
                 <h1> Sites </h1>
+
                 {sites_view}
             </>
         })
@@ -124,7 +105,7 @@ pub fn Root() -> impl IntoView {
 
     view! {
         <p> Yay</p>
-        {timer_view}
+
 
         <Suspense>
             {parameters}
