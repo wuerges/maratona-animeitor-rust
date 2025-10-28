@@ -1,0 +1,23 @@
+[titulo]
+name = "South America - South Finals"
+codes = ["teamso"]
+
+[[sedes]]
+name = "South America - South Finals"
+codes = ["teamso"]
+
+[[sedes]]
+codes = ["teamsoar"]
+name = "Argentina"
+
+[[sedes]]
+codes = ["teamsobo"]
+name = "Bolivia"
+
+[[sedes]]
+codes = ["teamsoch"]
+name = "Chile"
+
+[[sedes]]
+codes = ["teamsopa", "teamsope"]
+name = "Peru"
