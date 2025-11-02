@@ -21,3 +21,11 @@ name = "Chile"
 [[sedes]]
 codes = ["teamsopa", "teamsope"]
 name = "Peru"
+
+[[sedes]]
+codes = ["teamsopa"]
+name = "Peru - Arequipa"
+
+[[sedes]]
+codes = ["teamsope"]
+name = "Peru - Lima"

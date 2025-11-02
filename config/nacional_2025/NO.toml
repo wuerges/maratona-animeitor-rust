@@ -11,5 +11,9 @@ codes = ["teamnoco"]
 name = "Colombia"
 
 [[sedes]]
+codes = ["teamnoec"]
+name = "Ecuador"
+
+[[sedes]]
 codes = ["teamnovz"]
 name = "Venezuela"
