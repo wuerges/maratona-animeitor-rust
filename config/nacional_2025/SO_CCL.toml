@@ -1,0 +1,31 @@
+[titulo]
+name = "South America - South Finals - Invitados"
+codes = ["cclso"]
+
+[[sedes]]
+name = "South America - South Finals - Invitados"
+codes = ["cclso"]
+
+[[sedes]]
+codes = ["cclsoar"]
+name = "Argentina"
+
+[[sedes]]
+codes = ["cclsobo"]
+name = "Bolivia"
+
+[[sedes]]
+codes = ["cclsoch"]
+name = "Chile"
+
+[[sedes]]
+codes = ["cclsopa", "cclsope"]
+name = "Peru"
+
+[[sedes]]
+codes = ["cclsopa"]
+name = "Peru - Arequipa"
+
+[[sedes]]
+codes = ["cclsope"]
+name = "Peru - Lima"
