@@ -7,12 +7,8 @@ name = "South America - North Finals"
 codes = ["teamno"]
 
 [[sedes]]
-codes = ["teamnoco"]
+codes = ["teamnoco", "teamnoec"]
 name = "Colombia"
-
-[[sedes]]
-codes = ["teamnoec"]
-name = "Ecuador"
 
 [[sedes]]
 codes = ["teamnovz"]
