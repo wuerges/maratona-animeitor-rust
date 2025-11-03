@@ -8,24 +8,24 @@ codes = ["cclso"]
 
 [[sedes]]
 codes = ["cclsoar"]
-name = "Argentina"
+name = "CCL Argentina"
 
 [[sedes]]
 codes = ["cclsobo"]
-name = "Bolivia"
+name = "CCL Bolivia"
 
 [[sedes]]
 codes = ["cclsoch"]
-name = "Chile"
+name = "CCL Chile"
 
 [[sedes]]
 codes = ["cclsopa", "cclsope"]
-name = "Peru"
+name = "CCL Peru"
 
 [[sedes]]
 codes = ["cclsopa"]
-name = "Peru - Arequipa"
+name = "CCL Peru - Arequipa"
 
 [[sedes]]
 codes = ["cclsope"]
-name = "Peru - Lima"
+name = "CCL Peru - Lima"
