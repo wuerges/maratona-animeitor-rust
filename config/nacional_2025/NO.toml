@@ -1,0 +1,15 @@
+[titulo]
+name = "South America - North Finals"
+codes = ["teamno"]
+
+[[sedes]]
+name = "South America - North Finals"
+codes = ["teamno"]
+
+[[sedes]]
+codes = ["teamnoco", "teamnoec"]
+name = "Colombia"
+
+[[sedes]]
+codes = ["teamnovz"]
+name = "Venezuela"
