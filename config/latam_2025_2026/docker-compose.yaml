@@ -1,0 +1,59 @@
+services:
+  printurls:
+    image: wuerges/animeitor:latest
+    entrypoint: "/printurls"
+    command:
+      - "--prefix"
+      - "${PREFIX}"
+      - "--sedes"
+      - "./config/LatAm.toml:"
+      - "--sedes"
+      - ./config/CCL.toml:ccl
+      - "--secret"
+      - "/config/Secrets_secret.toml"
+    volumes:
+      - ./config:/config
+    build:
+      context: .
+      platforms:
+      - linux/amd64/v2
+    environment:
+      - RUST_LOG=info
+
+
+  animeitor:
+    image: wuerges/animeitor:latest
+    command:
+      - "-v"
+      - "/photos:photos"
+      - "-v"
+      - "/sounds:sounds"
+      - "-v"
+      - "/dist:"
+      - "--secret"
+      - "/config/Secrets_secret.toml"
+      - "--sedes"
+      - "./config/LatAm.toml:"
+      - "--sedes"
+      - ./config/CCL.toml:ccl
+      - ${BOCA_URL}
+    volumes:
+      - ../../tests:/tests
+      - ./config:/config
+      # place your team photos inside of ./server/photos
+      - ../../server/photos:/photos
+      # place your team sounds inside of ./server/sounds
+      - ../../server/sounds:/sounds
+      # the ./client-v2/static/user-styles.css can be edited, and it will
+      # overwrite the styles from the app
+      - ../../client-v2/static/user-styles.css:/dist/user-styles.css
+    ports:
+      - ${PUBLIC_PORT}:8000
+
+    environment:
+      - RUST_LOG=info
+
+    build:
+      context: .
+      platforms:
+      - linux/amd64/v2
