@@ -1,6 +1,5 @@
 mod api;
 mod app_data;
-mod app_v2;
 mod endpoints;
 pub mod metrics;
 mod remote_control;
