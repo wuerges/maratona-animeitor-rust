@@ -1,5 +1,6 @@
 pub mod annotate_first_solved;
 pub mod configdata;
+pub mod contest_state;
 pub mod remote_control;
 pub mod revelation;
 

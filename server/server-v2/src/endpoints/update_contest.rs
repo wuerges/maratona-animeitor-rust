@@ -1,16 +1,8 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use data::{ContestFile, RunTuple, RunsFile};
-use serde::Deserialize;
+use data::contest_state::ContestState;
 use service::dbupdate_v2::update_runs_from_data;
 
 use crate::app_data::AppData;
-
-#[derive(Deserialize, Debug)]
-struct ContestState {
-    runs: Vec<RunTuple>,
-    time: data::TimeFile,
-    contest: ContestFile,
-}
 
 const API_KEY: &str = "apikey";
 
@@ -33,21 +25,9 @@ pub async fn update_contest(
         return HttpResponse::Unauthorized().finish();
     };
 
-    let ContestState {
-        runs,
-        time,
-        contest,
-    } = create_runs.into_inner();
+    let contest_state = create_runs.into_inner();
 
-    let run_file = RunsFile::new(runs);
-
-    match update_runs_from_data(
-        (time, contest, run_file),
-        &data.shared_db,
-        &data.runs_tx,
-        &data.time_tx,
-    )
-    .await
+    match update_runs_from_data(contest_state, &data.shared_db, &data.runs_tx, &data.time_tx).await
     {
         Ok(()) => HttpResponse::Created().finish(),
         Err(e) => {

@@ -112,13 +112,7 @@ impl FromString for ContestFile {
 
 impl FromString for RunsFile {
     fn from_string(s: &str) -> ServiceResult<Self> {
-        let runs = s.lines().map(RunTuple::from_string).rev();
-        let mut runs = runs.collect::<ServiceResult<Vec<RunTuple>>>()?;
-
-        for (i, run) in runs.iter_mut().enumerate() {
-            run.order = i as u64;
-        }
-
+        let runs = read_runs(s)?;
         Ok(RunsFile::new(runs))
     }
 }
@@ -135,8 +129,15 @@ pub fn read_contest(s: &str) -> ServiceResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &str) -> ServiceResult<RunsFile> {
-    RunsFile::from_string(s)
+pub fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
+    let runs = s.lines().map(RunTuple::from_string).rev();
+    let mut runs = runs.collect::<ServiceResult<Vec<RunTuple>>>()?;
+
+    for (i, run) in runs.iter_mut().enumerate() {
+        run.order = i as u64;
+    }
+
+    Ok(runs)
 }
 
 impl DB {
