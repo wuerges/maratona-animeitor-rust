@@ -15,7 +15,7 @@ use tokio::sync::broadcast;
 use metrics::get_metrics;
 use remote_control::remote_control_ws;
 use service::DB;
-use service::dbupdate_v2::db_update;
+use service::dbupdate_v2::db_update_loop;
 use service::membroadcast;
 use service::{app_config::AppConfig, errors::ServiceResult, http::HttpConfig};
 use tokio::sync::Mutex;
@@ -39,12 +39,14 @@ pub async fn serve_config(
 
     let remote_control = Arc::new(Mutex::new(HashMap::new()));
 
-    let _update = tokio::task::spawn(db_update(
-        boca_url.clone(),
-        shared_db.clone(),
-        runs_tx.clone(),
-        time_tx.clone(),
-    ));
+    if let Some(url) = boca_url {
+        let _update = tokio::task::spawn(db_update_loop(
+            url.clone(),
+            shared_db.clone(),
+            runs_tx.clone(),
+            time_tx.clone(),
+        ));
+    }
 
     HttpServer::new(move || {
         App::new()

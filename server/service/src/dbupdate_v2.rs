@@ -34,7 +34,7 @@ pub async fn update_runs_from_data(
 }
 
 #[allow(clippy::type_complexity)]
-pub async fn db_update(
+pub async fn db_update_loop(
     boca_url: String,
     shared_db: Arc<Mutex<DB>>,
     runs_tx: membroadcast::Sender<data::RunTuple>,

@@ -22,7 +22,8 @@ struct SimpleParser {
     server_api_key: Option<String>,
 
     /// The webcast url from BOCA.
-    url: String,
+    #[clap(short = 'i')]
+    url: Option<String>,
 
     #[clap(short = 'v', long)]
     /// Maps a local FOLDER to a remote PATH.
