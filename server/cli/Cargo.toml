@@ -29,4 +29,5 @@ quickcheck_macros.workspace = true
 
 [features]
 slow_tests = []
+e2e_tests = []
 vendored = ["openssl-sys/vendored"]
