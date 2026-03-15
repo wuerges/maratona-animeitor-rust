@@ -2,9 +2,9 @@ use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
 use serde::Deserialize;
-use tracing::{debug, warn, Level};
+use tracing::{Level, debug, warn};
 
-use crate::app_data::AppData;
+use crate::{app_data::AppData, endpoints};
 
 #[derive(Deserialize, Debug)]
 struct ContestQuery {
@@ -18,6 +18,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
         get_config,
         get_allruns_ws,
         get_allruns_secret,
+        endpoints::update_contest::update_contest,
     ));
 }
 

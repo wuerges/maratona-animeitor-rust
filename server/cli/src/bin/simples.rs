@@ -17,8 +17,13 @@ struct SimpleParser {
     /// The TCP port to host the server
     port: u16,
 
+    #[clap(short = 'k')]
+    /// API Key for admin endpoints
+    server_api_key: Option<String>,
+
     /// The webcast url from BOCA.
-    url: String,
+    #[clap(short = 'i')]
+    url: Option<String>,
 
     #[clap(short = 'v', long)]
     /// Maps a local FOLDER to a remote PATH.
@@ -40,6 +45,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         port,
         url,
         volume: volumes,
+        server_api_key,
     } = SimpleParser::parse();
 
     let complete = args.into_contest_and_secret()?;
@@ -55,6 +61,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         boca_url: url,
         server_config,
         volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
+        server_api_key,
     };
 
     tracing::info!("\nMaratona Rustreimator rodando!");

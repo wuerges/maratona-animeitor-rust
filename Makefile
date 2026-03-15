@@ -9,7 +9,7 @@ run-debug-client:
 		URL_PREFIX=http://localhost:8000/api \
 		trunk serve )
 
-run-standalone:
+run-standalone-push:
 	( cargo run --manifest-path server/Cargo.toml \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
@@ -17,7 +17,20 @@ run-standalone:
 		-v ./server/sounds:sounds \
 		-v ./client-v2/release: \
 		--sedes ${SEDES}: \
-		--secret ${SECRET} ${BOCA_URL} \
+		--secret ${SECRET} \
+		-k api-key \
+	)
+
+run-standalone-loop:
+	( cargo run --manifest-path server/Cargo.toml \
+		--bin simples -- \
+		-p ${PUBLIC_PORT} \
+		-v ./server/photos:photos \
+		-v ./server/sounds:sounds \
+		-v ./client-v2/release: \
+		--sedes ${SEDES}: \
+		--secret ${SECRET} \
+		-i ${BOCA_URL} \
 	)
 
 rebuild-client-for-release:

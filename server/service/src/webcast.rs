@@ -1,5 +1,6 @@
 use crate::dataio::{read_contest, read_runs};
 use crate::errors::ServiceResult;
+use data::contest_state::ContestState;
 use std::io::Read;
 use std::string::FromUtf8Error;
 use thiserror::Error;
@@ -77,9 +78,7 @@ fn read_from_zip(
         .or_else(|_| try_read_from_zip(zip, &format!("webcast/{}", name)))
 }
 
-pub async fn load_data_from_url_maybe(
-    uri: &str,
-) -> ServiceResult<(i64, data::ContestFile, data::RunsFile)> {
+pub async fn load_data_from_url_maybe(uri: &str) -> ServiceResult<ContestState> {
     let zip_data = read_bytes_from_path(uri).await?;
 
     let reader = std::io::Cursor::new(&zip_data);
@@ -93,5 +92,9 @@ pub async fn load_data_from_url_maybe(
     let runs_data = read_from_zip(&mut zip, "runs")?;
     let runs_data = read_runs(&runs_data)?;
 
-    Ok((time_data, contest_data, runs_data))
+    Ok(ContestState {
+        runs: runs_data,
+        time: time_data,
+        contest: contest_data,
+    })
 }

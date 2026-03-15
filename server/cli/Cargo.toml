@@ -15,7 +15,8 @@ url.workspace = true
 rand.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-openssl-sys = { optional = true, version = "*" }
+openssl-sys = { optional = true, version = "0.9" }
+reqwest = { version = "0.13", features = ["json"]}
 
 data.workspace = true
 service.workspace = true

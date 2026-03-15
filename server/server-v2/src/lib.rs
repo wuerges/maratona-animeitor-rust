@@ -1,5 +1,6 @@
 mod api;
 mod app_data;
+mod endpoints;
 pub mod metrics;
 mod remote_control;
 mod volumes;
@@ -9,12 +10,14 @@ use std::{collections::HashMap, sync::Arc};
 use actix_cors::Cors;
 use actix_web::*;
 use app_data::AppData;
+use tokio::sync::broadcast;
 
 use metrics::get_metrics;
 use remote_control::remote_control_ws;
-use service::{
-    app_config::AppConfig, dbupdate_v2::spawn_db_update, errors::ServiceResult, http::HttpConfig,
-};
+use service::DB;
+use service::dbupdate_v2::db_update_loop;
+use service::membroadcast;
+use service::{app_config::AppConfig, errors::ServiceResult, http::HttpConfig};
 use tokio::sync::Mutex;
 use tracing_actix_web::TracingLogger;
 use volumes::configure_volumes;
@@ -25,14 +28,27 @@ pub async fn serve_config(
         boca_url,
         server_config: HttpConfig { port },
         volumes,
+        server_api_key,
     }: AppConfig,
 ) -> ServiceResult<()> {
-    let (shared_db, runs_tx, time_tx) = spawn_db_update(&boca_url)?;
     let config = Arc::new(config);
+
+    let shared_db = Arc::new(Mutex::new(DB::empty()));
+    let (runs_tx, _) = membroadcast::channel(1000000);
+    let (time_tx, _) = broadcast::channel(1000000);
 
     let remote_control = Arc::new(Mutex::new(HashMap::new()));
 
-    Ok(HttpServer::new(move || {
+    if let Some(url) = boca_url {
+        let _update = tokio::task::spawn(db_update_loop(
+            url.clone(),
+            shared_db.clone(),
+            runs_tx.clone(),
+            time_tx.clone(),
+        ));
+    }
+
+    HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
@@ -42,6 +58,7 @@ pub async fn serve_config(
                 time_tx: time_tx.clone(),
                 config: config.clone(),
                 remote_control: remote_control.clone(),
+                server_api_key: server_api_key.clone(),
             }))
             .service(
                 web::scope("api")
@@ -53,5 +70,7 @@ pub async fn serve_config(
     })
     .bind(("0.0.0.0", port))?
     .run()
-    .await?)
+    .await?;
+
+    Ok(())
 }
