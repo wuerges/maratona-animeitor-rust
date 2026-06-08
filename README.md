@@ -110,7 +110,7 @@ Then check your browser:
 ## Dependencies
 
 - `rust`: https://rustup.rs/
-- `trunk`: To install `trunk`, visit the project page: https://trunkrs.dev/
+- `trunk`: To install `trunk`, visit the project page: https://trunk-rs.github.io/trunk/
 
 All project dependencies have been updated in september 16, 2025.
 
