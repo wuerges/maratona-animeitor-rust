@@ -17,13 +17,13 @@ struct SimpleParser {
     /// The TCP port to host the server
     port: u16,
 
-    #[clap(short = 'k')]
+    #[clap(short = 'k', env)]
     /// API Key for admin endpoints
     server_api_key: Option<String>,
 
     /// The webcast url from BOCA.
-    #[clap(short = 'i')]
-    url: Option<String>,
+    #[clap(short = 'i', env)]
+    boca_url: Option<String>,
 
     #[clap(short = 'v', long)]
     /// Maps a local FOLDER to a remote PATH.
@@ -43,7 +43,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let SimpleParser {
         args,
         port,
-        url,
+        boca_url,
         volume: volumes,
         server_api_key,
     } = SimpleParser::parse();
@@ -58,7 +58,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let app_config = AppConfig {
         config: complete,
-        boca_url: url,
+        boca_url,
         server_config,
         volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
         server_api_key,

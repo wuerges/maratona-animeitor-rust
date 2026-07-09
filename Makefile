@@ -21,6 +21,18 @@ run-standalone-push:
 		-k api-key \
 	)
 
+run-standalone-test:
+	( cargo run --manifest-path server/Cargo.toml \
+		--bin simples -- \
+		-p ${PUBLIC_PORT} \
+		-v ./server/photos:photos \
+		-v ./server/sounds:sounds \
+		-v ./client-v2/release: \
+		--sedes ${SEDES}: \
+		--secret ${SECRET} \
+		-k test-key \
+	)
+
 run-standalone-loop:
 	( cargo run --manifest-path server/Cargo.toml \
 		--bin simples -- \

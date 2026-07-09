@@ -30,4 +30,5 @@
     "URL_PREFIX": "http://localhost:8000",
     "PHOTO_PREFIX": "http://localhost:8000/photos"
   },
+  "rust-analyzer.cargo.features": "all"
 }

@@ -9,7 +9,7 @@ authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 
 [workspace.dependencies]
 autometrics = { version = "2", features = ["prometheus-exporter", "metrics"] }
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"

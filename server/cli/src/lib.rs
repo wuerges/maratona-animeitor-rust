@@ -5,6 +5,9 @@ use data::configdata::{ConfigContest, ConfigSecret, Contest, Secret};
 use serde::Deserialize;
 use service::pair_arg::{FromPairArg, PairArg};
 
+#[cfg(feature = "e2e_tests")]
+mod e2e_tests;
+
 pub mod test_revelation;
 
 #[tracing::instrument(err)]
