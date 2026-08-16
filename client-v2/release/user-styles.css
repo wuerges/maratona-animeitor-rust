@@ -6,3 +6,17 @@ body {
   background-color: yellowgreen;
 }
 */
+
+/* Examples of how baloon colors can be changed */
+
+/*
+.balao_B {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(24%) saturate(6015%) hue-rotate(358deg) brightness(99%) contrast(109%);
+}
+*/
+
+/*
+.balao_H {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(35%) saturate(487%) hue-rotate(306deg) brightness(110%) contrast(108%);
+}
+*/

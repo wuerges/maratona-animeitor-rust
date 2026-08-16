@@ -1,13 +1,13 @@
 include secret_env
 
-BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
+BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 # SECRET=./config/regional_2026/Secrets.toml
 SECRET=./config/regional_2026/Secrets_secret.toml
-PUBLIC_PORT=80
+PUBLIC_PORT=8000
 SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
 
-# PREFIX=http://localhost:8000
-PREFIX=http://animeitor.naquadah.com.br
+PREFIX=http://localhost:8000
+# PREFIX=http://animeitor.naquadah.com.br
 PHOTO_PREFIX=${PREFIX}/photos
 SOUND_PREFIX=${PREFIX}/sounds
 
@@ -61,7 +61,7 @@ run-standalone:
 		--sedes ./config/regional_2026/Bolivia.toml:bolivia \
 		--sedes ./config/regional_2026/Centro_America.toml:centro \
 		--sedes ./config/regional_2026/Mexico.toml:mexico \
-		--secret ${SECRET} ${BOCA_URL} \
+		--secret ${SECRET} -i ${BOCA_URL} \
 	)
 
 printurls-standalone:
