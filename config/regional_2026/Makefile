@@ -1,6 +1,6 @@
 include secret_env
 
-BOCA_URL=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
+BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 # SECRET=./config/regional_2026/Secrets.toml
 SECRET=./config/regional_2026/Secrets_secret.toml
 PUBLIC_PORT=80
