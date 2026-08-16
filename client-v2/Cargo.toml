@@ -22,3 +22,10 @@ codee = "0.3.0"
 [dependencies.web-sys]
 features = ["WebSocket", "MessageEvent"]
 version = "0"
+
+[profile.release]
+opt-level = "z"        # Optimize aggressively for size
+lto = true             # Enable Link Time Optimization
+codegen-units = 1      # Reduce number of codegen units for better size optimization
+panic = "abort"        # Remove panic-unwinding infrastructure
+strip = true           # Strip debug symbols and metadata
