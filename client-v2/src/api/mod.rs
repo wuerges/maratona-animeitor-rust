@@ -172,11 +172,17 @@ fn sound_prefix() -> String {
 }
 
 pub fn team_photo_location(team_login: &str) -> String {
-    format!("{}/{}.webp", photos_prefix(), team_login)
+    match option_env!("PHOTO_URL_FORMAT") {
+        Some(format) => format.replace("{team_login}", team_login),
+        None => format!("{}/{}.webp", photos_prefix(), team_login),
+    }
 }
 
 pub fn team_sound_location(team_login: &str) -> String {
-    format!("{}/{}.mp3", sound_prefix(), team_login)
+    match option_env!("SOUND_URL_FORMAT") {
+        Some(format) => format.replace("{team_login}", team_login),
+        None => format!("{}/{}.mp3", sound_prefix(), team_login),
+    }
 }
 
 #[cfg(test)]
