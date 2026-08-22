@@ -5,12 +5,33 @@ ouro = 4
 prata = 8
 bronze = 12
 
+
 [[sedes]]
 name = "Brasil"
 codes = ["teambr"]
 ouro = 4
 prata = 8
 bronze = 12
+
+[[sedes]]
+name = "Norte"
+codes = ["bracrb", "bramma", "brapmc", "brpabe", "brpama", "brpasa", "brropv", "brrrbv"]
+
+[[sedes]]
+name = "Sul"
+codes = ["brprcm", "brprcu", "brprfi", "brrspe", "brrspf", "brscfl", "brscpi"]
+
+[[sedes]]
+name = "Centro-Oeste"
+codes = ["brdfdf", "brgogo", "brmscg", "brmsdo", "brmtcu"]
+
+[[sedes]]
+name = "Sudeste"
+codes = ["bresse", "brmgbe", "brmgit", "brmgmc", "brmgpa", "brmgsj", "brmgti", "brmgub", "brmgud", "brmgvi", "brrjrj", "brspma", "brsprp", "brspsj", "brspso", "brspsp"]
+
+[[sedes]]
+name = "Nordeste"
+codes = ["bralma", "brbagu", "brbaju", "brbasa", "brcecr", "brcefo", "brcejn", "brceqx", "brceti", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brrnna", "brrnpf", "brsesc"]
 
 [[sedes]]
 name = "DF, Brasília"
