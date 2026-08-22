@@ -31,6 +31,7 @@ SSH_ANIMEITOR=ew@animeitor.naquadah.com.br
 run-debug-client:
 	( cd client-v2 && \
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
+		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
 		SOUND_PREFIX=${SOUND_PREFIX} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk serve )
@@ -38,6 +39,7 @@ run-debug-client:
 rebuild-client:
 	( cd client-v2 && \
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
+		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
 		SOUND_PREFIX=${SOUND_PREFIX} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk build --release -d naquadah )
