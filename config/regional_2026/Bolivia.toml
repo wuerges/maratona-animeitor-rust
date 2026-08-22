@@ -1,63 +1,63 @@
 [titulo]
 name = "Bolivia"
-codes = ["teamsobo"]
+codes = ["teambo"]
 
 [[sedes]]
 name = "Bolivia"
-codes = ["sobo"]
+codes = ["teambo"]
+
+[[sedes]]
+name = "Bermejo"
+codes = ["boberm"]
+
+[[sedes]]
+name = "Cobija"
+codes = ["bocobi"]
+
+[[sedes]]
+name = "Cochabamba"
+codes = ["bococh"]
 
 [[sedes]]
 name = "El Alto"
-codes = ["soboea"]
-[[sedes]]
+codes = ["boelal"]
 
-name = "Yacuiba"
-codes = ["soboya"]
 [[sedes]]
-
-name = "Cobija"
-codes = ["soboco"]
-[[sedes]]
-
-name = "Llallagua"
-codes = ["soboll"]
-[[sedes]]
-
-name = "Oruro"
-codes = ["soboor"]
-[[sedes]]
-
-name = "Trinidad"
-codes = ["sobotr"]
-[[sedes]]
-
-name = "Potosí"
-codes = ["sobopo"]
-[[sedes]]
-
-name = "Santa Cruz"
-codes = ["sobosc"]
-[[sedes]]
-
-name = "Sucre"
-codes = ["sobosu"]
-[[sedes]]
-
-name = "Tupiza"
-codes = ["sobotu"]
-[[sedes]]
-
-name = "Cochabamba"
-codes = ["soboch"]
-[[sedes]]
-
 name = "La Paz"
-codes = ["sobolp"]
-[[sedes]]
+codes = ["bolapa"]
 
-name = "Bermejo"
-codes = ["sobobe"]
 [[sedes]]
+name = "Llallagua"
+codes = ["bollal"]
 
+[[sedes]]
+name = "Oruro"
+codes = ["boorur"]
+
+[[sedes]]
+name = "Potosí"
+codes = ["bopoto"]
+
+[[sedes]]
+name = "Santa Cruz"
+codes = ["bosacr"]
+
+[[sedes]]
+name = "Sucre"
+codes = ["bosucr"]
+
+[[sedes]]
 name = "Tarija"
-codes = ["sobota"]
+codes = ["botari"]
+
+[[sedes]]
+name = "Trinidad"
+codes = ["botrin"]
+
+[[sedes]]
+name = "Tupiza"
+codes = ["botupi"]
+
+[[sedes]]
+name = "Yacuiba"
+codes = ["boyacu"]
