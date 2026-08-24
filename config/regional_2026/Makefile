@@ -17,6 +17,7 @@ HTTPS_OPTS= --tls-cert ./fullchain.pem \
 SEDES_OPTS= --sedes ./config/regional_2026/CCL.toml:ccl \
 		--sedes ./config/regional_2026/CCL_Bolivia.toml:ccl-bolivia \
 		--sedes ./config/regional_2026/CCL_Brasil.toml:ccl-brasil \
+		--sedes ./config/regional_2026/CCL_Mexico.toml:ccl-mexico\
 		--sedes ./config/regional_2026/CCL_Centro_America.toml:ccl-centro \
 		--sedes ./config/regional_2026/LA.toml: \
 		--sedes ./config/regional_2026/Brasil.toml:brasil \
