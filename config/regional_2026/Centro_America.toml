@@ -7,45 +7,97 @@ codes = ["teamca"]
 name = "Centro America"
 
 [[sedes]]
-name = "Tecnológico de Costa Rica Sede Alajuela"
-codes = ["cacral"]
-
-[[sedes]]
-name = "Universidad Centroamericana \"José Simeón Cañas\""
-codes = ["cacejc"]
-
-[[sedes]]
-name = "Universidad Rafael Landívar"
-codes = ["caunrl"]
-
-[[sedes]]
-name = "Universidad Rafael Landívar sede Quetzaltenango"
-codes = ["caurlq"]
-
-[[sedes]]
-name = "Universidad Galileo"
-codes = ["caunga"]
-
-[[sedes]]
-name = "Universidad del Valle GT"
-codes = ["cavagt"]
-
-[[sedes]]
-name = "Universidad del Itsmo de Guatemala"
-codes = ["caitgu"]
-
-[[sedes]]
+codes = ["catcli"]
 name = "Tecnológico de Costa Rica Centro Académico de Limón"
-codes = ["cacalm"]
 
 [[sedes]]
+codes = ["catcal"]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+
+[[sedes]]
+codes = ["catcca"]
+name = "Tecnológico de Costa Rica Sede Cartago"
+
+[[sedes]]
+codes = ["cateli"]
+name = "Tecnológico de Costa Rica sede Limón"
+
+[[sedes]]
+codes = ["caunce"]
 name = "Universidad Cenfotec"
-codes = ["cacenf"]
 
 [[sedes]]
-name = "Universidad San Carlos de Guatemala"
-codes = ["cascgt"]
+codes = ["caucca"]
+name = "Universidad Centroamericana \"José Simeón Cañas\""
 
 [[sedes]]
+codes = ["caudbo"]
+name = "Universidad Don Bosco"
+
+[[sedes]]
+codes = ["caufpe"]
 name = "Universidad Fidélitas (San Pedro)"
-codes = ["cafisp"]
+
+[[sedes]]
+codes = ["caufga"]
+name = "Universidad Francisco Gavidia"
+
+[[sedes]]
+codes = ["caunga"]
+name = "Universidad Galileo"
+
+[[sedes]]
+codes = ["caumch"]
+name = "Universidad Mariano Galvez de Guatemala Campus Chiquimulilla"
+
+[[sedes]]
+codes = ["caunma"]
+name = "Universidad Nacional Autónoma de Nicaragua sede Managua"
+
+[[sedes]]
+codes = ["caunni"]
+name = "Universidad Nacional Chorotega - Nicoya"
+
+[[sedes]]
+codes = ["caunin"]
+name = "Universidad Nacional de Ingeniería"
+
+[[sedes]]
+codes = ["caunco"]
+name = "Universidad Nacional sede Coto"
+
+[[sedes]]
+codes = ["caurla"]
+name = "Universidad Rafael Landívar"
+
+[[sedes]]
+codes = ["caurqu"]
+name = "Universidad Rafael Landívar sede Quetzaltenango"
+
+[[sedes]]
+codes = ["causgu"]
+name = "Universidad San Carlos de Guatemala"
+
+[[sedes]]
+codes = ["causoc"]
+name = "Universidad San Carlos,  Centro Universitario de Occidente"
+
+[[sedes]]
+codes = ["caucpa"]
+name = "Universidad de Costa Rica sede Pacífico"
+
+[[sedes]]
+codes = ["caucpe"]
+name = "Universidad de Costa Rica sede San Pedro"
+
+[[sedes]]
+codes = ["caudor"]
+name = "Universidad de Oriente"
+
+[[sedes]]
+codes = ["cauigu"]
+name = "Universidad del Istmo de Guatemala"
+
+[[sedes]]
+codes = ["cauvgt"]
+name = "Universidad del Valle GT"
