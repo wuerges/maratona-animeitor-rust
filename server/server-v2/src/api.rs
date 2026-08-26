@@ -11,6 +11,11 @@ struct ContestQuery {
     pub contest: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct SecretQuery {
+    secret: String,
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service((
         get_contest,
@@ -22,13 +27,31 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     ));
 }
 
+/// Serialize a value and send it over a websocket.
+/// Returns false when the connection closed and the caller should stop.
+pub(crate) async fn send_json<T: serde::Serialize>(
+    session: &mut actix_ws::Session,
+    value: &T,
+) -> bool {
+    match serde_json::to_string(value) {
+        Ok(text) => match session.text(text).await {
+            Ok(()) => true,
+            Err(Closed) => false,
+        },
+        Err(err) => {
+            warn!(?err, "failed serializing");
+            true
+        }
+    }
+}
+
 #[get("/contest")]
 async fn get_contest(
     data: web::Data<AppData>,
     contest: web::Query<ContestQuery>,
-) -> impl Responder {
+) -> HttpResponse {
     get_contest_fn(
-        data,
+        data.get_ref(),
         contest.into_inner().contest.unwrap_or_default().as_str(),
     )
     .await
@@ -36,7 +59,7 @@ async fn get_contest(
 
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
-async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder + use<> {
+async fn get_contest_fn(data: &AppData, sede_config: &str) -> HttpResponse {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -52,9 +75,9 @@ async fn get_contest_fn(data: web::Data<AppData>, sede_config: &str) -> impl Res
 }
 
 #[get("/config")]
-async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>) -> impl Responder {
+async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>) -> HttpResponse {
     get_config_fn(
-        data,
+        data.get_ref(),
         contest.into_inner().contest.unwrap_or_default().as_str(),
     )
     .await
@@ -62,7 +85,7 @@ async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>)
 
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
-async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Responder + use<> {
+async fn get_config_fn(data: &AppData, sede_config: &str) -> HttpResponse {
     let db = data.shared_db.lock().await;
     if db.time_file < 0 {
         return HttpResponse::Forbidden().finish();
@@ -74,22 +97,13 @@ async fn get_config_fn(data: web::Data<AppData>, sede_config: &str) -> impl Resp
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct SecretQuery {
-    secret: String,
-}
-
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
-async fn get_allruns_secret_fn(
-    data: web::Data<AppData>,
-    sede_config: &str,
-    query: web::Query<SecretQuery>,
-) -> impl Responder + use<> {
+async fn get_allruns_secret_fn(data: &AppData, sede_config: &str, secret: &str) -> HttpResponse {
     let sede = data
         .config
         .get(sede_config)
-        .and_then(|(_, _, s)| s.get_sede_by_secret(&query.secret).cloned());
+        .and_then(|(_, _, s)| s.get_sede_by_secret(secret).cloned());
 
     match sede {
         None => HttpResponse::Forbidden().finish(),
@@ -109,15 +123,17 @@ async fn get_allruns_secret(
     data: web::Data<AppData>,
     query: web::Query<SecretQuery>,
     contest: web::Query<ContestQuery>,
-) -> impl Responder {
+) -> HttpResponse {
     get_allruns_secret_fn(
-        data,
+        data.get_ref(),
         contest.into_inner().contest.unwrap_or_default().as_str(),
-        query,
+        &query.secret,
     )
     .await
 }
 
+#[autometrics]
+#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
 #[get("/allruns_ws")]
 async fn get_allruns_ws(
     data: web::Data<AppData>,
@@ -125,29 +141,12 @@ async fn get_allruns_ws(
     body: web::Payload,
     contest: web::Query<ContestQuery>,
 ) -> Result<HttpResponse, Error> {
-    get_allruns_ws_fn(
-        data,
-        contest.into_inner().contest.unwrap_or_default().as_str(),
-        req,
-        body,
-    )
-    .await
-}
-
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
-async fn get_allruns_ws_fn(
-    data: web::Data<AppData>,
-    sede_config: &str,
-    req: HttpRequest,
-    body: web::Payload,
-) -> Result<HttpResponse, Error> {
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
     let mut runs_rx = data.runs_tx.subscribe();
 
     let sede = data
         .config
-        .get(sede_config)
+        .get(contest.into_inner().contest.unwrap_or_default().as_str())
         .map(|(_config, contest, _secret)| contest.titulo.clone());
 
     match sede {
@@ -157,16 +156,11 @@ async fn get_allruns_ws_fn(
                 loop {
                     match runs_rx.recv().await {
                         Ok(r) => {
-                            if sede.team_belongs_str(&r.team_login) {
-                                match serde_json::to_string(&r) {
-                                    Ok(text) => {
-                                        if let Err(Closed) = session.text(text).await {
-                                            debug!("ws connection closed");
-                                            break;
-                                        }
-                                    }
-                                    Err(err) => warn!(?err, "failed serializing run"),
-                                }
+                            if sede.team_belongs_str(&r.team_login)
+                                && !send_json(&mut session, &r).await
+                            {
+                                debug!("ws connection closed");
+                                break;
                             }
                         }
                         Err(err) => {
@@ -181,18 +175,10 @@ async fn get_allruns_ws_fn(
     }
 }
 
-#[get("/timer")]
-async fn get_timer(
-    data: web::Data<AppData>,
-    req: HttpRequest,
-    body: web::Payload,
-) -> Result<HttpResponse, Error> {
-    get_timer_fn(data, req, body).await
-}
-
 #[autometrics]
 #[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
-async fn get_timer_fn(
+#[get("/timer")]
+async fn get_timer(
     data: web::Data<AppData>,
     req: HttpRequest,
     body: web::Payload,
@@ -209,15 +195,9 @@ async fn get_timer_fn(
                         continue;
                     }
                     previous = Some(time);
-
-                    match serde_json::to_string(&time) {
-                        Ok(text) => {
-                            if let Err(Closed) = session.text(text).await {
-                                debug!("ws connection closed");
-                                break;
-                            }
-                        }
-                        Err(err) => warn!(?err, "failed serializing time"),
+                    if !send_json(&mut session, &time).await {
+                        debug!("ws connection closed");
+                        break;
                     }
                 }
                 Err(err) => {

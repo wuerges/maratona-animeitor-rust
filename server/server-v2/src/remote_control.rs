@@ -1,18 +1,13 @@
-use std::time::Duration;
-
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use actix_ws::{Message, MessageStream, Session};
 use autometrics::autometrics;
 use data::remote_control::ControlMessage;
 use futures::StreamExt;
-use tokio::sync::broadcast::{
-    error::{RecvError, SendError},
-    Receiver, Sender,
-};
+use tokio::sync::broadcast::{Receiver, Sender, error::SendError};
 use tokio_stream::wrappers::BroadcastStream;
 use tracing::{debug, instrument, Level};
 
-use crate::app_data::AppData;
+use crate::{api::send_json, app_data::AppData};
 
 #[get("/remote_control/{key}")]
 async fn remote_control_ws(
@@ -40,15 +35,11 @@ fn create_remote_control() -> ControlSender {
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error(transparent)]
-    RecvError(#[from] RecvError),
-    #[error(transparent)]
     SendError(#[from] SendError<ConnectionControlMessage>),
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
     Closed(#[from] actix_ws::Closed),
-    #[error(transparent)]
-    ProtocolError(#[from] actix_ws::ProtocolError),
 }
 
 #[instrument(skip(rec, session), err)]
@@ -64,9 +55,8 @@ async fn send_to_clients(
         message,
     })) = rec_stream.next().await
     {
-        if request_id != connection_request_id {
-            let text = serde_json::to_string(&message)?;
-            session.text(text).await?;
+        if request_id != connection_request_id && !send_json(&mut session, &message).await {
+            return Ok(());
         }
     }
 
@@ -98,8 +88,6 @@ async fn read_from_clients(
                 request_id,
                 message,
             })?;
-        } else {
-            tokio::time::sleep(Duration::from_secs(1)).await
         }
     }
 
