@@ -32,7 +32,6 @@ url = "2"
 zip = "5"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-utoipa = "5"
 actix-web = { version = "4.11", features = ["rustls-0_23"] }
 actix-cors = "0.7"
 actix-files = "0.6"

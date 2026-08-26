@@ -6,11 +6,10 @@ use std::{
 use derivative::Derivative;
 use regex::RegexSet;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
 use crate::Team;
 
-#[derive(Debug, Clone, Default, Derivative, ToSchema)]
+#[derive(Debug, Clone, Default, Derivative)]
 #[derivative(PartialEq, Eq)]
 pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
 
@@ -43,7 +42,7 @@ impl Display for RegexSetField {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, Default, ToSchema, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
 /// A site entry.
 pub struct SedeEntry {
     /// Site name.
@@ -126,7 +125,7 @@ impl SedeEntry {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, ToSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 /// Site configuration for contest.
 pub struct ConfigContest {
     /// The contest title.
