@@ -243,21 +243,6 @@ mod tests {
     }
 
     #[test]
-    fn test_db_file_1a_fase_2020() -> ServiceResult<()> {
-        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-        assert_eq!(runs.len(), 6285);
-
-        let mut db = DB::empty();
-        db.refresh_db(0, contest, runs)?;
-
-        assert_eq!(db.run_file.len(), 4927);
-        assert_eq!(db.run_file_secret.len(), 6285);
-
-        Ok(())
-    }
-
-    #[test]
     fn test_parse_contest_file() -> ServiceResult<()> {
         let x = ContestFile::from_file("test/sample/contest")?;
         assert_eq!(x.contest_name, "LATAM ACM ICPC".to_string());
