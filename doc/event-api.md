@@ -2,16 +2,20 @@
 
 Esta API substitui o antigo arquivo webcast. Todos os tempos são expressos em **segundos**, sem exceção.
 
+## Escopo
+
+Todos os endpoints desta API ficam sob o escopo `/internal`.
+
 ## Autenticação
 
-Todos os endpoints desta API são privados e exigem autenticação HTTP Basic com um token:
+Todos os endpoints são privados e exigem autenticação HTTP Basic com um token:
 
 - Cabeçalho: `Authorization: Basic <base64(usuario:token)>`.
 - Sem credenciais válidas: `401 Unauthorized`.
 
 ## Recurso raiz
 
-- `/event`
+- `/internal/event`
 
 ## Estado do evento
 
@@ -51,32 +55,60 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
 
 ### Criar o evento
 
-- `POST /event`
+- `POST /internal/event`
 - Corpo: estado do evento; `time` é opcional e assume `0`.
-- Resposta: `201 Created`. Se o evento já existe: `409 Conflict`.
+
+Respostas:
+
+- `201 Created` — evento criado; corpo: estado do evento como armazenado.
+- `400 Bad Request` — corpo inválido (JSON malformado, campo obrigatório ausente ou regex inválida em `codes`).
+- `401 Unauthorized` — credenciais ausentes ou inválidas.
+- `409 Conflict` — o evento já existe.
 
 ### Ler o evento
 
-- `GET /event`
-- Resposta: estado atual do evento.
+- `GET /internal/event`
+
+Respostas:
+
+- `200 OK` — corpo: estado atual do evento.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
 
 ### Atualizar todos os valores do evento
 
-- `PUT /event`
+- `PUT /internal/event`
 - Corpo: estado completo do evento.
-- Resposta: `200 OK`. Se o evento não existe: `404 Not Found`.
+
+Respostas:
+
+- `200 OK` — corpo: estado atualizado.
+- `400 Bad Request` — corpo inválido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
 
 ### Atualizar somente o tempo
 
-- `PATCH /event/time`
+- `PATCH /internal/event/time`
 - Corpo: `{ "time": <segundos> }`.
-- Resposta: `200 OK`. Se o evento não existe: `404 Not Found`.
+
+Respostas:
+
+- `200 OK` — corpo: `{ "time": <novo valor> }`.
+- `400 Bad Request` — corpo inválido ou tempo negativo.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
 
 ### Remover o evento
 
-- `DELETE /event`
+- `DELETE /internal/event`
 - Remove o evento, seus contests e todas as runs.
-- Resposta: `204 No Content`.
+
+Respostas:
+
+- `204 No Content` — removido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
 
 ## Contests
 
@@ -108,21 +140,39 @@ Chaves não listadas aqui são ignoradas.
 
 ### Criar um contest
 
-- `POST /event/contest`
+- `POST /internal/event/contest`
 - Corpo: contest (formato acima).
-- Resposta: `201 Created`. Se o evento não existe: `404 Not Found`. Se o contest já existe: `409 Conflict`.
+
+Respostas:
+
+- `201 Created` — corpo: contest como armazenado.
+- `400 Bad Request` — corpo inválido, `name` ou `codes` ausentes, ou regex inválida.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
+- `409 Conflict` — já existe um contest com esse `name`.
 
 ### Substituir um contest
 
-- `PUT /event/contest`
+- `PUT /internal/event/contest`
 - Corpo: contest completo (substitui todos os valores).
-- Resposta: `200 OK`. Se o evento não existe: `404 Not Found`.
+
+Respostas:
+
+- `200 OK` — corpo: contest atualizado.
+- `400 Bad Request` — corpo inválido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento ou o contest não existe.
 
 ### Remover um contest
 
-- `DELETE /event/contest/{name}`
-- Para o contest padrão, o segmento `{name}` é vazio: `DELETE /event/contest/`.
-- Resposta: `204 No Content`.
+- `DELETE /internal/event/contest/{name}`
+- Para o contest padrão, o segmento `{name}` é vazio: `DELETE /internal/event/contest/`.
+
+Respostas:
+
+- `204 No Content` — removido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento ou o contest não existe.
 
 ## Secrets
 
@@ -165,22 +215,44 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 
 ### Adicionar runs
 
-- `POST /event/runs`
+- `POST /internal/event/runs`
 - Corpo: `{ "runs": [ ... ] }`.
 - Adiciona as runs às existentes; submissões com o mesmo `id` são ignoradas (idempotente).
-- Resposta: `200 OK`. Se o evento não existe: `404 Not Found`.
+
+Respostas:
+
+- `200 OK` — corpo: `{ "added": <quantidade> }`, com a quantidade de runs efetivamente adicionadas (duplicadas por `id` não contam).
+- `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `team_login`/`prob` desconhecidos.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
 
 ### Remover todas as runs
 
-- `DELETE /event/runs`
-- Resposta: `204 No Content`.
+- `DELETE /internal/event/runs`
+
+Respostas:
+
+- `204 No Content` — removidas.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento não existe.
+
+## Códigos de resposta comuns
+
+- `200 OK` — operação concluída; corpo com o recurso ou resultado.
+- `201 Created` — recurso criado; corpo com o recurso criado.
+- `204 No Content` — remoção concluída; sem corpo.
+- `400 Bad Request` — corpo inválido (JSON malformado, campos ausentes ou com valores inválidos).
+- `401 Unauthorized` — credenciais ausentes ou inválidas.
+- `404 Not Found` — evento, contest ou runs inexistentes.
+- `409 Conflict` — criação de recurso já existente.
 
 ## Resumo das regras
 
+- Todos os endpoints ficam sob `/internal`.
 - Todos os tempos em segundos.
 - Todos os endpoints exigem autenticação HTTP Basic com token.
 - Runs são enviadas somente após a criação do evento.
 - Envios de runs são incrementais (append) e idempotentes por `id`.
-- Atualizações completas via `PUT`; atualização de tempo via `PATCH /event/time`.
+- Atualizações completas via `PUT`; atualização de tempo via `PATCH /internal/event/time`.
 - Chaves dos contests são derivadas do `salt` do evento (HMAC-SHA256 truncado em 12 caracteres base62).
 - Mídia é configurada por formatos de URL, não por volumes.
