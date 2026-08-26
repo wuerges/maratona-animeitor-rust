@@ -20,6 +20,7 @@ client-sdk.workspace = true
 client-model.workspace = true
 log.workspace = true
 console_log.workspace = true
+any_spawner = { version = "0.3", features = ["wasm-bindgen"] }
 
 [dependencies.web-sys]
 features = ["Window", "ScrollToOptions", "ScrollBehavior"]

@@ -791,6 +791,7 @@ dependencies = [
 name = "client-v2"
 version = "2.1.0"
 dependencies = [
+ "any_spawner",
  "client-model",
  "client-sdk",
  "codee",
