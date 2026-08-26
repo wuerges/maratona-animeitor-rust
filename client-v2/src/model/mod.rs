@@ -78,30 +78,18 @@ pub async fn provide_contest(query: ContestQuery) -> ContestProvider {
                 }
 
                 if !fresh_runs.is_empty() {
-                    let runs = runs_file.sorted();
-
-                    let mut included_in_panel = HashSet::new();
-
-                    for r in fresh_runs.iter().rev() {
-                        if included_in_panel.len() <= RunsPanelItemManager::MAX {
-                            included_in_panel.insert(r.id);
-                        } else {
-                            break;
-                        }
-                    }
-
                     for r in fresh_runs.iter() {
                         running_contest.apply_run(r);
-                        if included_in_panel.contains(&r.id) {
-                            running_contest.recalculate_placement();
-                        }
+                    }
+                    running_contest.recalculate_placement();
+
+                    for r in fresh_runs.iter() {
                         if let Ok(panel_item) = running_contest.build_panel_item(r) {
                             runs_panel_item_manager.push(panel_item)
                         }
                     }
-                    running_contest.recalculate_placement();
 
-                    new_contest_signal.update_tuples(&runs, &running_contest);
+                    new_contest_signal.update_tuples(&fresh_runs, &running_contest);
                 }
             }
         }

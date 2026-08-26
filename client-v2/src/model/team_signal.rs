@@ -41,14 +41,47 @@ impl TeamSignal {
         }
     }
 
-    pub fn update(&self, team: &Team) {
+    /// Updates the signals of this team from a fresh Team.
+    /// Returns whether the placement changed.
+    ///
+    /// Only signals whose value actually changed are notified: the score
+    /// and problem views compare via the id-based equality that `data`
+    /// maintains (ids bump on every state change). Callers running inside
+    /// a reactive owner must not do plain reads here.
+    pub fn update(&self, team: &Team) -> bool {
+        let mut placement_changed = false;
         let new_score = team.score();
-        self.score.update(|x| *x = new_score);
-        self.placement_global.update(|p| *p = team.placement_global);
+        self.score.maybe_update(|x| {
+            if *x != new_score {
+                *x = new_score;
+                true
+            } else {
+                false
+            }
+        });
+        self.placement_global.maybe_update(|p| {
+            if *p != team.placement_global {
+                *p = team.placement_global;
+                placement_changed = true;
+                true
+            } else {
+                false
+            }
+        });
 
         for (letter, problem_view) in &self.problems {
-            problem_view.update(|v| *v = team.problems.get(letter).map(|p| p.view()))
+            let new_view = team.problems.get(letter).map(|p| p.view());
+            problem_view.maybe_update(|v| {
+                if *v != new_view {
+                    *v = new_view;
+                    true
+                } else {
+                    false
+                }
+            });
         }
+
+        placement_changed
     }
 
     pub fn is_resolved(&self) -> Memo<bool> {
