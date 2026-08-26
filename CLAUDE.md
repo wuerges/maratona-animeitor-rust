@@ -12,6 +12,10 @@ Scoreboard/animeitor for ICPC-style contests. Single cargo workspace at the root
 
 The client renders ~1500 team rows, updating every second. Avoid re-rendering: fine-grained per-row signals (one signal per team, not one big list signal), memoize derived values. Any whole-list re-render costs 1500x. Review `client-model/` for the signal-per-team pattern before adding new reactive state.
 
+## Changelog
+
+Add an entry to `CHANGELOG.md` for every user-facing change: append it to the **bottom of the Unreleased section**. Write for users, not maintainers — describe behavior and benefits, no implementation details.
+
 ## VCS
 
 Uses **jj**, not git. Commit each change as you go (`jj commit`); `jj status`/`jj diff` for status/diff.
