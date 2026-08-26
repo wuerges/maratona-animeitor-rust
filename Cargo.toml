@@ -1,5 +1,5 @@
 [workspace]
-members = ["data", "cli", "service", "server-v2"]
+members = ["server/data", "server/cli", "server/service", "server/server-v2", "client-v2"]
 resolver = "2"
 
 [workspace.package]
@@ -40,7 +40,16 @@ tracing-actix-web = "0.7"
 rstest = "0.26"
 tokio-stream = { version = "0.1", features = ["sync"] }
 
-data = { path = "data" }
-cli = { path = "cli" }
-service = { path = "service" }
-server-v2 = { path = "server-v2" }
+data = { path = "server/data" }
+cli = { path = "server/cli" }
+service = { path = "server/service" }
+server-v2 = { path = "server/server-v2" }
+
+# lto/panic cannot be set per-package; lto applies to the whole workspace
+[profile.release]
+lto = true
+
+[profile.release.package.client-v2]
+opt-level = "z"
+codegen-units = 1
+strip = true

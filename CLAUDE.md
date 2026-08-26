@@ -1,9 +1,9 @@
 # maratona-animeitor
 
-Scoreboard/animeitor for ICPC-style contests. Rust:
+Scoreboard/animeitor for ICPC-style contests. Single cargo workspace at the root.
 
-- `client-v2/` — Leptos 0.8 CSR (wasm) UI, built with `trunk` (`make rebuild-client-for-release`, dev: `trunk serve`).
-- `server/` — workspace (`data`, `cli`, `service`, `server-v2`): API + serves client release, photos, sounds. Standalone: `cargo run -p simples` (see Makefile).
+- `client-v2/` — Leptos 0.8 CSR (wasm) UI, built with `trunk` from that dir (`make rebuild-client-for-release`, dev: `trunk serve`). Nightly toolchain pin lives in `client-v2/rust-toolchain.toml`.
+- `server/` crates — `data` (shared types, wasm-safe), `service`, `server-v2`, `cli` (binaries incl. `simples`). Build: `cargo build -p cli`, release+musl: `make rebuild-server-for-release`.
 - `config/` — per-contest TOML configs.
 
 ## Client performance (critical)

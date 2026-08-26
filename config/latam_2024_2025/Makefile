@@ -3,7 +3,7 @@ include secret_env
 BOCA_URL ?=./tests/inputs/pda-2024/pda-2024.zip
 SECRET=./config/latam_2024_2025/Secrets_secret.toml
 PUBLIC_PORT ?=80
-SERVER_RELEASE_DIR = server/target/x86_64-unknown-linux-musl/release/
+SERVER_RELEASE_DIR = target/x86_64-unknown-linux-musl/release/
 
 # PREFIX=http://localhost:8000
 PREFIX=http://animeitor.naquadah.com.br
@@ -40,13 +40,12 @@ rebuild-client:
 		trunk build --release -d naquadah )
 
 rebuild-debug-server:
-	cargo build --manifest-path server/Cargo.toml
+	cargo build -p cli
 
 rebuild-release-server:
-	cargo build \
+	cargo build -p cli \
 		--release \
 		--target x86_64-unknown-linux-musl --features vendored \
-		--manifest-path server/Cargo.toml
 
 
 SEDES_PARS=\

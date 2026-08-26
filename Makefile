@@ -10,7 +10,7 @@ run-debug-client:
 		trunk serve )
 
 run-standalone-push:
-	( cargo run --manifest-path server/Cargo.toml \
+	( cargo run -p cli \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
@@ -22,7 +22,7 @@ run-standalone-push:
 	)
 
 run-standalone-loop:
-	( cargo run --manifest-path server/Cargo.toml \
+	( cargo run -p cli \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
@@ -39,7 +39,7 @@ rebuild-client-for-release:
 
 rebuild-server-for-release:
 	@echo recompiling server...
-	( cd server && cargo build --release --target x86_64-unknown-linux-musl --features vendored )
+	( cargo build -p cli --release --target x86_64-unknown-linux-musl --features vendored )
 
 rebuild-docker-image: rebuild-server-for-release rebuild-client-for-release
 	@echo rebuild docker image
