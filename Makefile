@@ -37,7 +37,7 @@ rebuild-server-for-release:
 	@echo recompiling server...
 	( cargo build -p cli --release --target x86_64-unknown-linux-musl --features vendored )
 
-rebuild-docker-image: rebuild-server-for-release rebuild-client-for-release
+rebuild-docker-image:
 	@echo rebuild docker image
 	docker compose build
 
