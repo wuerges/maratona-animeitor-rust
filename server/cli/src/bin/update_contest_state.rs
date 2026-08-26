@@ -1,6 +1,5 @@
 use clap::Parser;
 
-use color_eyre::eyre;
 use service::{sentry, webcast};
 use tracing::{debug, error};
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
@@ -17,7 +16,7 @@ struct SimpleParser {
     #[clap(short = 'i')]
     boca_url: String,
 
-    /// The webcast url from BOCA.
+    /// The animeitor server url.
     #[clap(short = 's')]
     server_url: String,
 }
@@ -38,17 +37,12 @@ async fn main() -> color_eyre::eyre::Result<()> {
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
 
-    db_update_loop(&server_api_key, &boca_url, &server_url).await?;
+    db_update_loop(&server_api_key, &boca_url, &server_url).await;
 
     Ok(())
 }
 
-#[allow(clippy::type_complexity)]
-pub async fn db_update_loop(
-    server_api_key: &str,
-    boca_url: &str,
-    server_url: &str,
-) -> eyre::Result<()> {
+pub async fn db_update_loop(server_api_key: &str, boca_url: &str, server_url: &str) {
     let dur = tokio::time::Duration::new(1, 0);
     let mut interval = tokio::time::interval(dur);
 
@@ -57,20 +51,21 @@ pub async fn db_update_loop(
     loop {
         interval.tick().await;
 
-        let contest_state = webcast::load_data_from_url_maybe(&boca_url).await?;
-
-        let result = client
-            .put(format!("{server_url}/contests"))
-            .json(&contest_state)
-            .header("apikey", server_api_key)
-            .send()
-            .await?;
-
-        match result.error_for_status() {
-            Ok(_) => {
-                debug!("ok");
-            }
-            Err(err) => error!(?err, "status error"),
+        match webcast::load_data_from_url_maybe(boca_url).await {
+            Ok(contest_state) => match client
+                .put(format!("{server_url}/contests"))
+                .json(&contest_state)
+                .header("apikey", server_api_key)
+                .send()
+                .await
+            {
+                Ok(result) => match result.error_for_status() {
+                    Ok(_) => debug!("ok"),
+                    Err(err) => error!(?err, "status error"),
+                },
+                Err(err) => error!(?err, "network error sending contest state"),
+            },
+            Err(err) => error!(?err, "failed loading contest state from BOCA, will retry"),
         }
     }
 }
