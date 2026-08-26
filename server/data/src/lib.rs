@@ -37,6 +37,15 @@ impl Answer {
     pub fn is_wait(&self) -> bool {
         matches!(self, Answer::Wait { .. })
     }
+
+    pub fn run_id(&self) -> i64 {
+        match self {
+            Answer::Yes { run_id, .. } => *run_id,
+            Answer::No { run_id } => *run_id,
+            Answer::Wait { run_id } => *run_id,
+            Answer::Unk { run_id } => *run_id,
+        }
+    }
 }
 
 #[derive(Error, Debug)]
@@ -45,12 +54,6 @@ pub enum ContestError {
     UnmatchedTeam(String),
     #[error("unmatched problem: {}", 0.)]
     UnmatchedProblem(Letter),
-}
-
-impl fmt::Display for Answer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }
 
 pub type TimeFile = i64;
@@ -171,10 +174,10 @@ impl Problem {
     }
 
     fn add_run_problem(&mut self, answer: Answer) {
-        self.id = gen_id();
         if self.solved {
             return;
         }
+        self.id = gen_id();
         match answer {
             Answer::Yes {
                 time,
@@ -216,13 +219,9 @@ impl Problem {
     }
 
     fn reveal_run_frozen(&mut self) -> bool {
-        self.id = gen_id();
         if self.wait() {
             let a = self.answers.remove(0);
             self.add_run_problem(a);
-            // if !self.wait() {
-            //     self.answers.clear();
-            // }
             return true;
         }
         false
@@ -291,8 +290,7 @@ impl Ord for Score {
 static SEED: AtomicU64 = AtomicU64::new(0);
 
 fn gen_id() -> u64 {
-    SEED.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-    SEED.load(std::sync::atomic::Ordering::SeqCst)
+    SEED.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1
 }
 
 impl Team {
@@ -326,10 +324,6 @@ impl Team {
             .entry(run.prob.clone())
             .or_insert(Problem::empty())
             .add_run_frozen(run.answer.clone());
-    }
-
-    pub fn wait(&self) -> bool {
-        self.problems.values().any(|p| p.wait())
     }
 
     pub fn reveal_run_frozen(&mut self) -> bool {
@@ -448,19 +442,6 @@ pub fn problem_letters(i: usize) -> Vec<Letter> {
     CALCULATED.iter().take(i).cloned().collect_vec()
 }
 
-pub trait BelongsToContest {
-    fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool;
-}
-
-impl BelongsToContest for Team {
-    fn belongs_to_contest(&self, sede: Option<&Sede>) -> bool {
-        match sede {
-            Some(sede) => sede.team_belongs(self),
-            None => true,
-        }
-    }
-}
-
 impl ContestFile {
     pub fn new(
         contest_name: String,
@@ -483,17 +464,6 @@ impl ContestFile {
             score_freeze_time,
             penalty_per_wrong_answer: penalty,
             number_problems,
-        }
-    }
-
-    pub fn remove_ccl(self) -> Self {
-        Self {
-            teams: self
-                .teams
-                .into_iter()
-                .filter(|(_k, v)| !v.login.contains("ccl"))
-                .collect(),
-            ..self
         }
     }
 
@@ -592,12 +562,6 @@ impl Ord for RunTuple {
     }
 }
 
-impl fmt::Display for RunTuple {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct RunsPanelItem {
     pub id: i64,
@@ -659,16 +623,7 @@ impl RunsFile {
                 .into_iter()
                 .map(|mut r| {
                     if r.time >= frozen_time {
-                        let run_id = match r.answer {
-                            Answer::Yes {
-                                time: _,
-                                is_first: _,
-                                run_id,
-                            } => run_id,
-                            Answer::No { run_id } => run_id,
-                            Answer::Wait { run_id } => run_id,
-                            Answer::Unk { run_id } => run_id,
-                        };
+                        let run_id = r.answer.run_id();
                         r.answer = Answer::Wait { run_id };
                     }
                     r
