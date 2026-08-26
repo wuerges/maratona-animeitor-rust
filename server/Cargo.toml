@@ -13,7 +13,7 @@ clap = { version = "4", features = ["derive"] }
 color-eyre = "0.6"
 futures = "0.3"
 html-escape = "0.2"
-reqwest = { version = "0.12", features = ["native-tls-vendored"] }
+reqwest = { version = "0.12", features = ["native-tls-vendored", "json"] }
 regex = "1.11"
 itertools = "0.14"
 metrics = "0.24"
@@ -37,10 +37,7 @@ actix-cors = "0.7"
 actix-files = "0.6"
 actix-ws = "0.3"
 tracing-actix-web = "0.7"
-quickcheck = "1"
-quickcheck_macros = "1"
 rstest = "0.26"
-futures-signals = "0.3"
 tokio-stream = { version = "0.1", features = ["sync"] }
 
 data = { path = "data" }
