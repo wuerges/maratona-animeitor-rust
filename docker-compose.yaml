@@ -1,14 +1,11 @@
 services:
   printurls:
+    # same image as animeitor below, which is the service that builds it
     image: wuerges/animeitor:latest
     entrypoint: "/printurls"
     command: "--prefix ${PREFIX} --sedes ${SEDES}: --secret ${SECRET}"
     volumes:
       - ./config:/config
-    build:
-      context: .
-      platforms:
-      - linux/amd64/v2
     environment:
       - RUST_LOG=info
 
