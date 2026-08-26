@@ -70,12 +70,10 @@ fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
 ) -> Result<String, ZipErr> {
+    let name = name.strip_prefix("./").unwrap_or(name);
     try_read_from_zip(zip, name)
-        .or_else(|_| try_read_from_zip(zip, &format!("./{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("./sample/{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("sample/{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("./webcast/{}", name)))
-        .or_else(|_| try_read_from_zip(zip, &format!("webcast/{}", name)))
+        .or_else(|_| try_read_from_zip(zip, &format!("sample/{name}")))
+        .or_else(|_| try_read_from_zip(zip, &format!("webcast/{name}")))
 }
 
 pub async fn load_data_from_url_maybe(uri: &str) -> ServiceResult<ContestState> {

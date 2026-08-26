@@ -28,7 +28,7 @@ pub async fn update_runs_from_data(
 
     let fresh_runs_count = fresh_runs.len() as u64;
     for r in fresh_runs {
-        runs_tx.send_memo(r.clone());
+        runs_tx.send_memo(r);
     }
 
     let delta = start.elapsed();
@@ -67,11 +67,13 @@ pub async fn db_update_loop(
                     update_runs_from_data(contest_state, &shared_db, &runs_tx, &time_tx).await;
                 match result {
                     Ok(()) => (),
-                    Err(error) => eprintln!("Retrying after error updating runs: \n{}", error),
+                    Err(error) => {
+                        tracing::error!("Retrying after error updating runs: \n{}", error)
+                    }
                 }
             }
             Err(error) => {
-                eprintln!("Retrying after error loading data: \n{}", error);
+                tracing::error!("Retrying after error loading data: \n{}", error);
             }
         }
     }
