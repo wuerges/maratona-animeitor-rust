@@ -1,8 +1,11 @@
 FROM rust:slim-bookworm AS chef
 RUN apt-get update && apt-get install -y musl-tools perl make ca-certificates \
  && rm -rf /var/lib/apt/lists/*
+# wasm-bindgen-cli must match the version in Cargo.lock, otherwise trunk
+# downloads its own copy (silently, and it can stall in this network).
 RUN rustup target add x86_64-unknown-linux-musl \
  && rustup toolchain install nightly --target wasm32-unknown-unknown --profile minimal \
+ && cargo install wasm-bindgen-cli --version 0.2.127 --locked \
  && cargo install cargo-chef --locked \
  && cargo install trunk --locked
 WORKDIR /build
