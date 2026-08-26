@@ -95,19 +95,3 @@ pub fn team_sound_location(config: &SdkConfig, team_login: &str) -> String {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn check_url_prefix() {
-        let config = SdkConfig::from_env();
-        assert_eq!(config.api_prefix, "http://0.0.0.0/api");
-    }
-
-    #[test]
-    fn check_ws_url_prefix() {
-        let config = SdkConfig::from_env();
-        assert_eq!(config.ws_prefix, "ws://0.0.0.0/api");
-    }
-}

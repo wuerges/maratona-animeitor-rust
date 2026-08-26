@@ -24,9 +24,14 @@ impl From<ContestQuery> for client_sdk::ContestQuery {
     }
 }
 
+static CONFIG: OnceLock<client_sdk::SdkConfig> = OnceLock::new();
+
+pub fn init_config(config: client_sdk::SdkConfig) {
+    let _ = CONFIG.set(config);
+}
+
 fn config() -> &'static client_sdk::SdkConfig {
-    static CONFIG: OnceLock<client_sdk::SdkConfig> = OnceLock::new();
-    CONFIG.get_or_init(client_sdk::SdkConfig::from_env)
+    CONFIG.get().expect("sdk config not initialized")
 }
 
 pub fn remote_control_url(key: &str) -> String {

@@ -8,8 +8,6 @@ SERVER_RELEASE_DIR = target/x86_64-unknown-linux-musl/release/
 
 # PREFIX=http://localhost:8000
 PREFIX=http://animeitor.naquadah.com.br
-PHOTO_PREFIX=${PREFIX}/photos
-SOUND_PREFIX=${PREFIX}/sounds
 
 HTTPS_OPTS= --tls-cert ./fullchain.pem \
             --tls-key ./privkey.pem \
@@ -31,18 +29,10 @@ SSH_ANIMEITOR=ew@animeitor.naquadah.com.br
 
 run-debug-client:
 	( cd client-v2 && \
-		PHOTO_PREFIX=${PHOTO_PREFIX} \
-		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
-		SOUND_PREFIX=${SOUND_PREFIX} \
-		URL_PREFIX=${PREFIX}/api \
 		trunk serve )
 
 rebuild-client:
 	( cd client-v2 && \
-		PHOTO_PREFIX=${PHOTO_PREFIX} \
-		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
-		SOUND_PREFIX=${SOUND_PREFIX} \
-		URL_PREFIX=${PREFIX}/api \
 		trunk build --release -d naquadah )
 
 rebuild-debug-server:

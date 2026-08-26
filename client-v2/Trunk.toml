@@ -1,0 +1,16 @@
+# Local dev: proxy /api, /photos and /sounds to the local `simples` server
+# (see Makefile run-standalone-*), so the client can use relative URLs and
+# no compile-time env vars are needed.
+
+[[proxy]]
+rewrite = "/api"
+backend = "http://localhost:8000/api"
+ws = true
+
+[[proxy]]
+rewrite = "/photos"
+backend = "http://localhost:8000/photos"
+
+[[proxy]]
+rewrite = "/sounds"
+backend = "http://localhost:8000/sounds"

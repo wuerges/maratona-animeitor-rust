@@ -6,10 +6,8 @@ all: build-client upload-client
 
 build-client:
 	( cd ../client-v2 && \
-		URL_PREFIX=http://animeitor.naquadah.com.br/api \
-		PHOTO_PREFIX=https://static.animeitor.naquadah.com.br/photos \
-		SOUND_PREFIX=https://static.animeitor.naquadah.com.br/sounds \
 		trunk build --release -d bucket )
+	cp serve-as-bucket/config.json ../client-v2/bucket/config.json
 
 upload-client:
 	s3cmd put --recursive ../client-v2/bucket s3://static.animeitor/

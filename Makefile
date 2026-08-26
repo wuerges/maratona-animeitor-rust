@@ -3,11 +3,7 @@ include .env
 .PHONY: rebuild-client-for-release rebuild-server-for-release rebuild-docker-image run-standalone
 
 run-debug-client:
-	( cd client-v2 && \
-		PHOTO_PREFIX=http://localhost:8000/photos \
-		SOUND_PREFIX=http://localhost:8000/sounds \
-		URL_PREFIX=http://localhost:8000/api \
-		trunk serve )
+	( cd client-v2 && trunk serve )
 
 run-standalone-push:
 	( cargo run -p cli \
