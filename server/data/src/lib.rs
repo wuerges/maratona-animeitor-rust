@@ -339,7 +339,7 @@ impl Team {
         let mut solved = 0;
         let mut penalty = 0;
         let mut max_solution_time = 0;
-        for (_, value) in self.problems.iter() {
+        for value in self.problems.values() {
             if value.solved {
                 solved += 1;
                 penalty += value.penalty;

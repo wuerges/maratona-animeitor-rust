@@ -199,7 +199,7 @@ impl ConfigSecret {
             .secrets
             .iter()
             .filter_map(|sede_secret| {
-                let complete = format!("{}{}", salt, &sede_secret.secret);
+                let complete = format!("{}{}", salt, sede_secret.secret);
                 sedes
                     .get_sede_nome_sede(&sede_secret.name)
                     .map(|sede| (complete, sede.clone()))
