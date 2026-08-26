@@ -70,10 +70,16 @@ fn read_from_zip(
     zip: &mut zip::ZipArchive<std::io::Cursor<&std::vec::Vec<u8>>>,
     name: &str,
 ) -> Result<String, ZipErr> {
-    let name = name.strip_prefix("./").unwrap_or(name);
-    try_read_from_zip(zip, name)
-        .or_else(|_| try_read_from_zip(zip, &format!("sample/{name}")))
-        .or_else(|_| try_read_from_zip(zip, &format!("webcast/{name}")))
+    // BOCA zips may store entries at the root or under sample/ or webcast/,
+    // with or without a ./ prefix.
+    let mut last_err = None;
+    for prefix in ["", "./", "./sample/", "sample/", "./webcast/", "webcast/"] {
+        match try_read_from_zip(zip, &format!("{prefix}{name}")) {
+            Ok(data) => return Ok(data),
+            Err(err) => last_err = Some(err),
+        }
+    }
+    Err(last_err.unwrap())
 }
 
 pub async fn load_data_from_url_maybe(uri: &str) -> ServiceResult<ContestState> {
