@@ -136,28 +136,29 @@ pub fn RemoteControl() -> impl IntoView {
 
     let photo_state = use_global_photo_state();
 
+    // Memo (PartialEq-filtered) so the websocket is recreated only when the
+    // remote_control key actually changes — not on every query-param change
+    // (e.g. controller navigation).
+    let key = Memo::new(move |_| query.get().ok().and_then(|q| q.remote_control.clone()));
+
     move || {
-        query
-            .get()
-            .ok()
-            .and_then(|key| key.remote_control)
-            .map(|key| {
-                let UseWebSocketReturn { message, send, .. } =
-                    use_websocket::<String, String, FromToStringCodec>(&remote_control_url(&key));
-                let UseIdleReturn { idle, .. } = use_idle(5_000);
+        key.get().map(|key| {
+            let UseWebSocketReturn { message, send, .. } =
+                use_websocket::<String, String, FromToStringCodec>(&remote_control_url(&key));
+            let UseIdleReturn { idle, .. } = use_idle(5_000);
 
-                let message_signal = Memo::new(move |_| {
-                    message
-                        .get()
-                        .and_then(|text| serde_json::from_str::<ControlMessage>(&text).ok())
-                });
+            let message_signal = Memo::new(move |_| {
+                message
+                    .get()
+                    .and_then(|text| serde_json::from_str::<ControlMessage>(&text).ok())
+            });
 
-                view! {
-                    <Scrolling idle send=send.clone() />
-                    <Tab idle send=send.clone() />
-                    <ShowTeamPhoto idle send photo_state />
-                    <Effects idle message_signal photo_state />
-                }
-            })
+            view! {
+                <Scrolling idle send=send.clone() />
+                <Tab idle send=send.clone() />
+                <ShowTeamPhoto idle send photo_state />
+                <Effects idle message_signal photo_state />
+            }
+        })
     }
 }
