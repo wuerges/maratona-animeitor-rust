@@ -68,6 +68,7 @@ services:
       - "/config/regional_2025/Mexico.toml:mexico"
       - --secret
       - "/config/regional_2025/Secrets_secret.toml"
+      - -i
       - ${BOCA_URL}
 
     volumes:
