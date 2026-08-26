@@ -16,8 +16,8 @@ ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C target-feature=+crt-sta
 
 WORKDIR /build
 COPY . .
+# note: /build/target must NOT be a cache mount — later stages COPY from it
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/build/target \
     cargo build -p cli --release --target x86_64-unknown-linux-musl --features vendored \
  && cd client-v2 && trunk build --release -d release
 
