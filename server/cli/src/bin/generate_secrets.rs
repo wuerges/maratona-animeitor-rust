@@ -3,7 +3,7 @@ use std::{collections::HashSet, path::PathBuf};
 use clap::Parser;
 use color_eyre::eyre::WrapErr;
 use data::configdata::{ConfigContest, ConfigSecret, SedeSecret};
-use rand::{Rng, distr::Alphanumeric};
+use rand::distr::{Alphanumeric, SampleString};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -19,11 +19,7 @@ struct Args {
 }
 
 fn secret() -> String {
-    rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(12)
-        .map(char::from)
-        .collect()
+    Alphanumeric.sample_string(&mut rand::rng(), 12)
 }
 
 fn main() -> color_eyre::eyre::Result<()> {

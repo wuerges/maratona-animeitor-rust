@@ -143,8 +143,12 @@ pub fn RemoteControl() -> impl IntoView {
 
     move || {
         key.get().map(|key| {
+            // leptos-use 0.19 ties the websocket's hidden lifetime to the
+            // url, so it must outlive the returned view. Leaked per key
+            // change; the memo above recreates this only on key change.
+            let url: &'static str = Box::leak(remote_control_url(&key).into_boxed_str());
             let UseWebSocketReturn { message, send, .. } =
-                use_websocket::<String, String, FromToStringCodec>(&remote_control_url(&key));
+                use_websocket::<String, String, FromToStringCodec>(url);
             let UseIdleReturn { idle, .. } = use_idle(5_000);
 
             let message_signal = Memo::new(move |_| {
