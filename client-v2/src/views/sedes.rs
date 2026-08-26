@@ -13,7 +13,7 @@ use leptos_router::{
 };
 
 use crate::{
-    api::{create_config, create_timer, ContestQuery},
+    api::{create_timer, ContestQuery},
     model::{
         contest_signal::ContestSignal, provide_contest, runs_panel_signal::RunsPanelItemManager,
         ContestProvider,
@@ -179,14 +179,11 @@ pub fn Sedes() -> impl IntoView {
                     <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
                 }).into_any(),
                 None => {
-                    let config_contest = LocalResource::new(move || {
-                        let q = contest_query.get();
-                        create_config(q)
-                    });
                     let suspend = Suspend::new(async move {
                         let provider = contest_provider.await;
 
                         view! {
+                            <Navigation config_contest=provider.config_contest.clone() />
                             <ProvideSede
                                     original_contest=provider.starting_contest.clone()
                                     contest_signal=provider.new_contest_signal.clone()
@@ -199,7 +196,6 @@ pub fn Sedes() -> impl IntoView {
                     });
 
                     view! {
-                    <Navigation config_contest />
                     {suspend}
                 }.into_any()}
             }

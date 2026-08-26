@@ -211,15 +211,12 @@ pub fn TeamMedia(
     });
 
     let memo = Memo::new(move |_| show.get());
+    let team_details_enabled = Memo::new(move |_| settings.global.with(|g| g.team_details));
     let is_resolved = team.is_resolved();
 
     move || {
         let team_login_click = team_login.clone();
-        let team_details =
-            settings
-                .global
-                .with(|g| g.team_details)
-                .then_some(if team_name.contains(&escola) {
+        let team_details = team_details_enabled.get().then_some(if team_name.contains(&escola) {
                     view! {
                         <div class="foto_team_label">
                             <div class="foto_team_name">{team_name.clone()} </div>
