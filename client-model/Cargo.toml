@@ -1,0 +1,11 @@
+[package]
+name = "client-model"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+data.workspace = true
+futures.workspace = true
+itertools.workspace = true
+log.workspace = true
+reactive_graph.workspace = true

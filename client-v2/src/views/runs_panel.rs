@@ -4,8 +4,9 @@ use data::{configdata::Sede, RunsPanelItem};
 use itertools::Itertools;
 use leptos::{logging::log, prelude::*};
 
+use client_model::runs_panel_signal::RunsPanelItemManager;
+
 use crate::{
-    model::runs_panel_signal::RunsPanelItemManager,
     views::{
         compress_placements::compress_placements, placement::Placement, problem::Problem,
         team_name::TeamName,

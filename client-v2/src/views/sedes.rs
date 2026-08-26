@@ -12,12 +12,12 @@ use leptos_router::{
     *,
 };
 
+use client_model::{
+    contest_signal::ContestSignal, runs_panel_signal::RunsPanelItemManager, ContestProvider,
+};
+
 use crate::{
-    api::{create_timer, ContestQuery},
-    model::{
-        contest_signal::ContestSignal, provide_contest, runs_panel_signal::RunsPanelItemManager,
-        ContestProvider,
-    },
+    api::{create_timer, provide_contest, ContestQuery},
     views::{
         background_color::BackgroundColor,
         contest::Contest,

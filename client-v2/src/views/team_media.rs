@@ -3,10 +3,9 @@ use std::sync::Arc;
 use data::configdata::Sede;
 use leptos::{ev, html::Audio, logging::log, prelude::*};
 
-use crate::{
-    api::{team_photo_location, team_sound_location},
-    model::team_signal::TeamSignal,
-};
+use client_model::team_signal::TeamSignal;
+
+use crate::api::{team_photo_location, team_sound_location};
 
 use super::{
     global_settings::{use_global_settings, GlobalSettingsSignal},

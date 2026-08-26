@@ -8,9 +8,7 @@ edition = "2021"
 [dependencies]
 leptos = { version = "0.8", features = ["csr"] }
 leptos_router = { version = "0.8" }
-gloo-net = "0"
 gloo-timers = { version = "0", features = ["futures"] }
-wasm-bindgen-futures = "0.4"
 futures = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -18,7 +16,11 @@ data.workspace = true
 itertools = "0"
 leptos-use = { version = "0.16" }
 codee = "0.3.0"
+client-sdk.workspace = true
+client-model.workspace = true
+log.workspace = true
+console_log.workspace = true
 
 [dependencies.web-sys]
-features = ["WebSocket", "MessageEvent"]
+features = ["Window", "ScrollToOptions", "ScrollBehavior"]
 version = "0"

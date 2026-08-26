@@ -4,7 +4,7 @@ use futures::{
 };
 use gloo_net::websocket::{futures::WebSocket, Message, WebSocketError};
 use gloo_timers::future::TimeoutFuture;
-use leptos::leptos_dom::logging::{console_error, console_log, console_warn};
+use log::{error, info, warn};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 
@@ -36,34 +36,34 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
         loop {
             match WebSocket::open(&url) {
                 Ok(ws) => {
-                    console_log(&format!("ws connected: {url}"));
+                    info!("ws connected: {url}");
                     let (_, mut read) = ws.split();
                     loop {
                         match parse_message::<M>(read.next().await) {
                             Ok(next_timer) => {
                                 if let Err(err) = tx.send(next_timer).await {
-                                    console_error(&format!("unbounded channel timeout: {err:?}"));
+                                    error!("unbounded channel timeout: {err:?}");
                                 }
                             }
                             Err(err) => {
                                 match err {
                                     Error::Serde(err) => {
-                                        console_error(&format!("failed parsing response: {err:?}"))
+                                        error!("failed parsing response: {err:?}")
                                     }
                                     Error::WebSocket(err) => {
-                                        console_error(&format!("websocket error: {err:?}"))
+                                        error!("websocket error: {err:?}")
                                     }
-                                    Error::EmptyMessage => console_error("empty message"),
+                                    Error::EmptyMessage => error!("empty message"),
                                 }
                                 break;
                             }
                         }
                     }
-                    console_warn(&format!("websocket closed: {url}"));
+                    warn!("websocket closed: {url}");
                 }
-                Err(err) => console_error(&format!("Websocket error: {:?}", err)),
+                Err(err) => error!("Websocket error: {:?}", err),
             }
-            console_log("Wait 5 seconds to reconnect.");
+            info!("Wait 5 seconds to reconnect.");
             TimeoutFuture::new(5_000).await;
         }
     });

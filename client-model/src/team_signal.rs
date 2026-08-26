@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use data::{Letter, ProblemView, Score, Team};
 use itertools::Itertools;
-use leptos::prelude::*;
+use reactive_graph::{computed::Memo, prelude::*, signal::RwSignal};
 
 pub struct TeamSignal {
     pub login: String,

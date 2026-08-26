@@ -5,9 +5,9 @@ use std::{
 
 use data::{problem_letters, ContestFile, RunTuple};
 use itertools::Itertools;
-use leptos::prelude::*;
+use reactive_graph::{prelude::*, signal::RwSignal};
 
-use super::team_signal::TeamSignal;
+use crate::team_signal::TeamSignal;
 
 pub struct ContestSignal {
     pub teams: HashMap<String, Arc<TeamSignal>>,

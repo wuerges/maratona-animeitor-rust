@@ -2,7 +2,12 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use data::{configdata::Sede, RunsPanelItem};
 use itertools::Itertools;
-use leptos::prelude::*;
+use reactive_graph::{
+    computed::Memo,
+    prelude::*,
+    signal::RwSignal,
+    wrappers::read::Signal,
+};
 
 #[derive(Clone)]
 pub struct RunPanelItemSignal {

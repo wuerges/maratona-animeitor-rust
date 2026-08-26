@@ -3,10 +3,9 @@ use itertools::Itertools;
 use leptos::prelude::*;
 use std::sync::Arc;
 
-use crate::{
-    model::team_signal::TeamSignal,
-    views::{placement::Placement, problem::Problem, team_name::TeamName},
-};
+use client_model::team_signal::TeamSignal;
+
+use crate::views::{placement::Placement, problem::Problem, team_name::TeamName};
 
 #[component]
 pub fn TeamScoreLine(

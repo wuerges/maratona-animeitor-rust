@@ -1,5 +1,5 @@
 [workspace]
-members = ["server/data", "server/cli", "server/service", "server/server-v2", "client-v2"]
+members = ["server/data", "server/cli", "server/service", "server/server-v2", "client-v2", "client-sdk", "client-model"]
 resolver = "2"
 
 [workspace.package]
@@ -44,12 +44,30 @@ data = { path = "server/data" }
 cli = { path = "server/cli" }
 service = { path = "server/service" }
 server-v2 = { path = "server/server-v2" }
+client-sdk = { path = "client-sdk" }
+client-model = { path = "client-model" }
+log = "0.4"
+console_log = "1"
+reactive_graph = { version = "0.2", features = ["serde"] }
+gloo-net = "0.7"
+gloo-timers = { version = "0.4", features = ["futures"] }
+wasm-bindgen-futures = "0.4"
 
 # lto/panic cannot be set per-package; lto applies to the whole workspace
 [profile.release]
 lto = true
 
 [profile.release.package.client-v2]
+opt-level = "z"
+codegen-units = 1
+strip = true
+
+[profile.release.package.client-sdk]
+opt-level = "z"
+codegen-units = 1
+strip = true
+
+[profile.release.package.client-model]
 opt-level = "z"
 codegen-units = 1
 strip = true

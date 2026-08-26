@@ -4,11 +4,12 @@ use data::{configdata::Sede, problem_letters, ContestFile, Letter, TimerData};
 use itertools::Itertools;
 use leptos::{ev, logging::log, prelude::*};
 
+use client_model::{
+    contest_signal::ContestSignal, runs_panel_signal::RunsPanelItemManager,
+    team_signal::TeamSignal,
+};
+
 use crate::{
-    model::{
-        contest_signal::ContestSignal, runs_panel_signal::RunsPanelItemManager,
-        team_signal::TeamSignal,
-    },
     views::{
         compress_placements::compress_placements,
         runs_panel::RunsPanel,
