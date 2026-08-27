@@ -1,0 +1,231 @@
+# API pública
+
+Esta API pública fica sob o escopo `/api` e espelha a hierarquia da API interna ([event-api.md](event-api.md)): `events → contests → sites`. Ela descreve os endpoints **como ficam após a migração** planejada em [multi-event.md](multi-event.md). Todos os tempos são expressos em **segundos**, sem exceção.
+
+Salvo indicação contrária, os endpoints públicos **não exigem autenticação**. A única exceção é `runs_secret`, que exige a chave do site.
+
+## Envelope de resposta
+
+Como na API interna, toda resposta com corpo JSON é um objeto com os campos `data`, `errors` e `warnings`. Os três campos são **opcionais** e ausentes quando vazios:
+
+- `data`: recurso ou resultado da operação; presente apenas em respostas de sucesso (2xx).
+- `errors`: lista de objetos `{ "code": <string>, "message": <string> }`; presente apenas em respostas de erro (4xx/5xx).
+- `warnings`: lista de objetos `{ "code": <string>, "message": <string> }`; problemas não fatais, presentes somente junto com `data`. Nenhum código de warning é definido por enquanto.
+
+Handshakes de WebSocket não usam o envelope: a resposta do handshake é apenas o status HTTP (`101` em caso de sucesso), e as mensagens trafegadas são payloads nus (ver cada endpoint).
+
+Códigos de erro desta API:
+
+| code | status | situação |
+| --- | --- | --- |
+| `not_live` | 403 | placar não publicado (`time < 0`) |
+| `invalid_key` | 403 | chave do site ausente ou inválida |
+| `not_found` | 404 | evento, contest ou site inexistente |
+
+## Convenções
+
+- `{event-name}`, `{contest-name}` e `{site-name}` são nomes de recursos; o contest de nome `""` é o contest padrão, com **segmento vazio** no caminho (ex.: `GET /api/events/{event-name}/contests//contest`).
+- A API pública **nunca** expõe `salt` nem chaves derivadas.
+
+## Endpoints
+
+### Listar eventos
+
+- `GET /api/events`
+- Lista os nomes dos eventos ativos, na ordem de criação. Usada pela landing (`/` e `/animeitor/`).
+
+Resposta:
+
+- `200 OK` — `data`: lista de strings com os nomes dos eventos.
+
+Exemplo:
+
+```json
+{
+    "data": ["regional-2026", "nacional-2026"]
+}
+```
+
+### Estado público do contest
+
+- `GET /api/events/{event-name}/contests/{contest-name}/contest`
+- Estado público do contest: problemas, times e tempos. Os times são somente aqueles cujo login casa com `codes` do contest. Não contém `salt` nem chaves.
+
+Resposta:
+
+- `200 OK` — `data`: objeto com os campos:
+
+  - `event`: nome do evento (string).
+  - `contest`: nome do contest (string); `""` é o contest padrão.
+  - `problems`: lista de letras dos problemas (strings unicode).
+  - `teams`: lista de times do contest, cada um com `login`, `escola` e `nome` (strings).
+  - `time`: tempo decorrido, em segundos.
+  - `score_freeze_time`: instante do congelamento do placar, em segundos.
+  - `penalty`: penalidade por submissão incorreta, em segundos.
+  - `photo_url_format`: formato de URL das fotos; opcional.
+  - `sound_url_format`: formato de URL dos sons; opcional.
+
+- `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]` (placar não publicado).
+- `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]` (evento ou contest inexistente).
+
+Exemplo:
+
+```json
+{
+    "data": {
+        "event": "regional-2026",
+        "contest": "brasil",
+        "problems": ["A", "B", "C", "D"],
+        "teams": [
+            { "login": "teambrmscg001", "escola": "FACOM - UFMS", "nome": "Time de Teste" }
+        ],
+        "time": 3218,
+        "score_freeze_time": 2040,
+        "penalty": 1200,
+        "photo_url_format": "https://static.example.com/photos/{team_login}.webp"
+    }
+}
+```
+
+### Config público do contest
+
+- `GET /api/events/{event-name}/contests/{contest-name}/config`
+- Configuração pública do contest: campos do contest e seus sites, sem `salt` em nenhum nível. Usada pelo cliente para seleção de sede, estilos e medalhas.
+
+Resposta:
+
+- `200 OK` — `data`: objeto com os campos:
+
+  - `name`: nome do contest (string).
+  - `codes`: lista de expressões regulares que casam com o login dos times do contest.
+  - `style`: nome do estilo visual do contest; opcional.
+  - `ouro`, `prata`, `bronze`: posições de medalha (1-based); opcionais, padrões `1`, `2`, `3`.
+  - `sites`: lista de sites do contest, cada um com `name` e `codes`; opcional.
+
+- `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]`.
+- `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
+
+Exemplo:
+
+```json
+{
+    "data": {
+        "name": "brasil",
+        "codes": ["teambr"],
+        "style": "brasil",
+        "ouro": 4,
+        "prata": 8,
+        "bronze": 12,
+        "sites": [
+            { "name": "fiemg", "codes": ["teammg"] }
+        ]
+    }
+}
+```
+
+### Stream público de runs
+
+- `WS /api/events/{event-name}/contests/{contest-name}/runs_ws`
+- Stream ao vivo de runs. Ao conectar, o cliente recebe as runs do contest já recebidas desde a criação do evento e, em seguida, as novas conforme chegam. Somente runs de times cujo login casa com `codes` do contest são enviadas; **cabe ao cliente aplicar o congelamento** (`score_freeze_time`) na exibição.
+
+Mensagens: objetos JSON, um por mensagem:
+
+- `id`: identificador da submissão (inteiro); um `id` repetido corrige o resultado anterior — o último valor é o considerado.
+- `team_login`: login do time (string).
+- `prob`: letra do problema (string unicode).
+- `time`: instante da submissão, em segundos.
+- `answer`: resultado, um de `"Y"`, `"N"`, `"?"` ou `"X"`.
+
+Handshake:
+
+- `101 Switching Protocols` — conexão estabelecida.
+- `404 Not Found` — evento ou contest inexistente (sem corpo).
+
+Exemplo de mensagem:
+
+```json
+{ "id": 1, "team_login": "teambrmscg001", "prob": "A", "time": 56, "answer": "Y" }
+```
+
+### Runs secretas de um site
+
+- `GET /api/events/{event-name}/contests/{contest-name}/runs_secret`
+- Todas as runs do site (incluindo as congeladas), para a revelação. O site é identificado pela **chave**: o servidor compara a chave recebida com as chaves derivadas dos sites do contest (ver [event-api.md](event-api.md), seção Salts) e casa com o site correspondente.
+- Cabeçalho obrigatório: `Authorization: Bearer <site-key>`. A chave não vai na URL (evita vazamento em logs).
+- Site sem `salt` próprio não tem chave derivada e, portanto, nenhuma chave funciona.
+
+Resposta:
+
+- `200 OK` — `data`: objeto com o campo `runs`, lista de runs do site, no formato da run acima.
+- `403 Forbidden` — `errors`: `[{ "code": "invalid_key", ... }]` (chave ausente ou não casa com nenhum site do contest) ou `[{ "code": "not_live", ... }]` (placar não publicado).
+- `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
+
+Exemplo:
+
+```json
+{
+    "data": {
+        "runs": [
+            { "id": 1, "team_login": "teambrmscg001", "prob": "A", "time": 56, "answer": "Y" },
+            { "id": 2, "team_login": "teambrmscg001", "prob": "B", "time": 139, "answer": "N" }
+        ]
+    }
+}
+```
+
+### Timer do evento
+
+- `WS /api/events/{event-name}/timer`
+- Stream do relógio do evento. Independe de contest.
+
+Mensagens: objetos JSON, um por mensagem, com duplicatas consecutivas suprimidas:
+
+- `current_time`: tempo corrente, em segundos.
+- `score_freeze_time`: instante do congelamento do placar, em segundos.
+
+Handshake:
+
+- `101 Switching Protocols` — conexão estabelecida.
+- `404 Not Found` — evento inexistente (sem corpo).
+
+Exemplo de mensagem:
+
+```json
+{ "current_time": 3218, "score_freeze_time": 2040 }
+```
+
+### Controle remoto
+
+- `WS /api/events/{event-name}/contests/{contest-name}/remote_control/{key}`
+- Relay de mensagens de controle entre as abas/browsers que usam a mesma chave, isolado por contest. Cada mensagem recebida de um cliente é retransmitida a todos os outros clientes da mesma chave; o remetente não recebe a própria mensagem.
+
+Mensagens: frames de texto com um dos objetos abaixo (JSON):
+
+- `{ "WindowScroll": { "y": <posição> } }` — sincroniza a rolagem da janela.
+- `{ "QueryString": { "query": <string> } }` — sincroniza a query string (ex.: troca de sede).
+- `{ "PhotoState": "Hidden" }` ou `{ "PhotoState": { "Show": <team_login> } }` — sincroniza a foto exibida.
+
+Handshake:
+
+- `101 Switching Protocols` — conexão estabelecida.
+- `404 Not Found` — evento ou contest inexistente (sem corpo).
+
+### Métricas
+
+- `GET /api/metrics`
+- Métricas do processo no formato texto do Prometheus (autometrics). Global: não é por evento.
+
+Resposta:
+
+- `200 OK` — corpo em texto Prometheus, **sem envelope** (não é JSON).
+- `500 Internal Server Error` — falha ao codificar as métricas.
+
+## Resumo das regras
+
+- Todos os endpoints públicos ficam sob `/api`, espelhando a hierarquia interna.
+- Todos os tempos em segundos.
+- Sem autenticação, exceto `runs_secret` (chave do site via `Authorization: Bearer`).
+- Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
+- Respostas JSON usam o envelope `{ data, errors, warnings }` (campos opcionais); WebSockets respondem só com o status do handshake e trocam payloads nus.
+- O contest padrão (`""`) usa segmento vazio no caminho.
+- A chave do site identifica o site; a troca do salt do site (via API interna) troca a chave imediatamente.

@@ -64,7 +64,7 @@ Observações da revisão:
 
 ## Migração para `/api`
 
-A API pública espelha a hierarquia interna. Endpoint a endpoint:
+A API pública espelha a hierarquia interna. A referência detalhada dos endpoints (respostas, erros, warnings e comportamento) está em [public-api.md](public-api.md). Endpoint a endpoint:
 
 | Hoje | Proposto | Observações |
 | --- | --- | --- |
