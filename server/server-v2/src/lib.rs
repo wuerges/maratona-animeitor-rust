@@ -10,6 +10,7 @@ use std::{collections::HashMap, fs::File, io::BufReader, path::Path, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::*;
+use actix_web::middleware::Compress;
 use app_data::AppData;
 use rustls::ServerConfig;
 use tokio::sync::broadcast;
@@ -90,6 +91,7 @@ pub async fn serve_config(
             }))
             .service(
                 web::scope("api")
+                    .wrap(Compress::default())
                     .configure(api::configure)
                     .service(get_metrics)
                     .service(remote_control_ws),
