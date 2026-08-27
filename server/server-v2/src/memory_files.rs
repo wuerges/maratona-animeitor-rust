@@ -164,14 +164,13 @@ async fn serve(req: HttpRequest, assets: web::Data<MemoryFiles>) -> HttpResponse
         .headers()
         .get(header::IF_NONE_MATCH)
         .and_then(|value| value.to_str().ok())
+        && etag_matches(if_none_match, &etag)
     {
-        if etag_matches(if_none_match, &etag) {
-            return HttpResponse::NotModified()
-                .insert_header((header::ETAG, quoted(&etag)))
-                .insert_header((header::CACHE_CONTROL, cache_control))
-                .insert_header((header::VARY, "Accept-Encoding"))
-                .finish();
-        }
+        return HttpResponse::NotModified()
+            .insert_header((header::ETAG, quoted(&etag)))
+            .insert_header((header::CACHE_CONTROL, cache_control))
+            .insert_header((header::VARY, "Accept-Encoding"))
+            .finish();
     }
 
     let mut response = HttpResponse::Ok();
@@ -265,9 +264,11 @@ fn gzip(bytes: &[u8]) -> Option<Vec<u8>> {
 }
 
 fn brotli(bytes: &[u8]) -> Option<Vec<u8>> {
-    let mut params = brotli::enc::BrotliEncoderParams::default();
-    params.quality = 7;
-    let mut input = &bytes[..];
+    let params = brotli::enc::BrotliEncoderParams {
+        quality: 7,
+        ..Default::default()
+    };
+    let mut input = bytes;
     let mut output = Vec::new();
     brotli::BrotliCompress(&mut input, &mut output, &params).ok()?;
     Some(output)
