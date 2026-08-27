@@ -1,10 +1,10 @@
 use std::sync::Arc;
 use std::time::Instant;
 
+use crate::contest_state::ContestState;
+use crate::dataio::runs_file_new;
 use crate::errors::ServiceResult;
 use crate::{DB, membroadcast, webcast};
-use data::RunsFile;
-use data::contest_state::ContestState;
 use metrics::{counter, histogram};
 use tokio::sync::Mutex;
 use tokio::sync::broadcast;
@@ -24,7 +24,7 @@ pub async fn update_runs_from_data(
     let start = Instant::now();
 
     let mut db = shared_db.lock().await;
-    let fresh_runs = db.refresh_db(time, contest, RunsFile::new(runs))?;
+    let fresh_runs = db.refresh_db(time, contest, runs_file_new(runs))?;
 
     let fresh_runs_count = fresh_runs.len() as u64;
     for r in fresh_runs {

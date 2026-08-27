@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use data::configdata::{ConfigContest, Contest, Secret};
+use data::configdata::{ConfigContest, Contest};
 
+use crate::config_secret::Secret;
 use crate::{http::HttpConfig, volume::Volume};
 
 pub struct AppConfig {

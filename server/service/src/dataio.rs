@@ -1,6 +1,8 @@
 use crate::errors::{Error, ServiceResult};
+use data::configdata::Sede;
 use data::*;
 use html_escape::decode_html_entities_to_string;
+use std::collections::BTreeMap;
 use tracing::{Level, instrument};
 
 pub trait FromString {
@@ -17,7 +19,7 @@ impl FromString for Team {
         }
         let mut team_name = String::new();
         decode_html_entities_to_string(team_line[2], &mut team_name);
-        Ok(Team::new(team_line[0], team_line[1], team_name))
+        Ok(team_new(team_line[0], team_line[1], team_name))
     }
 }
 
@@ -98,7 +100,7 @@ impl FromString for ContestFile {
             teams.push(t);
         }
 
-        Ok(Self::new(
+        Ok(contest_file_new(
             contest_name.to_string(),
             teams,
             current_time,
@@ -113,7 +115,7 @@ impl FromString for ContestFile {
 impl FromString for RunsFile {
     fn from_string(s: &str) -> ServiceResult<Self> {
         let runs = read_runs(s)?;
-        Ok(RunsFile::new(runs))
+        Ok(runs_file_new(runs))
     }
 }
 
@@ -145,7 +147,15 @@ impl DB {
         DB {
             run_file: RunsFile::empty(),
             run_file_secret: RunsFile::empty(),
-            contest_file_begin: ContestFile::dummy(),
+            contest_file_begin: ContestFile {
+                contest_name: "Dummy Contest".to_string(),
+                teams: BTreeMap::new(),
+                current_time: 0,
+                maximum_time: 0,
+                score_freeze_time: 0,
+                penalty_per_wrong_answer: 0,
+                number_problems: 0,
+            },
             time_file: 0,
         }
     }
@@ -174,6 +184,106 @@ impl DB {
 
     pub fn all_runs(&self) -> Vec<RunTuple> {
         self.run_file.sorted()
+    }
+}
+
+fn team_new(login: &str, escola: &str, name: String) -> Team {
+    Team {
+        login: login.to_string(),
+        escola: escola.to_string(),
+        name,
+        placement: 0,
+        placement_global: 0,
+        problems: BTreeMap::new(),
+        id: data::gen_id(),
+    }
+}
+
+fn contest_file_new(
+    contest_name: String,
+    teams: Vec<Team>,
+    current_time: i64,
+    maximum_time: i64,
+    score_freeze_time: i64,
+    penalty: i64,
+    number_problems: usize,
+) -> ContestFile {
+    let mut m = BTreeMap::new();
+    for t in teams {
+        m.insert(t.login.clone(), t);
+    }
+    ContestFile {
+        contest_name,
+        teams: m,
+        current_time,
+        maximum_time,
+        score_freeze_time,
+        penalty_per_wrong_answer: penalty,
+        number_problems,
+    }
+}
+
+pub fn runs_file_new(runs: Vec<RunTuple>) -> RunsFile {
+    let mut t = RunsFile::empty();
+    for r in runs {
+        t.refresh_1(&r);
+    }
+    t
+}
+
+/// Server-side transforms of the shared [`RunsFile`] wire type.
+pub trait RunsFileExt {
+    /// Rewrites runs at or after `frozen_time` to `Answer::Wait`.
+    fn filter_frozen(&self, frozen_time: i64) -> RunsFile;
+
+    /// Keeps only the runs of teams belonging to the given site.
+    fn filter_sede(&self, sede: &Sede) -> RunsFile;
+
+    /// Inserts/updates the given runs, returning the ones that changed.
+    fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple>;
+}
+
+impl RunsFileExt for RunsFile {
+    fn filter_frozen(&self, frozen_time: i64) -> RunsFile {
+        runs_file_new(
+            self.sorted()
+                .into_iter()
+                .map(|mut r| {
+                    if r.time >= frozen_time {
+                        let run_id = match r.answer {
+                            Answer::Yes { run_id, .. }
+                            | Answer::No { run_id }
+                            | Answer::Wait { run_id }
+                            | Answer::Unk { run_id } => run_id,
+                        };
+                        r.answer = Answer::Wait { run_id };
+                    }
+                    r
+                })
+                .collect(),
+        )
+    }
+
+    fn filter_sede(&self, sede: &Sede) -> RunsFile {
+        let mut out = RunsFile::empty();
+        for run in self.sorted() {
+            if sede.team_belongs_str(&run.team_login) {
+                out.refresh_1(&run);
+            }
+        }
+        out
+    }
+
+    fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {
+        let mut rec = Vec::new();
+
+        for t in fresh {
+            if self.refresh_1(&t) {
+                rec.push(t);
+            }
+        }
+
+        rec
     }
 }
 

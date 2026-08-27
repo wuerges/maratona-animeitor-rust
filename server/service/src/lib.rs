@@ -1,4 +1,6 @@
 pub mod app_config;
+pub mod config_secret;
+pub mod contest_state;
 mod dataio;
 pub mod dbupdate_v2;
 pub mod errors;
@@ -9,4 +11,4 @@ pub mod sentry;
 pub mod volume;
 pub mod webcast;
 
-pub use dataio::DB;
+pub use dataio::{DB, RunsFileExt, runs_file_new};

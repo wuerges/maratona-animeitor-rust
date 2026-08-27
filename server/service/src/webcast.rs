@@ -1,6 +1,6 @@
+use crate::contest_state::ContestState;
 use crate::dataio::{read_contest, read_runs};
 use crate::errors::ServiceResult;
-use data::contest_state::ContestState;
 use std::io::Read;
 use std::string::FromUtf8Error;
 use thiserror::Error;
