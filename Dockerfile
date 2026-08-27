@@ -13,7 +13,7 @@ WORKDIR /build
 COPY . .
 # note: /build/target must NOT be a cache mount — later stages COPY from it
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    cargo build -p cli --release --features vendored \
+    cargo build -p server-v2 -p cli --release --features vendored \
  && cd client-v2 && trunk build --release -d release
 
 FROM debian:bookworm-slim

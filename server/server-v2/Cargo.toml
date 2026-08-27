@@ -6,6 +6,10 @@ authors.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "simples"
+path = "src/main.rs"
+
 [dependencies]
 actix-files.workspace = true
 actix-web.workspace = true
@@ -20,6 +24,14 @@ autometrics.workspace = true
 thiserror.workspace = true
 futures.workspace = true
 tokio-stream.workspace = true
+clap.workspace = true
+color-eyre.workspace = true
+tracing-subscriber.workspace = true
+openssl-sys = { optional = true, version = "0.9" }
 
 service.workspace = true
 data.workspace = true
+cli.workspace = true
+
+[features]
+vendored = ["openssl-sys/vendored"]

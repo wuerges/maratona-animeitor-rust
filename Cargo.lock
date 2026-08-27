@@ -755,7 +755,6 @@ dependencies = [
  "sentry",
  "serde",
  "serde_json",
- "server-v2",
  "service",
  "tokio",
  "toml",
@@ -4092,8 +4091,12 @@ dependencies = [
  "actix-web",
  "actix-ws",
  "autometrics",
+ "clap",
+ "cli",
+ "color-eyre",
  "data",
  "futures",
+ "openssl-sys",
  "serde",
  "serde_json",
  "service",
@@ -4102,6 +4105,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "tracing-actix-web",
+ "tracing-subscriber",
 ]
 
 [[package]]

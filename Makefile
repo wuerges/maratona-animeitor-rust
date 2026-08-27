@@ -6,7 +6,7 @@ run-debug-client:
 	( cd client-v2 && trunk serve )
 
 run-standalone-push:
-	( cargo run -p cli \
+	( cargo run -p server-v2 \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
@@ -18,7 +18,7 @@ run-standalone-push:
 	)
 
 run-standalone-loop:
-	( cargo run -p cli \
+	( cargo run -p server-v2 \
 		--bin simples -- \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
@@ -35,7 +35,7 @@ rebuild-client-for-release:
 
 rebuild-server-for-release:
 	@echo recompiling server...
-	( cargo build -p cli --release --features vendored )
+	( cargo build -p server-v2 --release --features vendored )
 
 rebuild-docker-image:
 	@echo rebuild docker image

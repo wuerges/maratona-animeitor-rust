@@ -20,7 +20,6 @@ reqwest.workspace = true
 data.workspace = true
 client-model.workspace = true
 service.workspace = true
-server-v2.workspace = true
 sentry.workspace = true
 
 [dev-dependencies]
