@@ -79,6 +79,19 @@ body {
 
 Animeitor was made to be customizable using CSS.
 
+# File descriptors
+
+Each websocket connection holds a file descriptor for its lifetime, so a
+production server needs a raised `nofile` limit (the default soft limit is
+1024, which runs out quickly):
+
+- systemd service (`config/regional_2026/simples.service`): `LimitNOFILE=65536`
+  in the `[Service]` section
+- docker compose: `ulimits: nofile: 65536` (already set in the compose files)
+- running from a shell: `ulimit -n 65536` before starting
+
+Client assets are served from memory, so they cost no file descriptors.
+
 # Run without docker
 
 The `Makefile` has an example of how to run animeitor without docker.
