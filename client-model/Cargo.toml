@@ -9,3 +9,4 @@ futures.workspace = true
 itertools.workspace = true
 log.workspace = true
 reactive_graph.workspace = true
+thiserror.workspace = true

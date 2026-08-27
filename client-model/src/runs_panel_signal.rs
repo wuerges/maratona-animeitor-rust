@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, sync::Arc};
 
-use data::{configdata::Sede, RunsPanelItem};
+use data::configdata::Sede;
 use itertools::Itertools;
 use reactive_graph::{
     computed::Memo,
@@ -8,6 +8,8 @@ use reactive_graph::{
     signal::RwSignal,
     wrappers::read::Signal,
 };
+
+use crate::scoring::RunsPanelItem;
 
 #[derive(Clone)]
 pub struct RunPanelItemSignal {

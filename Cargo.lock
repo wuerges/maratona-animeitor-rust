@@ -770,6 +770,7 @@ dependencies = [
  "itertools 0.14.0",
  "log",
  "reactive_graph",
+ "thiserror 2.0.20",
 ]
 
 [[package]]

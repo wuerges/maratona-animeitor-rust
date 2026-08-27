@@ -1,16 +1,29 @@
+pub mod annotate_first_solved;
 pub mod contest_signal;
+pub mod letters;
+pub mod revelation;
 pub mod runs_panel_signal;
+pub mod scoring;
+pub mod sede_ext;
 pub mod team_signal;
+pub mod timer_ext;
+
+pub use letters::problem_letters;
+pub use revelation::RevelationDriver;
+pub use scoring::{
+    ContestError, ContestFileExt, ProblemExt, ProblemView, RunsPanelItem, Score, TeamExt,
+};
+pub use sede_ext::{Color, SedeExt};
+pub use timer_ext::TimerDataExt;
 
 use std::{collections::HashSet, sync::Arc};
 
 use contest_signal::ContestSignal;
-use data::{
-    annotate_first_solved::annotate_first_solved, configdata::ConfigContest, ContestFile, RunTuple,
-    RunsFile,
-};
+use data::{configdata::ConfigContest, ContestFile, RunTuple, RunsFile};
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 use runs_panel_signal::RunsPanelItemManager;
+
+use crate::annotate_first_solved::annotate_first_solved;
 
 #[derive(Clone)]
 pub struct ContestProvider {

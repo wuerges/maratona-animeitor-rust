@@ -3,10 +3,11 @@ use std::{
     sync::Arc,
 };
 
-use data::{problem_letters, ContestFile, RunTuple};
+use data::{ContestFile, RunTuple};
 use itertools::Itertools;
 use reactive_graph::{prelude::*, signal::RwSignal};
 
+use crate::problem_letters;
 use crate::team_signal::TeamSignal;
 
 pub struct ContestSignal {

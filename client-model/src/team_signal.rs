@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
-use data::{Letter, ProblemView, Score, Team};
+use data::{Letter, Team};
 use itertools::Itertools;
 use reactive_graph::{computed::Memo, prelude::*, signal::RwSignal};
+
+use crate::scoring::{ProblemExt, ProblemView, Score, TeamExt};
 
 pub struct TeamSignal {
     pub login: String,
