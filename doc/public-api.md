@@ -62,8 +62,6 @@ Resposta:
   - `time`: tempo decorrido, em segundos.
   - `score_freeze_time`: instante do congelamento do placar, em segundos.
   - `penalty`: penalidade por submissão incorreta, em segundos.
-  - `photo_url_format`: formato de URL das fotos; opcional.
-  - `sound_url_format`: formato de URL dos sons; opcional.
 
 - `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]` (placar não publicado).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]` (evento ou contest inexistente).
@@ -81,8 +79,7 @@ Exemplo:
         ],
         "time": 3218,
         "score_freeze_time": 2040,
-        "penalty": 1200,
-        "photo_url_format": "https://static.example.com/photos/{team_login}.webp"
+        "penalty": 1200
     }
 }
 ```
@@ -90,7 +87,7 @@ Exemplo:
 ### Config público do contest
 
 - `GET /api/events/{event-name}/contests/{contest-name}/config`
-- Configuração pública do contest: campos do contest e seus sites, sem `salt` em nenhum nível. Usada pelo cliente para seleção de sede, estilos e medalhas.
+- Configuração pública do contest: campos do contest e seus sites, sem `salt` em nenhum nível. Usada pelo cliente para seleção de sede, estilos, medalhas e para as URLs de fotos e sons.
 
 Resposta:
 
@@ -101,6 +98,8 @@ Resposta:
   - `style`: nome do estilo visual do contest; opcional.
   - `ouro`, `prata`, `bronze`: posições de medalha (1-based); opcionais, padrões `1`, `2`, `3`.
   - `sites`: lista de sites do contest, cada um com `name` e `codes`; opcional.
+  - `photo_url_format`: formato de URL das fotos do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `photos/{team_login}.webp`, resolvido contra a mesma origem da API.
+  - `sound_url_format`: formato de URL dos sons do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `sounds/{team_login}.mp3`, resolvido contra a mesma origem da API.
 
 - `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]`.
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
@@ -118,7 +117,9 @@ Exemplo:
         "bronze": 12,
         "sites": [
             { "name": "fiemg", "codes": ["teammg"] }
-        ]
+        ],
+        "photo_url_format": "https://static.example.com/photos/{team_login}.webp",
+        "sound_url_format": "https://static.example.com/sounds/{team_login}.mp3"
     }
 }
 ```
@@ -226,6 +227,7 @@ Resposta:
 - Todos os tempos em segundos.
 - Sem autenticação, exceto `runs_secret` (chave do site via `Authorization: Bearer`).
 - Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
+- Fotos e sons vêm do config do contest (`GET .../config`), não do estado nem do `config.json`.
 - Respostas JSON usam o envelope `{ data, errors, warnings }` (campos opcionais); WebSockets respondem só com o status do handshake e trocam payloads nus.
 - O contest padrão (`""`) usa segmento vazio no caminho.
 - A chave do site identifica o site; a troca do salt do site (via API interna) troca a chave imediatamente.

@@ -36,7 +36,7 @@ Proposta:
    - nginx (recomendado): `location /animeitor/ { try_files $uri /animeitor/index.html; }` — os dois modos atuais (`doc/nginx-examples/`) precisam ganhar essa regra.
    - actix (sem nginx): um handler fallback para `/animeitor/{event}/{contest}` que responde o `index.html` do volume, em vez de depender só de montagens estáticas fixas.
 3. **Descoberta de event/contest**: o cliente lê `window.location.pathname`, extrai `{event-name}` e `{contest-name}` (vazio = contest padrão) e passa a usar caminhos na API em vez de `?contest=`.
-4. **`config.json` global**: um único arquivo ao lado do `index.html` (`/animeitor/config.json`), buscado de forma relativa ao `<base>`, como hoje (`client-sdk/src/config.rs:135-147`). Continua sendo configuração de deploy (prefixos de API, fotos e sons); dados por contest vêm da API pública (`GET .../config`).
+4. **`config.json` global**: um único arquivo ao lado do `index.html` (`/animeitor/config.json`), buscado de forma relativa ao `<base>`, como hoje (`client-sdk/src/config.rs:135-147`). Continua sendo configuração de deploy (prefixo da API e fallbacks); **fotos, sons** e demais dados por contest vêm da API pública (`GET .../config`).
 5. **Landing**: o mesmo build renderiza a lista de eventos quando o caminho é `/` ou `/animeitor/`, usando um novo `GET /api/events`; cada item aponta para `/animeitor/{event}/`.
 
 ## Revisão dos endpoints públicos atuais
@@ -100,7 +100,7 @@ Regras de segurança da migração:
 - **Roteamento** (`client-v2`): substitui `?contest=` pela leitura de `window.location.pathname` (`/animeitor/{event}/{contest}`); a única rota `path!("")` continua bastando, mas o estado inicial passa a vir do caminho. `sede`, `settings`, `secret` e `remote_control` seguem como query params.
 - **Landing**: com caminho `/` ou `/animeitor/`, o app consulta `GET /api/events` e lista os eventos.
 - **Reveleitor**: usa o novo `runs_secret` com a chave do site vinda das configurações (o `?secret=` da URL pode ser mantido como atalho, mas a chamada à API usa o header).
-- **`config.json`**: permanece global por deploy (junto ao `<base>`), sem campo de evento; configuração por contest vem da API (`GET .../config`).
+- **`config.json`**: permanece global por deploy (junto ao `<base>`), sem campo de evento; **fotos, sons** e configuração por contest vêm da API (`GET .../config`), e o SDK passa a montar as URLs de mídia a partir dos formatos recebidos (hoje eles vêm do próprio `config.json`/env, `client-sdk/src/config.rs`).
 
 ## Plano de migração
 
@@ -113,7 +113,7 @@ Compatibilidade: durante as fases 2–3, `?contest=` continua funcionando nos en
 
 ## Fora de escopo / em aberto
 
-- Fotos e sons continuam em volumes globais (`/photos`, `/sounds`) — mídia por evento fica para depois.
+- Fotos e sons: os formatos de URL passam a vir do config do contest; o hosting dos arquivos continua em volumes globais (`/photos`, `/sounds`).
 - Fluxo de publicação S3 (`serve-as-bucket/`): o indexamento de qualquer caminho já funciona (IndexDocument), mas a landing e o `config.json` precisam de conferência nesse modo.
 - TLS (`--tls-cert`/`--tls-key`) não muda.
 - Builds de cliente por evento não são previstos: um build único.

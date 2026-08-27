@@ -70,8 +70,6 @@ O estado do evento é um objeto JSON com os seguintes campos:
 - `penalty`: penalidade por submissão incorreta, em segundos.
 - `time`: tempo decorrido, em segundos.
 - `salt`: string usada para derivar as chaves dos sites (ver seção Salts); opcional.
-- `photo_url_format`: formato de URL das fotos (ver seção Mídia); opcional.
-- `sound_url_format`: formato de URL dos sons (ver seção Mídia); opcional.
 
 Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times.
 
@@ -87,9 +85,7 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
     "score_freeze_time": 2040,
     "penalty": 1200,
     "time": 3218,
-    "salt": "s3gredo-do-evento",
-    "photo_url_format": "https://static.example.com/photos/{team_login}.webp",
-    "sound_url_format": "https://static.example.com/sounds/{team_login}.mp3"
+    "salt": "s3gredo-do-evento"
 }
 ```
 
@@ -165,6 +161,8 @@ Um contest é um agrupamento de times do evento, identificado por um nome. Múlt
 - `ouro`: posição até a qual vale medalha de ouro (1-based); opcional, padrão `1`.
 - `prata`: idem para prata; opcional, padrão `2`.
 - `bronze`: idem para bronze; opcional, padrão `3`.
+- `photo_url_format`: formato de URL das fotos do contest (ver seção Mídia); opcional.
+- `sound_url_format`: formato de URL dos sons do contest (ver seção Mídia); opcional.
 
 Chaves não listadas aqui são ignoradas.
 
@@ -178,7 +176,9 @@ Chaves não listadas aqui são ignoradas.
     "style": "brasil",
     "ouro": 4,
     "prata": 8,
-    "bronze": 12
+    "bronze": 12,
+    "photo_url_format": "https://static.example.com/photos/{team_login}.webp",
+    "sound_url_format": "https://static.example.com/sounds/{team_login}.mp3"
 }
 ```
 
@@ -303,7 +303,7 @@ Respostas:
 
 ## Mídia
 
-Fotos e sons não são montados como volumes; o evento aceita formatos de URL:
+Fotos e sons não são montados como volumes; cada contest aceita formatos de URL:
 
 - `photo_url_format`: string com o placeholder `{team_login}`; opcional.
 - `sound_url_format`: string com o placeholder `{team_login}`; opcional.
