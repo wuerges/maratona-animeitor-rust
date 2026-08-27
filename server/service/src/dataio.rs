@@ -5,7 +5,7 @@ use html_escape::decode_html_entities_to_string;
 use std::collections::BTreeMap;
 use tracing::{Level, instrument};
 
-pub trait FromString {
+pub(crate) trait FromString {
     fn from_string(s: &str) -> ServiceResult<Self>
     where
         Self: std::marker::Sized;
@@ -122,16 +122,16 @@ impl FromString for RunsFile {
 #[derive(Debug)]
 pub struct DB {
     run_file: RunsFile,
-    pub run_file_secret: RunsFile,
-    pub contest_file_begin: ContestFile,
-    pub time_file: TimeFile,
+    pub(crate) run_file_secret: RunsFile,
+    pub(crate) contest_file_begin: ContestFile,
+    pub(crate) time_file: TimeFile,
 }
 
-pub fn read_contest(s: &str) -> ServiceResult<ContestFile> {
+pub(crate) fn read_contest(s: &str) -> ServiceResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
+pub(crate) fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
     let runs = s.lines().map(RunTuple::from_string).rev();
     let mut runs = runs.collect::<ServiceResult<Vec<RunTuple>>>()?;
 
@@ -143,7 +143,7 @@ pub fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
 }
 
 impl DB {
-    pub fn empty() -> Self {
+    pub(crate) fn empty() -> Self {
         DB {
             run_file: RunsFile::empty(),
             run_file_secret: RunsFile::empty(),
@@ -160,7 +160,7 @@ impl DB {
         }
     }
 
-    pub fn refresh_db(
+    pub(crate) fn refresh_db(
         &mut self,
         time: i64,
         contest: ContestFile,
@@ -178,7 +178,7 @@ impl DB {
         Ok(fresh)
     }
 
-    pub fn timer_data(&self) -> TimerData {
+    pub(crate) fn timer_data(&self) -> TimerData {
         TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
     }
 }
