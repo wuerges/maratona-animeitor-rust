@@ -7,7 +7,10 @@ use tokio::sync::broadcast::{Receiver, Sender, error::SendError};
 use tokio_stream::wrappers::BroadcastStream;
 use tracing::{debug, instrument, Level};
 
-use crate::{api::send_json, app_data::AppData};
+use service::app_data::AppData;
+use service::remote_control::{ConnectionControlMessage, next_request_id};
+
+use crate::api::send_json;
 
 #[get("/remote_control/{key}")]
 async fn remote_control_ws(
@@ -17,19 +20,6 @@ async fn remote_control_ws(
     key: web::Path<String>,
 ) -> Result<HttpResponse, actix_web::Error> {
     run_remote_control_ws(data, req, body, key.into_inner()).await
-}
-
-pub type ControlSender = Sender<ConnectionControlMessage>;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ConnectionControlMessage {
-    request_id: u64,
-    message: ControlMessage,
-}
-
-fn create_remote_control() -> ControlSender {
-    let (sender, _) = tokio::sync::broadcast::channel(100);
-    sender
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -104,15 +94,11 @@ async fn run_remote_control_ws(
 ) -> Result<HttpResponse, actix_web::Error> {
     let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
 
-    let sender = {
-        let mut lock = data.remote_control.lock().await;
-
-        lock.entry(key).or_insert(create_remote_control()).clone()
-    };
+    let sender = data.remote_control_sender(&key).await;
 
     let rec = sender.subscribe();
 
-    let request_id = rand::random();
+    let request_id = next_request_id();
     tracing::info!(?request_id, "established remote control");
 
     actix_web::rt::spawn(async move {

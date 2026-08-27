@@ -2,10 +2,10 @@ use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
 use serde::Deserialize;
-use service::RunsFileExt;
 use tracing::{Level, debug, warn};
 
-use crate::{app_data::AppData, endpoints};
+use service::app_data::{AppData, QueryError};
+use service::contest_state::ContestState;
 
 #[derive(Deserialize, Debug)]
 struct ContestQuery {
@@ -17,6 +17,8 @@ struct SecretQuery {
     secret: String,
 }
 
+const API_KEY: &str = "apikey";
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service((
         get_contest,
@@ -24,7 +26,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
         get_config,
         get_allruns_ws,
         get_allruns_secret,
-        endpoints::update_contest::update_contest,
+        update_contest,
     ));
 }
 
@@ -46,6 +48,14 @@ pub(crate) async fn send_json<T: serde::Serialize>(
     }
 }
 
+fn map_query<T: serde::Serialize>(result: Result<T, QueryError>) -> HttpResponse {
+    match result {
+        Ok(value) => HttpResponse::Ok().json(value),
+        Err(QueryError::Forbidden) => HttpResponse::Forbidden().finish(),
+        Err(QueryError::NotFound) => HttpResponse::NotFound().finish(),
+    }
+}
+
 #[get("/contest")]
 async fn get_contest(
     data: web::Data<AppData>,
@@ -61,18 +71,7 @@ async fn get_contest(
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
 async fn get_contest_fn(data: &AppData, sede_config: &str) -> HttpResponse {
-    let db = data.shared_db.lock().await;
-    if db.time_file < 0 {
-        return HttpResponse::Forbidden().finish();
-    }
-
-    match data.config.get(sede_config) {
-        Some((_, contest, _)) => {
-            let result = db.contest_file_begin.clone().filter_sede(&contest.titulo);
-            HttpResponse::Ok().json(result)
-        }
-        None => HttpResponse::NotFound().finish(),
-    }
+    map_query(data.contest_file(sede_config).await)
 }
 
 #[get("/config")]
@@ -87,35 +86,15 @@ async fn get_config(data: web::Data<AppData>, contest: web::Query<ContestQuery>)
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
 async fn get_config_fn(data: &AppData, sede_config: &str) -> HttpResponse {
-    let db = data.shared_db.lock().await;
-    if db.time_file < 0 {
-        return HttpResponse::Forbidden().finish();
-    }
-
-    match data.config.get(sede_config) {
-        Some((config, _, _)) => HttpResponse::Ok().json(config),
-        None => HttpResponse::NotFound().finish(),
-    }
+    map_query(data.config_contest(sede_config).await)
 }
 
 #[tracing::instrument(level = Level::DEBUG, skip(data), ret)]
 #[autometrics]
 async fn get_allruns_secret_fn(data: &AppData, sede_config: &str, secret: &str) -> HttpResponse {
-    let sede = data
-        .config
-        .get(sede_config)
-        .and_then(|(_, _, s)| s.get_sede_by_secret(secret).cloned());
-
-    match sede {
-        None => HttpResponse::Forbidden().finish(),
-        Some(sede) => {
-            let db = data.shared_db.lock().await;
-            if db.time_file < 0 {
-                HttpResponse::Forbidden().finish()
-            } else {
-                HttpResponse::Ok().json(db.run_file_secret.filter_sede(&sede))
-            }
-        }
+    match data.secret_runs(sede_config, secret).await {
+        Ok(runs) => HttpResponse::Ok().json(runs),
+        Err(_) => HttpResponse::Forbidden().finish(),
     }
 }
 
@@ -143,12 +122,9 @@ async fn get_allruns_ws(
     contest: web::Query<ContestQuery>,
 ) -> Result<HttpResponse, Error> {
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
-    let mut runs_rx = data.runs_tx.subscribe();
+    let mut runs_rx = data.runs_subscribe();
 
-    let sede = data
-        .config
-        .get(contest.into_inner().contest.unwrap_or_default().as_str())
-        .map(|(_config, contest, _secret)| contest.titulo.clone());
+    let sede = data.sede_title(contest.into_inner().contest.unwrap_or_default().as_str());
 
     match sede {
         None => Ok(HttpResponse::Forbidden().finish()),
@@ -185,7 +161,7 @@ async fn get_timer(
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
     let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
-    let mut time_rx = data.time_tx.subscribe();
+    let mut time_rx = data.time_subscribe();
 
     actix_web::rt::spawn(async move {
         let mut previous = None;
@@ -210,4 +186,35 @@ async fn get_timer(
     });
 
     Ok(response)
+}
+
+#[put("/contests")]
+async fn update_contest(
+    data: web::Data<AppData>,
+    create_runs: web::Json<ContestState>,
+    req: HttpRequest,
+) -> impl Responder {
+    let contest_key = match data.server_api_key() {
+        Some(key) => key,
+        None => return HttpResponse::Unauthorized().finish(),
+    };
+
+    if req
+        .headers()
+        .get(API_KEY)
+        .is_none_or(|k| k.as_bytes() != contest_key.as_bytes())
+    {
+        return HttpResponse::Unauthorized().finish();
+    };
+
+    let contest_state = create_runs.into_inner();
+
+    match data.update_runs_from_data(contest_state).await {
+        Ok(()) => HttpResponse::Created().finish(),
+        Err(e) => {
+            tracing::error!(?e, "failed updating runs from data");
+
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }
