@@ -3,9 +3,15 @@ use std::collections::HashMap;
 use color_eyre::Section;
 use data::configdata::{ConfigContest, Contest};
 use serde::Deserialize;
-use service::config_secret::{ConfigSecret, Secret};
-use service::pair_arg::{FromPairArg, PairArg};
+use service::config_secret::Secret;
+use service::volume::Volume;
 
+use crate::config_secret::ConfigSecret;
+use crate::pair_arg::{FromPairArg, PairArg};
+
+pub mod config_secret;
+pub mod pair_arg;
+pub mod sentry;
 pub mod test_revelation;
 
 #[tracing::instrument(err)]
@@ -31,6 +37,15 @@ impl From<PairArg> for NamedSede {
         Self {
             name: second,
             file: first,
+        }
+    }
+}
+
+impl From<PairArg> for Volume {
+    fn from(PairArg { first, second }: PairArg) -> Self {
+        Self {
+            folder: first,
+            path: second,
         }
     }
 }

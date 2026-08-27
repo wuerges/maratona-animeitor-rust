@@ -1,6 +1,7 @@
 use clap::Parser;
 
-use service::{sentry, webcast};
+use cli::sentry;
+use service::webcast;
 use tracing::{debug, error};
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 

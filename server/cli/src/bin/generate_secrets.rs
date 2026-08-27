@@ -2,9 +2,9 @@ use std::{collections::HashSet, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::WrapErr;
+use cli::config_secret::{ConfigSecret, SedeSecret};
 use data::configdata::ConfigContest;
 use rand::distr::{Alphanumeric, SampleString};
-use service::config_secret::{ConfigSecret, SedeSecret};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

@@ -1,11 +1,9 @@
 use clap::Parser;
-use cli::SimpleArgs;
+use cli::{pair_arg::FromPairArg, sentry, SimpleArgs};
 
 use service::{
     app_config::AppConfig,
     http::{HttpConfig, HttpTlsConfig},
-    pair_arg::FromPairArg,
-    sentry,
     volume::Volume,
 };
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
