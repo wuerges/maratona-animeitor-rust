@@ -2,7 +2,11 @@ use clap::Parser;
 use cli::SimpleArgs;
 
 use service::{
-    app_config::AppConfig, http::HttpConfig, pair_arg::FromPairArg, sentry, volume::Volume,
+    app_config::AppConfig,
+    http::{HttpConfig, HttpTlsConfig},
+    pair_arg::FromPairArg,
+    sentry,
+    volume::Volume,
 };
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
@@ -16,6 +20,18 @@ struct SimpleParser {
     #[clap(short = 'p', long, default_value = "8000")]
     /// The TCP port to host the server
     port: u16,
+
+    #[clap(long, requires = "tls_key")]
+    /// Path to the TLS certificate chain in PEM format. Enables HTTPS when set together with --tls-key.
+    tls_cert: Option<std::path::PathBuf>,
+
+    #[clap(long, requires = "tls_cert")]
+    /// Path to the TLS private key in PEM format.
+    tls_key: Option<std::path::PathBuf>,
+
+    #[clap(long, default_value = "8443")]
+    /// The TCP port for HTTPS. Only used when --tls-cert and --tls-key are set.
+    tls_port: u16,
 
     #[clap(short = 'k')]
     /// API Key for admin endpoints
@@ -43,6 +59,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let SimpleParser {
         args,
         port,
+        tls_cert,
+        tls_key,
+        tls_port,
         url,
         volume: volumes,
         server_api_key,
@@ -50,7 +69,17 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let complete = args.into_contest_and_secret()?;
 
-    let server_config = HttpConfig { port };
+    let tls = match (tls_cert, tls_key) {
+        (Some(cert), Some(key)) => Some(HttpTlsConfig {
+            cert,
+            key,
+            port: tls_port,
+        }),
+        (None, None) => None,
+        _ => unreachable!("clap requires --tls-cert and --tls-key together"),
+    };
+    let tls_port = tls.as_ref().map(|t| t.port);
+    let server_config = HttpConfig { port, tls };
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
@@ -66,7 +95,10 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     tracing::info!("\nMaratona Rustreimator rodando!");
 
-    tracing::info!("Server listening on port: {}", port);
+    tracing::info!("Server listening on http://0.0.0.0:{}", port);
+    if let Some(port) = tls_port {
+        tracing::info!("Server listening on https://0.0.0.0:{}", port);
+    }
 
     server_v2::serve_config(app_config).await?;
 

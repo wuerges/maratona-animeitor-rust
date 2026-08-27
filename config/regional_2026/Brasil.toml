@@ -1,0 +1,454 @@
+[titulo]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+
+[[sedes]]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+[[sedes]]
+name = "Norte"
+codes = ["bracrb", "bramma", "brapmc", "brpabe", "brpama", "brpasa", "brropv", "brrrbv"]
+
+[[sedes]]
+name = "Sul"
+codes = ["brprcm", "brprcu", "brprfi", "brrspe", "brrspf", "brscfl", "brscpi"]
+
+[[sedes]]
+name = "Centro-Oeste"
+codes = ["brdfdf", "brgogo", "brmscg", "brmsdo", "brmtcu"]
+
+[[sedes]]
+name = "Sudeste"
+codes = ["bresse", "brmgbe", "brmgit", "brmgmc", "brmgpa", "brmgsj", "brmgti", "brmgub", "brmgud", "brmgvi", "brrjrj", "brspma", "brsprp", "brspsj", "brspso", "brspsp"]
+
+[[sedes]]
+name = "Nordeste"
+codes = ["bralma", "brbagu", "brbaju", "brbasa", "brcecr", "brcefo", "brcejn", "brceqx", "brceti", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brrnna", "brrnpf", "brsesc"]
+
+[[sedes]]
+name = "Supersede estadual do Ceará"
+codes = ["brcecr", "brcefo", "brcejn", "brceqx"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede estadual de Minas Gerais"
+codes = ["brmgmc", "brmgpa", "brmgti", "brmgud"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede estadual do Rio Grande do Norte"
+codes = ["brrnna", "brrnpf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede da região Norte"
+codes = ["bracrb", "bramma", "brapmc", "brropv", "brrrbv"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede da região Nordeste"
+codes = ["bralma", "brbagu", "brbaju", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brsesc"]
+ouro = 4
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede da região Sul"
+codes = ["brprcm", "brscfl"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "Supersede Brasil"
+codes = ["brmscg", "brmsdo", "brmtcu"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "DF, Brasília"
+codes = ["brdfdf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "GO, Goiânia"
+codes = ["brgogo"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MS, Campo Grande"
+codes = ["brmscg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MS, Dourados"
+codes = ["brmsdo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MT, Cuiabá"
+codes = ["brmtcu"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AL, Maceió"
+codes = ["bralma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "BA, Guanambi"
+codes = ["brbagu"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "BA, Juazeiro"
+codes = ["brbaju"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "BA, Salvador"
+codes = ["brbasa"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE, Crateús"
+codes = ["brcecr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE, Fortaleza"
+codes = ["brcefo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE, Juazeiro do Norte"
+codes = ["brcejn"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE, Quixadá"
+codes = ["brceqx"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE, Tianguá"
+codes = ["brceti"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MA, Balsas"
+codes = ["brmaba"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MA, São Luis"
+codes = ["brmasl"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PB, Campina Grande"
+codes = ["brpbcg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PE, Recife"
+codes = ["brpere"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PI, Teresina"
+codes = ["brpite"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RN, Natal"
+codes = ["brrnna"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RN, Pau dos Ferros"
+codes = ["brrnpf"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SE, São Cristóvão"
+codes = ["brsesc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AC, Rio Branco"
+codes = ["bracrb"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AM, Manaus"
+codes = ["bramma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AP, Macapá"
+codes = ["brapmc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PA, Belém"
+codes = ["brpabe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PA, Marabá"
+codes = ["brpama"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PA, Santarém"
+codes = ["brpasa"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RO, Porto Velho"
+codes = ["brropv"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RR, Boa Vista"
+codes = ["brrrbv"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "ES, Serra"
+codes = ["bresse"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Belo Horizonte"
+codes = ["brmgbe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Itajubá"
+codes = ["brmgit"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Montes Claros"
+codes = ["brmgmc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Paracatu"
+codes = ["brmgpa"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, São João del Rei"
+codes = ["brmgsj"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Timóteo"
+codes = ["brmgti"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Uberaba"
+codes = ["brmgub"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Uberlândia"
+codes = ["brmgud"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG, Viçosa"
+codes = ["brmgvi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RJ, Rio de Janeiro"
+codes = ["brrjrj"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP, Marília"
+codes = ["brspma"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP, Ribeirão Preto"
+codes = ["brsprp"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP, São José dos Campos"
+codes = ["brspsj"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP, Sorocaba"
+codes = ["brspso"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP, São Paulo"
+codes = ["brspsp"]
+ouro = 3
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PR, Campo Mourão"
+codes = ["brprcm"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PR, Curitiba"
+codes = ["brprcu"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PR, Foz do Iguaçu"
+codes = ["brprfi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RS, Pelotas"
+codes = ["brrspe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RS, Passo Fundo"
+codes = ["brrspf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SC, Florianópolis"
+codes = ["brscfl"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SC, Pinhalzinho"
+codes = ["brscpi"]
+ouro = 1
+prata = 0
+bronze = 0

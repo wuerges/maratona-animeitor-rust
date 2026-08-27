@@ -77,11 +77,19 @@ services:
       - ./server/photos:/photos
       # place your team sounds inside of ./server/sounds
       - ./server/sounds:/sounds
-      # the ./client-v2/static/user-styles.css can be edited, and it will
-      # overwrite the styles from the app
+      # the ./client-v2/static/user-styles.css can be edited; it will
+      # overwrite the styles from the app after the container is restarted
+      # (client assets are loaded into memory once at startup)
       - ./client-v2/static/user-styles.css:/dist/user-styles.css
     ports:
       - ${PUBLIC_PORT}:8000
+
+    # Each websocket connection holds a file descriptor for its lifetime;
+    # the default soft limit of 1024 is not enough for a large audience.
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
     environment:
       - RUST_LOG=info

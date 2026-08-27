@@ -1,0 +1,63 @@
+[titulo]
+name = "Bolivia"
+codes = ["teambo"]
+
+[[sedes]]
+name = "Bolivia"
+codes = ["teambo"]
+
+[[sedes]]
+name = "Bermejo"
+codes = ["boberm"]
+
+[[sedes]]
+name = "Cobija"
+codes = ["bocobi"]
+
+[[sedes]]
+name = "Cochabamba"
+codes = ["bococh"]
+
+[[sedes]]
+name = "El Alto"
+codes = ["boelal"]
+
+[[sedes]]
+name = "La Paz"
+codes = ["bolapa"]
+
+[[sedes]]
+name = "Llallagua"
+codes = ["bollal"]
+
+[[sedes]]
+name = "Oruro"
+codes = ["boorur"]
+
+[[sedes]]
+name = "Potosí"
+codes = ["bopoto"]
+
+[[sedes]]
+name = "Santa Cruz"
+codes = ["bosacr"]
+
+[[sedes]]
+name = "Sucre"
+codes = ["bosucr"]
+
+[[sedes]]
+name = "Tarija"
+codes = ["botari"]
+
+[[sedes]]
+name = "Trinidad"
+codes = ["botrin"]
+
+[[sedes]]
+name = "Tupiza"
+codes = ["botupi"]
+
+[[sedes]]
+name = "Yacuiba"
+codes = ["boyacu"]

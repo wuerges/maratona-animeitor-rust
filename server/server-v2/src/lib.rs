@@ -1,15 +1,18 @@
 mod api;
 mod app_data;
 mod endpoints;
+mod memory_files;
 pub mod metrics;
 mod remote_control;
 mod volumes;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, fs::File, io::BufReader, path::Path, sync::Arc};
 
 use actix_cors::Cors;
 use actix_web::*;
+use actix_web::middleware::Compress;
 use app_data::AppData;
+use rustls::ServerConfig;
 use tokio::sync::broadcast;
 
 use metrics::get_metrics;
@@ -17,16 +20,28 @@ use remote_control::remote_control_ws;
 use service::DB;
 use service::dbupdate_v2::db_update_loop;
 use service::membroadcast;
-use service::{app_config::AppConfig, errors::ServiceResult, http::HttpConfig};
+use service::{app_config::AppConfig, errors::ServiceResult, http::{HttpConfig, HttpTlsConfig}};
 use tokio::sync::Mutex;
 use tracing_actix_web::TracingLogger;
 use volumes::configure_volumes;
+
+fn load_rustls_config(cert: &Path, key: &Path) -> ServiceResult<ServerConfig> {
+    let certs = rustls_pemfile::certs(&mut BufReader::new(File::open(cert)?))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    let key = rustls_pemfile::private_key(&mut BufReader::new(File::open(key)?))?
+        .ok_or_else(|| std::io::Error::other("no private key found in PEM file"))?;
+    ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(certs, key)
+        .map_err(std::io::Error::other)
+        .map_err(Into::into)
+}
 
 pub async fn serve_config(
     AppConfig {
         config,
         boca_url,
-        server_config: HttpConfig { port },
+        server_config: HttpConfig { port, tls },
         volumes,
         server_api_key,
     }: AppConfig,
@@ -48,8 +63,22 @@ pub async fn serve_config(
         ));
     }
 
-    HttpServer::new(move || {
-        App::new()
+    // The volume mounted at the server root holds the client assets. Load it
+    // into memory once at startup and serve it without touching the disk.
+    let (root_volumes, disk_volumes): (Vec<_>, Vec<_>) =
+        volumes.into_iter().partition(|volume| volume.path.is_empty());
+    if root_volumes.len() > 1 {
+        tracing::warn!(
+            "multiple root-mounted volumes given; serving {} from memory and ignoring the others",
+            root_volumes[0].folder
+        );
+    }
+    let client_assets = root_volumes
+        .first()
+        .map(|volume| web::Data::new(memory_files::MemoryFiles::load(Path::new(&volume.folder))));
+
+    let server = HttpServer::new(move || {
+        let mut app = App::new()
             .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
             .app_data(web::Data::new(AppData {
@@ -62,15 +91,30 @@ pub async fn serve_config(
             }))
             .service(
                 web::scope("api")
+                    .wrap(Compress::default())
                     .configure(api::configure)
                     .service(get_metrics)
                     .service(remote_control_ws),
             )
-            .service(configure_volumes(volumes.clone()))
+            .service(configure_volumes(disk_volumes.clone()));
+        if let Some(client_assets) = client_assets.clone() {
+            app = app
+                .app_data(client_assets)
+                .service(memory_files::client_service());
+        }
+        app
     })
-    .bind(("0.0.0.0", port))?
-    .run()
-    .await?;
+    .bind(("0.0.0.0", port))?;
+
+    let server = match tls {
+        Some(HttpTlsConfig { cert, key, port: tls_port }) => {
+            let tls_config = load_rustls_config(&cert, &key)?;
+            server.bind_rustls_0_23(("0.0.0.0", tls_port), tls_config)?
+        }
+        None => server,
+    };
+
+    server.run().await?;
 
     Ok(())
 }

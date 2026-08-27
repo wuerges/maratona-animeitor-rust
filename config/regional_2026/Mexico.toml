@@ -1,0 +1,740 @@
+[titulo]
+name = "Mexico"
+codes = ["teammx"]
+
+# MEXICO
+[[sedes]]
+codes = ["teammx"]
+name = "Mexico"
+
+[[sedes]]
+codes = ["mxbupu"]
+name = "Benemerita Universidad Autonóma de Puebla"
+
+[[sedes]]
+codes = ["mxceme"]
+name = "Centro de Enseñanza Tècnica y Superior Universidad Campus Mexicali"
+
+[[sedes]]
+codes = ["mxccsu"]
+name = "Coding CUP ITSUR Media Superior"
+
+[[sedes]]
+codes = ["mxccmi"]
+name = "Coding CUP Michoacán"
+
+[[sedes]]
+codes = ["mxccsi"]
+name = "Coding CUP Sinaloa 2026"
+
+[[sedes]]
+codes = ["mxccin"]
+name = "Coding Cup Sinaloa 2026 - Invitados"
+
+[[sedes]]
+codes = ["mxccon"]
+name = "Coding Cup TecNM 2026 - Online"
+
+[[sedes]]
+codes = ["mxcoon"]
+name = "Coding Cup TecNM 2026 - Onsite"
+
+[[sedes]]
+codes = ["mxcpan"]
+name = "Concurso de Programación ANIEI 2025"
+
+[[sedes]]
+codes = ["mxcpot"]
+name = "Concurso de Programación ITESO - Otoño 2025"
+
+[[sedes]]
+codes = ["mxcppr"]
+name = "Concurso de Programación ITESO - Primavera 2026"
+
+[[sedes]]
+codes = ["mxitun"]
+name = "ITESO University"
+
+[[sedes]]
+codes = ["mxipco"]
+name = "Instituto Politécnico Nacional - Escuela Superior de Cómputo"
+
+[[sedes]]
+codes = ["mxitta"]
+name = "Instituto Tecnologico Superior de Tantoyuca"
+
+[[sedes]]
+codes = ["mxitca"]
+name = "Instituto Tecnológico Lázaro Cárdenas"
+
+[[sedes]]
+codes = ["mxitcl"]
+name = "Instituto Tecnológico Superior Juan Rodríguez Clara"
+
+[[sedes]]
+codes = ["mxitgr"]
+name = "Instituto Tecnológico Superior Nuevo Casas Grandes"
+
+[[sedes]]
+codes = ["mxitsi"]
+name = "Instituto Tecnológico Superior Región Sierra"
+
+[[sedes]]
+codes = ["mxitte"]
+name = "Instituto Tecnológico Superior San Martín Texmelucan"
+
+[[sedes]]
+codes = ["mxitno"]
+name = "Instituto Tecnológico Superior Zacatecas Norte"
+
+[[sedes]]
+codes = ["mxitsu"]
+name = "Instituto Tecnológico Superior Zacatecas Sur"
+
+[[sedes]]
+codes = ["mxitos"]
+name = "Instituto Tecnológico Superior de Acatlán de Osorio"
+
+[[sedes]]
+codes = ["mxitac"]
+name = "Instituto Tecnológico Superior de Acayúcan"
+
+[[sedes]]
+codes = ["mxital"]
+name = "Instituto Tecnológico Superior de Alvarado"
+
+[[sedes]]
+codes = ["mxitap"]
+name = "Instituto Tecnológico Superior de Apatzingán"
+
+[[sedes]]
+codes = ["mxitat"]
+name = "Instituto Tecnológico Superior de Atlixco"
+
+[[sedes]]
+codes = ["mxinca"]
+name = "Instituto Tecnológico Superior de Calkiní"
+
+[[sedes]]
+codes = ["mxitce"]
+name = "Instituto Tecnológico Superior de Centla"
+
+[[sedes]]
+codes = ["mxitch"]
+name = "Instituto Tecnológico Superior de Champotón"
+
+[[sedes]]
+codes = ["mxinac"]
+name = "Instituto Tecnológico Superior de Ciudad Acuña"
+
+[[sedes]]
+codes = ["mxitco"]
+name = "Instituto Tecnológico Superior de Ciudad Constitución"
+
+[[sedes]]
+codes = ["mxithi"]
+name = "Instituto Tecnológico Superior de Ciudad Hidalgo"
+
+[[sedes]]
+codes = ["mxinco"]
+name = "Instituto Tecnológico Superior de Coatzacoalcos"
+
+[[sedes]]
+codes = ["mxcoma"]
+name = "Instituto Tecnológico Superior de Comalcaco"
+
+[[sedes]]
+codes = ["mxitma"]
+name = "Instituto Tecnológico Superior de El Mante"
+
+[[sedes]]
+codes = ["mxites"]
+name = "Instituto Tecnológico Superior de Escárcega"
+
+[[sedes]]
+codes = ["mxitpu"]
+name = "Instituto Tecnológico Superior de Felipe Carrillo Puerto"
+
+[[sedes]]
+codes = ["mxitfr"]
+name = "Instituto Tecnológico Superior de Fresnillo"
+
+[[sedes]]
+codes = ["mxitgu"]
+name = "Instituto Tecnológico Superior de Guanajuato"
+
+[[sedes]]
+codes = ["mxithu"]
+name = "Instituto Tecnológico Superior de Huatusco"
+
+[[sedes]]
+codes = ["mxinhu"]
+name = "Instituto Tecnológico Superior de Huauchinango"
+
+[[sedes]]
+codes = ["mxhuet"]
+name = "Instituto Tecnológico Superior de Huetamo"
+
+[[sedes]]
+codes = ["mxhuic"]
+name = "Instituto Tecnológico Superior de Huichapan"
+
+[[sedes]]
+codes = ["mxitir"]
+name = "Instituto Tecnológico Superior de Irapuato"
+
+[[sedes]]
+codes = ["mxcarr"]
+name = "Instituto Tecnológico Superior de Jesús Carranza"
+
+[[sedes]]
+codes = ["mxitle"]
+name = "Instituto Tecnológico Superior de Lerdo"
+
+[[sedes]]
+codes = ["mxitli"]
+name = "Instituto Tecnológico Superior de Libres"
+
+[[sedes]]
+codes = ["mxitre"]
+name = "Instituto Tecnológico Superior de Los Reyes"
+
+[[sedes]]
+codes = ["mxitmi"]
+name = "Instituto Tecnológico Superior de Misantla"
+
+[[sedes]]
+codes = ["mxitmo"]
+name = "Instituto Tecnológico Superior de Monclova"
+
+[[sedes]]
+codes = ["mxitna"]
+name = "Instituto Tecnológico Superior de Naranjos"
+
+[[sedes]]
+codes = ["mxitri"]
+name = "Instituto Tecnológico Superior de Poza Rica"
+
+[[sedes]]
+codes = ["mxitpe"]
+name = "Instituto Tecnológico Superior de Puerto Peñasco"
+
+[[sedes]]
+codes = ["mxinri"]
+name = "Instituto Tecnológico Superior de Purísima del Rincón"
+
+[[sedes]]
+codes = ["mxitpa"]
+name = "Instituto Tecnológico Superior de Pánuco"
+
+[[sedes]]
+codes = ["mxinpa"]
+name = "Instituto Tecnológico Superior de Pátzcuaro"
+
+[[sedes]]
+codes = ["mxriov"]
+name = "Instituto Tecnológico Superior de Rioverde"
+
+[[sedes]]
+codes = ["mxitsa"]
+name = "Instituto Tecnológico Superior de Salvatierra"
+
+[[sedes]]
+codes = ["mxittu"]
+name = "Instituto Tecnológico Superior de San Andrés Tuxtla"
+
+[[sedes]]
+codes = ["mxpapa"]
+name = "Instituto Tecnológico Superior de Santiago Papasquiaro"
+
+[[sedes]]
+codes = ["mxinta"]
+name = "Instituto Tecnológico Superior de Tacámbaro"
+
+[[sedes]]
+codes = ["mxitro"]
+name = "Instituto Tecnológico Superior de Tepexi de Rodríguez"
+
+[[sedes]]
+codes = ["mxinte"]
+name = "Instituto Tecnológico Superior de Teposcolula"
+
+[[sedes]]
+codes = ["mxtezu"]
+name = "Instituto Tecnológico Superior de Tezuitlán"
+
+[[sedes]]
+codes = ["mxitur"]
+name = "Instituto Tecnológico Superior de Uruapan"
+
+[[sedes]]
+codes = ["mxitve"]
+name = "Instituto Tecnológico Superior de Villa La Venta"
+
+[[sedes]]
+codes = ["mxitza"]
+name = "Instituto Tecnológico Superior de Zacapoaxtla"
+
+[[sedes]]
+codes = ["mxitzo"]
+name = "Instituto Tecnológico Superior de Zongolica"
+
+[[sedes]]
+codes = ["mxinpu"]
+name = "Instituto Tecnológico Superior de la Sierra Norte de Puebla"
+
+[[sedes]]
+codes = ["mxtema"]
+name = "Instituto Tecnológico Superior de Álamo Temapache"
+
+[[sedes]]
+codes = ["mxinhi"]
+name = "Instituto Tecnológico Superior del Occidente del Estado de Hidalgo"
+
+[[sedes]]
+codes = ["mxhida"]
+name = "Instituto Tecnológico Superior del Oriente del Estado de Hidalgo"
+
+[[sedes]]
+codes = ["mxingu"]
+name = "Instituto Tecnológico Superior del Sur de Guanajuato"
+
+[[sedes]]
+codes = ["mxitpr"]
+name = "Instituto Tecnológico de Agua Prieta"
+
+[[sedes]]
+codes = ["mxitag"]
+name = "Instituto Tecnológico de Aguascalientes"
+
+[[sedes]]
+codes = ["mxinat"]
+name = "Instituto Tecnológico de Atitalaquia"
+
+[[sedes]]
+codes = ["mxcanc"]
+name = "Instituto Tecnológico de Cancún"
+
+[[sedes]]
+codes = ["mxince"]
+name = "Instituto Tecnológico de Celaya"
+
+[[sedes]]
+codes = ["mxitii"]
+name = "Instituto Tecnológico de Chihuahua II"
+
+[[sedes]]
+codes = ["mxinch"]
+name = "Instituto Tecnológico de Chilpancingo"
+
+[[sedes]]
+codes = ["mxinal"]
+name = "Instituto Tecnológico de Ciudad Altamirano"
+
+[[sedes]]
+codes = ["mxitcu"]
+name = "Instituto Tecnológico de Ciudad Cuauhtémoc"
+
+[[sedes]]
+codes = ["mxitji"]
+name = "Instituto Tecnológico de Ciudad Jiménez"
+
+[[sedes]]
+codes = ["mxitju"]
+name = "Instituto Tecnológico de Ciudad Juárez"
+
+[[sedes]]
+codes = ["mxinma"]
+name = "Instituto Tecnológico de Ciudad Madero"
+
+[[sedes]]
+codes = ["mxitse"]
+name = "Instituto Tecnológico de Ciudad Serdán"
+
+[[sedes]]
+codes = ["mxitva"]
+name = "Instituto Tecnológico de Ciudad Valles"
+
+[[sedes]]
+codes = ["mxcomi"]
+name = "Instituto Tecnológico de Comitán"
+
+[[sedes]]
+codes = ["mxincu"]
+name = "Instituto Tecnológico de Cuautla"
+
+[[sedes]]
+codes = ["mxculi"]
+name = "Instituto Tecnológico de Culiacán"
+
+[[sedes]]
+codes = ["mxitig"]
+name = "Instituto Tecnológico de Iguala"
+
+[[sedes]]
+codes = ["mxinji"]
+name = "Instituto Tecnológico de Jiquilpan"
+
+[[sedes]]
+codes = ["mxinle"]
+name = "Instituto Tecnológico de León"
+
+[[sedes]]
+codes = ["mxitme"]
+name = "Instituto Tecnológico de Mexicali"
+
+[[sedes]]
+codes = ["mxitix"]
+name = "Instituto Tecnológico de Milpa Alta I"
+
+[[sedes]]
+codes = ["mxinii"]
+name = "Instituto Tecnológico de Milpa Alta II"
+
+[[sedes]]
+codes = ["mxinmo"]
+name = "Instituto Tecnológico de Morelia"
+
+[[sedes]]
+codes = ["mxinme"]
+name = "Instituto Tecnológico de Mérida"
+
+[[sedes]]
+codes = ["mxleon"]
+name = "Instituto Tecnológico de Nuevo León"
+
+[[sedes]]
+codes = ["mxitoa"]
+name = "Instituto Tecnológico de Oaxaca"
+
+[[sedes]]
+codes = ["mxitoc"]
+name = "Instituto Tecnológico de Ocotlán"
+
+[[sedes]]
+codes = ["mxitor"]
+name = "Instituto Tecnológico de Orizaba"
+
+[[sedes]]
+codes = ["mxpach"]
+name = "Instituto Tecnológico de Pachuca"
+
+[[sedes]]
+codes = ["mxparr"]
+name = "Instituto Tecnológico de Parral"
+
+[[sedes]]
+codes = ["mxitne"]
+name = "Instituto Tecnológico de Piedras Negras"
+
+[[sedes]]
+codes = ["mxitpo"]
+name = "Instituto Tecnológico de Pochutla"
+
+[[sedes]]
+codes = ["mxitqu"]
+name = "Instituto Tecnológico de Querétaro"
+
+[[sedes]]
+codes = ["mxinsa"]
+name = "Instituto Tecnológico de Saltillo"
+
+[[sedes]]
+codes = ["mxriox"]
+name = "Instituto Tecnológico de San Juan del Río"
+
+[[sedes]]
+codes = ["mxinpo"]
+name = "Instituto Tecnológico de San Luis Potosí"
+
+[[sedes]]
+codes = ["mxmarc"]
+name = "Instituto Tecnológico de San Marcos"
+
+[[sedes]]
+codes = ["mxteha"]
+name = "Instituto Tecnológico de Tehaucan"
+
+[[sedes]]
+codes = ["mxitti"]
+name = "Instituto Tecnológico de Tizimin"
+
+[[sedes]]
+codes = ["mxittl"]
+name = "Instituto Tecnológico de Tláhuac"
+
+[[sedes]]
+codes = ["mxiixx"]
+name = "Instituto Tecnológico de Tláhuac II"
+
+[[sedes]]
+codes = ["mxitto"]
+name = "Instituto Tecnológico de Toluca"
+
+[[sedes]]
+codes = ["mxinve"]
+name = "Instituto Tecnológico de Veracruz"
+
+[[sedes]]
+codes = ["mxinza"]
+name = "Instituto Tecnológico de Zacatepec"
+
+[[sedes]]
+codes = ["mxitzi"]
+name = "Instituto Tecnológico de Zitácuaro"
+
+[[sedes]]
+codes = ["mxitla"]
+name = "Instituto Tecnológico de la Laguna"
+
+[[sedes]]
+codes = ["mxitis"]
+name = "Instituto Tecnológico del Istmo"
+
+[[sedes]]
+codes = ["mxzamo"]
+name = "Instituto Tecnológico y de Estudios Superiores de Zamora"
+
+[[sedes]]
+codes = ["mxomin"]
+name = "Olimpiada Mexicana de Informatica"
+
+[[sedes]]
+codes = ["mxteiz"]
+name = "Tecnológico de Estudios Superiores de Cuautitlán Izcalli"
+
+[[sedes]]
+codes = ["mxteec"]
+name = "Tecnológico de Estudios Superiores de Ecatepec"
+
+[[sedes]]
+codes = ["mxtehu"]
+name = "Tecnológico de Estudios Superiores de Huixquilucan"
+
+[[sedes]]
+codes = ["mxteix"]
+name = "Tecnológico de Estudios Superiores de Ixtapaluca"
+
+[[sedes]]
+codes = ["mxteji"]
+name = "Tecnológico de Estudios Superiores de Jilotepec"
+
+[[sedes]]
+codes = ["mxtejo"]
+name = "Tecnológico de Estudios Superiores de Jocotitlán"
+
+[[sedes]]
+codes = ["mxtmme"]
+name = "Tecnológico de Monterrey Campus Ciudad de México"
+
+[[sedes]]
+codes = ["mxtmcu"]
+name = "Tecnológico de Monterrey Campus Cuernavaca"
+
+[[sedes]]
+codes = ["mxteme"]
+name = "Tecnológico de Monterrey Campus Estado de México"
+
+[[sedes]]
+codes = ["mxtmgu"]
+name = "Tecnológico de Monterrey Campus Guadalajara"
+
+[[sedes]]
+codes = ["mxtmmo"]
+name = "Tecnológico de Monterrey Campus Monterrey"
+
+[[sedes]]
+codes = ["mxtmpu"]
+name = "Tecnológico de Monterrey Campus Puebla"
+
+[[sedes]]
+codes = ["mxtmqu"]
+name = "Tecnológico de Monterrey Campus Querétaro"
+
+[[sedes]]
+codes = ["mxtmfe"]
+name = "Tecnológico de Monterrey Campus Santa Fe"
+
+[[sedes]]
+codes = ["mxtmto"]
+name = "Tecnológico de Monterrey Campus Toluca"
+
+[[sedes]]
+codes = ["mxuaoa"]
+name = "Universidad Anahuac Oaxaca"
+
+[[sedes]]
+codes = ["mxuaag"]
+name = "Universidad Autónoma de Aguascalientes"
+
+[[sedes]]
+codes = ["mxuaen"]
+name = "Universidad Autónoma de Baja California Ensenada"
+
+[[sedes]]
+codes = ["mxuach"]
+name = "Universidad Autónoma de Chihuahua"
+
+[[sedes]]
+codes = ["mxuaju"]
+name = "Universidad Autónoma de Ciudad Juárez"
+
+[[sedes]]
+codes = ["mxuagu"]
+name = "Universidad Autónoma de Guadalajara"
+
+[[sedes]]
+codes = ["mxuale"]
+name = "Universidad Autónoma de Nuevo Leon"
+
+[[sedes]]
+codes = ["mxuaqu"]
+name = "Universidad Autónoma de Querétaro"
+
+[[sedes]]
+codes = ["mxuapo"]
+name = "Universidad Autónoma de San Luis Potosí"
+
+[[sedes]]
+codes = ["mxuama"]
+name = "Universidad Autónoma de Sinaloa - Facultad de Informática Mazatlán"
+
+[[sedes]]
+codes = ["mxuata"]
+name = "Universidad Autónoma de Tamaulipas"
+
+[[sedes]]
+codes = ["mxuate"]
+name = "Universidad Autónoma de Tlaxcala - Facultad de Ciencias Básicas, Ingeniería y Tecnología"
+
+[[sedes]]
+codes = ["mxuati"]
+name = "Universidad Autónoma de Yucatan Unidad Multidisciplinaria Tizimín"
+
+[[sedes]]
+codes = ["mxunma"]
+name = "Universidad Autónoma de Yucatán - Facultad de Matemáticas"
+
+[[sedes]]
+codes = ["mxuaza"]
+name = "Universidad Autónoma de Zacatecas"
+
+[[sedes]]
+codes = ["mxuahi"]
+name = "Universidad Autónoma del Estado de Hidalgo"
+
+[[sedes]]
+codes = ["mxumgu"]
+name = "Universidad Marista de Guadalajara"
+
+[[sedes]]
+codes = ["mxumhi"]
+name = "Universidad Michoacana de San Nicolás de Hidalgo"
+
+[[sedes]]
+codes = ["mxunin"]
+name = "Universidad Nacional Autónoma de México -  Facultad de Ingeniería"
+
+[[sedes]]
+codes = ["mxunna"]
+name = "Universidad Nacional Autónoma de México - Centro de Nanociencias y Nanotecnologia"
+
+[[sedes]]
+codes = ["mxunmo"]
+name = "Universidad Nacional Autónoma de México - Escuela Nacional de Estudios Superiores Campus Morelia"
+
+[[sedes]]
+codes = ["mxunci"]
+name = "Universidad Nacional Autónoma de México - Facultad de Ciencias"
+
+[[sedes]]
+codes = ["mxunsi"]
+name = "Universidad Nacional Autónoma de México - Instituto de Investigaciones en Matemáticas Aplicadas y en Sistemas"
+
+[[sedes]]
+codes = ["mxupbo"]
+name = "Universidad Panamericana Campus Bonaterra"
+
+[[sedes]]
+codes = ["mxupme"]
+name = "Universidad Panamericana Campus Ciudad de México"
+
+[[sedes]]
+codes = ["mxupgu"]
+name = "Universidad Panamericana Campus Guadalajara"
+
+[[sedes]]
+codes = ["mxupal"]
+name = "Universidad Politécnica de Altamira"
+
+[[sedes]]
+codes = ["mxupdu"]
+name = "Universidad Politécnica de Durango"
+
+[[sedes]]
+codes = ["mxuppu"]
+name = "Universidad Popular Autónoma del Estado de Puebla"
+
+[[sedes]]
+codes = ["mxutgu"]
+name = "Universidad TecMilenio Guadalajara"
+
+[[sedes]]
+codes = ["mxutto"]
+name = "Universidad TecMilenio Toluca"
+
+[[sedes]]
+codes = ["mxutmo"]
+name = "Universidad TecMileno Monterrey"
+
+[[sedes]]
+codes = ["mxutag"]
+name = "Universidad Tecnológica de Aguascalientes"
+
+[[sedes]]
+codes = ["mxunve"]
+name = "Universidad Veracruzana"
+
+[[sedes]]
+codes = ["mxudco"]
+name = "Universidad de Colima"
+
+[[sedes]]
+codes = ["mxugcu"]
+name = "Universidad de Guadalajara campus CUALTOS"
+
+[[sedes]]
+codes = ["mxuncu"]
+name = "Universidad de Guadalajara campus CUCEI"
+
+[[sedes]]
+codes = ["mxcuco"]
+name = "Universidad de Guadalajara campus CUCOSTA"
+
+[[sedes]]
+codes = ["mxcusu"]
+name = "Universidad de Guadalajara campus CUSUR"
+
+[[sedes]]
+codes = ["mxcuto"]
+name = "Universidad de Guadalajara campus CUTONALA"
+
+[[sedes]]
+codes = ["mxcuva"]
+name = "Universidad de Guadalajara campus CUVALLES"
+
+[[sedes]]
+codes = ["mxudgu"]
+name = "Universidad de Guanajuato"
+
+[[sedes]]
+codes = ["mxudmo"]
+name = "Universidad de Monterrey"
+
+[[sedes]]
+codes = ["mxuvat"]
+name = "Universidad del Valle de Atemajac"
+
+[[sedes]]
+codes = ["mxuvsu"]
+name = "Universidad del Valle de México Campus Guadalajara Sur"

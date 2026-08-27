@@ -1,6 +1,7 @@
 use actix_web::*;
 use actix_ws::Closed;
 use autometrics::autometrics;
+use futures::StreamExt;
 use serde::Deserialize;
 use tracing::{Level, debug, warn};
 
@@ -142,7 +143,7 @@ async fn get_allruns_ws_fn(
     req: HttpRequest,
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
-    let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
+    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)?;
     let mut runs_rx = data.runs_tx.subscribe();
 
     let sede = data
@@ -155,22 +156,37 @@ async fn get_allruns_ws_fn(
         Some(sede) => {
             actix_web::rt::spawn(async move {
                 loop {
-                    match runs_rx.recv().await {
-                        Ok(r) => {
-                            if sede.team_belongs_str(&r.team_login) {
-                                match serde_json::to_string(&r) {
-                                    Ok(text) => {
-                                        if let Err(Closed) = session.text(text).await {
-                                            debug!("ws connection closed");
-                                            break;
+                    tokio::select! {
+                        recv = runs_rx.recv() => {
+                            match recv {
+                                Ok(r) => {
+                                    if sede.team_belongs_str(&r.team_login) {
+                                        match serde_json::to_string(&r) {
+                                            Ok(text) => {
+                                                if let Err(Closed) = session.text(text).await {
+                                                    debug!("ws connection closed");
+                                                    break;
+                                                }
+                                            }
+                                            Err(err) => warn!(?err, "failed serializing run"),
                                         }
                                     }
-                                    Err(err) => warn!(?err, "failed serializing run"),
+                                }
+                                Err(err) => {
+                                    warn!(?err, "recv failed");
+                                    break;
                                 }
                             }
                         }
-                        Err(err) => {
-                            warn!(?err, "recv failed");
+                        // The read half of the connection: while no runs arrive,
+                        // this is what detects that the client went away and
+                        // releases the socket instead of leaking the FD.
+                        msg = msg_stream.next() => {
+                            if let Some(Err(err)) = msg {
+                                warn!(?err, "failed reading ws messages");
+                            } else {
+                                debug!("ws stream ended");
+                            }
                             break;
                         }
                     }
@@ -197,31 +213,45 @@ async fn get_timer_fn(
     req: HttpRequest,
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
-    let (response, mut session, _msg_stream) = actix_ws::handle(&req, body)?;
+    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)?;
     let mut time_rx = data.time_tx.subscribe();
 
     actix_web::rt::spawn(async move {
         let mut previous = None;
         loop {
-            match time_rx.recv().await {
-                Ok(time) => {
-                    if previous.is_some_and(|x| x == time) {
-                        continue;
-                    }
-                    previous = Some(time);
+            tokio::select! {
+                recv = time_rx.recv() => {
+                    match recv {
+                        Ok(time) => {
+                            if previous.is_some_and(|x| x == time) {
+                                continue;
+                            }
+                            previous = Some(time);
 
-                    match serde_json::to_string(&time) {
-                        Ok(text) => {
-                            if let Err(Closed) = session.text(text).await {
-                                debug!("ws connection closed");
-                                break;
+                            match serde_json::to_string(&time) {
+                                Ok(text) => {
+                                    if let Err(Closed) = session.text(text).await {
+                                        debug!("ws connection closed");
+                                        break;
+                                    }
+                                }
+                                Err(err) => warn!(?err, "failed serializing time"),
                             }
                         }
-                        Err(err) => warn!(?err, "failed serializing time"),
+                        Err(err) => {
+                            warn!(?err, "recv failed");
+                            break;
+                        }
                     }
                 }
-                Err(err) => {
-                    warn!(?err, "recv failed");
+                // The read half of the connection: detects dead clients even
+                // while the clock is frozen and nothing is being written.
+                msg = msg_stream.next() => {
+                    if let Some(Err(err)) = msg {
+                        warn!(?err, "failed reading ws messages");
+                    } else {
+                        debug!("ws stream ended");
+                    }
                     break;
                 }
             }

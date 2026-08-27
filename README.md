@@ -60,9 +60,11 @@ PUBLIC_PORT=8000
 # Customizing animeitor appearance
 
 There is a special CSS file at `client-v2/static/user-styles.css`.
-This file included in the build and mounted by docker.
-It can be edited in real time and overwrites the CSS from animeitor
-(Reload the browser with `ctrl+shift+R` to see the changes once you edit).
+This file is included in the build and mounted by docker.
+It can be edited and overwrites the CSS from animeitor. The client assets
+(including this file) are loaded into memory once when the server starts,
+so after editing, restart the server (`docker compose restart animeitor`)
+and reload the browser with `ctrl+shift+R` to see the changes.
 
 ```css
 /* This file is intended to house user CSS */
@@ -76,6 +78,19 @@ body {
 ```
 
 Animeitor was made to be customizable using CSS.
+
+# File descriptors
+
+Each websocket connection holds a file descriptor for its lifetime, so a
+production server needs a raised `nofile` limit (the default soft limit is
+1024, which runs out quickly):
+
+- systemd service (`config/regional_2026/simples.service`): `LimitNOFILE=65536`
+  in the `[Service]` section
+- docker compose: `ulimits: nofile: 65536` (already set in the compose files)
+- running from a shell: `ulimit -n 65536` before starting
+
+Client assets are served from memory, so they cost no file descriptors.
 
 # Run without docker
 

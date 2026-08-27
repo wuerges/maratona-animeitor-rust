@@ -1,0 +1,42 @@
+# Example systemd service for the animeitor server.
+#
+# Install (as root):
+#   cp config/regional_2026/simples.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now simples
+#
+# Make sure no other process is already bound to the HTTP port (80)
+# before starting the service.
+
+[Unit]
+Description=Maratona Animeitor server (simples)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ew
+Group=ew
+WorkingDirectory=/home/ew/maratona-animeitor-rust
+Environment=RUST_LOG=info
+
+# Each websocket connection holds a file descriptor for its lifetime.
+# Without this, the server runs with systemd's default soft limit of 1024
+# and runs out of file descriptors under load.
+LimitNOFILE=65536
+
+# Port 80 is privileged. Granting the capability here is more robust
+# than `setcap` on the binary: a rebuild or copy replaces the file and
+# strips file capabilities.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+
+ExecStart=/usr/bin/make -f config/regional_2026/Makefile run-standalone
+
+# make and the simples child run in the same cgroup; the default
+# KillMode=control-group stops both on restart/stop.
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
