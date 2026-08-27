@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use color_eyre::Section;
-use data::configdata::{ConfigContest, ConfigSecret, Contest, Secret};
+use data::configdata::{ConfigContest, Contest};
 use serde::Deserialize;
+use service::config_secret::{ConfigSecret, Secret};
 use service::pair_arg::{FromPairArg, PairArg};
 
 pub mod test_revelation;

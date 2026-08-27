@@ -2,8 +2,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use data::{
     RunTuple, TimerData,
-    configdata::{ConfigContest, Contest, Secret},
+    configdata::{ConfigContest, Contest},
 };
+use service::config_secret::Secret;
 use service::{DB, membroadcast};
 use tokio::sync::{Mutex, broadcast};
 

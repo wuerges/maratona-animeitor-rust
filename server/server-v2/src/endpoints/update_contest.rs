@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, put, web};
-use data::contest_state::ContestState;
+use service::contest_state::ContestState;
 use service::dbupdate_v2::update_runs_from_data;
 
 use crate::app_data::AppData;

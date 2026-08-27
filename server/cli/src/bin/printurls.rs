@@ -1,6 +1,7 @@
 use clap::Parser;
 use cli::SimpleArgs;
-use data::configdata::{Contest, Secret, Sede};
+use data::configdata::{Contest, Sede};
+use service::config_secret::Secret;
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 use url::Url;
 

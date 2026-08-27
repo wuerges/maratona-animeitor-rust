@@ -745,6 +745,7 @@ name = "cli"
 version = "2.1.0"
 dependencies = [
  "clap",
+ "client-model",
  "color-eyre",
  "data",
  "openssl-sys",
