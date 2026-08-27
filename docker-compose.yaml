@@ -23,8 +23,9 @@ services:
       - ./server/photos:/photos
       # place your team sounds inside of ./server/sounds
       - ./server/sounds:/sounds
-      # the ./client-v2/static/user-styles.css can be edited, and it will
-      # overwrite the styles from the app
+      # the ./client-v2/static/user-styles.css can be edited; it will
+      # overwrite the styles from the app after the container is restarted
+      # (client assets are loaded into memory once at startup)
       - ./client-v2/static/user-styles.css:/dist/user-styles.css
     ports:
       - ${PUBLIC_PORT}:8000

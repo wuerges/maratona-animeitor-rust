@@ -60,9 +60,11 @@ PUBLIC_PORT=8000
 # Customizing animeitor appearance
 
 There is a special CSS file at `client-v2/static/user-styles.css`.
-This file included in the build and mounted by docker.
-It can be edited in real time and overwrites the CSS from animeitor
-(Reload the browser with `ctrl+shift+R` to see the changes once you edit).
+This file is included in the build and mounted by docker.
+It can be edited and overwrites the CSS from animeitor. The client assets
+(including this file) are loaded into memory once when the server starts,
+so after editing, restart the server (`docker compose restart animeitor`)
+and reload the browser with `ctrl+shift+R` to see the changes.
 
 ```css
 /* This file is intended to house user CSS */
