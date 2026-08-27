@@ -13,9 +13,60 @@ Todos os endpoints são privados e exigem autenticação HTTP Basic com um token
 - Cabeçalho: `Authorization: Basic <base64(usuario:token)>`.
 - Sem credenciais válidas: `401 Unauthorized`.
 
-## Recurso raiz
+## Envelope de resposta
 
-- `/internal/event`
+Toda resposta com corpo JSON é um objeto com os campos `data`, `errors` e `warnings`. Os três campos são **opcionais** e ausentes quando vazios:
+
+- `data`: recurso ou resultado da operação; presente apenas em respostas de sucesso (2xx).
+- `errors`: lista de objetos `{ "code": <string>, "message": <string> }`; presente apenas em respostas de erro (4xx/5xx).
+- `warnings`: lista de objetos `{ "code": <string>, "message": <string> }`; problemas não fatais, presentes somente junto com `data`.
+
+Respostas de sucesso nunca trazem `errors`; respostas de erro nunca trazem `data`. Os códigos HTTP continuam valendo — o envelope acrescenta detalhe, não os substitui. `204 No Content` não tem corpo (sem envelope). Corpos de **requisição** não usam o envelope.
+
+Salvo indicação contrária, respostas de erro trazem `errors` com o código canônico da situação:
+
+| code | status | situação |
+| --- | --- | --- |
+| `invalid_json` | 400 | JSON malformado |
+| `missing_field` | 400 | campo obrigatório ausente |
+| `invalid_regex` | 400 | regex inválida em `codes` |
+| `invalid_value` | 400 | valor inválido (tempo negativo, `answer` desconhecido etc.) |
+| `unauthorized` | 401 | credenciais ausentes ou inválidas |
+| `not_found` | 404 | recurso inexistente |
+| `conflict` | 409 | criação de recurso já existente |
+
+Códigos de warning:
+
+| code | situação |
+| --- | --- |
+| `duplicate_run_ids` | runs ignoradas por `id` duplicado |
+
+### Exemplos
+
+```json
+{
+    "data": { "added": 3 },
+    "warnings": [
+        { "code": "duplicate_run_ids", "message": "2 runs ignoradas por id duplicado" }
+    ]
+}
+```
+
+```json
+{
+    "errors": [
+        { "code": "not_found", "message": "evento não existe" }
+    ]
+}
+```
+
+## Recursos
+
+A API organiza os recursos em hierarquia: **events** → **contests** → **sites**.
+
+- Evento (`/internal/events/{event-name}`): o contest como um todo — problemas, times, tempo e runs.
+- Contest (`/internal/contests/{event-name}/{contest-name}`): agrupamento de times do evento, identificado por nome.
+- Site (`/internal/sites/{event-name}/{contest-name}/{site-name}`): agrupamento de times de um contest, com chave própria (ver seção Salts).
 
 ## Estado do evento
 
@@ -27,7 +78,7 @@ O estado do evento é um objeto JSON com os seguintes campos:
 - `score_freeze_time`: instante do congelamento do placar, em segundos.
 - `penalty`: penalidade por submissão incorreta, em segundos.
 - `time`: tempo decorrido, em segundos.
-- `salt`: string usada para derivar as chaves dos contests (ver seção Secrets); opcional.
+- `salt`: string usada para derivar as chaves dos sites (ver seção Salts); opcional.
 - `photo_url_format`: formato de URL das fotos (ver seção Mídia); opcional.
 - `sound_url_format`: formato de URL dos sons (ver seção Mídia); opcional.
 
@@ -55,58 +106,58 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
 
 ### Criar o evento
 
-- `POST /internal/event`
+- `POST /internal/events/{event-name}`
 - Corpo: estado do evento; `time` é opcional e assume `0`.
 
 Respostas:
 
-- `201 Created` — evento criado; corpo: estado do evento como armazenado.
-- `400 Bad Request` — corpo inválido (JSON malformado, campo obrigatório ausente ou regex inválida em `codes`).
-- `401 Unauthorized` — credenciais ausentes ou inválidas.
+- `201 Created` — `data`: estado do evento como armazenado.
+- `400 Bad Request` — corpo inválido (JSON malformado ou campo obrigatório ausente).
+- `401 Unauthorized`.
 - `409 Conflict` — o evento já existe.
 
 ### Ler o evento
 
-- `GET /internal/event`
+- `GET /internal/events/{event-name}`
 
 Respostas:
 
-- `200 OK` — corpo: estado atual do evento.
+- `200 OK` — `data`: estado atual do evento.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
 ### Atualizar todos os valores do evento
 
-- `PUT /internal/event`
+- `PUT /internal/events/{event-name}`
 - Corpo: estado completo do evento.
 
 Respostas:
 
-- `200 OK` — corpo: estado atualizado.
+- `200 OK` — `data`: estado atualizado.
 - `400 Bad Request` — corpo inválido.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
 ### Atualizar somente o tempo
 
-- `PATCH /internal/event/time`
+- `PATCH /internal/events/{event-name}/time`
 - Corpo: `{ "time": <segundos> }`.
 
 Respostas:
 
-- `200 OK` — corpo: `{ "time": <novo valor> }`.
+- `200 OK` — `data`: `{ "time": <novo valor> }`.
 - `400 Bad Request` — corpo inválido ou tempo negativo.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
 ### Remover o evento
 
-- `DELETE /internal/event`
-- Remove o evento, seus contests e todas as runs.
+- `DELETE /internal/events/{event-name}`
+- Remove o evento, seus contests, sites e todas as runs.
 
 Respostas:
 
-- `204 No Content` — removido.
+- `204 No Content` — sem corpo.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
@@ -118,6 +169,7 @@ Um contest é um agrupamento de times do evento, identificado por um nome. Múlt
 
 - `name`: nome do contest (string); obrigatório. `""` representa o contest padrão.
 - `codes`: lista de expressões regulares que casam com o login dos times pertencentes ao contest; obrigatório.
+- `salt`: string usada para derivar as chaves dos sites deste contest (ver seção Salts); opcional.
 - `style`: nome do estilo visual do contest; opcional.
 - `ouro`: posição até a qual vale medalha de ouro (1-based); opcional, padrão `1`.
 - `prata`: idem para prata; opcional, padrão `2`.
@@ -131,6 +183,7 @@ Chaves não listadas aqui são ignoradas.
 {
     "name": "brasil",
     "codes": ["teambr"],
+    "salt": "s3gredo-do-contest",
     "style": "brasil",
     "ouro": 4,
     "prata": 8,
@@ -140,47 +193,122 @@ Chaves não listadas aqui são ignoradas.
 
 ### Criar um contest
 
-- `POST /internal/event/contest`
+- `POST /internal/contests/{event-name}/{contest-name}`
 - Corpo: contest (formato acima).
 
 Respostas:
 
-- `201 Created` — corpo: contest como armazenado.
-- `400 Bad Request` — corpo inválido, `name` ou `codes` ausentes, ou regex inválida.
+- `201 Created` — `data`: contest como armazenado.
+- `400 Bad Request` — corpo inválido, `codes` ausente ou regex inválida.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
-- `409 Conflict` — já existe um contest com esse `name`.
+- `409 Conflict` — já existe um contest com esse nome.
 
 ### Substituir um contest
 
-- `PUT /internal/event/contest`
+- `PUT /internal/contests/{event-name}/{contest-name}`
 - Corpo: contest completo (substitui todos os valores).
 
 Respostas:
 
-- `200 OK` — corpo: contest atualizado.
+- `200 OK` — `data`: contest atualizado.
 - `400 Bad Request` — corpo inválido.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento ou o contest não existe.
 
 ### Remover um contest
 
-- `DELETE /internal/event/contest/{name}`
-- Para o contest padrão, o segmento `{name}` é vazio: `DELETE /internal/event/contest/`.
+- `DELETE /internal/contests/{event-name}/{contest-name}`
+- Remove também os sites do contest.
+- Para o contest padrão, o segmento `{contest-name}` é vazio: `DELETE /internal/contests/{event-name}/`.
 
 Respostas:
 
-- `204 No Content` — removido.
+- `204 No Content` — sem corpo.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento ou o contest não existe.
 
-## Secrets
+## Sites
 
-As chaves dos contests são **derivadas** do `salt` do evento; não há envio de chaves por contest.
+Um site é um agrupamento de times de um contest, identificado por um nome — tipicamente a sede física que exibe o placar. Cada site tem sua própria chave para as runs secretas (ver seção Salts). Para o contest padrão (`name = ""`), o segmento `{contest-name}` é vazio: `/internal/sites/{event-name}//{site-name}`.
 
-- Chave de um contest: `key(name) = HMAC-SHA256(salt, name)`, codificada em base62 e truncada em 12 caracteres.
-- Um único `salt` gera chaves distintas para todos os contests do evento, incluindo o padrão (`name = ""`).
-- Sem `salt` no evento, nenhuma chave é gerada (revelação desabilitada).
+### Formato de um site
+
+- `name`: nome do site (string); obrigatório.
+- `codes`: lista de expressões regulares que casam com o login dos times do site; obrigatório.
+- `salt`: string usada para derivar a chave do site (ver seção Salts); opcional.
+
+Chaves não listadas aqui são ignoradas.
+
+### Exemplo
+
+```json
+{
+    "name": "fiemg",
+    "codes": ["teammg"],
+    "salt": "s3gredo-do-site"
+}
+```
+
+### Criar um site
+
+- `POST /internal/sites/{event-name}/{contest-name}/{site-name}`
+- Corpo: site (formato acima).
+
+Respostas:
+
+- `201 Created` — `data`: site como armazenado.
+- `400 Bad Request` — corpo inválido, `codes` ausente ou regex inválida.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento ou o contest não existe.
+- `409 Conflict` — já existe um site com esse nome.
+
+### Substituir um site
+
+- `PUT /internal/sites/{event-name}/{contest-name}/{site-name}`
+- Corpo: site completo (substitui todos os valores).
+
+Respostas:
+
+- `200 OK` — `data`: site atualizado.
+- `400 Bad Request` — corpo inválido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento, o contest ou o site não existe.
+
+### Remover um site
+
+- `DELETE /internal/sites/{event-name}/{contest-name}/{site-name}`
+
+Respostas:
+
+- `204 No Content` — sem corpo.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento, o contest ou o site não existe.
+
+## Salts
+
+Cada nível da hierarquia tem um salt opcional: o evento, cada contest e cada site. As chaves dos sites são **derivadas** desses salts; não há envio de chaves.
+
+- Chave de um site: `key(site) = HMAC-SHA256(salt_evento : salt_contest : salt_site, contest_name : site_name)`, codificada em base62 e truncada em 12 caracteres. O `:` é um separador literal; salt ausente contribui com string vazia na sua posição.
+- Site sem `salt` próprio não tem chave (revelação desabilitada para aquele site).
+- Dois sites exibindo o mesmo contest têm chaves distintas, pois o salt do site entra na derivação.
+- Alcance da troca de salt: trocar o salt de um site muda somente a chave daquele site; trocar o salt de um contest muda as chaves de todos os seus sites; trocar o salt do evento muda todas as chaves do evento.
+- Para remover um salt, atualize o recurso inteiro (`PUT`) sem o campo `salt`.
+
+### Trocar o salt
+
+- `POST /internal/events/{event-name}/salt`
+- `POST /internal/contests/{event-name}/{contest-name}/salt`
+- `POST /internal/sites/{event-name}/{contest-name}/{site-name}/salt`
+
+Corpo opcional: `{ "salt": "<novo valor>" }`. Se o corpo ou o campo `salt` estiver ausente ou vazio, o servidor gera um salt aleatório. O restante do recurso não é alterado.
+
+Respostas:
+
+- `200 OK` — `data`: `{ "salt": "<valor efetivo>" }`.
+- `400 Bad Request` — corpo inválido.
+- `401 Unauthorized`.
+- `404 Not Found` — o evento, o contest ou o site não existe.
 
 ## Mídia
 
@@ -215,44 +343,46 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 
 ### Adicionar runs
 
-- `POST /internal/event/runs`
+- `POST /internal/events/{event-name}/runs`
 - Corpo: `{ "runs": [ ... ] }`.
 - Adiciona as runs às existentes; submissões com o mesmo `id` são ignoradas (idempotente).
 
 Respostas:
 
-- `200 OK` — corpo: `{ "added": <quantidade> }`, com a quantidade de runs efetivamente adicionadas (duplicadas por `id` não contam).
+- `200 OK` — `data`: `{ "added": <quantidade> }`, com a quantidade de runs efetivamente adicionadas (duplicadas por `id` não contam); `warnings`: `[{ "code": "duplicate_run_ids", "message": "<k> runs ignoradas por id duplicado" }]`, presente somente quando houver duplicadas.
 - `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `team_login`/`prob` desconhecidos.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
 ### Remover todas as runs
 
-- `DELETE /internal/event/runs`
+- `DELETE /internal/events/{event-name}/runs`
 
 Respostas:
 
-- `204 No Content` — removidas.
+- `204 No Content` — sem corpo.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
 ## Códigos de resposta comuns
 
-- `200 OK` — operação concluída; corpo com o recurso ou resultado.
-- `201 Created` — recurso criado; corpo com o recurso criado.
+- `200 OK` — operação concluída; `data` com o recurso ou resultado.
+- `201 Created` — recurso criado; `data` com o recurso criado.
 - `204 No Content` — remoção concluída; sem corpo.
-- `400 Bad Request` — corpo inválido (JSON malformado, campos ausentes ou com valores inválidos).
-- `401 Unauthorized` — credenciais ausentes ou inválidas.
-- `404 Not Found` — evento, contest ou runs inexistentes.
-- `409 Conflict` — criação de recurso já existente.
+- `400 Bad Request` — corpo inválido (JSON malformado, campos ausentes ou com valores inválidos); `errors`.
+- `401 Unauthorized` — credenciais ausentes ou inválidas; `errors`.
+- `404 Not Found` — evento, contest, site ou runs inexistentes; `errors`.
+- `409 Conflict` — criação de recurso já existente; `errors`.
 
 ## Resumo das regras
 
 - Todos os endpoints ficam sob `/internal`.
 - Todos os tempos em segundos.
 - Todos os endpoints exigem autenticação HTTP Basic com token.
+- Hierarquia de recursos: events → contests → sites.
+- Toda resposta com corpo JSON usa o envelope `{ data, errors, warnings }` (campos opcionais); `204` não tem corpo.
 - Runs são enviadas somente após a criação do evento.
 - Envios de runs são incrementais (append) e idempotentes por `id`.
-- Atualizações completas via `PUT`; atualização de tempo via `PATCH /internal/event/time`.
-- Chaves dos contests são derivadas do `salt` do evento (HMAC-SHA256 truncado em 12 caracteres base62).
+- Atualizações completas via `PUT`; atualização de tempo via `PATCH /internal/events/{event-name}/time`.
+- Salts opcionais nos três níveis (evento, contest, site); as chaves dos sites são derivadas dos três salts (HMAC-SHA256, base62, 12 caracteres) e trocadas via `POST .../salt`.
 - Mídia é configurada por formatos de URL, não por volumes.
