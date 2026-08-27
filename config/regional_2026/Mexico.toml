@@ -496,10 +496,6 @@ codes = ["mxzamo"]
 name = "Instituto Tecnológico y de Estudios Superiores de Zamora"
 
 [[sedes]]
-codes = ["mxmast"]
-name = "Masters"
-
-[[sedes]]
 codes = ["mxomin"]
 name = "Olimpiada Mexicana de Informatica"
 
