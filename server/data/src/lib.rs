@@ -220,6 +220,9 @@ pub struct RunsFile {
     runs: BTreeMap<i64, RunTuple>,
 }
 
+// `is_empty` was removed with the client-only helpers; `len` only serves
+// server-side dump assertions.
+#[allow(clippy::len_without_is_empty)]
 impl RunsFile {
     pub fn empty() -> Self {
         Self {

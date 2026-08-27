@@ -47,9 +47,9 @@ impl TeamSignal {
     /// Returns whether the placement changed.
     ///
     /// Only signals whose value actually changed are notified: the score
-    /// and problem views compare via the id-based equality that `data`
-    /// maintains (ids bump on every state change). Callers running inside
-    /// a reactive owner must not do plain reads here.
+    /// and problem views compare via id-based equality (ids are minted by
+    /// `data::gen_id` and bump on every state change). Callers running
+    /// inside a reactive owner must not do plain reads here.
     pub fn update(&self, team: &Team) -> bool {
         let mut placement_changed = false;
         let new_score = team.score();
