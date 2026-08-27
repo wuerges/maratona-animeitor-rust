@@ -1,13 +1,9 @@
-pub mod annotate_first_solved;
 pub mod configdata;
-pub mod contest_state;
 pub mod remote_control;
-pub mod revelation;
 
 use configdata::Sede;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::cmp::{Eq, Ordering};
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashSet, btree_map};
 use std::fmt::{self, Display};
 use std::str::FromStr;
@@ -30,29 +26,6 @@ pub enum Answer {
     Wait { run_id: i64 },
     /// Unknown.
     Unk { run_id: i64 },
-}
-
-impl Answer {
-    pub fn is_wait(&self) -> bool {
-        matches!(self, Answer::Wait { .. })
-    }
-
-    pub fn run_id(&self) -> i64 {
-        match self {
-            Answer::Yes { run_id, .. } => *run_id,
-            Answer::No { run_id } => *run_id,
-            Answer::Wait { run_id } => *run_id,
-            Answer::Unk { run_id } => *run_id,
-        }
-    }
-}
-
-#[derive(Error, Debug)]
-pub enum ContestError {
-    #[error("unmatched team: {}", 0.)]
-    UnmatchedTeam(String),
-    #[error("unmatched problem: {}", 0.)]
-    UnmatchedProblem(Letter),
 }
 
 pub type TimeFile = i64;
@@ -79,37 +52,6 @@ pub struct Problem {
     pub id: u64,
 }
 
-#[derive(Debug, Clone)]
-/// A problem in the scoreboard.
-pub struct ProblemView {
-    /// Was the problem solved?
-    pub solved: bool,
-    /// Was the problem solved first?
-    pub solved_first: bool,
-    /// How many submissions?
-    pub submissions: usize,
-    /// How much penalty in total?
-    pub penalty: i64,
-    /// When was it solved?
-    pub time_solved: i64,
-    pub id: u64,
-    pub pending: usize,
-}
-
-impl ProblemView {
-    pub fn is_resolved(&self) -> bool {
-        self.solved || self.pending == 0
-    }
-}
-
-impl PartialEq for ProblemView {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
-}
-
-impl Eq for ProblemView {}
-
 #[derive(Copy, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Timer state
 pub struct TimerData {
@@ -125,105 +67,6 @@ impl TimerData {
             current_time,
             score_freeze_time,
         }
-    }
-
-    pub fn is_frozen(&self) -> bool {
-        self.current_time >= self.score_freeze_time * 60
-    }
-
-    pub fn fake() -> Self {
-        Self::new(86399, 86399 + 1)
-    }
-}
-
-impl Problem {
-    fn empty() -> Self {
-        Problem {
-            solved: false,
-            solved_first: false,
-            submissions: 0,
-            time_solved: 0,
-            penalty: 0,
-            answers: Vec::new(),
-            id: gen_id(),
-            waits: HashSet::new(),
-        }
-    }
-
-    pub fn view(&self) -> ProblemView {
-        let Self {
-            solved,
-            solved_first,
-            submissions,
-            penalty,
-            time_solved,
-            answers,
-            id,
-            waits,
-        } = self;
-        ProblemView {
-            solved: *solved,
-            solved_first: *solved_first,
-            submissions: *submissions,
-            penalty: *penalty,
-            time_solved: *time_solved,
-            id: *id,
-            pending: answers.len() + waits.len(),
-        }
-    }
-
-    fn add_run_problem(&mut self, answer: Answer) {
-        if self.solved {
-            return;
-        }
-        self.id = gen_id();
-        match answer {
-            Answer::Yes {
-                time,
-                is_first,
-                run_id,
-            } => {
-                self.solved = true;
-                self.submissions += 1;
-                self.penalty += time;
-                self.time_solved = time;
-                self.answers.clear();
-                self.solved_first = is_first;
-
-                self.waits.remove(&run_id);
-            }
-            Answer::No { run_id } => {
-                self.submissions += 1;
-                self.penalty += 20;
-                self.waits.remove(&run_id);
-            }
-            Answer::Wait { run_id } => {
-                self.waits.insert(run_id);
-            }
-            Answer::Unk { run_id } => {
-                self.waits.remove(&run_id);
-            }
-        }
-    }
-
-    fn wait(&self) -> bool {
-        !self.solved && !self.answers.is_empty()
-    }
-
-    fn add_run_frozen(&mut self, answer: Answer) {
-        self.id = gen_id();
-        if !answer.is_wait() {
-            self.answers.push(answer)
-        }
-    }
-
-    fn reveal_run_frozen(&mut self) -> bool {
-        if self.wait() {
-            let a = self.answers.remove(0);
-            self.add_run_problem(a);
-            return true;
-        }
-        false
     }
 }
 
@@ -252,107 +95,18 @@ impl PartialEq for Team {
     }
 }
 
-impl PartialOrd for Team {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.score().partial_cmp(&other.score())
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone)]
-pub struct Score {
-    pub solved: usize,
-    pub penalty: i64,
-    pub max_solution_time: i64,
-    pub team_login: String,
-}
-
-impl PartialOrd for Score {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Score {
-    fn cmp(&self, other: &Self) -> Ordering {
-        if self.solved != other.solved {
-            other.solved.cmp(&self.solved)
-        } else if self.penalty != other.penalty {
-            self.penalty.cmp(&other.penalty)
-        } else if self.max_solution_time != other.max_solution_time {
-            self.max_solution_time.cmp(&other.max_solution_time)
-        } else {
-            self.team_login.cmp(&other.team_login)
-        }
-    }
-}
-
 static SEED: AtomicU64 = AtomicU64::new(0);
 
-fn gen_id() -> u64 {
+/// Mints a fresh id for state mutations.
+///
+/// Every mutation of [`Team`] or [`Problem`] state (server-side dump
+/// construction included) must bump this shared counter so ids never collide
+/// between the initial contest state shipped by the server and the mutations
+/// applied by clients. `client-model`'s change detection compares [`Team`]
+/// by `name + id` and problem views by `id`, so ids must be strictly
+/// increasing across the wire.
+pub fn gen_id() -> u64 {
     SEED.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1
-}
-
-impl Team {
-    pub fn new(login: &str, escola: &str, name: String) -> Self {
-        Self {
-            login: login.to_string(),
-            escola: escola.to_string(),
-            name,
-            placement: 0,
-            placement_global: 0,
-            problems: BTreeMap::new(),
-            id: gen_id(),
-        }
-    }
-
-    pub fn dummy() -> Self {
-        Self::new("<login>", "<escola>", "<nome>".to_string())
-    }
-
-    fn apply_run(&mut self, run: &RunTuple) {
-        self.id = gen_id();
-        self.problems
-            .entry(run.prob.clone())
-            .or_insert(Problem::empty())
-            .add_run_problem(run.answer.clone());
-    }
-
-    fn apply_run_frozen(&mut self, run: &RunTuple) {
-        self.id = gen_id();
-        self.problems
-            .entry(run.prob.clone())
-            .or_insert(Problem::empty())
-            .add_run_frozen(run.answer.clone());
-    }
-
-    pub fn reveal_run_frozen(&mut self) -> bool {
-        for p in self.problems.values_mut() {
-            if p.wait() && p.reveal_run_frozen() {
-                self.id = gen_id();
-                return true;
-            }
-        }
-        false
-    }
-
-    pub fn score(&self) -> Score {
-        let mut solved = 0;
-        let mut penalty = 0;
-        let mut max_solution_time = 0;
-        for value in self.problems.values() {
-            if value.solved {
-                solved += 1;
-                penalty += value.penalty;
-                max_solution_time = max_solution_time.max(value.time_solved);
-            }
-        }
-        Score {
-            solved,
-            penalty,
-            max_solution_time,
-            team_login: self.login.clone(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -372,6 +126,19 @@ pub struct ContestFile {
     pub penalty_per_wrong_answer: i64,
     /// Number of problems in the contest.
     pub number_problems: usize,
+}
+
+impl ContestFile {
+    pub fn filter_sede(self, sede: &Sede) -> Self {
+        Self {
+            teams: self
+                .teams
+                .into_iter()
+                .filter(|(login, _t)| sede.team_belongs_str(login))
+                .collect(),
+            ..self
+        }
+    }
 }
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Serialize, Deserialize)]
@@ -399,12 +166,6 @@ impl Display for Letter {
     }
 }
 
-impl AsRef<str> for Letter {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-
 impl PartialOrd for Letter {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -422,114 +183,7 @@ impl Ord for Letter {
 }
 
 static ALPHABET: LazyLock<Vec<char>> =
-    LazyLock::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect_vec());
-
-static CALCULATED: LazyLock<Vec<Letter>> = LazyLock::new(|| {
-    (1..=3)
-        .flat_map(|l| {
-            ALPHABET
-                .iter()
-                .combinations_with_replacement(l)
-                .map(|t| Letter(t.into_iter().collect()))
-                .collect_vec()
-        })
-        .sorted()
-        .collect_vec()
-});
-
-pub fn problem_letters(i: usize) -> Vec<Letter> {
-    CALCULATED.iter().take(i).cloned().collect_vec()
-}
-
-impl ContestFile {
-    pub fn new(
-        contest_name: String,
-        teams: Vec<Team>,
-        current_time: i64,
-        maximum_time: i64,
-        score_freeze_time: i64,
-        penalty: i64,
-        number_problems: usize,
-    ) -> Self {
-        let mut m = BTreeMap::new();
-        for t in teams {
-            m.insert(t.login.clone(), t);
-        }
-        Self {
-            contest_name,
-            teams: m,
-            current_time,
-            maximum_time,
-            score_freeze_time,
-            penalty_per_wrong_answer: penalty,
-            number_problems,
-        }
-    }
-
-    pub fn filter_sede(self, sede: &Sede) -> Self {
-        Self {
-            teams: self
-                .teams
-                .into_iter()
-                .filter(|(login, _t)| sede.team_belongs_str(login))
-                .collect(),
-            ..self
-        }
-    }
-
-    pub fn recalculate_placement(&mut self) {
-        let mut teams = self.teams.iter_mut().map(|(_t, v)| v).collect::<Vec<_>>();
-        teams.sort_by_cached_key(|t| t.score());
-
-        for (i, t) in teams.iter_mut().enumerate() {
-            if t.placement_global != i + 1 {
-                t.placement_global = i + 1;
-                t.id = gen_id()
-            }
-        }
-    }
-
-    pub fn dummy() -> Self {
-        Self::new("Dummy Contest".to_string(), Vec::new(), 0, 0, 0, 0, 0)
-    }
-
-    pub fn apply_run(&mut self, r: &RunTuple) {
-        if let Some(t) = self.teams.get_mut(&r.team_login) {
-            t.apply_run(r);
-        }
-    }
-
-    pub fn apply_run_frozen(&mut self, r: &RunTuple) {
-        if let Some(t) = self.teams.get_mut(&r.team_login) {
-            t.apply_run_frozen(r);
-        }
-    }
-
-    pub fn build_panel_item(&self, run: &RunTuple) -> Result<RunsPanelItem, ContestError> {
-        let team = self
-            .teams
-            .get(&run.team_login)
-            .ok_or(ContestError::UnmatchedTeam(run.team_login.clone()))?;
-
-        let problem = team
-            .problems
-            .get(&run.prob)
-            .ok_or(ContestError::UnmatchedProblem(run.prob.clone()))?;
-
-        let view = problem.view();
-
-        Ok(RunsPanelItem {
-            id: run.id,
-            order: run.order,
-            placement: team.placement_global,
-            escola: team.escola.clone(),
-            team_name: team.name.clone(),
-            team_login: run.team_login.clone(),
-            problem: run.prob.clone(),
-            problem_view: view,
-        })
-    }
-}
+    LazyLock::new(|| "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars().collect());
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 /// A submission being judged.
@@ -561,30 +215,9 @@ impl Ord for RunTuple {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct RunsPanelItem {
-    pub id: i64,
-    pub order: u64,
-    pub placement: usize,
-    pub escola: String,
-    pub team_name: String,
-    pub team_login: String,
-    pub problem: Letter,
-    pub problem_view: ProblemView,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunsFile {
     runs: BTreeMap<i64, RunTuple>,
-}
-
-#[derive(Debug, Clone)]
-pub struct RunsFileContest(RunsFile);
-
-impl AsRef<RunsFile> for RunsFileContest {
-    fn as_ref(&self) -> &RunsFile {
-        &self.0
-    }
 }
 
 impl RunsFile {
@@ -594,20 +227,8 @@ impl RunsFile {
         }
     }
 
-    pub fn new(runs: Vec<RunTuple>) -> Self {
-        let mut t = Self::empty();
-        for r in runs {
-            t.runs.insert(r.id, r);
-        }
-        t
-    }
-
     pub fn len(&self) -> usize {
         self.runs.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.runs.is_empty()
     }
 
     pub fn sorted(&self) -> Vec<RunTuple> {
@@ -616,43 +237,9 @@ impl RunsFile {
         r
     }
 
-    pub fn filter_frozen(&self, frozen_time: i64) -> Self {
-        Self::new(
-            self.sorted()
-                .into_iter()
-                .map(|mut r| {
-                    if r.time >= frozen_time {
-                        let run_id = r.answer.run_id();
-                        r.answer = Answer::Wait { run_id };
-                    }
-                    r
-                })
-                .collect(),
-        )
-    }
-
-    pub fn filter_sede(&self, sede: &Sede) -> Self {
-        Self {
-            runs: self
-                .runs
-                .iter()
-                .filter_map(|(key, value)| {
-                    sede.team_belongs_str(&value.team_login)
-                        .then_some((*key, value.clone()))
-                })
-                .collect(),
-        }
-    }
-
     pub fn filter_teams(&mut self, contest: &ContestFile) {
         let runs = &mut self.runs;
         runs.retain(|&_, run| contest.teams.contains_key(&run.team_login));
-    }
-
-    pub fn into_runs_sede(&self, contest: &ContestFile) -> RunsFileContest {
-        let mut runs = self.clone();
-        runs.filter_teams(contest);
-        RunsFileContest(runs)
     }
 
     pub fn refresh_1(&mut self, t: &RunTuple) -> bool {
@@ -670,62 +257,5 @@ impl RunsFile {
                 false
             }
         }
-    }
-
-    pub fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {
-        let mut rec = Vec::new();
-
-        for t in fresh {
-            if self.refresh_1(&t) {
-                rec.push(t);
-            }
-        }
-
-        rec
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{Letter, problem_letters};
-
-    #[test]
-    fn check_first_letters() {
-        let letters = problem_letters(30);
-
-        let ordered = vec![
-            Letter("A".to_string()),
-            Letter("B".to_string()),
-            Letter("C".to_string()),
-            Letter("D".to_string()),
-            Letter("E".to_string()),
-            Letter("F".to_string()),
-            Letter("G".to_string()),
-            Letter("H".to_string()),
-            Letter("I".to_string()),
-            Letter("J".to_string()),
-            Letter("K".to_string()),
-            Letter("L".to_string()),
-            Letter("M".to_string()),
-            Letter("N".to_string()),
-            Letter("O".to_string()),
-            Letter("P".to_string()),
-            Letter("Q".to_string()),
-            Letter("R".to_string()),
-            Letter("S".to_string()),
-            Letter("T".to_string()),
-            Letter("U".to_string()),
-            Letter("V".to_string()),
-            Letter("W".to_string()),
-            Letter("X".to_string()),
-            Letter("Y".to_string()),
-            Letter("Z".to_string()),
-            Letter("AA".to_string()),
-            Letter("AB".to_string()),
-            Letter("AC".to_string()),
-            Letter("AD".to_string()),
-        ];
-
-        assert_eq!(letters, ordered)
     }
 }

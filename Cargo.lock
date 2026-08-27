@@ -1152,10 +1152,8 @@ name = "data"
 version = "2.1.0"
 dependencies = [
  "derivative",
- "itertools 0.14.0",
  "regex",
  "serde",
- "serde_json",
  "thiserror 2.0.20",
 ]
 

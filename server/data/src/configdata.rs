@@ -7,8 +7,6 @@ use derivative::Derivative;
 use regex::RegexSet;
 use serde::{Deserialize, Serialize};
 
-use crate::Team;
-
 #[derive(Debug, Clone, Default, Derivative)]
 #[derivative(PartialEq, Eq)]
 pub struct RegexSetField(Vec<String>, #[derivative(PartialEq = "ignore")] RegexSet);
@@ -84,35 +82,9 @@ impl PartialEq for Sede {
     }
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
-pub enum Color {
-    Red,
-    Gold,
-    Silver,
-    Bronze,
-    Green,
-    Yellow,
-}
-
 impl Sede {
-    pub fn team_belongs(&self, team: &Team) -> bool {
-        self.team_belongs_str(&team.login)
-    }
-
     pub fn team_belongs_str(&self, team_login: &str) -> bool {
         self.automata.is_match(team_login)
-    }
-
-    pub fn premio(&self, p: usize) -> Option<Color> {
-        if p <= self.entry.ouro {
-            Some(Color::Gold)
-        } else if p <= self.entry.prata {
-            Some(Color::Silver)
-        } else if p <= self.entry.bronze {
-            Some(Color::Bronze)
-        } else {
-            None
-        }
     }
 }
 
@@ -166,171 +138,5 @@ impl Contest {
             return Some(&self.titulo);
         }
         self.sedes.get(name)
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct SedeSecret {
-    pub name: String,
-    pub secret: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct ConfigSecret {
-    pub secrets: Vec<SedeSecret>,
-}
-
-#[derive(Debug)]
-pub struct Secret {
-    /// A map where the key is a shared secret, and the sede is a contest site
-    pub sedes_by_secret: HashMap<String, Sede>,
-}
-
-impl Secret {
-    pub fn get_sede_by_secret(&self, key: &str) -> Option<&Sede> {
-        self.sedes_by_secret.get(key)
-    }
-}
-
-impl ConfigSecret {
-    pub fn into_secret(&self, salt: Option<String>, sedes: &Contest) -> Secret {
-        let salt = salt.unwrap_or_default();
-        let sedes_by_secret = self
-            .secrets
-            .iter()
-            .filter_map(|sede_secret| {
-                let complete = format!("{}{}", salt, sede_secret.secret);
-                sedes
-                    .get_sede_nome_sede(&sede_secret.name)
-                    .map(|sede| (complete, sede.clone()))
-            })
-            .collect();
-        Secret { sedes_by_secret }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::*;
-
-    #[test]
-    fn test_config_patterns() {
-        let sede = SedeEntry {
-            name: "sede-name".into(),
-            codes: serde_json::from_value(json!(["teambr", "teammx"])).unwrap(),
-            ..SedeEntry::default()
-        };
-
-        let config_contest = ConfigContest {
-            sedes: Some(vec![sede]),
-            titulo: SedeEntry {
-                name: "dummy".to_string(),
-                ..SedeEntry::default()
-            },
-        };
-        let contest = config_contest.into_contest();
-
-        let config_secret = ConfigSecret {
-            secrets: vec![SedeSecret {
-                name: "sede-name".into(),
-                secret: "key".into(),
-            }],
-        };
-        let secret = config_secret.into_secret(None, &contest);
-
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("teambr$"),
-        );
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("teammx$")
-        );
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$teammx$")
-        );
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$teammx$")
-        );
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$teammx")
-        );
-        assert!(
-            secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$teammx")
-        );
-
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("tea#mbr$")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("tea#mmx$")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$te#ammx$")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$te#ammx$")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$te#ammx")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$te#ammx")
-        );
-
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("teamag")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("teamag$")
-        );
-        assert!(
-            !secret
-                .get_sede_by_secret("key")
-                .unwrap()
-                .team_belongs_str("$teamag$")
-        );
     }
 }
