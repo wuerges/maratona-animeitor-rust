@@ -17,12 +17,13 @@ use client_model::{
 };
 
 use crate::{
-    api::{create_timer, provide_contest, ContestQuery},
+    api::{create_timer, event_contest_from_pathname, provide_contest, EventContest},
     views::{
         background_color::BackgroundColor,
         contest::Contest,
         control_scrolling::RemoteControl,
         global_settings::{use_global_settings, SettingsPanel},
+        landing::Landing,
         navigation::Navigation,
     },
 };
@@ -126,6 +127,7 @@ fn ConfiguredReveleitor(
     contest_provider: LocalResource<ContestProvider>,
     secret: String,
     sede_param: Option<String>,
+    event_contest: EventContest,
 ) -> impl IntoView {
     let secret = secret.clone();
     let sede_param = sede_param.clone();
@@ -136,17 +138,13 @@ fn ConfiguredReveleitor(
         let sede = use_configured_sede(provider.config_contest.clone(), titulo, sede_param);
 
         {
-            view! { <Reveleitor sede secret contest=provider.starting_contest.clone() /> }
+            view! { <Reveleitor sede secret contest=provider.starting_contest.clone() event_contest /> }
         }
     })
 }
 
 #[component]
 pub fn Sedes() -> impl IntoView {
-    let timer = create_timer();
-
-    let negative_memo = Memo::new(move |_| timer.get().is_negative());
-
     let global_settings = use_global_settings();
 
     let root = move || {
@@ -165,41 +163,53 @@ pub fn Sedes() -> impl IntoView {
                 .or(global_settings.global.with(|g| g.get_secret()))
         });
         let secret = Memo::new(move |_| secret.get());
-        let contest_query =
-            Signal::derive(|| use_query::<ContestQuery>().get().unwrap_or_default());
 
-        let animeitor = move || {
-            let contest_provider = LocalResource::new(move || {
-                let q = contest_query.get();
-                provide_contest(q)
-            });
+        // No animeitor path in the URL: show the landing page.
+        let Some(ec) = event_contest_from_pathname() else {
+            return view! { <Landing /> }.into_any();
+        };
 
-            match secret.get() {
-                Some(secret) => (move || view! {
-                    <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) />
-                }).into_any(),
-                None => {
-                    let suspend = Suspend::new(async move {
-                        let provider = contest_provider.await;
+        let timer = create_timer(ec.clone());
+        let negative_memo = Memo::new(move |_| timer.get().is_negative());
+
+        let animeitor = {
+            let animeitor_ec = ec.clone();
+            move || {
+                let contest_provider = LocalResource::new({
+                    let ec = animeitor_ec.clone();
+                    move || provide_contest(ec.clone())
+                });
+
+                match secret.get() {
+                    Some(secret) => {
+                        let ec = animeitor_ec.clone();
+                        (move || view! {
+                            <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
+                        }).into_any()
+                    },
+                    None => {
+                        let suspend = Suspend::new(async move {
+                            let provider = contest_provider.await;
+
+                            view! {
+                                <Navigation config_contest=provider.config_contest.clone() />
+                                <ProvideSede
+                                        original_contest=provider.starting_contest.clone()
+                                        contest_signal=provider.new_contest_signal.clone()
+                                        panel_items=provider.runs_panel_item_manager
+                                        timer
+                                        config_contest=provider.config_contest.clone()
+                                        sede_param=query_params
+                                        />
+                            }
+                        });
 
                         view! {
-                            <Navigation config_contest=provider.config_contest.clone() />
-                            <ProvideSede
-                                    original_contest=provider.starting_contest.clone()
-                                    contest_signal=provider.new_contest_signal.clone()
-                                    panel_items=provider.runs_panel_item_manager
-                                    timer
-                                    config_contest=provider.config_contest.clone()
-                                    sede_param=query_params
-                                    />
-                        }
-                    });
-
-                    view! {
-                    {suspend}
-                }.into_any()}
+                        {suspend}
+                    }.into_any()}
+                }
+                    .into_view()
             }
-                .into_view()
         };
 
         if negative_memo.get() {
@@ -207,7 +217,7 @@ pub fn Sedes() -> impl IntoView {
         } else {
             view! {
                 <BackgroundColor />
-                <RemoteControl />
+                <RemoteControl event_contest=ec.clone() />
                 {settings_panel}
                 {animeitor}
             }

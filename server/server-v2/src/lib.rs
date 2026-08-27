@@ -1,13 +1,13 @@
-mod api;
+mod envelope;
+pub mod internal;
 pub mod metrics;
+pub mod public;
 mod remote_control;
 
 use actix_cors::Cors;
 use actix_web::*;
 
 use metrics::get_metrics;
-use remote_control::remote_control_ws;
-use service::app_data::AppData;
 use service::http::load_rustls_config;
 use service::volume::Volume;
 use service::{
@@ -21,33 +21,60 @@ fn configure_volumes(volumes: Vec<Volume>) -> Vec<actix_files::Files> {
     volumes
         .into_iter()
         .map(|Volume { folder, path }| {
-            actix_files::Files::new(&path, &folder).index_file("index.html")
+            let files = actix_files::Files::new(&path, &folder).index_file("index.html");
+            // The client build is an SPA served at /animeitor/{event}/{contest}:
+            // unmatched paths fall back to its index.html.
+            if path == "animeitor" {
+                let folder = folder.clone();
+                files.default_handler(move |req: actix_web::dev::ServiceRequest| {
+                    let folder = folder.clone();
+                    async move {
+                        let file = actix_files::NamedFile::open(format!("{folder}/index.html"))
+                            .map_err(actix_web::error::ErrorInternalServerError)?;
+                        let response = file.into_response(req.request());
+                        Ok(req.into_response(response))
+                    }
+                })
+            } else {
+                files
+            }
         })
         .collect()
 }
 
 pub async fn serve_config(
     AppConfig {
-        config,
         boca_url,
         server_config: HttpConfig { port, tls },
         volumes,
-        server_api_key,
+        internal_token,
+        default_event,
     }: AppConfig,
 ) -> ServiceResult<()> {
-    let data = AppData::new(config, boca_url, server_api_key);
+    let event_store = service::event_store::EventStore::new();
+
+    if let Some(url) = boca_url {
+        tokio::spawn(service::dbupdate_v2::store_update_loop(
+            url,
+            event_store.clone(),
+            default_event.clone(),
+        ));
+    }
 
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
-            .app_data(web::Data::new(data.clone()))
+            .app_data(web::Data::new(event_store.clone()))
+            .app_data(web::Data::new(internal::InternalToken(
+                internal_token.clone(),
+            )))
             .service(
                 web::scope("api")
-                    .configure(api::configure)
-                    .service(get_metrics)
-                    .service(remote_control_ws),
+                    .configure(public::configure)
+                    .service(get_metrics),
             )
+            .service(web::scope("internal").configure(internal::configure))
             .service(configure_volumes(volumes.clone()))
     })
     .bind(("0.0.0.0", port))?;

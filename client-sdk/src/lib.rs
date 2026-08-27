@@ -1,84 +1,142 @@
 mod config;
+pub mod legacy;
 mod request;
 mod websocket_stream;
 
 pub use config::SdkConfig;
 
-use data::{configdata::ConfigContest, ContestFile, RunTuple, RunsFile, TimerData};
-use futures::channel::mpsc::UnboundedReceiver;
+use data::configdata::ConfigContest;
+use data::event::{Envelope, PublicConfig, PublicContestState, PublicTimer, Run, RunsData};
+use data::{ContestFile, RunTuple, TimerData};
+use futures::{
+    channel::mpsc::{self, UnboundedReceiver},
+    SinkExt, StreamExt,
+};
+use gloo_timers::future::TimeoutFuture;
+use log::warn;
+use wasm_bindgen_futures::spawn_local;
 
-use request::create_request;
+use request::{create_request, create_request_with_bearer};
 use websocket_stream::create_websocket_stream;
 
+/// The event and contest a client is showing, from the UI path.
 #[derive(PartialEq, Eq, Clone, Default)]
-pub struct ContestQuery {
-    pub contest: Option<String>,
+pub struct EventContest {
+    pub event: String,
+    pub contest: String,
 }
 
-fn push_contest_query(url: &mut String, query: &ContestQuery) {
-    if let Some(contest) = &query.contest {
-        url.push_str(&format!("?contest={contest}"));
+fn url(config: &SdkConfig, ec: &EventContest, path: &str) -> String {
+    format!(
+        "{}/events/{}/contests/{}/{}",
+        config.api_prefix, ec.event, ec.contest, path
+    )
+}
+
+fn ws_url(config: &SdkConfig, ec: &EventContest, path: &str) -> String {
+    format!(
+        "{}/events/{}/contests/{}/{}",
+        config.ws_prefix, ec.event, ec.contest, path
+    )
+}
+
+/// Fetches an enveloped resource; retries forever while the server answers
+/// without `data` (e.g. `not_found`).
+async fn enveloped<T: for<'a> serde::Deserialize<'a> + serde::Serialize + Clone>(url: &str) -> T {
+    loop {
+        let envelope: Envelope<T> = create_request(url).await;
+        match envelope.data {
+            Some(data) => return data,
+            None => {
+                warn!("response without data, retrying: {url}");
+                TimeoutFuture::new(5_000).await;
+            }
+        }
     }
 }
 
-fn url(config: &SdkConfig, path: &str, query: &ContestQuery) -> String {
-    let mut prefix = config.api_prefix.clone();
-    prefix.push('/');
-    prefix.push_str(path);
-    push_contest_query(&mut prefix, query);
-    prefix
+/// Lists the active events (landing page).
+pub async fn create_events(config: &SdkConfig) -> Vec<String> {
+    enveloped(&format!("{}/events", config.api_prefix)).await
 }
 
-fn contest_query_ws(config: &SdkConfig, path: &str, query: &ContestQuery) -> String {
-    let mut prefix = config.ws_prefix.clone();
-    prefix.push('/');
-    prefix.push_str(path);
-    push_contest_query(&mut prefix, query);
-    prefix
+/// The public state of the contest, converted to the legacy client shape.
+pub async fn create_contest(config: &SdkConfig, ec: EventContest) -> ContestFile {
+    let state: PublicContestState = enveloped(&url(config, &ec, "contest")).await;
+    legacy::to_contest_file(state)
 }
 
-pub async fn create_contest(config: &SdkConfig, query: ContestQuery) -> ContestFile {
-    create_request(&url(config, "contest", &query)).await
+/// The raw public config of the contest (with photo/sound formats).
+pub async fn create_public_config(config: &SdkConfig, ec: EventContest) -> PublicConfig {
+    enveloped(&url(config, &ec, "config")).await
 }
 
-pub async fn create_config(config: &SdkConfig, query: ContestQuery) -> ConfigContest {
-    create_request(&url(config, "config", &query)).await
+/// The public config converted to the legacy client shape.
+pub fn to_legacy_config(config: PublicConfig) -> ConfigContest {
+    legacy::to_config_contest(config)
 }
 
-pub fn create_runs(config: &SdkConfig, query: ContestQuery) -> UnboundedReceiver<RunTuple> {
-    create_websocket_stream::<RunTuple>(&contest_query_ws(config, "allruns_ws", &query))
+/// The live run stream of the contest, converted to the legacy client shape.
+pub fn create_runs(config: &SdkConfig, ec: EventContest) -> UnboundedReceiver<RunTuple> {
+    let runs = create_websocket_stream::<Run>(&ws_url(config, &ec, "runs_ws"));
+    let (mut tx, rx) = mpsc::unbounded::<RunTuple>();
+
+    spawn_local(async move {
+        let mut runs = runs;
+        let mut order = 0;
+        while let Some(run) = runs.next().await {
+            let tuple = legacy::to_run_tuple(&run, order);
+            order += 1;
+            if tx.send(tuple).await.is_err() {
+                break;
+            }
+        }
+    });
+
+    rx
 }
 
-pub fn remote_control_url(config: &SdkConfig, key: &str) -> String {
-    let mut prefix = config.ws_prefix.clone();
-    prefix.push_str("/remote_control/");
-    prefix.push_str(key);
-    prefix
-}
-
-pub async fn create_secret_runs(
-    config: &SdkConfig,
-    secret: String,
-    contest: Option<String>,
-) -> RunsFile {
-    let mut url = config.api_prefix.clone();
-    url.push_str("/allruns_secret?secret=");
-    url.push_str(secret.as_str());
-
-    if let Some(contest) = contest {
-        url.push_str("&contest=");
-        url.push_str(contest.as_str());
+/// The secret runs of a site, unlocked by its key (Bearer header).
+pub async fn create_secret_runs(config: &SdkConfig, key: String, ec: EventContest) -> RunsData {
+    let url = url(config, &ec, "runs_secret");
+    loop {
+        let envelope: Envelope<RunsData> = create_request_with_bearer(&url, &key).await;
+        match envelope.data {
+            Some(data) => return data,
+            None => {
+                warn!("response without data, retrying: {url}");
+                TimeoutFuture::new(5_000).await;
+            }
+        }
     }
-
-    create_request(&url).await
 }
 
-pub fn create_timer_stream(config: &SdkConfig) -> UnboundedReceiver<TimerData> {
-    create_websocket_stream::<TimerData>(&contest_query_ws(
-        config,
-        "timer",
-        &ContestQuery { contest: None },
-    ))
+pub fn remote_control_url(config: &SdkConfig, ec: &EventContest, key: &str) -> String {
+    format!(
+        "{}/events/{}/contests/{}/remote_control/{}",
+        config.ws_prefix, ec.event, ec.contest, key
+    )
+}
+
+/// The timer stream of an event, converted to the legacy client shape.
+pub fn create_timer_stream(config: &SdkConfig, ec: EventContest) -> UnboundedReceiver<TimerData> {
+    let timers = create_websocket_stream::<PublicTimer>(&format!(
+        "{}/events/{}/timer",
+        config.ws_prefix, ec.event
+    ));
+    let (mut tx, rx) = mpsc::unbounded::<TimerData>();
+
+    spawn_local(async move {
+        let mut timers = timers;
+        while let Some(timer) = timers.next().await {
+            let data = legacy::to_timer_data(timer);
+            if tx.send(data).await.is_err() {
+                break;
+            }
+        }
+    });
+
+    rx
 }
 
 pub fn team_photo_location(config: &SdkConfig, team_login: &str) -> String {
@@ -95,3 +153,28 @@ pub fn team_sound_location(config: &SdkConfig, team_login: &str) -> String {
     }
 }
 
+/// Builds a photo URL from a contest's own format, falling back to the SDK
+/// defaults (the migrated behavior: media comes from the contest config).
+pub fn team_photo_location_with(
+    config: &SdkConfig,
+    format: Option<&str>,
+    team_login: &str,
+) -> String {
+    match format {
+        Some(format) => format.replace("{team_login}", team_login),
+        None => team_photo_location(config, team_login),
+    }
+}
+
+/// Builds a sound URL from a contest's own format, falling back to the SDK
+/// defaults (the migrated behavior: media comes from the contest config).
+pub fn team_sound_location_with(
+    config: &SdkConfig,
+    format: Option<&str>,
+    team_login: &str,
+) -> String {
+    match format {
+        Some(format) => format.replace("{team_login}", team_login),
+        None => team_sound_location(config, team_login),
+    }
+}

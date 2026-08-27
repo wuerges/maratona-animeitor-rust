@@ -1,74 +1,27 @@
-use std::sync::Arc;
-use std::time::Instant;
-
-use crate::contest_state::ContestState;
-use crate::dataio::runs_file_new;
 use crate::errors::ServiceResult;
-use crate::{DB, membroadcast, webcast};
-use metrics::{counter, histogram};
-use tokio::sync::Mutex;
-use tokio::sync::broadcast;
+use crate::webcast;
 
-pub async fn update_runs_from_data(
-    data: ContestState,
-    shared_db: &Arc<Mutex<DB>>,
-    runs_tx: &membroadcast::Sender<data::RunTuple>,
-    time_tx: &broadcast::Sender<data::TimerData>,
-) -> ServiceResult<()> {
-    let ContestState {
-        runs,
-        time,
-        contest,
-    } = data;
-
-    let start = Instant::now();
-
-    let mut db = shared_db.lock().await;
-    let fresh_runs = db.refresh_db(time, contest, runs_file_new(runs))?;
-
-    let fresh_runs_count = fresh_runs.len() as u64;
-    for r in fresh_runs {
-        runs_tx.send_memo(r);
-    }
-
-    let delta = start.elapsed();
-
-    time_tx.send(db.timer_data()).ok();
-    histogram!("update_runs_from_data_time").record(delta);
-    counter!("update_runs_from_data_fresh_runs").increment(fresh_runs_count);
-    Ok(())
-}
-
-#[allow(clippy::type_complexity)]
-pub async fn db_update_loop(
+/// Polls BOCA (webcast) and feeds the event store: the legacy `-i` mode,
+/// now publishing into the default event.
+pub async fn store_update_loop(
     boca_url: String,
-    shared_db: Arc<Mutex<DB>>,
-    runs_tx: membroadcast::Sender<data::RunTuple>,
-    time_tx: broadcast::Sender<data::TimerData>,
+    store: crate::event_store::EventStore,
+    event_name: String,
 ) -> ServiceResult<()> {
     let dur = tokio::time::Duration::new(1, 0);
     let mut interval = tokio::time::interval(dur);
     loop {
         interval.tick().await;
 
-        let start = Instant::now();
-
-        let data = webcast::load_data_from_url_maybe(&boca_url).await;
-
-        let delta = start.elapsed();
-        let runs_fetched = data.as_ref().map(|cs| cs.runs.len()).unwrap_or_default() as u64;
-
-        histogram!("load_data_from_url_time").record(delta);
-        counter!("load_data_from_url_all_new_runs_count").increment(runs_fetched);
-
-        match data {
+        match webcast::load_data_from_url_maybe(&boca_url).await {
             Ok(contest_state) => {
-                let result =
-                    update_runs_from_data(contest_state, &shared_db, &runs_tx, &time_tx).await;
+                let (event, runs) =
+                    crate::event_store::from_legacy_contest_state(&contest_state, &event_name);
+                let result = store.upsert_event_with_runs(&event_name, event, runs).await;
                 match result {
                     Ok(()) => (),
                     Err(error) => {
-                        tracing::error!("Retrying after error updating runs: \n{}", error)
+                        tracing::error!("Retrying after error updating event: \n{}", error)
                     }
                 }
             }
@@ -78,3 +31,4 @@ pub async fn db_update_loop(
         }
     }
 }
+

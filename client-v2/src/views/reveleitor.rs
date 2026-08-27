@@ -2,7 +2,6 @@ use std::{collections::HashMap, sync::Arc, sync::Mutex};
 
 use data::{configdata::Sede, ContestFile, RunsFile};
 use leptos::{ev, logging::*, prelude::*};
-use leptos_router::hooks::use_query_map;
 
 use client_model::contest_signal::ContestSignal;
 use client_model::RevelationDriver;
@@ -179,14 +178,18 @@ pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) ->
 }
 
 #[component]
-pub fn Reveleitor(sede: Arc<Sede>, secret: String, contest: Arc<ContestFile>) -> impl IntoView {
+pub fn Reveleitor(
+    sede: Arc<Sede>,
+    secret: String,
+    contest: Arc<ContestFile>,
+    event_contest: crate::api::EventContest,
+) -> impl IntoView {
     log!("reveleitor");
-    let query_map = use_query_map();
     let all_runs = LocalResource::new(move || {
         log!("fetching secret runs");
         let secret = secret.clone();
-        let contest_name = query_map.get().get("contest");
-        create_secret_runs(secret, contest_name)
+        let event_contest = event_contest.clone();
+        create_secret_runs(secret, event_contest)
     });
 
     let contest = ContestFile::clone(&contest);

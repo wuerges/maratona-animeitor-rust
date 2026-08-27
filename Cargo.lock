@@ -1257,6 +1257,7 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer 0.10.4",
  "crypto-common 0.1.7",
+ "subtle",
 ]
 
 [[package]]
@@ -1771,6 +1772,15 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hmac"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
+dependencies = [
+ "digest 0.10.7",
+]
 
 [[package]]
 name = "hmac"
@@ -3079,7 +3089,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112d82ceb8c5bf524d9af484d4e4970c9fd5a0cc15ba14ad93dccd28873b0629"
 dependencies = [
  "digest 0.11.3",
- "hmac",
+ "hmac 0.13.0",
 ]
 
 [[package]]
@@ -4088,9 +4098,11 @@ version = "2.1.0"
 dependencies = [
  "actix-cors",
  "actix-files",
+ "actix-http",
  "actix-web",
  "actix-ws",
  "autometrics",
+ "base64 0.22.1",
  "clap",
  "cli",
  "color-eyre",
@@ -4171,13 +4183,17 @@ name = "service"
 version = "2.1.0"
 dependencies = [
  "data",
+ "hmac 0.12.1",
  "html-escape",
  "metrics",
  "parking_lot",
+ "rand 0.10.2",
+ "regex",
  "reqwest",
  "rustls",
  "rustls-pemfile",
  "serde",
+ "sha2 0.10.9",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
@@ -5518,7 +5534,7 @@ dependencies = [
  "deflate64",
  "flate2",
  "getrandom 0.4.3",
- "hmac",
+ "hmac 0.13.0",
  "indexmap",
  "lzma-rust2",
  "memchr",

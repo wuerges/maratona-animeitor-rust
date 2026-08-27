@@ -1,26 +1,14 @@
-use actix_web::{get, web, HttpRequest, HttpResponse};
+use actix_web::{web, HttpRequest, HttpResponse};
 use actix_ws::{Message, MessageStream, Session};
-use autometrics::autometrics;
 use data::remote_control::ControlMessage;
 use futures::StreamExt;
 use tokio::sync::broadcast::{Receiver, Sender, error::SendError};
 use tokio_stream::wrappers::BroadcastStream;
-use tracing::{debug, instrument, Level};
+use tracing::{debug, instrument};
 
-use service::app_data::AppData;
-use service::remote_control::{ConnectionControlMessage, next_request_id};
+use service::remote_control::{ConnectionControlMessage, ControlSender, next_request_id};
 
-use crate::api::send_json;
-
-#[get("/remote_control/{key}")]
-async fn remote_control_ws(
-    data: web::Data<AppData>,
-    req: HttpRequest,
-    body: web::Payload,
-    key: web::Path<String>,
-) -> Result<HttpResponse, actix_web::Error> {
-    run_remote_control_ws(data, req, body, key.into_inner()).await
-}
+use crate::envelope::send_json;
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -84,17 +72,13 @@ async fn read_from_clients(
     Ok(())
 }
 
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
-async fn run_remote_control_ws(
-    data: web::Data<AppData>,
+/// Relays control messages between every client of the same sender channel.
+pub(crate) async fn relay_remote_control(
+    sender: ControlSender,
     req: HttpRequest,
     body: web::Payload,
-    key: String,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
-
-    let sender = data.remote_control_sender(&key).await;
 
     let rec = sender.subscribe();
 

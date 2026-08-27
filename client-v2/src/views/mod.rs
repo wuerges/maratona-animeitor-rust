@@ -2,6 +2,7 @@ mod background_color;
 mod compress_placements;
 mod contest;
 mod control_scrolling;
+mod landing;
 mod navigation;
 mod placement;
 mod problem;

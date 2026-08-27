@@ -1,5 +1,5 @@
 use clap::Parser;
-use cli::{pair_arg::FromPairArg, sentry, SimpleArgs};
+use cli::{pair_arg::FromPairArg, sentry};
 
 use service::{
     app_config::AppConfig,
@@ -12,9 +12,6 @@ use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 #[command(version, about, long_about = None)]
 /// Maratona Rustrimeitor Server
 struct SimpleParser {
-    #[clap(flatten)]
-    args: SimpleArgs,
-
     #[clap(short = 'p', long, default_value = "8000")]
     /// The TCP port to host the server
     port: u16,
@@ -31,9 +28,13 @@ struct SimpleParser {
     /// The TCP port for HTTPS. Only used when --tls-cert and --tls-key are set.
     tls_port: u16,
 
-    #[clap(short = 'k')]
-    /// API Key for admin endpoints
-    server_api_key: Option<String>,
+    #[clap(short = 't', long)]
+    /// Token for the internal API (/internal)
+    internal_token: Option<String>,
+
+    #[clap(long, default_value = "default")]
+    /// Event fed by the in-process BOCA loop (-i)
+    default_event: String,
 
     /// The webcast url from BOCA.
     #[clap(short = 'i')]
@@ -55,17 +56,15 @@ async fn main() -> color_eyre::eyre::Result<()> {
         .init();
 
     let SimpleParser {
-        args,
         port,
         tls_cert,
         tls_key,
         tls_port,
         url,
         volume: volumes,
-        server_api_key,
+        internal_token,
+        default_event,
     } = SimpleParser::parse();
-
-    let complete = args.into_contest_and_secret()?;
 
     let tls = match (tls_cert, tls_key) {
         (Some(cert), Some(key)) => Some(HttpTlsConfig {
@@ -84,11 +83,11 @@ async fn main() -> color_eyre::eyre::Result<()> {
     server_v2::metrics::setup();
 
     let app_config = AppConfig {
-        config: complete,
         boca_url: url,
         server_config,
         volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
-        server_api_key,
+        internal_token,
+        default_event,
     };
 
     tracing::info!("\nMaratona Rustreimator rodando!");

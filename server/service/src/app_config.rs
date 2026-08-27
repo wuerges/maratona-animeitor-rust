@@ -1,14 +1,10 @@
-use std::collections::HashMap;
-
-use data::configdata::{ConfigContest, Contest};
-
-use crate::config_secret::Secret;
 use crate::{http::HttpConfig, volume::Volume};
 
 pub struct AppConfig {
-    pub config: HashMap<String, (ConfigContest, Contest, Secret)>,
     pub boca_url: Option<String>,
     pub server_config: HttpConfig,
     pub volumes: Vec<Volume>,
-    pub server_api_key: Option<String>,
+    pub internal_token: Option<String>,
+    /// The event fed by the in-process BOCA loop (`-i`).
+    pub default_event: String,
 }

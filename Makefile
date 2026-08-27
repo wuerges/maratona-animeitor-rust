@@ -11,10 +11,8 @@ run-standalone-push:
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		--sedes ${SEDES}: \
-		--secret ${SECRET} \
-		-k api-key \
+		-v ./client-v2/release:animeitor \
+		-t ${INTERNAL_TOKEN} \
 	)
 
 run-standalone-loop:
@@ -23,15 +21,14 @@ run-standalone-loop:
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		--sedes ${SEDES}: \
-		--secret ${SECRET} \
+		-v ./client-v2/release:animeitor \
+		-t ${INTERNAL_TOKEN} \
 		-i ${BOCA_URL} \
 	)
 
 rebuild-client-for-release:
 	@echo recompiling client...
-	( cd client-v2 && trunk build --release -d release )
+	( cd client-v2 && trunk build --release -d release --public-url /animeitor/ )
 
 rebuild-server-for-release:
 	@echo recompiling server...

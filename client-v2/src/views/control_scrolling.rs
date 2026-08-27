@@ -131,7 +131,7 @@ fn Scrolling<SendFn: Fn(&String) + 'static>(idle: Signal<bool>, send: SendFn) ->
 }
 
 #[component]
-pub fn RemoteControl() -> impl IntoView {
+pub fn RemoteControl(event_contest: crate::api::EventContest) -> impl IntoView {
     let query = use_query::<RemoteControlQuery>();
 
     let photo_state = use_global_photo_state();
@@ -146,7 +146,8 @@ pub fn RemoteControl() -> impl IntoView {
             // leptos-use 0.19 ties the websocket's hidden lifetime to the
             // url, so it must outlive the returned view. Leaked per key
             // change; the memo above recreates this only on key change.
-            let url: &'static str = Box::leak(remote_control_url(&key).into_boxed_str());
+            let url: &'static str =
+                Box::leak(remote_control_url(&event_contest, &key).into_boxed_str());
             let UseWebSocketReturn { message, send, .. } =
                 use_websocket::<String, String, FromToStringCodec>(url);
             let UseIdleReturn { idle, .. } = use_idle(5_000);

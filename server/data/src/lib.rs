@@ -1,4 +1,5 @@
 pub mod configdata;
+pub mod event;
 pub mod remote_control;
 
 use configdata::Sede;
@@ -228,6 +229,15 @@ impl RunsFile {
         Self {
             runs: BTreeMap::new(),
         }
+    }
+
+    /// Builds a runs file from a run list; later ids win.
+    pub fn from_runs(runs: Vec<RunTuple>) -> Self {
+        let mut map = BTreeMap::new();
+        for run in runs {
+            map.insert(run.id, run);
+        }
+        Self { runs: map }
     }
 
     pub fn len(&self) -> usize {

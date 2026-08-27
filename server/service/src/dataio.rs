@@ -119,14 +119,6 @@ impl FromString for RunsFile {
     }
 }
 
-#[derive(Debug)]
-pub struct DB {
-    run_file: RunsFile,
-    pub(crate) run_file_secret: RunsFile,
-    pub(crate) contest_file_begin: ContestFile,
-    pub(crate) time_file: TimeFile,
-}
-
 pub(crate) fn read_contest(s: &str) -> ServiceResult<ContestFile> {
     ContestFile::from_string(s)
 }
@@ -140,47 +132,6 @@ pub(crate) fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
     }
 
     Ok(runs)
-}
-
-impl DB {
-    pub(crate) fn empty() -> Self {
-        DB {
-            run_file: RunsFile::empty(),
-            run_file_secret: RunsFile::empty(),
-            contest_file_begin: ContestFile {
-                contest_name: "Dummy Contest".to_string(),
-                teams: BTreeMap::new(),
-                current_time: 0,
-                maximum_time: 0,
-                score_freeze_time: 0,
-                penalty_per_wrong_answer: 0,
-                number_problems: 0,
-            },
-            time_file: 0,
-        }
-    }
-
-    pub(crate) fn refresh_db(
-        &mut self,
-        time: i64,
-        contest: ContestFile,
-        mut runs: RunsFile,
-    ) -> ServiceResult<Vec<RunTuple>> {
-        self.time_file = time;
-        self.contest_file_begin = contest;
-
-        runs.filter_teams(&self.contest_file_begin);
-        let runs_frozen = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
-
-        let fresh = self.run_file.refresh(runs_frozen.sorted());
-        self.run_file_secret = runs;
-
-        Ok(fresh)
-    }
-
-    pub(crate) fn timer_data(&self) -> TimerData {
-        TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
-    }
 }
 
 fn team_new(login: &str, escola: &str, name: String) -> Team {

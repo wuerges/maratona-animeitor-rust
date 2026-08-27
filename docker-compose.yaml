@@ -12,7 +12,7 @@ services:
 
   animeitor:
     image: wuerges/animeitor:latest
-    command: "-v /photos:photos -v /sounds:sounds -v /dist: --sedes ${SEDES}: --secret ${SECRET} -i ${BOCA_URL}"
+    command: "-v /photos:photos -v /sounds:sounds -v /dist: -v /dist:animeitor -t ${INTERNAL_TOKEN} -i ${BOCA_URL}"
     volumes:
       - ./tests:/tests
       - ./config:/config
