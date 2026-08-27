@@ -1,6 +1,6 @@
 # API REST de eventos
 
-Esta API substitui o antigo arquivo webcast. Todos os tempos são expressos em **segundos**, sem exceção.
+Esta API substitui o antigo arquivo webcast. Todos os tempos são expressos em **segundos**, sem exceção, e a unidade faz parte do nome do campo (ex.: `score_freeze_time_seconds`).
 
 ## Escopo
 
@@ -30,7 +30,7 @@ Salvo indicação contrária, respostas de erro trazem `errors` com o código ca
 | `invalid_json` | 400 | JSON malformado |
 | `missing_field` | 400 | campo obrigatório ausente |
 | `invalid_regex` | 400 | regex inválida em `codes` |
-| `invalid_value` | 400 | valor inválido (tempo negativo, `answer` desconhecido etc.) |
+| `invalid_value` | 400 | valor inválido (ex.: `answer` desconhecido) |
 | `unauthorized` | 401 | credenciais ausentes ou inválidas |
 | `not_found` | 404 | recurso inexistente |
 | `conflict` | 409 | criação de recurso já existente |
@@ -66,12 +66,12 @@ O estado do evento é um objeto JSON com os seguintes campos:
 - `name`: nome do evento (string).
 - `problems`: lista de letras dos problemas (strings unicode); a ordem da lista define a letra de cada problema.
 - `teams`: lista de times, cada um com os campos `login`, `escola` e `nome` (strings).
-- `score_freeze_time`: instante do congelamento do placar, em segundos.
-- `penalty`: penalidade por submissão incorreta, em segundos.
-- `time`: tempo decorrido, em segundos.
+- `score_freeze_time_seconds`: instante do congelamento do placar, em segundos.
+- `penalty_seconds`: penalidade por submissão incorreta, em segundos.
+- `time_seconds`: tempo decorrido, em segundos; pode ser negativo (countdown anterior ao início).
 - `salt`: string usada para derivar as chaves dos sites (ver seção Salts); opcional.
 
-Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times.
+Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times. Antes do início (`time_seconds < 0`), a API pública omite `problems`; a API interna devolve sempre o estado completo.
 
 ### Exemplo
 
@@ -82,9 +82,9 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
     "teams": [
         { "login": "teambrmscg001", "escola": "FACOM - UFMS", "nome": "Time de Teste" }
     ],
-    "score_freeze_time": 2040,
-    "penalty": 1200,
-    "time": 3218,
+    "score_freeze_time_seconds": 2040,
+    "penalty_seconds": 1200,
+    "time_seconds": 3218,
     "salt": "s3gredo-do-evento"
 }
 ```
@@ -94,7 +94,7 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
 ### Criar o evento
 
 - `POST /internal/events/{event-name}`
-- Corpo: estado do evento; `time` é opcional e assume `0`.
+- Corpo: estado do evento; `time_seconds` é opcional e assume `0`.
 
 Respostas:
 
@@ -128,12 +128,12 @@ Respostas:
 ### Atualizar somente o tempo
 
 - `PATCH /internal/events/{event-name}/time`
-- Corpo: `{ "time": <segundos> }`.
+- Corpo: `{ "time_seconds": <segundos> }`. Valores negativos são permitidos (countdown anterior ao início).
 
 Respostas:
 
-- `200 OK` — `data`: `{ "time": <novo valor> }`.
-- `400 Bad Request` — corpo inválido ou tempo negativo.
+- `200 OK` — `data`: `{ "time_seconds": <novo valor> }`.
+- `400 Bad Request` — corpo inválido.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
@@ -318,7 +318,7 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 - `id`: identificador da submissão (inteiro).
 - `team_login`: login do time (string).
 - `prob`: letra do problema (string unicode, conforme a lista de problemas do evento).
-- `time`: instante da submissão, em segundos.
+- `time_seconds`: instante da submissão, em segundos.
 - `answer`: resultado, um de `"Y"`, `"N"`, `"?"` ou `"X"`.
 
 ### Exemplo
@@ -326,8 +326,8 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 ```json
 {
     "runs": [
-        { "id": 1, "team_login": "teambrmscg001", "prob": "A", "time": 56, "answer": "Y" },
-        { "id": 2, "team_login": "teambrmscg001", "prob": "B", "time": 139, "answer": "N" }
+        { "id": 1, "team_login": "teambrmscg001", "prob": "A", "time_seconds": 56, "answer": "Y" },
+        { "id": 2, "team_login": "teambrmscg001", "prob": "B", "time_seconds": 139, "answer": "N" }
     ]
 }
 ```
@@ -368,7 +368,7 @@ Respostas:
 ## Resumo das regras
 
 - Todos os endpoints ficam sob `/internal`.
-- Todos os tempos em segundos.
+- Todos os tempos em segundos, com a unidade no nome (`*_seconds`); `time_seconds` pode ser negativo (countdown).
 - Todos os endpoints exigem autenticação HTTP Basic com token.
 - Hierarquia de recursos: events → contests → sites.
 - Toda resposta com corpo JSON usa o envelope `{ data, errors, warnings }` (campos opcionais); `204` não tem corpo.

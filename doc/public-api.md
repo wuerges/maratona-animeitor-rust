@@ -1,6 +1,6 @@
 # API pública
 
-Esta API pública fica sob o escopo `/api` e espelha a hierarquia da API interna ([event-api.md](event-api.md)): `events → contests → sites`. Ela descreve os endpoints **como ficam após a migração** planejada em [multi-event.md](multi-event.md). Todos os tempos são expressos em **segundos**, sem exceção.
+Esta API pública fica sob o escopo `/api` e espelha a hierarquia da API interna ([event-api.md](event-api.md)): `events → contests → sites`. Ela descreve os endpoints **como ficam após a migração** planejada em [multi-event.md](multi-event.md). Todos os tempos são expressos em **segundos**, sem exceção, e a unidade faz parte do nome do campo (ex.: `score_freeze_time_seconds`).
 
 Salvo indicação contrária, os endpoints públicos **não exigem autenticação**. A única exceção é `runs_secret`, que exige a chave do site.
 
@@ -18,7 +18,6 @@ Códigos de erro desta API:
 
 | code | status | situação |
 | --- | --- | --- |
-| `not_live` | 403 | placar não publicado (`time < 0`) |
 | `invalid_key` | 403 | chave do site ausente ou inválida |
 | `not_found` | 404 | evento, contest ou site inexistente |
 
@@ -49,7 +48,7 @@ Exemplo:
 ### Estado público do contest
 
 - `GET /api/events/{event-name}/contests/{contest-name}/contest`
-- Estado público do contest: problemas, times e tempos. Os times são somente aqueles cujo login casa com `codes` do contest. Não contém `salt` nem chaves.
+- Estado público do contest: times e tempos; `problems` somente após o início. Os times são somente aqueles cujo login casa com `codes` do contest. Não contém `salt` nem chaves.
 
 Resposta:
 
@@ -57,13 +56,12 @@ Resposta:
 
   - `event`: nome do evento (string).
   - `contest`: nome do contest (string); `""` é o contest padrão.
-  - `problems`: lista de letras dos problemas (strings unicode).
+  - `problems`: lista de letras dos problemas (strings unicode); **ausente antes do início** (`time_seconds < 0`) — o número de problemas é derivado da lista, então também não é revelado.
   - `teams`: lista de times do contest, cada um com `login`, `escola` e `nome` (strings).
-  - `time`: tempo decorrido, em segundos.
-  - `score_freeze_time`: instante do congelamento do placar, em segundos.
-  - `penalty`: penalidade por submissão incorreta, em segundos.
+  - `time_seconds`: tempo decorrido, em segundos; pode ser negativo (countdown anterior ao início).
+  - `score_freeze_time_seconds`: instante do congelamento do placar, em segundos.
+  - `penalty_seconds`: penalidade por submissão incorreta, em segundos.
 
-- `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]` (placar não publicado).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]` (evento ou contest inexistente).
 
 Exemplo:
@@ -77,9 +75,9 @@ Exemplo:
         "teams": [
             { "login": "teambrmscg001", "escola": "FACOM - UFMS", "nome": "Time de Teste" }
         ],
-        "time": 3218,
-        "score_freeze_time": 2040,
-        "penalty": 1200
+        "time_seconds": 3218,
+        "score_freeze_time_seconds": 2040,
+        "penalty_seconds": 1200
     }
 }
 ```
@@ -101,7 +99,6 @@ Resposta:
   - `photo_url_format`: formato de URL das fotos do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `photos/{team_login}.webp`, resolvido contra a mesma origem da API.
   - `sound_url_format`: formato de URL dos sons do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `sounds/{team_login}.mp3`, resolvido contra a mesma origem da API.
 
-- `403 Forbidden` — `errors`: `[{ "code": "not_live", ... }]`.
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
 
 Exemplo:
@@ -127,14 +124,14 @@ Exemplo:
 ### Stream público de runs
 
 - `WS /api/events/{event-name}/contests/{contest-name}/runs_ws`
-- Stream ao vivo de runs. Ao conectar, o cliente recebe as runs do contest já recebidas desde a criação do evento e, em seguida, as novas conforme chegam. Somente runs de times cujo login casa com `codes` do contest são enviadas; **cabe ao cliente aplicar o congelamento** (`score_freeze_time`) na exibição.
+- Stream ao vivo de runs. Ao conectar, o cliente recebe as runs do contest já recebidas desde a criação do evento e, em seguida, as novas conforme chegam. Somente runs de times cujo login casa com `codes` do contest são enviadas; **cabe ao cliente aplicar o congelamento** (`score_freeze_time_seconds`) na exibição.
 
 Mensagens: objetos JSON, um por mensagem:
 
 - `id`: identificador da submissão (inteiro); um `id` repetido corrige o resultado anterior — o último valor é o considerado.
 - `team_login`: login do time (string).
 - `prob`: letra do problema (string unicode).
-- `time`: instante da submissão, em segundos.
+- `time_seconds`: instante da submissão, em segundos.
 - `answer`: resultado, um de `"Y"`, `"N"`, `"?"` ou `"X"`.
 
 Handshake:
@@ -145,7 +142,7 @@ Handshake:
 Exemplo de mensagem:
 
 ```json
-{ "id": 1, "team_login": "teambrmscg001", "prob": "A", "time": 56, "answer": "Y" }
+{ "id": 1, "team_login": "teambrmscg001", "prob": "A", "time_seconds": 56, "answer": "Y" }
 ```
 
 ### Runs secretas de um site
@@ -158,7 +155,7 @@ Exemplo de mensagem:
 Resposta:
 
 - `200 OK` — `data`: objeto com o campo `runs`, lista de runs do site, no formato da run acima.
-- `403 Forbidden` — `errors`: `[{ "code": "invalid_key", ... }]` (chave ausente ou não casa com nenhum site do contest) ou `[{ "code": "not_live", ... }]` (placar não publicado).
+- `403 Forbidden` — `errors`: `[{ "code": "invalid_key", ... }]` (chave ausente ou não casa com nenhum site do contest).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
 
 Exemplo:
@@ -167,8 +164,8 @@ Exemplo:
 {
     "data": {
         "runs": [
-            { "id": 1, "team_login": "teambrmscg001", "prob": "A", "time": 56, "answer": "Y" },
-            { "id": 2, "team_login": "teambrmscg001", "prob": "B", "time": 139, "answer": "N" }
+            { "id": 1, "team_login": "teambrmscg001", "prob": "A", "time_seconds": 56, "answer": "Y" },
+            { "id": 2, "team_login": "teambrmscg001", "prob": "B", "time_seconds": 139, "answer": "N" }
         ]
     }
 }
@@ -181,8 +178,8 @@ Exemplo:
 
 Mensagens: objetos JSON, um por mensagem, com duplicatas consecutivas suprimidas:
 
-- `current_time`: tempo corrente, em segundos.
-- `score_freeze_time`: instante do congelamento do placar, em segundos.
+- `current_time_seconds`: tempo corrente, em segundos; pode ser negativo (countdown anterior ao início).
+- `score_freeze_time_seconds`: instante do congelamento do placar, em segundos.
 
 Handshake:
 
@@ -192,7 +189,7 @@ Handshake:
 Exemplo de mensagem:
 
 ```json
-{ "current_time": 3218, "score_freeze_time": 2040 }
+{ "current_time_seconds": 3218, "score_freeze_time_seconds": 2040 }
 ```
 
 ### Controle remoto
@@ -224,7 +221,8 @@ Resposta:
 ## Resumo das regras
 
 - Todos os endpoints públicos ficam sob `/api`, espelhando a hierarquia interna.
-- Todos os tempos em segundos.
+- Todos os tempos em segundos, com a unidade no nome (`*_seconds`); `time_seconds`/`current_time_seconds` podem ser negativos (countdown anterior ao início).
+- Antes do início (`time_seconds < 0`), `problems` é omitido do estado público — o cliente mostra a tela de countdown.
 - Sem autenticação, exceto `runs_secret` (chave do site via `Authorization: Bearer`).
 - Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
 - Fotos e sons vêm do config do contest (`GET .../config`), não do estado nem do `config.json`.

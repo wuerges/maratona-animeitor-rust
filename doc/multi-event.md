@@ -82,7 +82,7 @@ Regras de segurança da migração:
 
 - **Chave do site**: fora da query (vaza em logs); via header `Authorization: Bearer <site-key>`. A chave é a derivada dos 3 salts (`doc/event-api.md`, seção Salts); o servidor testa a chave recebida contra as chaves derivadas dos sites do contest para identificar o site. Chave inválida → `403`.
 - **Nada sensível no escopo público**: `salt` de evento/contest/site e chaves derivadas nunca aparecem em respostas de `/api`.
-- Mantém-se a porta do congelamento: `time < 0` → `403` nas leituras (`app_data.rs:71-81`).
+- A porta `time < 0 → 403` atual (`app_data.rs:71-81`) desaparece: tempo negativo passa a ser o **countdown** anterior ao início, servido normalmente. A API pública omite `problems` (e o número de problemas, derivado da lista) até `time_seconds >= 0`; o `403` fica reservado para chave inválida.
 - `Cors::permissive()` e `/api/metrics` aberto ficam como estão (reavaliar depois); o header `apikey` do `PUT /contests` desaparece junto com o endpoint.
 - Contest padrão (`""`) usa segmento vazio, como na API interna.
 
@@ -90,7 +90,7 @@ Regras de segurança da migração:
 
 - O estado passa de um `DB` global para um mapa **por evento**: `HashMap<EventName, EventData>`, onde `EventData` contém o banco compartilhado (runs, contest, timer), os broadcasters (`runs_tx`, `time_tx`), os contests/sites/salts e um relay de remote_control **por contest**. O `AppData` atual (`service/src/app_data.rs:23-31`) é o ponto de partida natural dessa refatoração.
 - Eventos são criados, atualizados e removidos **pela API interna** (`POST/DELETE /internal/events/{event}`, etc.). O servidor nasce vazio; eventos aparecem e somem em runtime.
-- Event/contest desconhecidos na API pública → `404` (hoje é `403`/`404` dependendo do endpoint — unificar em `404` para recursos inexistentes, mantendo `403` para a porta do congelamento e chave inválida).
+- Event/contest desconhecidos na API pública → `404` (hoje é `403`/`404` dependendo do endpoint — unificar em `404` para recursos inexistentes; `403` fica apenas para chave inválida no `runs_secret`).
 - O feed por evento substitui o modelo atual de um `DB` por processo: o polling BOCA (`-i`) e o `PUT /api/contests` migram para o alimentador interno (ou ficam como adaptadores que publicam via `/internal`, durante a transição).
 - Configs CLI (`-s` sedes, `-x` secrets, `-y` salt, `cli`) deixam de definir o que é servido: contests, sites e salts passam a vir da API interna; os args continuam apenas para compatibilidade durante a migração.
 
@@ -99,6 +99,7 @@ Regras de segurança da migração:
 - **SDK** (`client-sdk/src/lib.rs:18-82`): os construtores de URL passam a montar `/api/events/{event}/contests/{contest}/<endpoint>` a partir de `SdkConfig.api_prefix` (padrão `/api` já existe, `config.rs:81-99`) + os dois segmentos; `create_secret_runs` usa o novo caminho e manda a chave por header. `ContestQuery` deixa de existir.
 - **Roteamento** (`client-v2`): substitui `?contest=` pela leitura de `window.location.pathname` (`/animeitor/{event}/{contest}`); a única rota `path!("")` continua bastando, mas o estado inicial passa a vir do caminho. `sede`, `settings`, `secret` e `remote_control` seguem como query params.
 - **Landing**: com caminho `/` ou `/animeitor/`, o app consulta `GET /api/events` e lista os eventos.
+- **Countdown**: com `time_seconds < 0`, o estado público vem sem `problems`; o cliente mostra a tela de countdown (timer negativo) e só monta o placar quando o timer chega a `0`.
 - **Reveleitor**: usa o novo `runs_secret` com a chave do site vinda das configurações (o `?secret=` da URL pode ser mantido como atalho, mas a chamada à API usa o header).
 - **`config.json`**: permanece global por deploy (junto ao `<base>`), sem campo de evento; **fotos, sons** e configuração por contest vêm da API (`GET .../config`), e o SDK passa a montar as URLs de mídia a partir dos formatos recebidos (hoje eles vêm do próprio `config.json`/env, `client-sdk/src/config.rs`).
 
