@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use data::{configdata::Sede, RunsPanelItem};
+use data::configdata::Sede;
 use itertools::Itertools;
 use leptos::{logging::log, prelude::*};
 
 use client_model::runs_panel_signal::RunsPanelItemManager;
+use client_model::RunsPanelItem;
 
 use crate::{
     views::{

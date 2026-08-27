@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use data::{configdata::Sede, problem_letters, ContestFile, Letter, TimerData};
+use data::{configdata::Sede, ContestFile, Letter, TimerData};
 use itertools::Itertools;
 use leptos::{ev, logging::log, prelude::*};
 
 use client_model::{
-    contest_signal::ContestSignal, runs_panel_signal::RunsPanelItemManager,
-    team_signal::TeamSignal,
+    contest_signal::ContestSignal, problem_letters, runs_panel_signal::RunsPanelItemManager,
+    team_signal::TeamSignal, TimerDataExt,
 };
 
 use crate::{

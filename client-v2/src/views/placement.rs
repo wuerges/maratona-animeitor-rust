@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use data::configdata::{Color, Sede};
+use client_model::{Color, SedeExt};
+use data::configdata::Sede;
 use leptos::prelude::*;
 
 pub fn get_color(n: usize, sede: &Sede) -> Option<Color> {

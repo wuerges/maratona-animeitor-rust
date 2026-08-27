@@ -10,7 +10,7 @@ fn number_submissions(s: usize) -> Option<usize> {
 }
 
 #[component]
-pub fn Problem(prob: Letter, problem: Signal<Option<data::ProblemView>>) -> impl IntoView {
+pub fn Problem(prob: Letter, problem: Signal<Option<client_model::ProblemView>>) -> impl IntoView {
     let problem_class = move || {
         problem.with(|p| match &p {
             Some(p) => {

@@ -1,10 +1,11 @@
 use std::{collections::HashMap, sync::Arc, sync::Mutex};
 
-use data::{configdata::Sede, revelation::RevelationDriver, ContestFile, RunsFile};
+use data::{configdata::Sede, ContestFile, RunsFile};
 use leptos::{ev, logging::*, prelude::*};
 use leptos_router::hooks::use_query_map;
 
 use client_model::contest_signal::ContestSignal;
+use client_model::RevelationDriver;
 
 use crate::{api::create_secret_runs, views::contest::ContestPanel};
 

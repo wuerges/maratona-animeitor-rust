@@ -1,6 +1,6 @@
 use std::{future::Future, sync::OnceLock};
 
-use client_model::{poll_runs, ContestProvider, Options};
+use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
 use data::TimerData;
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 use leptos::{prelude::*, task::spawn_local};
