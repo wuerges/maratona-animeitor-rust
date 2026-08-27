@@ -11,7 +11,7 @@ PREFIX=http://animeitor.naquadah.com.br
 PHOTO_PREFIX=${PREFIX}/photos
 SOUND_PREFIX=${PREFIX}/sounds
 
-HTTPS_OPTS= --tls-cert ./fullchain.pem \
+HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
             --tls-key ./privkey.pem \
 
 SEDES_OPTS= --sedes ./config/regional_2026/CCL.toml:ccl \
@@ -34,6 +34,7 @@ run-debug-client:
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
 		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
 		SOUND_PREFIX=${SOUND_PREFIX} \
+		SOUND_URL_FORMAT=${SOUND_URL_FORMAT} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk serve )
 
@@ -42,6 +43,7 @@ rebuild-client:
 		PHOTO_PREFIX=${PHOTO_PREFIX} \
 		PHOTO_URL_FORMAT=${PHOTO_URL_FORMAT} \
 		SOUND_PREFIX=${SOUND_PREFIX} \
+		SOUND_URL_FORMAT=${SOUND_URL_FORMAT} \
 		URL_PREFIX=${PREFIX}/api \
 		trunk build --release -d naquadah )
 
