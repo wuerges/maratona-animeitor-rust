@@ -35,20 +35,11 @@ Salvo indicação contrária, respostas de erro trazem `errors` com o código ca
 | `not_found` | 404 | recurso inexistente |
 | `conflict` | 409 | criação de recurso já existente |
 
-Códigos de warning:
-
-| code | situação |
-| --- | --- |
-| `duplicate_run_ids` | runs ignoradas por `id` duplicado |
-
 ### Exemplos
 
 ```json
 {
-    "data": { "added": 3 },
-    "warnings": [
-        { "code": "duplicate_run_ids", "message": "2 runs ignoradas por id duplicado" }
-    ]
+    "data": { "added": 3, "updated": 1 }
 }
 ```
 
@@ -345,11 +336,11 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 
 - `POST /internal/events/{event-name}/runs`
 - Corpo: `{ "runs": [ ... ] }`.
-- Adiciona as runs às existentes; submissões com o mesmo `id` são ignoradas (idempotente).
+- Aplica as runs às existentes, na ordem em que aparecem no corpo: um `id` novo adiciona a submissão; um `id` já existente substitui o resultado anterior — o último valor é o considerado (correção do juiz).
 
 Respostas:
 
-- `200 OK` — `data`: `{ "added": <quantidade> }`, com a quantidade de runs efetivamente adicionadas (duplicadas por `id` não contam); `warnings`: `[{ "code": "duplicate_run_ids", "message": "<k> runs ignoradas por id duplicado" }]`, presente somente quando houver duplicadas.
+- `200 OK` — `data`: `{ "added": <quantidade>, "updated": <quantidade> }`, com a quantidade de submissões novas e de resultados corrigidos, respectivamente.
 - `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `team_login`/`prob` desconhecidos.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
@@ -382,7 +373,7 @@ Respostas:
 - Hierarquia de recursos: events → contests → sites.
 - Toda resposta com corpo JSON usa o envelope `{ data, errors, warnings }` (campos opcionais); `204` não tem corpo.
 - Runs são enviadas somente após a criação do evento.
-- Envios de runs são incrementais (append) e idempotentes por `id`.
+- Envios de runs são incrementais; um `id` repetido corrige o resultado da submissão (o último valor é o considerado).
 - Atualizações completas via `PUT`; atualização de tempo via `PATCH /internal/events/{event-name}/time`.
 - Salts opcionais nos três níveis (evento, contest, site); as chaves dos sites são derivadas dos três salts (HMAC-SHA256, base62, 12 caracteres) e trocadas via `POST .../salt`.
 - Mídia é configurada por formatos de URL, não por volumes.
