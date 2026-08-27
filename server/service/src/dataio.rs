@@ -181,10 +181,6 @@ impl DB {
     pub fn timer_data(&self) -> TimerData {
         TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
     }
-
-    pub fn all_runs(&self) -> Vec<RunTuple> {
-        self.run_file.sorted()
-    }
 }
 
 fn team_new(login: &str, escola: &str, name: String) -> Team {

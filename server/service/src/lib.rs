@@ -1,4 +1,5 @@
 pub mod app_config;
+pub mod app_data;
 pub mod config_secret;
 pub mod contest_state;
 mod dataio;
@@ -7,6 +8,7 @@ pub mod errors;
 pub mod http;
 pub mod membroadcast;
 pub mod pair_arg;
+pub mod remote_control;
 pub mod sentry;
 pub mod volume;
 pub mod webcast;
