@@ -1,6 +1,7 @@
 mod api;
 mod app_data;
 mod endpoints;
+mod memory_files;
 pub mod metrics;
 mod remote_control;
 mod volumes;
@@ -61,8 +62,22 @@ pub async fn serve_config(
         ));
     }
 
+    // The volume mounted at the server root holds the client assets. Load it
+    // into memory once at startup and serve it without touching the disk.
+    let (root_volumes, disk_volumes): (Vec<_>, Vec<_>) =
+        volumes.into_iter().partition(|volume| volume.path.is_empty());
+    if root_volumes.len() > 1 {
+        tracing::warn!(
+            "multiple root-mounted volumes given; serving {} from memory and ignoring the others",
+            root_volumes[0].folder
+        );
+    }
+    let client_assets = root_volumes
+        .first()
+        .map(|volume| web::Data::new(memory_files::MemoryFiles::load(Path::new(&volume.folder))));
+
     let server = HttpServer::new(move || {
-        App::new()
+        let mut app = App::new()
             .wrap(TracingLogger::default())
             .wrap(Cors::permissive())
             .app_data(web::Data::new(AppData {
@@ -79,7 +94,13 @@ pub async fn serve_config(
                     .service(get_metrics)
                     .service(remote_control_ws),
             )
-            .service(configure_volumes(volumes.clone()))
+            .service(configure_volumes(disk_volumes.clone()));
+        if let Some(client_assets) = client_assets.clone() {
+            app = app
+                .app_data(client_assets)
+                .service(memory_files::client_service());
+        }
+        app
     })
     .bind(("0.0.0.0", port))?;
 
