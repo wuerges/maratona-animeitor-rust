@@ -61,10 +61,11 @@ fn base62(bytes: &[u8]) -> String {
 
     let mut num: Vec<u8> = bytes.iter().skip_while(|&&b| b == 0).copied().collect();
     if num.is_empty() {
-        num.push(0);
+        return "0".to_string();
     }
     let mut out = Vec::new();
-    while !(num.len() == 1 && num[0] == 0) {
+    // The array never shrinks: it is zero once the value is exhausted.
+    while num.iter().any(|&byte| byte != 0) {
         let rem = divmod(&mut num, 62);
         out.push(ALPHABET[rem as usize]);
     }
@@ -265,6 +266,15 @@ impl EventStore {
         inner.order.clone()
     }
 
+    /// Whether the event has started; `None` when the event does not exist.
+    pub async fn is_started(&self, event_name: &str) -> Option<bool> {
+        let inner = self.inner.read().await;
+        inner
+            .events
+            .get(event_name)
+            .map(|event| event.time_seconds >= 0)
+    }
+
     /// Sets the event time (may be negative: countdown).
     pub async fn patch_time(&self, event_name: &str, seconds: i64) -> Option<i64> {
         let mut inner = self.inner.write().await;
@@ -392,6 +402,18 @@ impl EventStore {
             .map(|entry| entry.config.clone())
     }
 
+    /// Lists the contests of an event; `None` when the event does not exist.
+    pub async fn list_contests(&self, event_name: &str) -> Option<Vec<ContestConfig>> {
+        let inner = self.inner.read().await;
+        inner.events.get(event_name).map(|event| {
+            event
+                .contests
+                .values()
+                .map(|entry| entry.config.clone())
+                .collect()
+        })
+    }
+
     /// Replaces a contest. Its sites are kept.
     pub async fn put_contest(
         &self,
@@ -496,6 +518,28 @@ impl EventStore {
             .sites
             .get(site_name)
             .map(|entry| entry.config.clone())
+    }
+
+    /// Lists the sites of a contest; `None` when the event or the contest
+    /// does not exist.
+    pub async fn list_sites(
+        &self,
+        event_name: &str,
+        contest_name: &str,
+    ) -> Option<Vec<SiteConfig>> {
+        let inner = self.inner.read().await;
+        inner
+            .events
+            .get(event_name)?
+            .contests
+            .get(contest_name)
+            .map(|contest| {
+                contest
+                    .sites
+                    .values()
+                    .map(|entry| entry.config.clone())
+                    .collect()
+            })
     }
 
     pub async fn put_site(
@@ -716,25 +760,6 @@ impl EventStore {
         inner.events.get(event_name).map(Event::timer)
     }
 
-    /// Feeder-friendly upsert: creates the event when needed, replaces its
-    /// state (keeping contests, sites and the existing salt) and applies the
-    /// runs. Used by the legacy BOCA loop and `PUT /api/contests`.
-    pub async fn upsert_event_with_runs(
-        &self,
-        event_name: &str,
-        mut state: EventState,
-        runs: Vec<Run>,
-    ) -> Result<(), StoreError> {
-        if let Some(existing) = self.get_event(event_name).await {
-            state.salt = existing.salt;
-            self.put_event(event_name, state).await?;
-        } else {
-            self.create_event(event_name, state).await?;
-        }
-        self.add_runs(event_name, runs).await?;
-        Ok(())
-    }
-
     /// The broadcast channel of a remote-control key, creating it if needed.
     pub async fn remote_control_sender(
         &self,
@@ -833,6 +858,16 @@ mod tests {
         assert_eq!(base62(&[61]), "z");
         assert_eq!(base62(&[62]), "10");
         assert_eq!(base62(&[63]), "11");
+    }
+
+    #[test]
+    fn base62_encodes_full_digest() {
+        // Regression: a 32-byte digest keeps the byte array at length 32,
+        // and the division loop used to spin forever on it.
+        let digest = hmac_sha256("chave", "mensagem");
+        let encoded = base62(&digest);
+        assert!(!encoded.is_empty());
+        assert_eq!(base62(&digest), encoded);
     }
 
     #[test]

@@ -352,6 +352,170 @@ async fn salt_endpoints_generate_when_body_is_absent() {
 }
 
 #[actix_web::test]
+async fn unknown_answer_is_invalid_value() {
+    let app = app().await;
+    let (name, auth) = basic_header();
+
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio")
+        .insert_header((name, auth.clone()))
+        .set_json(&event_body())
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    let bad = serde_json::json!({
+        "runs": [
+            { "id": 1, "team_login": "teambr001", "prob": "A", "time_seconds": 1, "answer": "Z" }
+        ]
+    });
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio/runs")
+        .insert_header((name, auth.clone()))
+        .set_json(&bad)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::BAD_REQUEST);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "invalid_value");
+}
+
+#[actix_web::test]
+async fn salt_endpoints_accept_empty_object_and_empty_salt() {
+    let app = app().await;
+    let (name, auth) = basic_header();
+
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio")
+        .insert_header((name, auth.clone()))
+        .set_json(&event_body())
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    // Empty object body generates a random salt.
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio/salt")
+        .insert_header((name, auth.clone()))
+        .set_json(&serde_json::json!({}))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    let salt = body["data"]["salt"].as_str().expect("salt gerado");
+    assert_eq!(salt.len(), 32);
+
+    // Empty salt value also generates a random salt.
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio/salt")
+        .insert_header((name, auth.clone()))
+        .set_json(&serde_json::json!({ "salt": "" }))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    let salt = body["data"]["salt"].as_str().expect("salt gerado");
+    assert_eq!(salt.len(), 32);
+}
+
+#[actix_web::test]
+async fn read_endpoints_list_events_contests_and_sites() {
+    let app = app().await;
+    let (name, auth) = basic_header();
+
+    // Empty store: events list is empty.
+    let req = test::TestRequest::get()
+        .uri("/internal/events")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"], serde_json::json!([]));
+
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio")
+        .insert_header((name, auth.clone()))
+        .set_json(&event_body())
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    let contest = serde_json::json!({
+        "name": "brasil",
+        "codes": ["teambr"],
+        "salt": "salt-do-contest"
+    });
+    let req = test::TestRequest::post()
+        .uri("/internal/contests/ensaio/brasil")
+        .insert_header((name, auth.clone()))
+        .set_json(&contest)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    let site = serde_json::json!({
+        "name": "fiemg",
+        "codes": ["teambr"],
+        "salt": "salt-do-site"
+    });
+    let req = test::TestRequest::post()
+        .uri("/internal/sites/ensaio/brasil/fiemg")
+        .insert_header((name, auth.clone()))
+        .set_json(&site)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    // Events.
+    let req = test::TestRequest::get()
+        .uri("/internal/events")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"], serde_json::json!(["ensaio"]));
+
+    // Contests, with salts (internal scope).
+    let req = test::TestRequest::get()
+        .uri("/internal/events/ensaio/contests")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"][0]["name"], "brasil");
+    assert_eq!(body["data"][0]["salt"], "salt-do-contest");
+
+    // Sites, with salts.
+    let req = test::TestRequest::get()
+        .uri("/internal/events/ensaio/contests/brasil/sites")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"][0]["name"], "fiemg");
+    assert_eq!(body["data"][0]["salt"], "salt-do-site");
+
+    // Missing event/contest: not found.
+    let req = test::TestRequest::get()
+        .uri("/internal/events/inexistente/contests")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+
+    let req = test::TestRequest::get()
+        .uri("/internal/events/ensaio/contests/inexistente/sites")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+}
+
+#[actix_web::test]
 async fn invalid_regex_is_rejected() {
     let app = app().await;
     let (name, auth) = basic_header();

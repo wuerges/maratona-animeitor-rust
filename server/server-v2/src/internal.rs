@@ -104,6 +104,10 @@ fn json_error(
     let message = err.to_string();
     let code = if message.contains("missing field") {
         "missing_field"
+    } else if message.contains("unknown variant") {
+        // An enum field (e.g. `answer`) with an unknown value: the JSON is
+        // well-formed, the value is not.
+        "invalid_value"
     } else {
         "invalid_json"
     };
@@ -118,6 +122,9 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.app_data(web::JsonConfig::default().error_handler(json_error))
         .service(create_event)
         .service(get_event)
+        .service(list_events)
+        .service(list_contests)
+        .service(list_sites)
         .service(put_event)
         .service(delete_event)
         .service(patch_time)
@@ -169,6 +176,40 @@ async fn get_event(
     match store.get_event(&event_name).await {
         Some(state) => data_json(state, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
+    }
+}
+
+/// Lists the names of all events, in creation order.
+#[get("/events")]
+async fn list_events(_auth: InternalAuth, store: web::Data<EventStore>) -> HttpResponse {
+    data_json(store.list_events().await, StatusCode::OK)
+}
+
+/// Lists the contests of an event, with their salts (internal scope).
+#[get("/events/{event_name}/contests")]
+async fn list_contests(
+    _auth: InternalAuth,
+    store: web::Data<EventStore>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let event_name = path.into_inner();
+    match store.list_contests(&event_name).await {
+        Some(contests) => data_json(contests, StatusCode::OK),
+        None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
+    }
+}
+
+/// Lists the sites of a contest, with their salts (internal scope).
+#[get("/events/{event_name}/contests/{contest_name:[^/]*}/sites")]
+async fn list_sites(
+    _auth: InternalAuth,
+    store: web::Data<EventStore>,
+    path: web::Path<(String, String)>,
+) -> HttpResponse {
+    let (event_name, contest_name) = path.into_inner();
+    match store.list_sites(&event_name, &contest_name).await {
+        Some(sites) => data_json(sites, StatusCode::OK),
+        None => error_json(StatusCode::NOT_FOUND, "not_found", "evento ou contest não existe"),
     }
 }
 
@@ -262,7 +303,7 @@ async fn delete_runs(
 
 #[derive(Deserialize)]
 struct SaltBody {
-    salt: String,
+    salt: Option<String>,
 }
 
 #[post("/events/{event_name}/salt")]
@@ -273,7 +314,7 @@ async fn post_event_salt(
     body: Option<web::Json<SaltBody>>,
 ) -> HttpResponse {
     let event_name = path.into_inner();
-    let salt = body.map(|body| body.into_inner().salt);
+    let salt = body.and_then(|body| body.into_inner().salt);
     match store.set_event_salt(&event_name, salt).await {
         Ok(salt) => data_json(serde_json::json!({ "salt": salt }), StatusCode::OK),
         Err(err) => store_error(err),
@@ -340,7 +381,7 @@ async fn post_contest_salt(
     body: Option<web::Json<SaltBody>>,
 ) -> HttpResponse {
     let (event_name, contest_name) = path.into_inner();
-    let salt = body.map(|body| body.into_inner().salt);
+    let salt = body.and_then(|body| body.into_inner().salt);
     match store
         .set_contest_salt(&event_name, &contest_name, salt)
         .await
@@ -419,7 +460,7 @@ async fn post_site_salt(
     body: Option<web::Json<SaltBody>>,
 ) -> HttpResponse {
     let (event_name, contest_name, site_name) = path.into_inner();
-    let salt = body.map(|body| body.into_inner().salt);
+    let salt = body.and_then(|body| body.into_inner().salt);
     match store
         .set_site_salt(&event_name, &contest_name, &site_name, salt)
         .await

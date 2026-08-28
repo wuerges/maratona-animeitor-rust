@@ -125,6 +125,7 @@ pub struct PublicConfig {
     pub ouro: usize,
     pub prata: usize,
     pub bronze: usize,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sites: Vec<PublicSiteView>,
     pub photo_url_format: Option<String>,
     pub sound_url_format: Option<String>,
