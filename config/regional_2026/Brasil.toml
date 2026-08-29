@@ -34,6 +34,188 @@ name = "Nordeste"
 codes = ["bralma", "brbagu", "brbaju", "brbasa", "brcecr", "brcefo", "brcejn", "brceqx", "brceti", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brrnna", "brrnpf", "brsesc"]
 
 [[sedes]]
+name = "AC"
+codes = ["brac"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AL"
+codes = ["bral"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AM"
+codes = ["bram"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "AP"
+codes = ["brap"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "BA"
+codes = ["brba"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "CE"
+codes = ["brce"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "DF"
+codes = ["brdf"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "ES"
+codes = ["bres"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "GO"
+codes = ["brgo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MA"
+codes = ["brma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MG"
+codes = ["brmg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MS"
+codes = ["brms"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "MT"
+codes = ["brmt"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PA"
+codes = ["brpa"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PB"
+codes = ["brpb"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PE"
+codes = ["brpe"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PI"
+codes = ["brpi"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "PR"
+codes = ["brpr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RJ"
+codes = ["brrj"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RN"
+codes = ["brrn"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RO"
+codes = ["brro"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RR"
+codes = ["brrr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "RS"
+codes = ["brrs"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SC"
+codes = ["brsc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SE"
+codes = ["brse"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
+name = "SP"
+codes = ["brsp"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[sedes]]
 name = "Supersede estadual do Ceará"
 codes = ["brcecr", "brcefo", "brcejn", "brceqx"]
 ouro = 2
