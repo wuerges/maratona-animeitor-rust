@@ -11,7 +11,7 @@
   width: 100vw;
   */
 
-  z-index: 10;
+  z-index: 1000000;
   border-color: gray;
 
   border-style: solid;
@@ -45,6 +45,7 @@
   flex-direction: column;
   text-align: right;
 }
+
 .control {
   display: flex;
   justify-content: right;
