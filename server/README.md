@@ -32,32 +32,31 @@ Compile e rode:
 
 ```bash
 # compilando o cliente
-wasm-pack build client --release --out-dir www/pkg --target web --out-name package
-# rodando o servidor
-cargo run --release --bin simples -- --config config/ICPC_LA.toml --secret config/Secret.toml ./tests/inputs/2a_fase_2021-22/brasil.zip
+make rebuild-client-for-release
+# rodando o servidor (a API interna usa o token; os volumes servem o cliente)
+cargo run -p server-v2 --bin simples -- -t token-de-teste \
+    -v ./client-v2/release: -v ./client-v2/release:animeitor
+# em outro terminal, o feeder publica o estado do BOCA na API interna
+cargo run -p cli --bin update_contest_state -- -t token-de-teste \
+    -i ./tests/inputs/webcast_jones.zip -s http://localhost:8000
 ```
 
 Mais opções podem ser examinadas com o comando help:
 
 ```bash
-cargo run --release --bin simples -- --help
+cargo run -p server-v2 --bin simples -- --help
 ```
 
 ## Configurando o OBS e customizando o placar
 
-A partir deste momento, o placar e os runs ficarão disponíveis nas URLs que o programa mostrar:
+Os eventos, contests, sites e salts são criados pela API interna (`doc/event-api.md`);
+o `printurls` lê a API interna e imprime as URLs do placar e do reveleitor:
 
 ```bash
-Maratona Rustreimator rodando!
--> Runs em http://localhost:8000/runspanel.html
--> Placar automatizado em http://localhost:8000/automatic.html
--> Timer em http://localhost:8000/timer.html
--> Painel geral em http://localhost:8000/everything.html
--> Fotos dos times em http://localhost:8000/teams.html
--> Painel geral com sedes em http://localhost:8000/everything2.html
--> Brasil
-    Reveleitor em http://localhost:8000/reveleitor.html?secret=abcxyz&sede=Brasil
-    Filters = ["teambrbr1"]
+cargo run -p cli --bin printurls -- --server http://localhost:8000 --token token-de-teste
+-> brasil
+    Animeitor em http://localhost:8000/animeitor/default/brasil/
+    Reveleitor em http://localhost:8000/animeitor/default/brasil/?secret=abcxyz&sede=fiemg
 ```
 
 # Desenvolvimento

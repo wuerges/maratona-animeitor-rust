@@ -3,19 +3,29 @@ services:
     # same image as animeitor below, which is the service that builds it
     image: wuerges/animeitor:latest
     entrypoint: "/printurls"
-    command: "--prefix ${PREFIX} --sedes ${SEDES}: --secret ${SECRET}"
-    volumes:
-      - ./config:/config
+    command: "--server ${SERVER_URL} --token ${INTERNAL_TOKEN} --prefix ${PREFIX}"
     environment:
       - RUST_LOG=info
 
 
-  animeitor:
+  feeder:
+    # polls BOCA and publishes event + runs into the internal API
     image: wuerges/animeitor:latest
-    command: "-v /photos:photos -v /sounds:sounds -v /dist: -v /dist:animeitor -t ${INTERNAL_TOKEN} -i ${BOCA_URL}"
+    entrypoint: "/update_contest_state"
+    command: "-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://animeitor:8000 --event default"
     volumes:
       - ./tests:/tests
-      - ./config:/config
+    environment:
+      - RUST_LOG=info
+    depends_on:
+      - animeitor
+
+
+  animeitor:
+    image: wuerges/animeitor:latest
+    command: "-v /photos:photos -v /sounds:sounds -v /dist: -v /dist:animeitor -t ${INTERNAL_TOKEN}"
+    volumes:
+      - ./tests:/tests
       # place your team photos inside of ./server/photos
       - ./server/photos:/photos
       # place your team sounds inside of ./server/sounds

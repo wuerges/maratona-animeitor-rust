@@ -14,12 +14,13 @@ COPY . .
 # note: /build/target must NOT be a cache mount — later stages COPY from it
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build -p server-v2 -p cli --release --features vendored \
- && cd client-v2 && trunk build --release -d release
+ && cd client-v2 && trunk build --release -d release --public-url /animeitor/
 
 FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build/target/release/simples /simples
 COPY --from=builder /build/target/release/printurls /printurls
+COPY --from=builder /build/target/release/update_contest_state /update_contest_state
 COPY --from=builder /build/client-v2/release /dist
 ENTRYPOINT ["/simples"]
