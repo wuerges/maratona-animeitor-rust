@@ -12,6 +12,7 @@ use crate::remote_control::relay_remote_control;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(list_events)
+        .service(list_contests)
         .service(get_contest_state)
         .service(get_config)
         .service(runs_ws)
@@ -33,6 +34,27 @@ fn bearer_key(req: &HttpRequest) -> Option<String> {
 #[get("/events")]
 async fn list_events(store: web::Data<EventStore>) -> HttpResponse {
     data_json(store.list_events().await, actix_web::http::StatusCode::OK)
+}
+
+/// Lists the contest names of an event (landing page). Like the rest of the
+/// contest scope, unavailable before the start.
+#[get("/events/{event_name}/contests")]
+async fn list_contests(
+    store: web::Data<EventStore>,
+    path: web::Path<String>,
+) -> HttpResponse {
+    let event_name = path.into_inner();
+    if let Err(response) = contest_gate(&store, &event_name).await {
+        return response;
+    }
+    match store.list_contests(&event_name).await {
+        Some(contests) => {
+            let mut names: Vec<String> = contests.into_iter().map(|config| config.name).collect();
+            names.sort();
+            data_json(names, actix_web::http::StatusCode::OK)
+        }
+        None => not_found("evento não existe"),
+    }
 }
 
 /// Nothing about a contest may be served before it starts: the state, the

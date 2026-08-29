@@ -24,7 +24,7 @@ Códigos de erro desta API:
 
 ## Convenções
 
-- `{event-name}`, `{contest-name}` e `{site-name}` são nomes de recursos; o contest de nome `""` é o contest padrão, com **segmento vazio** no caminho (ex.: `GET /api/events/{event-name}/contests//contest`).
+- `{event-name}`, `{contest-name}` e `{site-name}` são nomes de recursos, sempre não-vazios.
 - A API pública **nunca** expõe `salt` nem chaves derivadas.
 - Antes do início (`time_seconds < 0`), nenhuma informação do contest é servida: os endpoints do contest respondem `403` com o código `not_started`. Ficam disponíveis apenas a lista de eventos, o timer do evento e o relay de controle remoto.
 
@@ -44,6 +44,25 @@ Exemplo:
 ```json
 {
     "data": ["regional-2026", "nacional-2026"]
+}
+```
+
+### Listar contests de um evento
+
+- `GET /api/events/{event-name}/contests`
+- Lista os nomes dos contests do evento, em ordem alfabética. Usada pela landing para linkar os contests. Como o restante do escopo de contest, indisponível antes do início.
+
+Resposta:
+
+- `200 OK` — `data`: lista de strings com os nomes dos contests.
+- `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou).
+- `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
+
+Exemplo:
+
+```json
+{
+    "data": ["brasil", "mexico"]
 }
 ```
 
@@ -233,5 +252,4 @@ Resposta:
 - Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
 - Fotos e sons vêm do config do contest (`GET .../config`), não do estado nem do `config.json`.
 - Respostas JSON usam o envelope `{ data, errors, warnings }` (campos opcionais); WebSockets respondem só com o status do handshake e trocam payloads nus.
-- O contest padrão (`""`) usa segmento vazio no caminho.
 - A chave do site identifica o site; a troca do salt do site (via API interna) troca a chave imediatamente.

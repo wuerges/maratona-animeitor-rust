@@ -47,12 +47,7 @@ async fn get<T: for<'a> serde::Deserialize<'a>>(
 }
 
 fn contest_url(prefix: &str, event: &str, contest: &str) -> color_eyre::eyre::Result<Url> {
-    let path = if contest.is_empty() {
-        format!("/animeitor/{event}/")
-    } else {
-        format!("/animeitor/{event}/{contest}/")
-    };
-    Ok(Url::parse(prefix)?.join(&path)?)
+    Ok(Url::parse(prefix)?.join(&format!("/animeitor/{event}/{contest}/"))?)
 }
 
 #[tokio::main]
@@ -106,14 +101,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
             .await?;
             sites.sort_by(|a, b| a.name.cmp(&b.name));
 
-            println!(
-                "-> {}",
-                if contest.name.is_empty() {
-                    event.clone()
-                } else {
-                    format!("{event} / {}", contest.name)
-                }
-            );
+            println!("-> {event} / {}", contest.name);
             println!("    Animeitor em {}", contest_url(&prefix, event, &contest.name)?);
 
             for site in &sites {

@@ -114,6 +114,16 @@ fn check_name(body: &str, path: &str, what: &str) -> Result<(), StoreError> {
     Ok(())
 }
 
+/// Contest names are required and non-empty (there is no default contest).
+fn check_contest_name(body: &str, path: &str) -> Result<(), StoreError> {
+    if body.is_empty() || path.is_empty() {
+        return Err(StoreError::InvalidValue(
+            "nome do contest não pode ser vazio".into(),
+        ));
+    }
+    check_name(body, path, "contest")
+}
+
 struct SiteEntry {
     config: SiteConfig,
     codes: RegexSet,
@@ -376,7 +386,7 @@ impl EventStore {
         if event.contests.contains_key(contest_name) {
             return Err(StoreError::AlreadyExists(format!("contest {contest_name}")));
         }
-        check_name(&config.name, contest_name, "contest")?;
+        check_contest_name(&config.name, contest_name)?;
         let codes = compile_codes(&config.codes)?;
         let mut config = config;
         config.name = contest_name.to_string();
@@ -430,7 +440,7 @@ impl EventStore {
             .contests
             .get_mut(contest_name)
             .ok_or_else(|| StoreError::NotFound(format!("contest {contest_name}")))?;
-        check_name(&config.name, contest_name, "contest")?;
+        check_contest_name(&config.name, contest_name)?;
         let codes = compile_codes(&config.codes)?;
         let mut config = config;
         config.name = contest_name.to_string();
@@ -1012,7 +1022,7 @@ mod tests {
             .unwrap();
 
         let contest = ContestConfig {
-            name: String::new(),
+            name: "brasil".to_string(),
             codes: vec!["teambr".to_string()],
             salt: None,
             style: None,
@@ -1022,14 +1032,34 @@ mod tests {
             photo_url_format: None,
             sound_url_format: None,
         };
-        store.create_contest("ensaio", "", contest).await.unwrap();
-        // The default contest "" matches the empty path segment.
-        assert!(store.get_contest("ensaio", "").await.is_some());
+        store
+            .create_contest("ensaio", "brasil", contest)
+            .await
+            .unwrap();
+        assert!(store.get_contest("ensaio", "brasil").await.is_some());
+
+        // Empty contest names are rejected.
+        let empty = ContestConfig {
+            name: String::new(),
+            codes: vec!["teambr".to_string()],
+            salt: None,
+            style: None,
+            ouro: 1,
+            prata: 2,
+            bronze: 3,
+            photo_url_format: None,
+            sound_url_format: None,
+        };
+        assert!(matches!(
+            store.create_contest("ensaio", "vazio", empty).await,
+            Err(StoreError::InvalidValue(_))
+        ));
 
         // Invalid regex is rejected.
         let bad = ContestConfig {
+            name: "ruim".to_string(),
             codes: vec!["(".to_string()],
-            ..store.get_contest("ensaio", "").await.unwrap()
+            ..store.get_contest("ensaio", "brasil").await.unwrap()
         };
         assert!(matches!(
             store.create_contest("ensaio", "ruim", bad).await,
@@ -1041,11 +1071,14 @@ mod tests {
             codes: vec!["teambr".to_string()],
             salt: None,
         };
-        store.create_site("ensaio", "", "fiemg", site).await.unwrap();
+        store
+            .create_site("ensaio", "brasil", "fiemg", site)
+            .await
+            .unwrap();
 
         // A site without its own salt has no key.
         assert!(store
-            .site_by_key("ensaio", "", "qualquer")
+            .site_by_key("ensaio", "brasil", "qualquer")
             .await
             .is_none());
 
@@ -1053,28 +1086,31 @@ mod tests {
             .set_event_salt("ensaio", Some("e".into()))
             .await
             .unwrap();
-        store.set_contest_salt("ensaio", "", Some("c".into())).await.unwrap();
         store
-            .set_site_salt("ensaio", "", "fiemg", Some("s".into()))
+            .set_contest_salt("ensaio", "brasil", Some("c".into()))
+            .await
+            .unwrap();
+        store
+            .set_site_salt("ensaio", "brasil", "fiemg", Some("s".into()))
             .await
             .unwrap();
 
-        let key = site_key(Some("e"), Some("c"), Some("s"), "", "fiemg").unwrap();
-        let found = store.site_by_key("ensaio", "", &key).await;
+        let key = site_key(Some("e"), Some("c"), Some("s"), "brasil", "fiemg").unwrap();
+        let found = store.site_by_key("ensaio", "brasil", &key).await;
         assert_eq!(found.map(|(name, _)| name).as_deref(), Some("fiemg"));
 
         // Rotating the site salt changes only that site's key.
         store
-            .set_site_salt("ensaio", "", "fiemg", Some("s2".into()))
+            .set_site_salt("ensaio", "brasil", "fiemg", Some("s2".into()))
             .await
             .unwrap();
-        assert!(store.site_by_key("ensaio", "", &key).await.is_none());
-        let new_key = site_key(Some("e"), Some("c"), Some("s2"), "", "fiemg").unwrap();
-        assert!(store.site_by_key("ensaio", "", &new_key).await.is_some());
+        assert!(store.site_by_key("ensaio", "brasil", &key).await.is_none());
+        let new_key = site_key(Some("e"), Some("c"), Some("s2"), "brasil", "fiemg").unwrap();
+        assert!(store.site_by_key("ensaio", "brasil", &new_key).await.is_some());
 
         // Contest deletion removes its sites.
-        assert!(store.delete_contest("ensaio", "").await);
-        assert!(store.get_site("ensaio", "", "fiemg").await.is_none());
+        assert!(store.delete_contest("ensaio", "brasil").await);
+        assert!(store.get_site("ensaio", "brasil", "fiemg").await.is_none());
     }
 
     #[tokio::test]
@@ -1085,7 +1121,7 @@ mod tests {
             .await
             .unwrap();
         let contest = ContestConfig {
-            name: String::new(),
+            name: "brasil".to_string(),
             codes: vec!["teambr".to_string()],
             salt: None,
             style: None,
@@ -1095,15 +1131,18 @@ mod tests {
             photo_url_format: None,
             sound_url_format: None,
         };
-        store.create_contest("ensaio", "", contest).await.unwrap();
+        store
+            .create_contest("ensaio", "brasil", contest)
+            .await
+            .unwrap();
 
         // event_state sets time_seconds = -60 (countdown).
-        let state = store.public_state("ensaio", "").await.unwrap();
+        let state = store.public_state("ensaio", "brasil").await.unwrap();
         assert_eq!(state.problems, None);
         assert_eq!(state.teams.len(), 1);
 
         store.patch_time("ensaio", 0).await;
-        let state = store.public_state("ensaio", "").await.unwrap();
+        let state = store.public_state("ensaio", "brasil").await.unwrap();
         assert_eq!(
             state.problems.as_deref(),
             Some(&["A".to_string(), "B".to_string()][..])

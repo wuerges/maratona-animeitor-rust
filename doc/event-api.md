@@ -150,11 +150,11 @@ Respostas:
 
 ## Contests
 
-Um contest é um agrupamento de times do evento, identificado por um nome. Múltiplos contests podem existir no mesmo evento. O contest de nome `""` é o contest padrão — aquele mapeado para a consulta vazia (`?contest=`).
+Um contest é um agrupamento de times do evento, identificado por um nome não-vazio. Múltiplos contests podem existir no mesmo evento.
 
 ### Formato de um contest
 
-- `name`: nome do contest (string); obrigatório. `""` representa o contest padrão.
+- `name`: nome do contest (string); obrigatório e não-vazio.
 - `codes`: lista de expressões regulares que casam com o login dos times pertencentes ao contest; obrigatório.
 - `salt`: string usada para derivar as chaves dos sites deste contest (ver seção Salts); opcional.
 - `style`: nome do estilo visual do contest; opcional.
@@ -190,7 +190,7 @@ Chaves não listadas aqui são ignoradas.
 Respostas:
 
 - `201 Created` — `data`: contest como armazenado.
-- `400 Bad Request` — corpo inválido, `codes` ausente ou regex inválida.
+- `400 Bad Request` — corpo inválido, nome vazio, `codes` ausente ou regex inválida.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 - `409 Conflict` — já existe um contest com esse nome.
@@ -211,7 +211,6 @@ Respostas:
 
 - `DELETE /internal/contests/{event-name}/{contest-name}`
 - Remove também os sites do contest.
-- Para o contest padrão, o segmento `{contest-name}` é vazio: `DELETE /internal/contests/{event-name}/`.
 
 Respostas:
 
@@ -221,7 +220,7 @@ Respostas:
 
 ## Sites
 
-Um site é um agrupamento de times de um contest, identificado por um nome — tipicamente a sede física que exibe o placar. Cada site tem sua própria chave para as runs secretas (ver seção Salts). Para o contest padrão (`name = ""`), o segmento `{contest-name}` é vazio: `/internal/sites/{event-name}//{site-name}`.
+Um site é um agrupamento de times de um contest, identificado por um nome — tipicamente a sede física que exibe o placar. Cada site tem sua própria chave para as runs secretas (ver seção Salts).
 
 ### Formato de um site
 

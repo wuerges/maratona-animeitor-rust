@@ -237,7 +237,7 @@ async fn runs_are_added_and_corrected() {
 }
 
 #[actix_web::test]
-async fn default_contest_uses_empty_segment() {
+async fn empty_contest_name_is_rejected() {
     let app = app().await;
     let (name, auth) = basic_header();
 
@@ -249,37 +249,23 @@ async fn default_contest_uses_empty_segment() {
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
 
-    // The default contest "" is the empty path segment.
+    // There is no default contest: empty names are rejected on create.
     let contest = serde_json::json!({
         "name": "",
         "codes": ["teambr"]
     });
     let req = test::TestRequest::post()
-        .uri("/internal/contests/ensaio/")
+        .uri("/internal/contests/ensaio/brasil")
         .insert_header((name, auth.clone()))
         .set_json(&contest)
         .to_request();
     let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+    assert_eq!(resp.status(), actix_web::http::StatusCode::BAD_REQUEST);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "invalid_value");
 
-    // A site under the default contest: double slash.
-    let site = serde_json::json!({
-        "name": "fiemg",
-        "codes": ["teambr"]
-    });
-    let req = test::TestRequest::post()
-        .uri("/internal/sites/ensaio//fiemg")
-        .insert_header((name, auth.clone()))
-        .set_json(&site)
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
-
-    // A named contest on the same event.
-    let named = serde_json::json!({
-        "name": "brasil",
-        "codes": ["teambr"]
-    });
+    // ... and on replace of an existing contest.
+    let named = serde_json::json!({ "name": "brasil", "codes": ["teambr"] });
     let req = test::TestRequest::post()
         .uri("/internal/contests/ensaio/brasil")
         .insert_header((name, auth.clone()))
@@ -288,13 +274,68 @@ async fn default_contest_uses_empty_segment() {
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
 
-    // Deleting the default contest removes its sites.
+    let req = test::TestRequest::put()
+        .uri("/internal/contests/ensaio/brasil")
+        .insert_header((name, auth.clone()))
+        .set_json(&serde_json::json!({ "name": "", "codes": ["teambr"] }))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::BAD_REQUEST);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "invalid_value");
+}
+
+#[actix_web::test]
+async fn named_contest_and_site_lifecycle() {
+    let app = app().await;
+    let (name, auth) = basic_header();
+
+    let req = test::TestRequest::post()
+        .uri("/internal/events/ensaio")
+        .insert_header((name, auth.clone()))
+        .set_json(&event_body())
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    let contest = serde_json::json!({
+        "name": "brasil",
+        "codes": ["teambr"]
+    });
+    let req = test::TestRequest::post()
+        .uri("/internal/contests/ensaio/brasil")
+        .insert_header((name, auth.clone()))
+        .set_json(&contest)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    let site = serde_json::json!({
+        "name": "fiemg",
+        "codes": ["teambr"]
+    });
+    let req = test::TestRequest::post()
+        .uri("/internal/sites/ensaio/brasil/fiemg")
+        .insert_header((name, auth.clone()))
+        .set_json(&site)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+
+    // Deleting the contest removes its sites.
     let req = test::TestRequest::delete()
-        .uri("/internal/contests/ensaio/")
+        .uri("/internal/contests/ensaio/brasil")
         .insert_header((name, auth.clone()))
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), actix_web::http::StatusCode::NO_CONTENT);
+
+    let req = test::TestRequest::get()
+        .uri("/internal/events/ensaio/contests/brasil/sites")
+        .insert_header((name, auth.clone()))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
 }
 
 #[actix_web::test]

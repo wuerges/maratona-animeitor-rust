@@ -129,18 +129,17 @@ async fn ensure_event(
     }
 }
 
-/// Creates the default contest (`""`, empty path segment) if it does not
-/// exist. Its empty regex matches every team login, so the public endpoints
-/// serve the whole event.
+/// Creates the `default` contest if it does not exist. Its empty regex
+/// matches every team login, so the public endpoints serve the whole event.
 async fn ensure_default_contest(
     client: &reqwest::Client,
-    contests_url: &str,
+    contest_url: &str,
     internal_token: &str,
 ) {
     let result = client
-        .post(contests_url)
+        .post(contest_url)
         .basic_auth("usuario", Some(internal_token))
-        .json(&serde_json::json!({ "name": "", "codes": [""] }))
+        .json(&serde_json::json!({ "name": "default", "codes": [""] }))
         .send()
         .await;
     match result {
@@ -164,7 +163,7 @@ pub async fn db_update_loop(internal_token: &str, boca_url: &str, server_url: &s
 
     let client = reqwest::Client::new();
     let event_url = format!("{server_url}/internal/events/{event}");
-    let contests_url = format!("{server_url}/internal/contests/{event}/");
+    let contest_url = format!("{server_url}/internal/contests/{event}/default");
     let runs_url = format!("{event_url}/runs");
 
     loop {
@@ -175,7 +174,7 @@ pub async fn db_update_loop(internal_token: &str, boca_url: &str, server_url: &s
                 let (state, runs) = from_legacy_contest_state(&contest_state, event);
 
                 if ensure_event(&client, &event_url, internal_token, state).await {
-                    ensure_default_contest(&client, &contests_url, internal_token).await;
+                    ensure_default_contest(&client, &contest_url, internal_token).await;
                 }
 
                 match client

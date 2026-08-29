@@ -124,6 +124,38 @@ async fn lists_events() {
 }
 
 #[actix_web::test]
+async fn contests_are_listed_after_start() {
+    let app = app().await;
+    seed(&app).await;
+
+    // Before the start, the contest list is not served (no name leaks).
+    let req = test::TestRequest::get()
+        .uri("/api/events/ensaio/contests")
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "not_started");
+
+    // After the start, the names are listed.
+    start(&app).await;
+    let req = test::TestRequest::get()
+        .uri("/api/events/ensaio/contests")
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"], serde_json::json!(["brasil"]));
+
+    // Unknown event: not found.
+    let req = test::TestRequest::get()
+        .uri("/api/events/inexistente/contests")
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+}
+
+#[actix_web::test]
 async fn pre_start_endpoints_are_forbidden() {
     let app = app().await;
     seed(&app).await;
