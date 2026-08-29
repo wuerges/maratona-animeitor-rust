@@ -17,12 +17,11 @@ pub fn Countdown(ec: EventContest, timer: ReadSignal<(TimerData, TimerData)>) ->
     // The names never change; only the remaining time is reactive.
     let event_name = ec.event;
     let contest_name = ec.contest;
-    let show_contest = !contest_name.is_empty();
 
     view! {
         <div class="countdown">
             <div class="event-name">{event_name}</div>
-            {show_contest.then(|| view! { <div class="contest-name">{contest_name.clone()}</div> })}
+            <div class="contest-name">{contest_name}</div>
             <div class="remaining">
                 "Faltam "
                 {move || {

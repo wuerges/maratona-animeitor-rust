@@ -70,6 +70,29 @@ pub async fn create_events(config: &SdkConfig) -> Vec<String> {
     enveloped(&format!("{}/events", config.api_prefix)).await
 }
 
+/// One-shot enveloped fetch: `None` when the server answers without `data`
+/// (e.g. `not_started` before the contest begins). No retries.
+async fn enveloped_once<T: for<'a> serde::Deserialize<'a> + serde::Serialize + Clone>(
+    url: &str,
+) -> Option<T> {
+    let envelope: Envelope<T> = create_request(url).await;
+    match envelope.data {
+        Some(data) => Some(data),
+        None => {
+            log_envelope_error(&envelope, url);
+            None
+        }
+    }
+}
+
+/// Lists the contest names of an event (landing page). Empty before the
+/// start: contest names are not served pre-start.
+pub async fn create_contests(config: &SdkConfig, event: String) -> Vec<String> {
+    enveloped_once(&format!("{}/events/{}/contests", config.api_prefix, event))
+        .await
+        .unwrap_or_default()
+}
+
 /// The public state of the contest, converted to the legacy client shape.
 pub async fn create_contest(config: &SdkConfig, ec: EventContest) -> ContestFile {
     let state: PublicContestState = enveloped(&url(config, &ec, "contest")).await;

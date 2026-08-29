@@ -36,6 +36,10 @@ pub async fn create_events() -> Vec<String> {
     client_sdk::create_events(config()).await
 }
 
+pub async fn create_contests(event: String) -> Vec<String> {
+    client_sdk::create_contests(config(), event).await
+}
+
 pub fn remote_control_url(ec: &EventContest, key: &str) -> String {
     client_sdk::remote_control_url(config(), ec, key)
 }

@@ -12,17 +12,16 @@ pub struct EventContest {
 
 /// Finds the event/contest after an `"animeitor"` segment.
 ///
-/// The contest segment may be absent (the default contest `""`).
+/// Both segments are required and non-empty: there is no default contest,
+/// so `/animeitor/{event}/` without a contest is not an animeitor path.
 pub fn event_contest_from_segments(segments: &[&str]) -> Option<EventContest> {
     let pos = segments.iter().position(|s| *s == "animeitor")?;
     let event = segments.get(pos + 1)?.to_string();
-    if event.is_empty() {
+    let contest = segments.get(pos + 2)?.to_string();
+    if event.is_empty() || contest.is_empty() {
         return None;
     }
-    Some(EventContest {
-        event,
-        contest: segments.get(pos + 2).unwrap_or(&"").to_string(),
-    })
+    Some(EventContest { event, contest })
 }
 
 #[cfg(test)]
@@ -38,14 +37,9 @@ mod tests {
     }
 
     #[test]
-    fn event_without_contest_segment_is_the_default_contest() {
-        assert_eq!(
-            parse("/animeitor/regional-2026/"),
-            Some(EventContest {
-                event: "regional-2026".into(),
-                contest: String::new(),
-            })
-        );
+    fn event_without_contest_is_not_a_contest_path() {
+        // There is no default contest: the contest segment is required.
+        assert_eq!(parse("/animeitor/regional-2026/"), None);
     }
 
     #[test]
