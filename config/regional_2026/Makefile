@@ -56,6 +56,22 @@ rebuild-release-server:
 		--target x86_64-unknown-linux-musl --features vendored \
 		--manifest-path server/Cargo.toml
 	sudo setcap 'cap_net_bind_service=+eip' ${SERVER_RELEASE_DIR}/simples
+	
+rebuild-release-server-dev:
+	cargo build \
+		--release \
+		--features vendored \
+		--manifest-path server/Cargo.toml
+
+run-standalone-dev:
+	( ./server/target/release/simples \
+		-p ${PUBLIC_PORT} \
+		-v ./server/photos:photos \
+		-v ./server/sounds:sounds \
+		-v ./client-v2/naquadah: \
+		${SEDES_OPTS} \
+		--secret ${SECRET} -i ${BOCA_URL} \
+	)
 
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \
@@ -68,7 +84,7 @@ run-standalone:
 		${HTTPS_OPTS} \
 		--secret ${SECRET} -i ${BOCA_URL} \
 	)
-
+	
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
 		--prefix ${PREFIX} \
