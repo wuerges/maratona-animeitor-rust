@@ -61,3 +61,15 @@ codes = ["botupi"]
 [[sedes]]
 name = "Yacuiba"
 codes = ["boyacu"]
+
+[[sedes]]
+name = "Times femininos - 3 competidoras"
+codes = ["^(teambococh021|teambococh022|teambolapa006|teambolapa009|teambolapa020|teambolapa021|teambollal011|teambollal015|teambollal019|teamboorur001|teamboorur014|teamboorur019|teamboorur020|teamboorur022|teambopoto013|teambosacr018|teambosacr028|teambosacr041|teambosacr045|teambosucr011)$"]
+
+[[sedes]]
+name = "Times femininos - 2 competidoras"
+codes = ["^(teambolapa038|teambollal005|teambollal006|teambollal018|teambopoto016|teambosacr020|teambosacr021|teambosacr036)$"]
+
+[[sedes]]
+name = "Times femininos - 1 competidora"
+codes = ["^(teamboberm002|teamboberm003|teambocobi006|teambococh001|teambococh003|teambococh005|teambococh006|teambococh008|teambococh010|teambococh014|teambococh019|teambococh027|teambococh028|teambococh032|teambolapa007|teambolapa016|teambolapa019|teambolapa032|teambolapa033|teambolapa037|teambollal004|teambollal013|teambollal014|teambollal016|teambollal020|teamboorur005|teamboorur008|teamboorur011|teamboorur012|teamboorur015|teamboorur016|teambopoto003|teambopoto014|teambopoto018|teambosacr002|teambosacr010|teambosacr011|teambosacr014|teambosacr022|teambosacr026|teambosacr033|teambosacr038|teambosacr046|teambosucr003|teambosucr004|teambotari005|teambotrin001|teambotupi004|teambotupi005)$"]
