@@ -779,6 +779,7 @@ dependencies = [
 name = "client-sdk"
 version = "2.1.0"
 dependencies = [
+ "client-model",
  "data",
  "futures",
  "gloo-net 0.7.0",

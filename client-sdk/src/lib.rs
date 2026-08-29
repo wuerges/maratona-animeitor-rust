@@ -13,18 +13,14 @@ use futures::{
     SinkExt, StreamExt,
 };
 use gloo_timers::future::TimeoutFuture;
-use log::warn;
+use log::{error, warn};
 use wasm_bindgen_futures::spawn_local;
 
 use request::{create_request, create_request_with_bearer};
 use websocket_stream::create_websocket_stream;
 
 /// The event and contest a client is showing, from the UI path.
-#[derive(PartialEq, Eq, Clone, Default)]
-pub struct EventContest {
-    pub event: String,
-    pub contest: String,
-}
+pub use client_model::path::EventContest;
 
 fn url(config: &SdkConfig, ec: &EventContest, path: &str) -> String {
     format!(
@@ -41,17 +37,31 @@ fn ws_url(config: &SdkConfig, ec: &EventContest, path: &str) -> String {
 }
 
 /// Fetches an enveloped resource; retries forever while the server answers
-/// without `data` (e.g. `not_found`).
+/// without `data` (e.g. `not_found`, or `not_started` before the contest
+/// begins).
 async fn enveloped<T: for<'a> serde::Deserialize<'a> + serde::Serialize + Clone>(url: &str) -> T {
     loop {
         let envelope: Envelope<T> = create_request(url).await;
         match envelope.data {
             Some(data) => return data,
             None => {
-                warn!("response without data, retrying: {url}");
+                log_envelope_error(&envelope, url);
                 TimeoutFuture::new(5_000).await;
             }
         }
+    }
+}
+
+/// Logs why an envelope has no `data`: explicit error codes are logged as
+/// errors, a data-less envelope without errors as a warning.
+fn log_envelope_error<T>(envelope: &Envelope<T>, url: &str) {
+    match &envelope.errors {
+        Some(errors) if !errors.is_empty() => {
+            for entry in errors {
+                error!("{} ({}) {url}", entry.message, entry.code);
+            }
+        }
+        _ => warn!("response without data, retrying: {url}"),
     }
 }
 
@@ -104,7 +114,7 @@ pub async fn create_secret_runs(config: &SdkConfig, key: String, ec: EventContes
         match envelope.data {
             Some(data) => return data,
             None => {
-                warn!("response without data, retrying: {url}");
+                log_envelope_error(&envelope, &url);
                 TimeoutFuture::new(5_000).await;
             }
         }

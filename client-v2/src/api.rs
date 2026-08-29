@@ -29,15 +29,7 @@ static MEDIA: RwLock<Option<PublicConfig>> = RwLock::new(None);
 pub fn event_contest_from_pathname() -> Option<EventContest> {
     let pathname = web_sys::window()?.location().pathname().ok()?;
     let segments: Vec<&str> = pathname.split('/').filter(|s| !s.is_empty()).collect();
-    let pos = segments.iter().position(|s| *s == "animeitor")?;
-    let event = segments.get(pos + 1)?.to_string();
-    if event.is_empty() {
-        return None;
-    }
-    Some(EventContest {
-        event,
-        contest: segments.get(pos + 2).unwrap_or(&"").to_string(),
-    })
+    client_model::path::event_contest_from_segments(&segments)
 }
 
 pub async fn create_events() -> Vec<String> {

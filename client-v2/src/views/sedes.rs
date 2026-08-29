@@ -28,7 +28,7 @@ use crate::{
     },
 };
 
-use super::{reveleitor::Reveleitor, timer::Timer};
+use super::{countdown::Countdown, reveleitor::Reveleitor};
 
 trait IsNegative {
     fn is_negative(&self) -> bool;
@@ -213,7 +213,7 @@ pub fn Sedes() -> impl IntoView {
         };
 
         if negative_memo.get() {
-            view! { <Timer timer /> }.into_any()
+            view! { <Countdown ec=ec.clone() timer /> }.into_any()
         } else {
             view! {
                 <BackgroundColor />

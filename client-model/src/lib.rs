@@ -1,6 +1,7 @@
 pub mod annotate_first_solved;
 pub mod contest_signal;
 pub mod letters;
+pub mod path;
 pub mod revelation;
 pub mod runs_panel_signal;
 pub mod scoring;
