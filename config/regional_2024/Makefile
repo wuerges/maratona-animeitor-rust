@@ -35,7 +35,6 @@ rebuild-debug-server:
 rebuild-release-server:
 	cargo build -p cli \
 		--release \
-		--features vendored \
 
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \

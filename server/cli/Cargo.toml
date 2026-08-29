@@ -15,7 +15,6 @@ url.workspace = true
 rand.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-openssl-sys = { optional = true, version = "0.9" }
 reqwest.workspace = true
 
 data.workspace = true
@@ -28,4 +27,3 @@ rstest.workspace = true
 
 [features]
 slow_tests = []
-vendored = ["openssl-sys/vendored"]

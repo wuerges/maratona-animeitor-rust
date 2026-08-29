@@ -41,7 +41,6 @@ rebuild-debug-server:
 rebuild-release-server:
 	cargo build -p cli \
 		--release \
-		--features vendored \
 	sudo setcap 'cap_net_bind_service=+eip' ${SERVER_RELEASE_DIR}/simples
 
 run-standalone:

@@ -16,11 +16,10 @@ futures = "0.3"
 html-escape = "0.2"
 hmac = "0.12"
 sha2 = "0.10"
-reqwest = { version = "0.13", features = ["native-tls-vendored", "json"] }
+reqwest = { version = "0.13", features = ["json"] }
 regex = "1.11"
 itertools = "0.14"
 metrics = "0.24"
-openssl = { version = "0.10", features = ["vendored"] }
 rustls = "0.23"
 rustls-pemfile = "2"
 parking_lot = "0.12"

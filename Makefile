@@ -32,7 +32,7 @@ rebuild-client-for-release:
 
 rebuild-server-for-release:
 	@echo recompiling server...
-	( cargo build -p server-v2 --release --features vendored )
+	( cargo build -p server-v2 --release )
 
 rebuild-docker-image:
 	@echo rebuild docker image

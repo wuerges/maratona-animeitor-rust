@@ -3,7 +3,7 @@
 Building and deploying the server:
 
 ```bash
-cargo build -p cli --release --features vendored
+cargo build -p server-v2 --release
 ssh ew@animeitor.naquadah.com.br rm simples
 scp target/release/simples ew@animeitor.naquadah.com.br:
 ```
