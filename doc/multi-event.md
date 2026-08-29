@@ -1,5 +1,8 @@
 # Plano: múltiplos eventos em um único servidor animeitor
 
+> **Implementado.** Este plano foi executado; o estado atual do refactor e o
+> que ainda falta estão em [refactor-status.md](refactor-status.md).
+
 Este documento planeja a evolução do animeitor de **um evento por processo** para **vários eventos em um único servidor**, com a UI servida em `/animeitor/{event-name}/{contest-name}`, e a migração de todos os endpoints públicos para o escopo público `/api`. O escopo interno já está especificado em [event-api.md](event-api.md).
 
 ## Objetivos

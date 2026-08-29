@@ -17,3 +17,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   relay types and rustls loading moved to `service`; the `simples` server
   binary moved from `cli` into `server-v2`; `cli` keeps only the tools and
   took over the CLI-only helpers (`pair_arg`, `sentry`, secret-file config).
+
+### Added
+
+- One server now hosts many events, created and fed through a new private
+  internal API (`/internal`, HTTP Basic token): event/contest/site CRUD,
+  runs, countdown times, and per-level salts whose derived site keys unlock
+  the reveal. All times are in seconds, and the unit is part of the field
+  name.
+- The public API was reorganized under `/api/events/{event}/contests/{contest}/...`,
+  mirroring the internal hierarchy. Before a contest starts, its endpoints
+  answer `403` (`not_started`) — only the event list and the event timer stay
+  available, so the countdown screen reveals nothing about the contest.
+- The client is served at `/animeitor/{event}/{contest}/`: a single build
+  discovers the event and contest from the URL path, a landing page at `/`
+  lists the active events, and a countdown screen is shown before the start.
+- Reveal runs are unlocked by a site key sent in the `Authorization: Bearer`
+  header instead of a `?secret=` query parameter, and photo/sound URLs come
+  from the contest configuration instead of the deploy config.
+- BOCA feeding moved out of the server into a standalone feeder process that
+  publishes through the internal API (also creates the default contest).
+- `printurls` was rewritten to read events, contests, sites and salts from the
+  internal API and to print the contest and reveleitor URLs (with the derived
+  site keys).
+
+### Removed
+
+- The legacy public endpoints (`/api/contest`, `/api/config`,
+  `/api/allruns_ws`, `/api/allruns_secret`, `/api/timer`,
+  `/api/remote_control/{key}` and `PUT /api/contests`) and the old
+  `--sedes`/`--secret`/`--salt`/`-i` CLI flags: events are configured
+  exclusively through the internal API.
