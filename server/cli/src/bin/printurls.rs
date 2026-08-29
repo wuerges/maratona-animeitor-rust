@@ -1,95 +1,145 @@
 use clap::Parser;
-use cli::SimpleArgs;
-use data::configdata::{Contest, Sede};
-use service::config_secret::Secret;
+
+use data::event::{ContestConfig, Envelope, EventState, SiteConfig};
+use service::event_store::site_key;
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 use url::Url;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-/// Maratona Rustrimeitor Server
+/// Prints the contest and reveleitor URLs of an animeitor server, reading
+/// events, contests, sites and salts from the internal API.
 struct SimpleParser {
-    #[clap(flatten)]
-    args: SimpleArgs,
+    /// The animeitor server url.
+    #[clap(short = 's', long, default_value = "http://localhost:8000")]
+    server: String,
 
-    /// The url prefix for the animeitor server.
-    #[clap(long, default_value = "http://localhost:8080", required = true)]
+    /// Token for the internal API (/internal).
+    #[clap(short = 't', long)]
+    token: String,
+
+    /// Only print this event.
+    #[clap(long)]
+    event: Option<String>,
+
+    /// The url prefix for the printed URLs.
+    #[clap(long, default_value = "http://localhost:8080")]
     prefix: String,
-
-    /// Show filters.
-    #[clap(long, default_value = "false")]
-    filters: bool,
 }
 
-fn print_sede(
-    parse: &SimpleParser,
-    sede: &Sede,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&parse.prefix)?;
-    if !contest_name.is_empty() {
-        url.query_pairs_mut().append_pair("contest", contest_name);
-    }
-    url.query_pairs_mut().append_pair("sede", &sede.entry.name);
-
-    println!("-> {}", sede.entry.name);
-    println!("    Animeitor em {}", url.as_str());
-    if parse.filters {
-        println!("    Filters = {:?}", sede.entry.codes);
-    }
-    Ok(())
+/// Fetches an enveloped resource from the internal API.
+async fn get<T: for<'a> serde::Deserialize<'a>>(
+    client: &reqwest::Client,
+    token: &str,
+    url: &str,
+) -> color_eyre::eyre::Result<T> {
+    let envelope: Envelope<T> = client
+        .get(url)
+        .basic_auth("usuario", Some(token))
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    envelope
+        .data
+        .ok_or_else(|| color_eyre::eyre::eyre!("resposta sem data: {url}"))
 }
 
-fn print_reveleitor(
-    parse: &SimpleParser,
-    sede: &Sede,
-    secret: &str,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&parse.prefix)?;
-    url.query_pairs_mut()
-        .append_pair("secret", secret)
-        .append_pair("sede", &sede.entry.name)
-        .append_pair("contest", contest_name);
-
-    println!("-> {}", sede.entry.name);
-    println!("    Reveleitor em {}", url.as_str());
-    if parse.filters {
-        println!("    Filters = {:?}", sede.entry.codes);
-    }
-    Ok(())
+fn contest_url(prefix: &str, event: &str, contest: &str) -> color_eyre::eyre::Result<Url> {
+    let path = if contest.is_empty() {
+        format!("/animeitor/{event}/")
+    } else {
+        format!("/animeitor/{event}/{contest}/")
+    };
+    Ok(Url::parse(prefix)?.join(&path)?)
 }
 
-fn print_urls(
-    parse: &SimpleParser,
-    contest: &Contest,
-    config_secret: &Secret,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    println!("\n");
-    print_sede(parse, &contest.titulo, contest_name)?;
-    // for (_secret, sede) in &contest.sedes {
-    //     print_sede(parse, sede, contest_name)?;
-    // }
-
-    for (secret, sede) in &config_secret.sedes_by_secret {
-        print_reveleitor(parse, sede, secret, contest_name)?;
-    }
-    Ok(())
-}
-
-fn main() -> color_eyre::eyre::Result<()> {
+#[tokio::main]
+async fn main() -> color_eyre::eyre::Result<()> {
     tracing_subscriber::FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish()
         .init();
 
-    let parse = SimpleParser::parse();
+    let SimpleParser {
+        server,
+        token,
+        event,
+        prefix,
+    } = SimpleParser::parse();
 
-    let map = parse.args.into_contest_and_secret()?;
+    let client = reqwest::Client::new();
 
-    for (name, (_, contest, config_secret)) in &map {
-        print_urls(&parse, contest, config_secret, name)?;
+    let mut events: Vec<String> =
+        get(&client, &token, &format!("{server}/internal/events")).await?;
+    events.sort();
+    if let Some(event) = &event {
+        events.retain(|name| name == event);
+        if events.is_empty() {
+            color_eyre::eyre::bail!("evento {event} não existe");
+        }
+    }
+
+    let mut found_any = false;
+    for event in &events {
+        let state: EventState =
+            get(&client, &token, &format!("{server}/internal/events/{event}")).await?;
+
+        let mut contests: Vec<ContestConfig> = get(
+            &client,
+            &token,
+            &format!("{server}/internal/events/{event}/contests"),
+        )
+        .await?;
+        contests.sort_by(|a, b| a.name.cmp(&b.name));
+
+        for contest in &contests {
+            let mut sites: Vec<SiteConfig> = get(
+                &client,
+                &token,
+                &format!(
+                    "{server}/internal/events/{event}/contests/{}/sites",
+                    contest.name
+                ),
+            )
+            .await?;
+            sites.sort_by(|a, b| a.name.cmp(&b.name));
+
+            println!(
+                "-> {}",
+                if contest.name.is_empty() {
+                    event.clone()
+                } else {
+                    format!("{event} / {}", contest.name)
+                }
+            );
+            println!("    Animeitor em {}", contest_url(&prefix, event, &contest.name)?);
+
+            for site in &sites {
+                match site_key(
+                    state.salt.as_deref(),
+                    contest.salt.as_deref(),
+                    site.salt.as_deref(),
+                    &contest.name,
+                    &site.name,
+                ) {
+                    Some(key) => {
+                        let mut url = contest_url(&prefix, event, &contest.name)?;
+                        url.query_pairs_mut()
+                            .append_pair("secret", &key)
+                            .append_pair("sede", &site.name);
+                        println!("    {}: Reveleitor em {url}", site.name);
+                    }
+                    None => println!("    {}: revelação desabilitada (site sem salt)", site.name),
+                }
+            }
+            found_any = true;
+        }
+    }
+
+    if !found_any {
+        println!("nenhum contest encontrado");
     }
 
     Ok(())
