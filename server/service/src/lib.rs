@@ -2,7 +2,6 @@ pub mod app_config;
 pub mod config_secret;
 pub mod contest_state;
 mod dataio;
-pub mod dbupdate_v2;
 pub mod errors;
 pub mod event_store;
 pub mod http;

@@ -44,22 +44,12 @@ fn configure_volumes(volumes: Vec<Volume>) -> Vec<actix_files::Files> {
 
 pub async fn serve_config(
     AppConfig {
-        boca_url,
         server_config: HttpConfig { port, tls },
         volumes,
         internal_token,
-        default_event,
     }: AppConfig,
 ) -> ServiceResult<()> {
     let event_store = service::event_store::EventStore::new();
-
-    if let Some(url) = boca_url {
-        tokio::spawn(service::dbupdate_v2::store_update_loop(
-            url,
-            event_store.clone(),
-            default_event.clone(),
-        ));
-    }
 
     let server = HttpServer::new(move || {
         App::new()

@@ -32,14 +32,6 @@ struct SimpleParser {
     /// Token for the internal API (/internal)
     internal_token: Option<String>,
 
-    #[clap(long, default_value = "default")]
-    /// Event fed by the in-process BOCA loop (-i)
-    default_event: String,
-
-    /// The webcast url from BOCA.
-    #[clap(short = 'i')]
-    url: Option<String>,
-
     #[clap(short = 'v', long)]
     /// Maps a local FOLDER to a remote PATH.
     /// Can be used multiple times.
@@ -60,10 +52,8 @@ async fn main() -> color_eyre::eyre::Result<()> {
         tls_cert,
         tls_key,
         tls_port,
-        url,
         volume: volumes,
         internal_token,
-        default_event,
     } = SimpleParser::parse();
 
     let tls = match (tls_cert, tls_key) {
@@ -83,11 +73,9 @@ async fn main() -> color_eyre::eyre::Result<()> {
     server_v2::metrics::setup();
 
     let app_config = AppConfig {
-        boca_url: url,
         server_config,
         volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
         internal_token,
-        default_event,
     };
 
     tracing::info!("\nMaratona Rustreimator rodando!");
