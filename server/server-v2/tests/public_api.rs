@@ -96,6 +96,21 @@ async fn seed(app: &impl actix_web::dev::Service<
     assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
 }
 
+async fn start(app: &impl actix_web::dev::Service<
+    actix_http::Request,
+    Response = actix_web::dev::ServiceResponse,
+    Error = actix_web::Error,
+>) {
+    let (name, auth) = auth_header();
+    let req = test::TestRequest::patch()
+        .uri("/internal/events/ensaio/time")
+        .insert_header((name, auth.clone()))
+        .set_json(&serde_json::json!({ "time_seconds": 0 }))
+        .to_request();
+    let resp = test::call_service(app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+}
+
 #[actix_web::test]
 async fn lists_events() {
     let app = app().await;
@@ -109,35 +124,70 @@ async fn lists_events() {
 }
 
 #[actix_web::test]
-async fn problems_hidden_during_countdown() {
+async fn pre_start_endpoints_are_forbidden() {
     let app = app().await;
     seed(&app).await;
 
+    // Contest state, config and secret runs all 403 with `not_started`.
+    for uri in [
+        "/api/events/ensaio/contests/brasil/contest",
+        "/api/events/ensaio/contests/brasil/config",
+        "/api/events/ensaio/contests/brasil/runs_secret",
+    ] {
+        let req = test::TestRequest::get().uri(uri).to_request();
+        let resp = test::call_service(&app, req).await;
+        assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN, "{uri}");
+        let body: serde_json::Value = test::read_body_json(resp).await;
+        assert_eq!(body["errors"][0]["code"], "not_started", "{uri}");
+    }
+
+    // Even a valid site key does not unlock data before the start.
+    let key = site_key(
+        Some("salt-do-evento"),
+        Some("salt-do-contest"),
+        Some("salt-do-site"),
+        "brasil",
+        "fiemg",
+    )
+    .expect("site has a salt");
+    let req = test::TestRequest::get()
+        .uri("/api/events/ensaio/contests/brasil/runs_secret")
+        .insert_header((header::AUTHORIZATION, format!("Bearer {key}")))
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "not_started");
+
+    // The event list stays available for the landing.
+    let req = test::TestRequest::get().uri("/api/events").to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+}
+
+#[actix_web::test]
+async fn contest_state_requires_start() {
+    let app = app().await;
+    seed(&app).await;
+
+    // Before the start: the state is not served at all.
+    let req = test::TestRequest::get()
+        .uri("/api/events/ensaio/contests/brasil/contest")
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
+    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["errors"][0]["code"], "not_started");
+
+    // The contest starts: the state (with problems) is served.
+    start(&app).await;
     let req = test::TestRequest::get()
         .uri("/api/events/ensaio/contests/brasil/contest")
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
     let body: serde_json::Value = test::read_body_json(resp).await;
-    assert_eq!(body["data"]["time_seconds"], -60);
-    assert!(body["data"].get("problems").is_none(), "problems must be hidden before the start");
-
-    // The contest starts: problems are revealed.
-    let (name, auth) = auth_header();
-    let req = test::TestRequest::patch()
-        .uri("/internal/events/ensaio/time")
-        .insert_header((name, auth.clone()))
-        .set_json(&serde_json::json!({ "time_seconds": 0 }))
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests/brasil/contest")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    assert_eq!(body["data"]["time_seconds"], 0);
     assert_eq!(body["data"]["problems"], serde_json::json!(["A", "B"]));
 }
 
@@ -145,6 +195,7 @@ async fn problems_hidden_during_countdown() {
 async fn config_never_leaks_salts() {
     let app = app().await;
     seed(&app).await;
+    start(&app).await;
 
     let req = test::TestRequest::get()
         .uri("/api/events/ensaio/contests/brasil/config")
@@ -182,6 +233,9 @@ async fn secret_runs_require_the_site_key() {
         .to_request();
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+
+    // Secret runs are only served after the start.
+    start(&app).await;
 
     // Without a key: 403 invalid_key.
     let req = test::TestRequest::get()

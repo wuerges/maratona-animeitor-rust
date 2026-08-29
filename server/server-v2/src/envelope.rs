@@ -39,3 +39,7 @@ pub(crate) fn not_found(message: impl Into<String>) -> HttpResponse {
 pub(crate) fn invalid_key(message: impl Into<String>) -> HttpResponse {
     error_json(StatusCode::FORBIDDEN, "invalid_key", message)
 }
+
+pub(crate) fn not_started(message: impl Into<String>) -> HttpResponse {
+    error_json(StatusCode::FORBIDDEN, "not_started", message)
+}

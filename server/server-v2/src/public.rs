@@ -7,7 +7,7 @@ use actix_web::*;
 
 use service::event_store::{EventStore, PublicTimer};
 
-use crate::envelope::{data_json, invalid_key, not_found, send_json};
+use crate::envelope::{data_json, invalid_key, not_found, not_started, send_json};
 use crate::remote_control::relay_remote_control;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
@@ -35,12 +35,26 @@ async fn list_events(store: web::Data<EventStore>) -> HttpResponse {
     data_json(store.list_events().await, actix_web::http::StatusCode::OK)
 }
 
+/// Nothing about a contest may be served before it starts: the state, the
+/// config and the runs all 403 with `not_started` (the timer and the event
+/// list stay available for the countdown and the landing).
+async fn contest_gate(store: &EventStore, event_name: &str) -> Result<(), HttpResponse> {
+    match store.is_started(event_name).await {
+        None => Err(not_found("evento ou contest não existe")),
+        Some(false) => Err(not_started("o evento ainda não começou")),
+        Some(true) => Ok(()),
+    }
+}
+
 #[get("/events/{event_name}/contests/{contest_name:[^/]*}/contest")]
 async fn get_contest_state(
     store: web::Data<EventStore>,
     path: web::Path<(String, String)>,
 ) -> HttpResponse {
     let (event_name, contest_name) = path.into_inner();
+    if let Err(response) = contest_gate(&store, &event_name).await {
+        return response;
+    }
     match store.public_state(&event_name, &contest_name).await {
         Some(state) => data_json(state, actix_web::http::StatusCode::OK),
         None => not_found("evento ou contest não existe"),
@@ -53,6 +67,9 @@ async fn get_config(
     path: web::Path<(String, String)>,
 ) -> HttpResponse {
     let (event_name, contest_name) = path.into_inner();
+    if let Err(response) = contest_gate(&store, &event_name).await {
+        return response;
+    }
     match store.public_config(&event_name, &contest_name).await {
         Some(config) => data_json(config, actix_web::http::StatusCode::OK),
         None => not_found("evento ou contest não existe"),
@@ -67,6 +84,14 @@ async fn runs_ws(
     body: web::Payload,
 ) -> Result<HttpResponse, Error> {
     let (event_name, contest_name) = path.into_inner();
+
+    // Handshake errors carry no body: 404 for missing resources, bare 403
+    // while the event has not started.
+    match store.is_started(&event_name).await {
+        None => return Ok(HttpResponse::NotFound().finish()),
+        Some(false) => return Ok(HttpResponse::Forbidden().finish()),
+        Some(true) => {}
+    }
 
     // The replay carries every run since event creation; the client applies
     // the freeze. Filtering happens here by the contest codes.
@@ -106,6 +131,11 @@ async fn get_runs_secret(
     req: HttpRequest,
 ) -> HttpResponse {
     let (event_name, contest_name) = path.into_inner();
+
+    // Pre-start, no key works: nothing about the contest may be served.
+    if let Err(response) = contest_gate(&store, &event_name).await {
+        return response;
+    }
 
     // The key never travels in the URL (avoids leaking into access logs).
     let Some(key) = bearer_key(&req) else {

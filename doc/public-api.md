@@ -19,12 +19,14 @@ Códigos de erro desta API:
 | code | status | situação |
 | --- | --- | --- |
 | `invalid_key` | 403 | chave do site ausente ou inválida |
+| `not_started` | 403 | o evento ainda não começou |
 | `not_found` | 404 | evento, contest ou site inexistente |
 
 ## Convenções
 
 - `{event-name}`, `{contest-name}` e `{site-name}` são nomes de recursos; o contest de nome `""` é o contest padrão, com **segmento vazio** no caminho (ex.: `GET /api/events/{event-name}/contests//contest`).
 - A API pública **nunca** expõe `salt` nem chaves derivadas.
+- Antes do início (`time_seconds < 0`), nenhuma informação do contest é servida: os endpoints do contest respondem `403` com o código `not_started`. Ficam disponíveis apenas a lista de eventos, o timer do evento e o relay de controle remoto.
 
 ## Endpoints
 
@@ -48,7 +50,7 @@ Exemplo:
 ### Estado público do contest
 
 - `GET /api/events/{event-name}/contests/{contest-name}/contest`
-- Estado público do contest: times e tempos; `problems` somente após o início. Os times são somente aqueles cujo login casa com `codes` do contest. Não contém `salt` nem chaves.
+- Estado público do contest: times e tempos. Os times são somente aqueles cujo login casa com `codes` do contest. Não contém `salt` nem chaves. Antes do início, o endpoint responde `403 not_started` (nenhuma informação do contest é servida).
 
 Resposta:
 
@@ -56,12 +58,13 @@ Resposta:
 
   - `event`: nome do evento (string).
   - `contest`: nome do contest (string); `""` é o contest padrão.
-  - `problems`: lista de letras dos problemas (strings unicode); **ausente antes do início** (`time_seconds < 0`) — o número de problemas é derivado da lista, então também não é revelado.
+  - `problems`: lista de letras dos problemas (strings unicode).
   - `teams`: lista de times do contest, cada um com `login`, `escola` e `nome` (strings).
-  - `time_seconds`: tempo decorrido, em segundos; pode ser negativo (countdown anterior ao início).
+  - `time_seconds`: tempo decorrido, em segundos.
   - `score_freeze_time_seconds`: instante do congelamento do placar, em segundos.
   - `penalty_seconds`: penalidade por submissão incorreta, em segundos.
 
+- `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]` (evento ou contest inexistente).
 
 Exemplo:
@@ -85,7 +88,7 @@ Exemplo:
 ### Config público do contest
 
 - `GET /api/events/{event-name}/contests/{contest-name}/config`
-- Configuração pública do contest: campos do contest e seus sites, sem `salt` em nenhum nível. Usada pelo cliente para seleção de sede, estilos, medalhas e para as URLs de fotos e sons.
+- Configuração pública do contest: campos do contest e seus sites, sem `salt` em nenhum nível. Usada pelo cliente para seleção de sede, estilos, medalhas e para as URLs de fotos e sons. Antes do início, o endpoint responde `403 not_started`.
 
 Resposta:
 
@@ -99,6 +102,7 @@ Resposta:
   - `photo_url_format`: formato de URL das fotos do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `photos/{team_login}.webp`, resolvido contra a mesma origem da API.
   - `sound_url_format`: formato de URL dos sons do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `sounds/{team_login}.mp3`, resolvido contra a mesma origem da API.
 
+- `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
 
 Exemplo:
@@ -137,6 +141,7 @@ Mensagens: objetos JSON, um por mensagem:
 Handshake:
 
 - `101 Switching Protocols` — conexão estabelecida.
+- `403 Forbidden` — o evento ainda não começou (sem corpo).
 - `404 Not Found` — evento ou contest inexistente (sem corpo).
 
 Exemplo de mensagem:
@@ -155,6 +160,7 @@ Exemplo de mensagem:
 Resposta:
 
 - `200 OK` — `data`: objeto com o campo `runs`, lista de runs do site, no formato da run acima.
+- `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou; nenhuma chave funciona antes do início).
 - `403 Forbidden` — `errors`: `[{ "code": "invalid_key", ... }]` (chave ausente ou não casa com nenhum site do contest).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
 
@@ -174,7 +180,7 @@ Exemplo:
 ### Timer do evento
 
 - `WS /api/events/{event-name}/timer`
-- Stream do relógio do evento. Independe de contest.
+- Stream do relógio do evento. Independe de contest. Disponível antes do início (alimenta o countdown do cliente).
 
 Mensagens: objetos JSON, um por mensagem, com duplicatas consecutivas suprimidas:
 
@@ -222,7 +228,7 @@ Resposta:
 
 - Todos os endpoints públicos ficam sob `/api`, espelhando a hierarquia interna.
 - Todos os tempos em segundos, com a unidade no nome (`*_seconds`); `time_seconds`/`current_time_seconds` podem ser negativos (countdown anterior ao início).
-- Antes do início (`time_seconds < 0`), `problems` é omitido do estado público — o cliente mostra a tela de countdown.
+- Antes do início (`time_seconds < 0`), os endpoints do contest respondem `403 not_started` — o cliente mostra a tela de countdown usando o timer do evento. A lista de eventos, o timer e o controle remoto continuam disponíveis.
 - Sem autenticação, exceto `runs_secret` (chave do site via `Authorization: Bearer`).
 - Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
 - Fotos e sons vêm do config do contest (`GET .../config`), não do estado nem do `config.json`.
