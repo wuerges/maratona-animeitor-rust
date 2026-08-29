@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Contests now require a non-empty name: the previous default contest `""`
   (empty URL segment) no longer exists, and empty names are rejected with
   `invalid_value`. The BOCA feeder creates the contest `default`.
+- The server HTTP layer was migrated from actix-web to axum (TLS via
+  axum-server). Routes, the response envelope, WebSocket messages and CLI
+  flags are unchanged; with `--tls-cert`/`--tls-key` both listeners stay up
+  (HTTP on `-p` and HTTPS on `--tls-port`), as before.
 
 ### Added
 
@@ -49,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- OpenSSL is gone from the build: `reqwest` now uses its rustls default TLS
+  backend and the `vendored` cargo feature no longer exists (Docker images no
+  longer vendor OpenSSL).
 - The legacy public endpoints (`/api/contest`, `/api/config`,
   `/api/allruns_ws`, `/api/allruns_secret`, `/api/timer`,
   `/api/remote_control/{key}` and `PUT /api/contests`) and the old

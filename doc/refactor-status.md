@@ -25,9 +25,16 @@ Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizad
 - **Deploy**: Dockerfile com `--public-url /animeitor/` e binário do feeder na imagem; serviço `feeder` no compose; `.env` sem `SECRET`/`SEDES` e com `SERVER_URL`; Makefile com mount raiz (landing) e `run-standalone-loop` via feeder; naquadah.Makefile, docker-compose.regional-exemplo.yaml, README raiz e server/README atualizados.
 - **Changelog** com as entradas da migração; [multi-event.md](multi-event.md) aponta para este documento.
 
+### Migração para axum (2026-08-29)
+
+- **Server HTTP layer migrado de actix-web para axum 0.8** (TLS via axum-server 0.8): rotas, envelope, mensagens de WS e args do `simples` inalterados; dual-listen preservado (HTTP em `-p` + HTTPS em `--tls-port`, graceful shutdown coordenado).
+- **Contest padrão `""` removido**: contests exigem nome não-vazio (400 `invalid_value`); feeder cria o contest `default`; novo endpoint público `GET /api/events/{event}/contests` (403 `not_started` pré-start) alimenta a landing, que agora lista contests por evento (`/animeitor/{event}/` sem contest não é mais caminho válido no cliente).
+- **OpenSSL removido do workspace**: reqwest com rustls default; feature `vendored` eliminada do Dockerfile/Makefiles.
+- Testes portados para `tower::oneshot` sobre o `Router` (20 testes: 13 internal + 7 public); smoke manual incluiu TLS dual-listen, SPA fallback, WS handshake 101 e printurls com chave derivada.
+
 ## Pendente (backlog)
 
-- Testes de handshake de WebSocket (sem harness actix-ws nos testes).
+- Testes de handshake de WebSocket: com axum, o gating pré-upgrade dos WS (404/403 do `runs_ws`/`timer`/`remote_control`) é testável com requests HTTP puros (`oneshot`); falta adicionar esses testes. Fluxo completo de mensagens exigiria um client `tokio-tungstenite` contra um servidor spawnado.
 - Fluxo S3 (`serve-as-bucket/`): conferir landing e `config.json` nesse modo (chaves de `config.json` conferem com `SdkConfig`; falta teste real).
 - Flags antigas em `config/regional_*/Makefile` (deferido).
 - Erros de envelope no client-sdk (`enveloped`) continuam com retry de 5s, agora logados como `error!`; sem estado de erro visível na UI.

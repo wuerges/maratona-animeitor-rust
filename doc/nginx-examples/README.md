@@ -36,7 +36,9 @@ and only use the `simples` server for the api.
 
 Another way is to host http using the `simples` server, and https using NGINX as a reverse proxy.
 
-The `nginx-examples/actix-http-nginx-https.conf` is an example of how to setup nginx as a https reverse proxy.
+The `nginx-examples/actix-http-nginx-https.conf` (the filename is legacy; the
+server now uses axum, but the config still applies) is an example of how to
+setup nginx as a https reverse proxy.
 
 The `nginx-examples/api-only-server.conf` is an example of how to setup nginx to host the static
 data and forward the api requests to the simples server handling only the api.
