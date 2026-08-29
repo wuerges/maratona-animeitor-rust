@@ -20,7 +20,8 @@
 }
 
 .foto_img {
-  max-height: 100vh;
+  /* leave one placar row visible below the photo */
+  max-height: calc(100vh - var(--row-height));
   max-width: 100vw;
   /* margin-left: auto;
   margin-right: auto; */
