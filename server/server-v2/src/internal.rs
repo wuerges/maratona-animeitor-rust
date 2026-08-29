@@ -4,60 +4,49 @@
 //! configured at startup (`--internal-token`). Responses use the
 //! `{ data, errors, warnings }` envelope.
 
-use std::future::{Ready, ready};
-
-use actix_web::*;
-use actix_web::dev::Payload;
-use actix_web::http::StatusCode;
+use axum::Router;
+use axum::extract::FromRequestParts;
+use axum::extract::rejection::JsonRejection;
+use axum::extract::{Path, State};
+use axum::http::{StatusCode, header, request::Parts};
+use axum::http::header::AUTHORIZATION;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, patch, post};
+use axum::Json;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use serde::Deserialize;
-use serde::Serialize;
 
+use crate::AppState;
 use service::event_store::{ContestConfig, EventState, EventStore, Run, SiteConfig, StoreError};
-
-/// The token that unlocks the internal API; `None` disables it entirely.
-#[derive(Debug, Clone)]
-pub struct InternalToken(pub Option<String>);
 
 /// Extractor: rejects requests without valid Basic credentials.
 ///
 /// The username is ignored; the password must be the configured token.
 pub struct InternalAuth;
 
-impl FromRequest for InternalAuth {
-    type Error = actix_web::Error;
-    type Future = Ready<Result<Self, Self::Error>>;
+impl FromRequestParts<AppState> for InternalAuth {
+    type Rejection = Response;
 
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let configured = req
-            .app_data::<web::Data<InternalToken>>()
-            .map(|token| token.0.clone())
-            .flatten();
-
-        let authorized = match configured {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let authorized = match &state.internal_token {
             None => false,
-            Some(expected) => basic_password(req).is_some_and(|found| found == expected),
+            Some(expected) => basic_password(parts).is_some_and(|found| found.as_str() == expected.as_str()),
         };
 
         if authorized {
-            ready(Ok(InternalAuth))
+            Ok(InternalAuth)
         } else {
-            ready(Err(actix_web::error::InternalError::from_response(
-                "unauthorized",
-                unauthorized_response(),
-            )
-            .into()))
+            Err(unauthorized_response())
         }
     }
 }
 
-fn basic_password(req: &HttpRequest) -> Option<String> {
-    let header = req
-        .headers()
-        .get(actix_web::http::header::AUTHORIZATION)?
-        .to_str()
-        .ok()?;
+fn basic_password(parts: &Parts) -> Option<String> {
+    let header = parts.headers.get(AUTHORIZATION)?.to_str().ok()?;
     let encoded = header.strip_prefix("Basic ")?;
     let decoded = BASE64.decode(encoded).ok()?;
     let decoded = String::from_utf8(decoded).ok()?;
@@ -65,23 +54,26 @@ fn basic_password(req: &HttpRequest) -> Option<String> {
     Some(password.to_string())
 }
 
-fn unauthorized_response() -> HttpResponse {
-    HttpResponse::Unauthorized()
-        .insert_header((actix_web::http::header::WWW_AUTHENTICATE, "Basic"))
-        .json(serde_json::json!({
+fn unauthorized_response() -> Response {
+    (
+        StatusCode::UNAUTHORIZED,
+        [(header::WWW_AUTHENTICATE, "Basic")],
+        Json(serde_json::json!({
             "errors": [ { "code": "unauthorized", "message": "credenciais ausentes ou inválidas" } ]
-        }))
+        })),
+    )
+        .into_response()
 }
 
-fn data_json(value: impl Serialize, status: StatusCode) -> HttpResponse {
+fn data_json(value: impl serde::Serialize, status: StatusCode) -> Response {
     crate::envelope::data_json(value, status)
 }
 
-fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> HttpResponse {
+fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Response {
     crate::envelope::error_json(status, code, message)
 }
 
-fn store_error(err: StoreError) -> HttpResponse {
+fn store_error(err: StoreError) -> Response {
     match err {
         StoreError::AlreadyExists(message) => {
             error_json(StatusCode::CONFLICT, "conflict", message)
@@ -97,10 +89,7 @@ fn store_error(err: StoreError) -> HttpResponse {
 }
 
 /// Maps JSON parse failures to the envelope's canonical codes.
-fn json_error(
-    err: actix_web::error::JsonPayloadError,
-    _req: &HttpRequest,
-) -> actix_web::Error {
+fn map_json_rejection(err: JsonRejection) -> Response {
     let message = err.to_string();
     let code = if message.contains("missing field") {
         "missing_field"
@@ -111,34 +100,43 @@ fn json_error(
     } else {
         "invalid_json"
     };
-    actix_web::error::InternalError::from_response(
-        err,
-        error_json(StatusCode::BAD_REQUEST, code, message),
-    )
-    .into()
+    error_json(StatusCode::BAD_REQUEST, code, message)
 }
 
-pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.app_data(web::JsonConfig::default().error_handler(json_error))
-        .service(create_event)
-        .service(get_event)
-        .service(list_events)
-        .service(list_contests)
-        .service(list_sites)
-        .service(put_event)
-        .service(delete_event)
-        .service(patch_time)
-        .service(post_runs)
-        .service(delete_runs)
-        .service(post_event_salt)
-        .service(create_contest)
-        .service(put_contest)
-        .service(delete_contest)
-        .service(post_contest_salt)
-        .service(create_site)
-        .service(put_site)
-        .service(delete_site)
-        .service(post_site_salt);
+pub fn router() -> Router<AppState> {
+    Router::new()
+        .route("/events", get(list_events))
+        .route(
+            "/events/{event_name}",
+            get(get_event).post(create_event).put(put_event).delete(delete_event),
+        )
+        .route("/events/{event_name}/contests", get(list_contests))
+        .route(
+            "/events/{event_name}/contests/{contest_name}/sites",
+            get(list_sites),
+        )
+        .route("/events/{event_name}/time", patch(patch_time))
+        .route(
+            "/events/{event_name}/runs",
+            post(post_runs).delete(delete_runs),
+        )
+        .route("/events/{event_name}/salt", post(post_event_salt))
+        .route(
+            "/contests/{event_name}/{contest_name}",
+            post(create_contest).put(put_contest).delete(delete_contest),
+        )
+        .route(
+            "/contests/{event_name}/{contest_name}/salt",
+            post(post_contest_salt),
+        )
+        .route(
+            "/sites/{event_name}/{contest_name}/{site_name}",
+            post(create_site).put(put_site).delete(delete_site),
+        )
+        .route(
+            "/sites/{event_name}/{contest_name}/{site_name}/salt",
+            post(post_site_salt),
+        )
 }
 
 /// Whether an event/contest/site name is valid as a path segment.
@@ -148,31 +146,30 @@ fn valid_name(name: &str) -> bool {
 
 // Events
 
-#[post("/events/{event_name}")]
 async fn create_event(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-    body: web::Json<EventState>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+    body: Result<Json<EventState>, JsonRejection>,
+) -> Response {
+    let Json(state) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     if !valid_name(&event_name) {
         return error_json(StatusCode::NOT_FOUND, "not_found", "evento inexistente");
     }
-    let state = body.into_inner();
     match store.create_event(&event_name, state.clone()).await {
         Ok(()) => data_json(state, StatusCode::CREATED),
         Err(err) => store_error(err),
     }
 }
 
-#[get("/events/{event_name}")]
 async fn get_event(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+) -> Response {
     match store.get_event(&event_name).await {
         Some(state) => data_json(state, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
@@ -180,19 +177,16 @@ async fn get_event(
 }
 
 /// Lists the names of all events, in creation order.
-#[get("/events")]
-async fn list_events(_auth: InternalAuth, store: web::Data<EventStore>) -> HttpResponse {
+async fn list_events(_auth: InternalAuth, State(store): State<EventStore>) -> Response {
     data_json(store.list_events().await, StatusCode::OK)
 }
 
 /// Lists the contests of an event, with their salts (internal scope).
-#[get("/events/{event_name}/contests")]
 async fn list_contests(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+) -> Response {
     match store.list_contests(&event_name).await {
         Some(contests) => data_json(contests, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
@@ -200,43 +194,40 @@ async fn list_contests(
 }
 
 /// Lists the sites of a contest, with their salts (internal scope).
-#[get("/events/{event_name}/contests/{contest_name:[^/]*}/sites")]
 async fn list_sites(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String)>,
-) -> HttpResponse {
-    let (event_name, contest_name) = path.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name)): Path<(String, String)>,
+) -> Response {
     match store.list_sites(&event_name, &contest_name).await {
         Some(sites) => data_json(sites, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento ou contest não existe"),
     }
 }
 
-#[put("/events/{event_name}")]
 async fn put_event(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-    body: web::Json<EventState>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
-    let state = body.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+    body: Result<Json<EventState>, JsonRejection>,
+) -> Response {
+    let Json(state) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     match store.put_event(&event_name, state.clone()).await {
         Ok(()) => data_json(state, StatusCode::OK),
         Err(err) => store_error(err),
     }
 }
 
-#[delete("/events/{event_name}")]
 async fn delete_event(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+) -> Response {
     if store.delete_event(&event_name).await {
-        HttpResponse::NoContent().finish()
+        StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe")
     }
@@ -247,20 +238,19 @@ struct TimeBody {
     time_seconds: i64,
 }
 
-#[patch("/events/{event_name}/time")]
 async fn patch_time(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-    body: web::Json<TimeBody>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+    body: Result<Json<TimeBody>, JsonRejection>,
+) -> Response {
+    let Json(body) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     // Negative values are allowed: the contest starts with a countdown.
     match store.patch_time(&event_name, body.time_seconds).await {
-        Some(seconds) => data_json(
-            serde_json::json!({ "time_seconds": seconds }),
-            StatusCode::OK,
-        ),
+        Some(seconds) => data_json(serde_json::json!({ "time_seconds": seconds }), StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
     }
 }
@@ -270,32 +260,31 @@ struct RunsBody {
     runs: Vec<Run>,
 }
 
-#[post("/events/{event_name}/runs")]
 async fn post_runs(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-    body: web::Json<RunsBody>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
-    match store.add_runs(&event_name, body.into_inner().runs).await {
-        Ok((added, updated)) => data_json(
-            serde_json::json!({ "added": added, "updated": updated }),
-            StatusCode::OK,
-        ),
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+    body: Result<Json<RunsBody>, JsonRejection>,
+) -> Response {
+    let Json(body) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
+    match store.add_runs(&event_name, body.runs).await {
+        Ok((added, updated)) => {
+            data_json(serde_json::json!({ "added": added, "updated": updated }), StatusCode::OK)
+        }
         Err(err) => store_error(err),
     }
 }
 
-#[delete("/events/{event_name}/runs")]
 async fn delete_runs(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+) -> Response {
     if store.clear_runs(&event_name).await {
-        HttpResponse::NoContent().finish()
+        StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe")
     }
@@ -306,15 +295,17 @@ struct SaltBody {
     salt: Option<String>,
 }
 
-#[post("/events/{event_name}/salt")]
 async fn post_event_salt(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<String>,
-    body: Option<web::Json<SaltBody>>,
-) -> HttpResponse {
-    let event_name = path.into_inner();
-    let salt = body.and_then(|body| body.into_inner().salt);
+    State(store): State<EventStore>,
+    Path(event_name): Path<String>,
+    body: Result<Option<Json<SaltBody>>, JsonRejection>,
+) -> Response {
+    let body = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
+    let salt = body.and_then(|Json(body)| body.salt);
     match store.set_event_salt(&event_name, salt).await {
         Ok(salt) => data_json(serde_json::json!({ "salt": salt }), StatusCode::OK),
         Err(err) => store_error(err),
@@ -323,15 +314,16 @@ async fn post_event_salt(
 
 // Contests
 
-#[post("/contests/{event_name}/{contest_name:[^/]*}")]
 async fn create_contest(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String)>,
-    body: web::Json<ContestConfig>,
-) -> HttpResponse {
-    let (event_name, contest_name) = path.into_inner();
-    let config = body.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name)): Path<(String, String)>,
+    body: Result<Json<ContestConfig>, JsonRejection>,
+) -> Response {
+    let Json(config) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     match store
         .create_contest(&event_name, &contest_name, config.clone())
         .await
@@ -341,15 +333,16 @@ async fn create_contest(
     }
 }
 
-#[put("/contests/{event_name}/{contest_name:[^/]*}")]
 async fn put_contest(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String)>,
-    body: web::Json<ContestConfig>,
-) -> HttpResponse {
-    let (event_name, contest_name) = path.into_inner();
-    let config = body.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name)): Path<(String, String)>,
+    body: Result<Json<ContestConfig>, JsonRejection>,
+) -> Response {
+    let Json(config) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     match store
         .put_contest(&event_name, &contest_name, config.clone())
         .await
@@ -359,33 +352,30 @@ async fn put_contest(
     }
 }
 
-#[delete("/contests/{event_name}/{contest_name:[^/]*}")]
 async fn delete_contest(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String)>,
-) -> HttpResponse {
-    let (event_name, contest_name) = path.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name)): Path<(String, String)>,
+) -> Response {
     if store.delete_contest(&event_name, &contest_name).await {
-        HttpResponse::NoContent().finish()
+        StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento ou contest não existe")
     }
 }
 
-#[post("/contests/{event_name}/{contest_name:[^/]*}/salt")]
 async fn post_contest_salt(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String)>,
-    body: Option<web::Json<SaltBody>>,
-) -> HttpResponse {
-    let (event_name, contest_name) = path.into_inner();
-    let salt = body.and_then(|body| body.into_inner().salt);
-    match store
-        .set_contest_salt(&event_name, &contest_name, salt)
-        .await
-    {
+    State(store): State<EventStore>,
+    Path((event_name, contest_name)): Path<(String, String)>,
+    body: Result<Option<Json<SaltBody>>, JsonRejection>,
+) -> Response {
+    let body = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
+    let salt = body.and_then(|Json(body)| body.salt);
+    match store.set_contest_salt(&event_name, &contest_name, salt).await {
         Ok(salt) => data_json(serde_json::json!({ "salt": salt }), StatusCode::OK),
         Err(err) => store_error(err),
     }
@@ -393,18 +383,19 @@ async fn post_contest_salt(
 
 // Sites
 
-#[post("/sites/{event_name}/{contest_name:[^/]*}/{site_name:[^/]*}")]
 async fn create_site(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String, String)>,
-    body: web::Json<SiteConfig>,
-) -> HttpResponse {
-    let (event_name, contest_name, site_name) = path.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name, site_name)): Path<(String, String, String)>,
+    body: Result<Json<SiteConfig>, JsonRejection>,
+) -> Response {
+    let Json(config) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     if !valid_name(&site_name) {
         return error_json(StatusCode::NOT_FOUND, "not_found", "site inexistente");
     }
-    let config = body.into_inner();
     match store
         .create_site(&event_name, &contest_name, &site_name, config.clone())
         .await
@@ -414,18 +405,19 @@ async fn create_site(
     }
 }
 
-#[put("/sites/{event_name}/{contest_name:[^/]*}/{site_name:[^/]*}")]
 async fn put_site(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String, String)>,
-    body: web::Json<SiteConfig>,
-) -> HttpResponse {
-    let (event_name, contest_name, site_name) = path.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name, site_name)): Path<(String, String, String)>,
+    body: Result<Json<SiteConfig>, JsonRejection>,
+) -> Response {
+    let Json(config) = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
     if !valid_name(&site_name) {
         return error_json(StatusCode::NOT_FOUND, "not_found", "site inexistente");
     }
-    let config = body.into_inner();
     match store
         .put_site(&event_name, &contest_name, &site_name, config.clone())
         .await
@@ -435,32 +427,32 @@ async fn put_site(
     }
 }
 
-#[delete("/sites/{event_name}/{contest_name:[^/]*}/{site_name:[^/]*}")]
 async fn delete_site(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String, String)>,
-) -> HttpResponse {
-    let (event_name, contest_name, site_name) = path.into_inner();
+    State(store): State<EventStore>,
+    Path((event_name, contest_name, site_name)): Path<(String, String, String)>,
+) -> Response {
     if store
         .delete_site(&event_name, &contest_name, &site_name)
         .await
     {
-        HttpResponse::NoContent().finish()
+        StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento, contest ou site não existe")
     }
 }
 
-#[post("/sites/{event_name}/{contest_name:[^/]*}/{site_name:[^/]*}/salt")]
 async fn post_site_salt(
     _auth: InternalAuth,
-    store: web::Data<EventStore>,
-    path: web::Path<(String, String, String)>,
-    body: Option<web::Json<SaltBody>>,
-) -> HttpResponse {
-    let (event_name, contest_name, site_name) = path.into_inner();
-    let salt = body.and_then(|body| body.into_inner().salt);
+    State(store): State<EventStore>,
+    Path((event_name, contest_name, site_name)): Path<(String, String, String)>,
+    body: Result<Option<Json<SaltBody>>, JsonRejection>,
+) -> Response {
+    let body = match body {
+        Ok(body) => body,
+        Err(err) => return map_json_rejection(err),
+    };
+    let salt = body.and_then(|Json(body)| body.salt);
     match store
         .set_site_salt(&event_name, &contest_name, &site_name, salt)
         .await

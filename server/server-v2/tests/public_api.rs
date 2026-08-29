@@ -1,17 +1,20 @@
 //! Integration tests for the public API (`doc/public-api.md`).
 
-use actix_web::{App, http::header, test, web};
+use axum::Router;
+use axum::body::Body;
+use axum::http::{Method, Request, StatusCode, header, HeaderName};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
-use server_v2::internal::{self, InternalToken};
-use server_v2::public;
+use http_body_util::BodyExt;
+use server_v2::{AppState, app as make_app};
 use service::event_store::{EventStore, site_key};
+use tower::ServiceExt;
 
 const TOKEN: &str = "token-de-teste";
 
-fn auth_header() -> (&'static str, String) {
+fn auth_header() -> (HeaderName, String) {
     let auth = BASE64.encode(format!("usuario:{TOKEN}"));
-    (header::AUTHORIZATION.as_str(), format!("Basic {auth}"))
+    (header::AUTHORIZATION, format!("Basic {auth}"))
 }
 
 fn event_body() -> serde_json::Value {
@@ -27,35 +30,56 @@ fn event_body() -> serde_json::Value {
     })
 }
 
-async fn app() -> impl actix_web::dev::Service<
-    actix_http::Request,
-    Response = actix_web::dev::ServiceResponse,
-    Error = actix_web::Error,
-> {
-    test::init_service(
-        App::new()
-            .app_data(web::Data::new(EventStore::new()))
-            .app_data(web::Data::new(InternalToken(Some(TOKEN.to_string()))))
-            .service(web::scope("internal").configure(internal::configure))
-            .service(web::scope("api").configure(public::configure)),
-    )
-    .await
+fn app() -> Router {
+    make_app(AppState {
+        store: EventStore::new(),
+        internal_token: Some(TOKEN.to_string()),
+    })
 }
 
-async fn seed(app: &impl actix_web::dev::Service<
-    actix_http::Request,
-    Response = actix_web::dev::ServiceResponse,
-    Error = actix_web::Error,
->) {
-    let (name, auth) = auth_header();
+fn json_request(
+    method: Method,
+    uri: &str,
+    auth: Option<(&HeaderName, String)>,
+    body: &serde_json::Value,
+) -> Request<Body> {
+    let mut builder = Request::builder().method(method).uri(uri);
+    if let Some((name, value)) = auth {
+        builder = builder.header(name.clone(), value.clone());
+    }
+    builder
+        .header(header::CONTENT_TYPE, "application/json")
+        .body(Body::from(body.to_string()))
+        .unwrap()
+}
 
-    let req = test::TestRequest::post()
-        .uri("/internal/events/ensaio")
-        .insert_header((name, auth.clone()))
-        .set_json(&event_body())
-        .to_request();
-    let resp = test::call_service(app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+fn empty_request(method: Method, uri: &str) -> Request<Body> {
+    Request::builder()
+        .method(method)
+        .uri(uri)
+        .body(Body::empty())
+        .unwrap()
+}
+
+async fn send(app: &Router, request: Request<Body>) -> (StatusCode, serde_json::Value) {
+    let response = app.clone().oneshot(request).await.unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let json = serde_json::from_slice(&bytes).unwrap_or(serde_json::Value::Null);
+    (status, json)
+}
+
+async fn seed(app: &Router) {
+    let auth = auth_header();
+
+    let req = json_request(
+        Method::POST,
+        "/internal/events/ensaio",
+        Some((&auth.0, auth.1.clone())),
+        &event_body(),
+    );
+    let (status, _) = send(app, req).await;
+    assert_eq!(status, StatusCode::CREATED);
 
     let contest = serde_json::json!({
         "name": "brasil",
@@ -65,99 +89,98 @@ async fn seed(app: &impl actix_web::dev::Service<
         "salt": "salt-do-contest",
         "photo_url_format": "https://static.example.com/photos/{team_login}.webp"
     });
-    let req = test::TestRequest::post()
-        .uri("/internal/contests/ensaio/brasil")
-        .insert_header((name, auth.clone()))
-        .set_json(&contest)
-        .to_request();
-    let resp = test::call_service(app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+    let req = json_request(
+        Method::POST,
+        "/internal/contests/ensaio/brasil",
+        Some((&auth.0, auth.1.clone())),
+        &contest,
+    );
+    let (status, _) = send(app, req).await;
+    assert_eq!(status, StatusCode::CREATED);
 
     let site = serde_json::json!({
         "name": "fiemg",
         "codes": ["teambr"],
         "salt": "salt-do-site"
     });
-    let req = test::TestRequest::post()
-        .uri("/internal/sites/ensaio/brasil/fiemg")
-        .insert_header((name, auth.clone()))
-        .set_json(&site)
-        .to_request();
-    let resp = test::call_service(app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::CREATED);
+    let req = json_request(
+        Method::POST,
+        "/internal/sites/ensaio/brasil/fiemg",
+        Some((&auth.0, auth.1.clone())),
+        &site,
+    );
+    let (status, _) = send(app, req).await;
+    assert_eq!(status, StatusCode::CREATED);
 
     // Event salt, so the site key mixes all three levels.
-    let req = test::TestRequest::post()
-        .uri("/internal/events/ensaio/salt")
-        .insert_header((name, auth.clone()))
-        .set_json(&serde_json::json!({ "salt": "salt-do-evento" }))
-        .to_request();
-    let resp = test::call_service(app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let req = json_request(
+        Method::POST,
+        "/internal/events/ensaio/salt",
+        Some((&auth.0, auth.1.clone())),
+        &serde_json::json!({ "salt": "salt-do-evento" }),
+    );
+    let (status, _) = send(app, req).await;
+    assert_eq!(status, StatusCode::OK);
 }
 
-async fn start(app: &impl actix_web::dev::Service<
-    actix_http::Request,
-    Response = actix_web::dev::ServiceResponse,
-    Error = actix_web::Error,
->) {
-    let (name, auth) = auth_header();
-    let req = test::TestRequest::patch()
-        .uri("/internal/events/ensaio/time")
-        .insert_header((name, auth.clone()))
-        .set_json(&serde_json::json!({ "time_seconds": 0 }))
-        .to_request();
-    let resp = test::call_service(app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+async fn start(app: &Router) {
+    let auth = auth_header();
+    let req = json_request(
+        Method::PATCH,
+        "/internal/events/ensaio/time",
+        Some((&auth.0, auth.1.clone())),
+        &serde_json::json!({ "time_seconds": 0 }),
+    );
+    let (status, _) = send(app, req).await;
+    assert_eq!(status, StatusCode::OK);
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn lists_events() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
 
-    let req = test::TestRequest::get().uri("/api/events").to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(&app, empty_request(Method::GET, "/api/events")).await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(body["data"], serde_json::json!(["ensaio"]));
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn contests_are_listed_after_start() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
 
     // Before the start, the contest list is not served (no name leaks).
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["errors"][0]["code"], "not_started");
 
     // After the start, the names are listed.
     start(&app).await;
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(body["data"], serde_json::json!(["brasil"]));
 
     // Unknown event: not found.
-    let req = test::TestRequest::get()
-        .uri("/api/events/inexistente/contests")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND);
+    let (status, _) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/inexistente/contests"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn pre_start_endpoints_are_forbidden() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
 
     // Contest state, config and secret runs all 403 with `not_started`.
@@ -166,10 +189,8 @@ async fn pre_start_endpoints_are_forbidden() {
         "/api/events/ensaio/contests/brasil/config",
         "/api/events/ensaio/contests/brasil/runs_secret",
     ] {
-        let req = test::TestRequest::get().uri(uri).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN, "{uri}");
-        let body: serde_json::Value = test::read_body_json(resp).await;
+        let (status, body) = send(&app, empty_request(Method::GET, uri)).await;
+        assert_eq!(status, StatusCode::FORBIDDEN, "{uri}");
         assert_eq!(body["errors"][0]["code"], "not_started", "{uri}");
     }
 
@@ -182,59 +203,64 @@ async fn pre_start_endpoints_are_forbidden() {
         "fiemg",
     )
     .expect("site has a salt");
-    let req = test::TestRequest::get()
+    let req = Request::builder()
         .uri("/api/events/ensaio/contests/brasil/runs_secret")
-        .insert_header((header::AUTHORIZATION, format!("Bearer {key}")))
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+        .header(header::AUTHORIZATION, format!("Bearer {key}"))
+        .body(Body::empty())
+        .unwrap();
+    let (status, body) = send(&app, req).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["errors"][0]["code"], "not_started");
 
     // The event list stays available for the landing.
-    let req = test::TestRequest::get().uri("/api/events").to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let (status, _) = send(&app, empty_request(Method::GET, "/api/events")).await;
+    assert_eq!(status, StatusCode::OK);
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn contest_state_requires_start() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
 
     // Before the start: the state is not served at all.
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests/brasil/contest")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(
+            Method::GET,
+            "/api/events/ensaio/contests/brasil/contest",
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["errors"][0]["code"], "not_started");
 
     // The contest starts: the state (with problems) is served.
     start(&app).await;
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests/brasil/contest")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(
+            Method::GET,
+            "/api/events/ensaio/contests/brasil/contest",
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(body["data"]["time_seconds"], 0);
     assert_eq!(body["data"]["problems"], serde_json::json!(["A", "B"]));
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn config_never_leaks_salts() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
     start(&app).await;
 
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests/brasil/config")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests/brasil/config"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(body["data"]["name"], "brasil");
     assert_eq!(body["data"]["ouro"], 4);
     assert_eq!(
@@ -247,35 +273,39 @@ async fn config_never_leaks_salts() {
     assert!(!text.contains("key"), "no derived key may leak: {text}");
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn secret_runs_require_the_site_key() {
-    let app = app().await;
+    let app = app();
     seed(&app).await;
 
-    let (name, auth) = auth_header();
+    let auth = auth_header();
     let runs = serde_json::json!({
         "runs": [
             { "id": 1, "team_login": "teambr001", "prob": "A", "time_seconds": 56, "answer": "Y" }
         ]
     });
-    let req = test::TestRequest::post()
-        .uri("/internal/events/ensaio/runs")
-        .insert_header((name, auth.clone()))
-        .set_json(&runs)
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
+    let req = json_request(
+        Method::POST,
+        "/internal/events/ensaio/runs",
+        Some((&auth.0, auth.1.clone())),
+        &runs,
+    );
+    let (status, _) = send(&app, req).await;
+    assert_eq!(status, StatusCode::OK);
 
     // Secret runs are only served after the start.
     start(&app).await;
 
     // Without a key: 403 invalid_key.
-    let req = test::TestRequest::get()
-        .uri("/api/events/ensaio/contests/brasil/runs_secret")
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::FORBIDDEN);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+    let (status, body) = send(
+        &app,
+        empty_request(
+            Method::GET,
+            "/api/events/ensaio/contests/brasil/runs_secret",
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(body["errors"][0]["code"], "invalid_key");
 
     // With the derived site key: the site's runs.
@@ -287,30 +317,28 @@ async fn secret_runs_require_the_site_key() {
         "fiemg",
     )
     .expect("site has a salt");
-    let req = test::TestRequest::get()
+    let req = Request::builder()
         .uri("/api/events/ensaio/contests/brasil/runs_secret")
-        .insert_header((header::AUTHORIZATION, format!("Bearer {key}")))
-        .to_request();
-    let resp = test::call_service(&app, req).await;
-    assert_eq!(resp.status(), actix_web::http::StatusCode::OK);
-    let body: serde_json::Value = test::read_body_json(resp).await;
+        .header(header::AUTHORIZATION, format!("Bearer {key}"))
+        .body(Body::empty())
+        .unwrap();
+    let (status, body) = send(&app, req).await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(body["data"]["runs"][0]["id"], 1);
     assert_eq!(body["data"]["runs"][0]["answer"], "Y");
 }
 
-#[actix_web::test]
+#[tokio::test]
 async fn unknown_resources_are_not_found() {
-    let app = app().await;
+    let app = app();
 
     for uri in [
         "/api/events/inexistente/contests/brasil/contest",
         "/api/events/inexistente/contests/brasil/config",
         "/api/events/ensaio/contests/inexistente/contest",
     ] {
-        let req = test::TestRequest::get().uri(uri).to_request();
-        let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), actix_web::http::StatusCode::NOT_FOUND, "{uri}");
-        let body: serde_json::Value = test::read_body_json(resp).await;
+        let (status, body) = send(&app, empty_request(Method::GET, uri)).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
         assert_eq!(body["errors"][0]["code"], "not_found", "{uri}");
     }
 }

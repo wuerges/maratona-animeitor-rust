@@ -4,10 +4,13 @@ pub mod metrics;
 pub mod public;
 mod remote_control;
 
-use actix_cors::Cors;
-use actix_web::*;
+use axum::Router;
+use axum::extract::FromRef;
+use tower_http::cors::CorsLayer;
+use tower_http::services::{ServeDir, ServeFile};
+use tower_http::trace::TraceLayer;
 
-use metrics::get_metrics;
+use service::event_store::EventStore;
 use service::http::load_rustls_config;
 use service::volume::Volume;
 use service::{
@@ -15,31 +18,52 @@ use service::{
     errors::ServiceResult,
     http::{HttpConfig, HttpTlsConfig},
 };
-use tracing_actix_web::TracingLogger;
 
-fn configure_volumes(volumes: Vec<Volume>) -> Vec<actix_files::Files> {
-    volumes
-        .into_iter()
-        .map(|Volume { folder, path }| {
-            let files = actix_files::Files::new(&path, &folder).index_file("index.html");
-            // The client build is an SPA served at /animeitor/{event}/{contest}:
-            // unmatched paths fall back to its index.html.
-            if path == "animeitor" {
-                let folder = folder.clone();
-                files.default_handler(move |req: actix_web::dev::ServiceRequest| {
-                    let folder = folder.clone();
-                    async move {
-                        let file = actix_files::NamedFile::open(format!("{folder}/index.html"))
-                            .map_err(actix_web::error::ErrorInternalServerError)?;
-                        let response = file.into_response(req.request());
-                        Ok(req.into_response(response))
-                    }
-                })
-            } else {
-                files
-            }
-        })
-        .collect()
+/// The state shared by all handlers of the server.
+#[derive(Clone)]
+pub struct AppState {
+    pub store: EventStore,
+    pub internal_token: Option<String>,
+}
+
+impl FromRef<AppState> for EventStore {
+    fn from_ref(state: &AppState) -> Self {
+        state.store.clone()
+    }
+}
+
+/// Builds the router with the `/api` and `/internal` scopes. The state is
+/// provided here: the result is a `Router<()>` ready to serve.
+pub fn app(state: AppState) -> Router {
+    Router::new()
+        .nest("/api", public::router())
+        .nest("/internal", internal::router())
+        .with_state(state)
+}
+
+fn volume_router(Volume { folder, path }: Volume) -> Router {
+    let router = Router::new();
+    if path.is_empty() {
+        // Root mount (landing): anything unmatched by the APIs is served
+        // from the static files.
+        router.fallback_service(
+            ServeDir::new(&folder).append_index_html_on_directories(true),
+        )
+    } else if path == "animeitor" {
+        // The client build is an SPA served at /animeitor/{event}/{contest}:
+        // unmatched paths fall back to its index.html.
+        router.nest_service(
+            &format!("/{path}"),
+            ServeDir::new(&folder)
+                .append_index_html_on_directories(true)
+                .fallback(ServeFile::new(format!("{folder}/index.html"))),
+        )
+    } else {
+        router.nest_service(
+            &format!("/{path}"),
+            ServeDir::new(&folder).append_index_html_on_directories(true),
+        )
+    }
 }
 
 pub async fn serve_config(
@@ -49,35 +73,58 @@ pub async fn serve_config(
         internal_token,
     }: AppConfig,
 ) -> ServiceResult<()> {
-    let event_store = service::event_store::EventStore::new();
-
-    let server = HttpServer::new(move || {
-        App::new()
-            .wrap(TracingLogger::default())
-            .wrap(Cors::permissive())
-            .app_data(web::Data::new(event_store.clone()))
-            .app_data(web::Data::new(internal::InternalToken(
-                internal_token.clone(),
-            )))
-            .service(
-                web::scope("api")
-                    .configure(public::configure)
-                    .service(get_metrics),
-            )
-            .service(web::scope("internal").configure(internal::configure))
-            .service(configure_volumes(volumes.clone()))
-    })
-    .bind(("0.0.0.0", port))?;
-
-    let server = match tls {
-        Some(HttpTlsConfig { cert, key, port: tls_port }) => {
-            let tls_config = load_rustls_config(&cert, &key)?;
-            server.bind_rustls_0_23(("0.0.0.0", tls_port), tls_config)?
-        }
-        None => server,
+    let state = AppState {
+        store: service::event_store::EventStore::new(),
+        internal_token,
     };
 
-    server.run().await?;
+    let mut app = app(state);
+    for volume in volumes {
+        app = app.merge(volume_router(volume));
+    }
+    let app = app
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive());
+
+    match tls {
+        Some(HttpTlsConfig { cert, key, port: tls_port }) => {
+            // Like the old actix server, both listeners stay up: HTTP on
+            // `port` and HTTPS on `tls_port`.
+            let mut tls_config = load_rustls_config(&cert, &key)?;
+            tls_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+
+            let handle = axum_server::Handle::new();
+            let shutdown_handle = handle.clone();
+            tokio::spawn(async move {
+                let _ = tokio::signal::ctrl_c().await;
+                shutdown_handle.graceful_shutdown(None);
+            });
+
+            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
+            let http = axum::serve(listener, app.clone()).with_graceful_shutdown(async {
+                let _ = tokio::signal::ctrl_c().await;
+            });
+
+            let https = axum_server::tls_rustls::bind_rustls(
+                std::net::SocketAddr::from(([0, 0, 0, 0], tls_port)),
+                axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(
+                    tls_config,
+                )),
+            )
+            .handle(handle)
+            .serve(app.into_make_service());
+
+            tokio::try_join!(http, https)?;
+        }
+        None => {
+            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
+            axum::serve(listener, app)
+                .with_graceful_shutdown(async {
+                    let _ = tokio::signal::ctrl_c().await;
+                })
+                .await?;
+        }
+    }
 
     Ok(())
 }

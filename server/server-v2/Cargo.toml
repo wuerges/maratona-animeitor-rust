@@ -11,12 +11,11 @@ name = "simples"
 path = "src/main.rs"
 
 [dependencies]
-actix-files.workspace = true
-actix-web.workspace = true
+axum.workspace = true
+axum-server.workspace = true
+tower.workspace = true
+tower-http.workspace = true
 base64.workspace = true
-actix-cors.workspace = true
-actix-ws.workspace = true
-tracing-actix-web.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
@@ -28,14 +27,10 @@ tokio-stream.workspace = true
 clap.workspace = true
 color-eyre.workspace = true
 tracing-subscriber.workspace = true
-openssl-sys = { optional = true, version = "0.9" }
 
 service.workspace = true
 data.workspace = true
 cli.workspace = true
 
 [dev-dependencies]
-actix-http = "3"
-
-[features]
-vendored = ["openssl-sys/vendored"]
+http-body-util.workspace = true
