@@ -22,7 +22,7 @@ Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizad
 - **Feeder standalone** (`update_contest_state`): publica via `/internal`, preserva o salt do evento entre ticks e cria o contest padrão (codes `[""]`); o loop `-i` do simples foi removido junto com `--default-event` e `dbupdate_v2`.
 - **printurls reescrito**: lê a API interna e imprime URLs de contest e reveleitor (chave derivada via HMAC + `?secret=`/`&sede=`); args antigos `-s/-x/-y` (sedes/secrets/salt) removidos do cli.
 - **Cliente**: tela de countdown (nomes vindos do caminho), fix do flash na primeira pintura (placeholder negativo no timer), parsing de caminho movido para client-model (`path.rs`) com testes nativos.
-- **Deploy**: Dockerfile com `--public-url /animeitor/` e binário do feeder na imagem; serviço `feeder` no compose; `.env` sem `SECRET`/`SEDES` e com `SERVER_URL`; Makefile com mount raiz (landing) e `run-standalone-loop` via feeder; naquadah.Makefile, docker-compose.regional-exemplo.yaml e server/README atualizados.
+- **Deploy**: Dockerfile com `--public-url /animeitor/` e binário do feeder na imagem; serviço `feeder` no compose; `.env` sem `SECRET`/`SEDES` e com `SERVER_URL`; Makefile com mount raiz (landing) e `run-standalone-loop` via feeder; naquadah.Makefile, docker-compose.regional-exemplo.yaml, README raiz e server/README atualizados.
 - **Changelog** com as entradas da migração; [multi-event.md](multi-event.md) aponta para este documento.
 
 ## Pendente (backlog)

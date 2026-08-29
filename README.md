@@ -26,35 +26,41 @@ To see the urls served by Animeitor:
 docker compose run printurls
 ```
 
-By default these are the URLs to visit:
+The client is served per event and contest at `/animeitor/{event}/{contest}/`,
+and `http://localhost:8000/` lists the active events. The compose setup feeds
+BOCA into the `default` event, so with the defaults:
 
-- Animeitor: http://localhost:8000/?sede=Contest+Exemplo
-- Reveleitor: http://localhost:8000/?secret=abc&sede=Contest+Exemplo&contest=
+- Animeitor: http://localhost:8000/animeitor/default/
+- Reveleitor: the URL printed by `printurls` (e.g.
+  `http://localhost:8000/animeitor/default/?secret=<site-key>&sede=<site>`)
+
+Events, contests, sites and salts are created through the internal API
+(`doc/event-api.md`) — the feeder creates the `default` event and contest
+automatically.
 
 # Basic configuration
 
 Animeitor can be configured using a few environment variables, than can be set in the `.env` file:
 
 ```bash
-# Path to the file that contains the secrets used as credentials for the Reveleitor.
-# There are many examples in the ./config/ folder
-SECRET=./config/basic_secret.toml
-
-# Path to the file that describes the contest locations.
-# There are many examples in the ./config/ folder
-SEDES=./config/basic.toml
-
-# Boca URL that will be pooled to get the contest state.
+# Boca URL that will be polled by the feeder to get the contest state.
 # It can be either a file or an URL.
 BOCA_URL=./tests/inputs/webcast_jones.zip
 
-# Animeitor API prefix. This is set to `http://animeitor.naquadah.com.br` during the maratona.
+# Animeitor API prefix used to print the contest/reveleitor URLs.
+# This is set to `http://animeitor.naquadah.com.br` during the maratona.
 # `http://localhost:8000` is fine for local testing:
 PREFIX=http://localhost:8000
+
+# URL of the animeitor server, used by printurls and the feeder.
+SERVER_URL=http://animeitor:8000
 
 # This is the public port. This is set to `80` during the SBC Maratona.
 # `8000` is fine for local testing:
 PUBLIC_PORT=8000
+
+# Token for the internal API (/internal). The feeder and printurls need the same token.
+INTERNAL_TOKEN=token-de-teste
 ```
 
 # Customizing animeitor appearance
@@ -85,13 +91,16 @@ The `Makefile` has an example of how to run animeitor without docker.
 
 ```
 make rebuild-client-for-release
-make run-standalone
+make run-standalone-push
 ```
 
 Then check your browser:
 
-- Animeitor: http://localhost:8000/
-- Reveleitor: http://localhost:8000?secret=abc
+- Landing: http://localhost:8000/
+- Animeitor: http://localhost:8000/animeitor/{event}/{contest}/
+
+To also feed BOCA while running without docker, use `make run-standalone-loop`
+(it starts the server and the feeder together).
 
 ## Running the debug client
 
@@ -103,8 +112,8 @@ make run-debug-client
 
 Then check your browser:
 
-- Animeitor: http://localhost:8080/
-- Reveleitor: http://localhost:8080?secret=abc
+- Landing: http://localhost:8080/
+- Animeitor: http://localhost:8080/animeitor/{event}/{contest}/
 
 
 ## Dependencies
@@ -116,17 +125,8 @@ All project dependencies have been updated in september 16, 2025.
 
 ## Rebuilding the docker image:
 
-The docker image uses the `musl` cross compiler.
-You need to install the `musl` target to be able to build it.
-
 ```
-rustup target add x86_64-unknown-linux-musl
-```
-
-Then you can rebuild the docker image:
-
-```
-rebuild-docker-image
+make rebuild-docker-image
 ```
 
 # Keyboard shortcuts:
