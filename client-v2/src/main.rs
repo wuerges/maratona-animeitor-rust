@@ -3,6 +3,7 @@ use leptos::{mount::mount_to_body, *};
 
 pub fn main() {
     console_log::init_with_level(log::Level::Debug).expect("failed to init console_log");
+    console_error_panic_hook::set_once();
 
     // mount_to_body initializes the executor, but we spawn before mounting
     // to load the runtime config; initialize it here (idempotent).

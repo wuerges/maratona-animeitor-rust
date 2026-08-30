@@ -54,6 +54,7 @@ client-sdk = { path = "client-sdk" }
 client-model = { path = "client-model" }
 log = "0.4"
 console_log = "1"
+console_error_panic_hook = "0.1"
 reactive_graph = { version = "0.2", features = ["serde"] }
 gloo-net = "0.7"
 gloo-timers = { version = "0.4", features = ["futures"] }
