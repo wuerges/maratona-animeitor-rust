@@ -84,3 +84,4 @@ Single string literal per call: `"foo"` static, `":name"` param, `":name?"` opti
 5. **Matching is exact and case-sensitive**; no trailing-slash leniency.
 6. **Query-only navigation does not re-render the fallback or re-run route views** — read `use_query` in a memo/signal if the query drives UI.
 7. Navigation is signal-first: `current_url` updates before browser history; the address bar can lag when route views suspend.
+8. **A component that renders the `<Router>` itself runs OUTSIDE the router context** — calling `use_query`/`use_navigate` in its body panics ("unreachable" in the wasm console; `use_query` panics with a missing-context expect). This bit `Sedes` in `client-v2`: the body builds the Router, so the query hooks must live in the route view closures, not in the body.
