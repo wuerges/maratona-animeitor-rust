@@ -148,13 +148,6 @@ pub fn Sedes() -> AnyView {
     let global_settings = use_global_settings();
 
     let query_params = use_static_query();
-    let settings_panel = move || {
-        query_params
-            .with(|q| q.is_settings_enabled())
-            .then_some(view! {
-                <SettingsPanel />
-            })
-    };
 
     let secret = Signal::derive(move || {
         query_params
@@ -176,63 +169,66 @@ pub fn Sedes() -> AnyView {
 
     let timer = create_timer(ec.clone());
 
-    let animeitor = {
-        let animeitor_ec = ec.clone();
-        move || {
-            let contest_provider = LocalResource::new({
-                let ec = animeitor_ec.clone();
-                move || provide_contest(ec.clone())
-            });
-
-            match secret.get() {
-                Some(secret) => {
-                    let ec = animeitor_ec.clone();
-                    (move || view! {
-                        <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
-                    }).into_any()
-                },
-                None => {
-                    let suspend = Suspend::new(async move {
-                        let provider = contest_provider.await;
-
-                        view! {
-                            <Navigation config_contest=provider.config_contest.clone() />
-                            <ProvideSede
-                                    original_contest=provider.starting_contest.clone()
-                                    contest_signal=provider.new_contest_signal.clone()
-                                    panel_items=provider.runs_panel_item_manager
-                                    timer
-                                    config_contest=provider.config_contest.clone()
-                                    sede_param=query_params
-                                    />
-                        }
-                    });
-
-                    view! {
-                    {suspend}
-                }.into_any()}
-            }
-                .into_view()
-        }
-    };
-
     // The countdown/scoreboard switch is router-driven: the contest route is
     // guarded by the timer, redirecting to its countdown route while it is
     // negative; the countdown navigates back once the timer turns positive.
-    // The closures are shared via Arc so the board view can be re-rendered
-    // (the view! macro calls the closures placed in `{}` children).
-    let settings_panel = Arc::new(settings_panel);
-    let animeitor = Arc::new(animeitor);
+    // The board view re-creates its dynamic pieces per build so the `{}`
+    // closures stay reactive (closure children in view! are invoked
+    // reactively; calling them once would freeze the secret switch).
     let board = {
         let ec = ec.clone();
-        let settings_panel = Arc::clone(&settings_panel);
-        let animeitor = Arc::clone(&animeitor);
         move || -> AnyView {
+            let settings_panel = move || {
+                query_params
+                    .with(|q| q.is_settings_enabled())
+                    .then_some(view! {
+                        <SettingsPanel />
+                    })
+            };
+            let animeitor = {
+                let animeitor_ec = ec.clone();
+                move || {
+                    let contest_provider = LocalResource::new({
+                        let ec = animeitor_ec.clone();
+                        move || provide_contest(ec.clone())
+                    });
+
+                    match secret.get() {
+                        Some(secret) => {
+                            let ec = animeitor_ec.clone();
+                            (move || view! {
+                                <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
+                            }).into_any()
+                        },
+                        None => {
+                            let suspend = Suspend::new(async move {
+                                let provider = contest_provider.await;
+
+                                view! {
+                                    <Navigation config_contest=provider.config_contest.clone() />
+                                    <ProvideSede
+                                            original_contest=provider.starting_contest.clone()
+                                            contest_signal=provider.new_contest_signal.clone()
+                                            panel_items=provider.runs_panel_item_manager
+                                            timer
+                                            config_contest=provider.config_contest.clone()
+                                            sede_param=query_params
+                                            />
+                                }
+                            });
+
+                            view! {
+                            {suspend}
+                        }.into_any()}
+                    }
+                        .into_view()
+                }
+            };
             view! {
                 <BackgroundColor />
                 <RemoteControl event_contest=ec.clone() />
-                {settings_panel()}
-                {animeitor()}
+                {settings_panel}
+                {animeitor}
             }
             .into_any()
         }
