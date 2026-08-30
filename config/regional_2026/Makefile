@@ -1,5 +1,6 @@
 BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
 PUBLIC_PORT=80
+TLS_PORT ?= 443
 SERVER_RELEASE_DIR = target/release/
 
 # PREFIX=http://localhost:8000
@@ -12,34 +13,29 @@ HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
 
 # Contests, sites and salts are created via the internal API
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
+#
+# The client is built once by the root Makefile
+# (make rebuild-client-for-release -> client-v2/release) and served from
+# there; run `make install-config` after rebuilding it to apply this
+# region's media prefixes.
 
-.PHONY: run-debug-client rebuild-client run-standalone run-standalone-loop printurls-standalone rebuild-debug-server rebuild-release-server
+.PHONY: install-config run-standalone run-standalone-loop printurls-standalone rebuild-release-server
 
-run-debug-client:
-	( cd client-v2 && \
-		trunk serve )
-
-rebuild-client:
-	( cd client-v2 && \
-		trunk build --release -d naquadah )
-	cp config/regional_2026/config.json client-v2/naquadah/config.json
-
-rebuild-debug-server:
-	cargo build -p server-v2
+install-config:
+	cp config/regional_2026/config.json client-v2/release/config.json
 
 rebuild-release-server:
 	cargo build -p server-v2 \
 		--release
-	sudo setcap 'cap_net_bind_service=+eip' ${SERVER_RELEASE_DIR}/simples
 
 run-standalone:
 	( ${SERVER_RELEASE_DIR}/simples \
 		-p ${PUBLIC_PORT} \
-		--tls-port 443 \
+		--tls-port ${TLS_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/naquadah: \
-		-v ./client-v2/naquadah:animeitor \
+		-v ./client-v2/release: \
+		-v ./client-v2/release:animeitor \
 		${HTTPS_OPTS} \
 		-t ${INTERNAL_TOKEN} \
 	)
@@ -49,8 +45,8 @@ run-standalone-loop:
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/naquadah: \
-		-v ./client-v2/naquadah:animeitor \
+		-v ./client-v2/release: \
+		-v ./client-v2/release:animeitor \
 		${HTTPS_OPTS} \
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
