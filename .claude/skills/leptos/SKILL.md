@@ -17,6 +17,7 @@ Consequences:
 
 - **Never pick UI from a top-level `if signal.get()` in a body** — it is evaluated once and never flips. Put the switch in a tracked closure (`view! { {move || if …} }`) or `<Show when=…>`, or drive it through leptos_router (ProtectedRoute + a second route — see the `leptos-router` skill; this is how the countdown→scoreboard switch works in `client-v2/src/views/sedes.rs`).
 - State that must survive re-renders lives **outside** the body: a parent's `StoredValue`, context, or a `static`/`OnceLock` (the timer signal in `api.rs` uses a `OnceLock`).
+- **Signals cached in a `static`/`OnceLock` must be created under a detached `Owner::new_root(None)`** (then `std::mem::forget` the owner): an arena-allocated signal is disposed when its owner is disposed, and writing to it afterwards panics. A cache created lazily inside a transient route-render closure (like the per-event timer in `api.rs::create_timer`) would die with that closure's owner.
 - One-shot setup in a body runs once per *invocation*, not once per mount — guard with `OnceLock` if the component can re-invoke.
 
 ### 2. In `view!`, `{closure}` is reactive; `{expression}` is static — and closures are moved

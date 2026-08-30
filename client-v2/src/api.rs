@@ -102,7 +102,16 @@ pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
         .or_insert_with(|| {
             let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
 
-            let (timer, set_timer) = signal((TimerData::fake(), data::TimerData::new(0, 1)));
+            // The signal lives in a detached root owner: the cache is read
+            // from transient route-render scopes whose owners are disposed
+            // between evaluations, and an arena-allocated signal dies with
+            // its owner (writing to it afterwards panics). The root owner is
+            // leaked on purpose so the signal never disposes.
+            let owner = Owner::new_root(None);
+            let (timer, set_timer) = owner.with(|| {
+                signal((TimerData::fake(), data::TimerData::new(0, 1)))
+            });
+            std::mem::forget(owner);
 
             spawn_local(async move {
                 loop {
