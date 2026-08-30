@@ -6,8 +6,8 @@ use data::{
 };
 use leptos::prelude::*;
 use leptos_router::{
-    components::{Route, Router, Routes},
-    hooks::use_query,
+    components::{ProtectedRoute, Route, Router, Routes},
+    hooks::{use_navigate, use_query},
     params::Params,
     *,
 };
@@ -144,95 +144,136 @@ fn ConfiguredReveleitor(
 }
 
 #[component]
-pub fn Sedes() -> impl IntoView {
+pub fn Sedes() -> AnyView {
     let global_settings = use_global_settings();
 
-    let root = move || {
-        let query_params = use_static_query();
-        let settings_panel = move || {
-            query_params
-                .with(|q| q.is_settings_enabled())
-                .then_some(view! {
-                    <SettingsPanel />
-                })
-        };
+    let query_params = use_static_query();
+    let settings_panel = move || {
+        query_params
+            .with(|q| q.is_settings_enabled())
+            .then_some(view! {
+                <SettingsPanel />
+            })
+    };
 
-        let secret = Signal::derive(move || {
-            query_params
-                .with(|q| q.secret.clone())
-                .or(global_settings.global.with(|g| g.get_secret()))
-        });
-        let secret = Memo::new(move |_| secret.get());
+    let secret = Signal::derive(move || {
+        query_params
+            .with(|q| q.secret.clone())
+            .or(global_settings.global.with(|g| g.get_secret()))
+    });
+    let secret = Memo::new(move |_| secret.get());
 
-        // No animeitor path in the URL: show the landing page.
-        let Some(ec) = event_contest_from_pathname() else {
-            return view! { <Landing /> }.into_any();
-        };
+    // No animeitor path in the URL: only the landing page (the router
+    // fallback) is needed.
+    let Some(ec) = event_contest_from_pathname() else {
+        return view! {
+            <Router>
+                <Routes fallback=move || view! { <Landing /> }>{()}</Routes>
+            </Router>
+        }
+        .into_any();
+    };
 
-        let timer = create_timer(ec.clone());
-        let negative_memo = Memo::new(move |_| timer.get().is_negative());
+    let timer = create_timer(ec.clone());
 
-        let animeitor = {
-            let animeitor_ec = ec.clone();
-            move || {
-                let contest_provider = LocalResource::new({
+    let animeitor = {
+        let animeitor_ec = ec.clone();
+        move || {
+            let contest_provider = LocalResource::new({
+                let ec = animeitor_ec.clone();
+                move || provide_contest(ec.clone())
+            });
+
+            match secret.get() {
+                Some(secret) => {
                     let ec = animeitor_ec.clone();
-                    move || provide_contest(ec.clone())
-                });
-
-                match secret.get() {
-                    Some(secret) => {
-                        let ec = animeitor_ec.clone();
-                        (move || view! {
-                            <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
-                        }).into_any()
-                    },
-                    None => {
-                        let suspend = Suspend::new(async move {
-                            let provider = contest_provider.await;
-
-                            view! {
-                                <Navigation config_contest=provider.config_contest.clone() />
-                                <ProvideSede
-                                        original_contest=provider.starting_contest.clone()
-                                        contest_signal=provider.new_contest_signal.clone()
-                                        panel_items=provider.runs_panel_item_manager
-                                        timer
-                                        config_contest=provider.config_contest.clone()
-                                        sede_param=query_params
-                                        />
-                            }
-                        });
+                    (move || view! {
+                        <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
+                    }).into_any()
+                },
+                None => {
+                    let suspend = Suspend::new(async move {
+                        let provider = contest_provider.await;
 
                         view! {
-                        {suspend}
-                    }.into_any()}
-                }
-                    .into_view()
-            }
-        };
+                            <Navigation config_contest=provider.config_contest.clone() />
+                            <ProvideSede
+                                    original_contest=provider.starting_contest.clone()
+                                    contest_signal=provider.new_contest_signal.clone()
+                                    panel_items=provider.runs_panel_item_manager
+                                    timer
+                                    config_contest=provider.config_contest.clone()
+                                    sede_param=query_params
+                                    />
+                        }
+                    });
 
-        if negative_memo.get() {
-            view! { <Countdown ec=ec.clone() timer /> }.into_any()
-        } else {
+                    view! {
+                    {suspend}
+                }.into_any()}
+            }
+                .into_view()
+        }
+    };
+
+    // The countdown/scoreboard switch is router-driven: the contest route is
+    // guarded by the timer, redirecting to its countdown route while it is
+    // negative; the countdown navigates back once the timer turns positive.
+    // The closures are shared via Arc so the board view can be re-rendered
+    // (the view! macro calls the closures placed in `{}` children).
+    let settings_panel = Arc::new(settings_panel);
+    let animeitor = Arc::new(animeitor);
+    let board = {
+        let ec = ec.clone();
+        let settings_panel = Arc::clone(&settings_panel);
+        let animeitor = Arc::clone(&animeitor);
+        move || -> AnyView {
             view! {
                 <BackgroundColor />
                 <RemoteControl event_contest=ec.clone() />
-                {settings_panel}
-                {animeitor}
+                {settings_panel()}
+                {animeitor()}
             }
             .into_any()
         }
     };
+    let countdown_path = format!("/animeitor/{}/{}/countdown", ec.event, ec.contest);
+    let contest_path = format!("/animeitor/{}/{}", ec.event, ec.contest);
+
+    // While the countdown route is shown, navigate back to the contest route
+    // as soon as the timer turns positive.
+    let countdown = move || -> AnyView {
+        let navigate = use_navigate();
+        let back = contest_path.clone();
+        Effect::new(move |_| {
+            if !timer.with(|pair| pair.is_negative()) {
+                navigate(
+                    &back,
+                    NavigateOptions {
+                        replace: true,
+                        ..Default::default()
+                    },
+                );
+            }
+        });
+        view! { <Countdown ec=ec.clone() timer /> }.into_any()
+    };
 
     view! {
         <Router>
-            <Routes fallback=move || root>
+            <Routes fallback=move || view! { <Landing /> }>
+                <ProtectedRoute
+                    path=path!("/animeitor/:event/:contest")
+                    view=board
+                    condition=move || Some(!timer.with(|pair| pair.is_negative()))
+                    redirect_path=move || countdown_path.clone()
+                />
                 <Route
-                path=path!("")
-                view=move || root
+                    path=path!("/animeitor/:event/:contest/countdown")
+                    view=countdown
                 />
             </Routes>
         </Router>
     }
+    .into_any()
 }
