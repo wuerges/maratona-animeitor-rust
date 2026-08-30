@@ -3,6 +3,7 @@
 //! contest list is empty until then.
 
 use leptos::prelude::*;
+use leptos_router::components::A;
 
 use crate::api::{create_contests, create_events};
 
@@ -41,8 +42,7 @@ pub fn Landing() -> impl IntoView {
                                                                     // slash (the router does not match it).
                                                                     let link =
                                                                         format!("/animeitor/{event}/{contest}");
-                                                                    let href = link.clone();
-                                                                    view! { <li><a href=href>{link}</a></li> }
+                                                                    view! { <li><A href=link.clone()>{link}</A></li> }
                                                                 })
                                                                 .collect_view()
                                                         })
