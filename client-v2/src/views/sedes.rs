@@ -7,7 +7,7 @@ use data::{
 use leptos::prelude::*;
 use leptos_router::{
     components::{ProtectedRoute, Route, Router, Routes},
-    hooks::{use_navigate, use_params, use_query},
+    hooks::{use_location, use_navigate, use_params, use_query},
     params::Params,
     *,
 };
@@ -167,6 +167,12 @@ fn ec_of(params: ContestParams) -> Option<EventContest> {
     })
 }
 
+/// The event/contest from a pathname (`/animeitor/{event}/{contest}[/...]`).
+fn ec_from_pathname(pathname: &str) -> Option<EventContest> {
+    let segments: Vec<&str> = pathname.split('/').filter(|s| !s.is_empty()).collect();
+    client_model::path::event_contest_from_segments(&segments)
+}
+
 /// The scoreboard screen for a contest. Everything reads the route params
 /// reactively: navigating between contests re-runs the `{}` closure and
 /// rebuilds the screen for the new contest.
@@ -293,16 +299,21 @@ pub fn Sedes() -> AnyView {
                 <ProtectedRoute
                     path=path!("/animeitor/:event/:contest")
                     view=ContestScreen
+                    // The ProtectedRoute condition and redirect run inside a
+                    // Transition child scope where the matched-route params
+                    // context is NOT available (use_params panics there).
+                    // The location works everywhere under the Router, and
+                    // the URL is the contest path when these run.
                     condition=move || {
-                        let params = use_params::<ContestParams>();
-                        let Some(ec) = params.get().ok().and_then(ec_of) else {
+                        let location = use_location();
+                        let Some(ec) = ec_from_pathname(&location.pathname.get()) else {
                             return Some(true);
                         };
                         Some(!create_timer(ec).with(|pair| pair.is_negative()))
                     }
                     redirect_path=move || {
-                        let params = use_params::<ContestParams>();
-                        match params.get().ok().and_then(ec_of) {
+                        let location = use_location();
+                        match ec_from_pathname(&location.pathname.get()) {
                             Some(ec) => format!("/animeitor/{}/{}/countdown", ec.event, ec.contest),
                             None => "/".to_string(),
                         }
