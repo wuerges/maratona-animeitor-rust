@@ -325,7 +325,9 @@ body {
 }
 
 .nomeEscola {
-  display: none;
+  font-size: 100%;
+  color: #CFD8DC;
+  white-space: nowrap;
 }
 
 .nomeTime {
@@ -403,10 +405,6 @@ body {
 
 .color-text {
   color: #263238
-}
-
-.balao_O {
-  filter: invert(99%) sepia(95%) saturate(1238%) hue-rotate(167deg) brightness(100%) contrast(81%) !important;
 }
 
 .verde {

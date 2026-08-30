@@ -5,3 +5,7 @@ codes = ["cclca"]
 [[sedes]]
 codes = ["cclca"]
 name = "Centro America CCL"
+
+[[sedes]]
+codes = ["^(cclcaadsi003)$"]
+name = "Times femininos - 1 competidora"

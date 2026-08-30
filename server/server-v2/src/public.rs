@@ -138,17 +138,32 @@ async fn runs_ws(
     };
 
     ws.on_upgrade(move |socket| async move {
-        let (mut sender, _receiver) = socket.split();
+        let (mut sender, mut receiver) = socket.split();
         loop {
-            match runs_rx.recv().await {
-                Ok(run) => {
-                    if codes.is_match(&run.team_login) && !send_json(&mut sender, &run).await {
-                        tracing::debug!("ws connection closed");
-                        break;
+            tokio::select! {
+                recv = runs_rx.recv() => {
+                    match recv {
+                        Ok(run) => {
+                            if codes.is_match(&run.team_login) && !send_json(&mut sender, &run).await {
+                                tracing::debug!("ws connection closed");
+                                break;
+                            }
+                        }
+                        Err(err) => {
+                            tracing::warn!(?err, "recv failed");
+                            break;
+                        }
                     }
                 }
-                Err(err) => {
-                    tracing::warn!(?err, "recv failed");
+                // The read half of the connection: while no runs arrive, this
+                // is what detects that the client went away and releases the
+                // socket instead of leaking the file descriptor.
+                msg = receiver.next() => {
+                    if let Some(Err(err)) = msg {
+                        tracing::warn!(?err, "failed reading ws messages");
+                    } else {
+                        tracing::debug!("ws stream ended");
+                    }
                     break;
                 }
             }
@@ -193,21 +208,36 @@ async fn timer_ws(
     };
 
     ws.on_upgrade(move |socket| async move {
-        let (mut sender, _receiver) = socket.split();
+        let (mut sender, mut receiver) = socket.split();
 
         // The current value is sent immediately; the stream keeps it fresh,
         // suppressing consecutive duplicates.
-        let mut last: Option<PublicTimer> = None;
+        let mut last: Option<PublicTimer> = Some(current);
+        if !send_json(&mut sender, &current).await {
+            tracing::debug!("ws connection closed");
+            return;
+        }
         loop {
-            let time = match &last {
-                None => current,
-                Some(_) => match time_rx.recv().await {
-                    Ok(time) => time,
-                    Err(err) => {
-                        tracing::warn!(?err, "recv failed");
-                        break;
+            let time = tokio::select! {
+                recv = time_rx.recv() => {
+                    match recv {
+                        Ok(time) => time,
+                        Err(err) => {
+                            tracing::warn!(?err, "recv failed");
+                            break;
+                        }
                     }
-                },
+                }
+                // The read half of the connection: detects dead clients even
+                // while the clock is frozen and nothing is being written.
+                msg = receiver.next() => {
+                    if let Some(Err(err)) = msg {
+                        tracing::warn!(?err, "failed reading ws messages");
+                    } else {
+                        tracing::debug!("ws stream ended");
+                    }
+                    break;
+                }
             };
             if last.is_some_and(|previous| previous == time) {
                 continue;

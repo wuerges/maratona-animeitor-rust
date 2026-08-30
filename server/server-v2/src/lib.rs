@@ -1,13 +1,19 @@
 mod envelope;
 pub mod internal;
+pub mod memory_files;
 pub mod metrics;
 pub mod public;
 mod remote_control;
 
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Arc;
+
 use axum::Router;
 use axum::extract::FromRef;
+use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
-use tower_http::services::{ServeDir, ServeFile};
+use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use service::event_store::EventStore;
@@ -38,31 +44,43 @@ pub fn app(state: AppState) -> Router {
     Router::new()
         .nest("/api", public::router())
         .nest("/internal", internal::router())
+        .layer(CompressionLayer::new())
         .with_state(state)
 }
 
-fn volume_router(Volume { folder, path }: Volume) -> Router {
-    let router = Router::new();
-    if path.is_empty() {
-        // Root mount (landing): anything unmatched by the APIs is served
-        // from the static files.
-        router.fallback_service(
-            ServeDir::new(&folder).append_index_html_on_directories(true),
-        )
-    } else if path == "animeitor" {
-        // The client build is an SPA served at /animeitor/{event}/{contest}:
-        // unmatched paths fall back to its index.html.
-        router.nest_service(
+/// Loads the client assets of a folder into memory once per canonical path,
+/// so volumes mounting the same folder (e.g. `-v dist: -v dist:animeitor`)
+/// share a single copy.
+fn load_assets(
+    folder: &str,
+    loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>,
+) -> Arc<memory_files::MemoryFiles> {
+    let canonical = std::fs::canonicalize(folder).unwrap_or_else(|_| PathBuf::from(folder));
+    loaded
+        .entry(canonical)
+        .or_insert_with_key(|dir| Arc::new(memory_files::MemoryFiles::load(dir)))
+        .clone()
+}
+
+fn volume_router(volume: Volume, loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>) -> Router {
+    match volume.path.as_str() {
+        "" => {
+            // Root mount (landing): anything unmatched by the APIs is served
+            // from the client assets held in memory.
+            memory_files::router(load_assets(&volume.folder, loaded), "", false)
+        }
+        "animeitor" => {
+            // The client build is an SPA served at /animeitor/{event}/{contest}:
+            // unmatched paths fall back to its index.html.
+            Router::new().nest(
+                "/animeitor",
+                memory_files::router(load_assets(&volume.folder, loaded), "/animeitor", true),
+            )
+        }
+        path => Router::new().nest_service(
             &format!("/{path}"),
-            ServeDir::new(&folder)
-                .append_index_html_on_directories(true)
-                .fallback(ServeFile::new(format!("{folder}/index.html"))),
-        )
-    } else {
-        router.nest_service(
-            &format!("/{path}"),
-            ServeDir::new(&folder).append_index_html_on_directories(true),
-        )
+            ServeDir::new(&volume.folder).append_index_html_on_directories(true),
+        ),
     }
 }
 
@@ -79,8 +97,9 @@ pub async fn serve_config(
     };
 
     let mut app = app(state);
+    let mut loaded_assets = HashMap::new();
     for volume in volumes {
-        app = app.merge(volume_router(volume));
+        app = app.merge(volume_router(volume, &mut loaded_assets));
     }
     let app = app
         .layer(TraceLayer::new_for_http())

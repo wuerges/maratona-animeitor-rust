@@ -124,8 +124,22 @@ pub(crate) fn read_contest(s: &str) -> ServiceResult<ContestFile> {
 }
 
 pub(crate) fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
-    let runs = s.lines().map(RunTuple::from_string).rev();
-    let mut runs = runs.collect::<ServiceResult<Vec<RunTuple>>>()?;
+    let mut runs = s
+        .lines()
+        .map(RunTuple::from_string)
+        .collect::<ServiceResult<Vec<RunTuple>>>()?;
+
+    // The old source served runs newest-first (descending); the MOJ serves
+    // them oldest-first (ascending). Normalize to chronological order so that
+    // `order` is stable when the file grows: appends then add new orders at
+    // the end instead of shifting every existing run.
+    let descending = match (runs.first(), runs.last()) {
+        (Some(a), Some(b)) => a.id > b.id,
+        _ => false,
+    };
+    if descending {
+        runs.reverse();
+    }
 
     for (i, run) in runs.iter_mut().enumerate() {
         run.order = i as u64;
@@ -296,6 +310,45 @@ mod tests {
     fn test_parse_file_1a_fase_2020() -> ServiceResult<()> {
         let x = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
         assert_eq!(x.len(), 6285);
+        Ok(())
+    }
+
+    #[test]
+    fn test_orders_stable_across_appends_ascending() -> ServiceResult<()> {
+        // MOJ serves the runs file ascending (oldest first). When a line is
+        // appended, the `order` of existing runs must not shift, otherwise
+        // RunsFile::refresh treats the whole file as fresh on every poll.
+        let r1 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y")?;
+        let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
+        assert_eq!(orders1, vec![0, 1, 2]);
+
+        let r2 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N")?;
+        let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
+        assert_eq!(orders2, vec![0, 1, 2, 3]);
+
+        let mut runs = runs_file_new(r1);
+        let fresh = runs.refresh(r2);
+        assert_eq!(fresh.len(), 1);
+        assert_eq!(fresh[0].id, 4);
+        Ok(())
+    }
+
+    #[test]
+    fn test_orders_stable_across_appends_descending() -> ServiceResult<()> {
+        // The old source served the runs file descending (newest first);
+        // new runs are prepended and existing orders must not shift either.
+        let r1 = read_runs("3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
+        assert_eq!(orders1, vec![0, 1, 2]);
+
+        let r2 = read_runs("4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
+        assert_eq!(orders2, vec![0, 1, 2, 3]);
+
+        let mut runs = runs_file_new(r1);
+        let fresh = runs.refresh(r2);
+        assert_eq!(fresh.len(), 1);
+        assert_eq!(fresh[0].id, 4);
         Ok(())
     }
 

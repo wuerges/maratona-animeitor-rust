@@ -32,11 +32,22 @@ Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizad
 - **OpenSSL removido do workspace**: reqwest com rustls default; feature `vendored` eliminada do Dockerfile/Makefiles.
 - Testes portados para `tower::oneshot` sobre o `Router` (20 testes: 13 internal + 7 public); smoke manual incluiu TLS dual-listen, SPA fallback, WS handshake 101 e printurls com chave derivada.
 
+### Merge com regional2026/preparation (2026-08-30)
+
+O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizado com sucesso em 2026-08-29) foi resolvido a favor do refactor; os hotfixes de servidor que seguem relevantes foram portados para o servidor axum:
+
+- **Conflitos resolvidos**: `server/Cargo.toml`/`server/Cargo.lock` (workspace raiz vence — apagados), `server/server-v2/src/api.rs` (substituído por `public.rs`/`internal.rs` — apagado), `docker-compose.yaml` (modelo feeder + token), Makefile regional (sem env vars de build do trunk), `dataio.rs` (estrutura do refactor), manifests axum.
+- **Fix de ordem do MOJ portado**: `read_runs` detecta direção do arquivo (ascending/descending) em vez do `.rev()` cego, com os testes de regressão `test_orders_stable_across_appends_{ascending,descending}`.
+- **Client assets em memória portados de actix para axum** (`memory_files.rs`): pré-compressão gzip/brotli, ETag com sufixo de encoding, `Cache-Control` imutável para assets com hash, 304 em revalidação; mounts raiz (landing) e `/animeitor` (SPA fallback) servem da memória com uma carga única por pasta (canonicalizada); mídia (`photos`/`sounds`) continua em `ServeDir`. Testes unitários (negotiate/etag/hash) + integração (`tower::oneshot`).
+- **Detecção de conexões WS mortas portada**: `runs_ws` e `timer_ws` leem a metade de leitura do socket (`tokio::select!` com `receiver.next()`), liberando FDs com o relógio congelado.
+- **Compressão gzip das respostas da API** via `tower-http` `CompressionLayer` (escopo `/api` + `/internal`; assets estáticos ficam de fora por já saírem pré-comprimidos).
+- **Makefile `config/regional_2026/` modernizado** (modelo do `naquadah.Makefile`): feeder `update_contest_state`, args `-v`/`-t`, `printurls --server/--token`, `cargo build -p server-v2`; criado `config/regional_2026/config.json` (prefixos de mídia estáticos). `client-v2/bucket` regenerado a partir do código mesclado.
+
 ## Pendente (backlog)
 
 - Testes de handshake de WebSocket: com axum, o gating pré-upgrade dos WS (404/403 do `runs_ws`/`timer`/`remote_control`) é testável com requests HTTP puros (`oneshot`); falta adicionar esses testes. Fluxo completo de mensagens exigiria um client `tokio-tungstenite` contra um servidor spawnado.
 - Fluxo S3 (`serve-as-bucket/`): conferir landing e `config.json` nesse modo (chaves de `config.json` conferem com `SdkConfig`; falta teste real).
-- Flags antigas em `config/regional_*/Makefile` (deferido).
+- Flags antigas nos Makefiles de `config/regional_2024/` e `config/regional_2025/` (regional_2026 já migrado).
 - Erros de envelope no client-sdk (`enveloped`) continuam com retry de 5s, agora logados como `error!`; sem estado de erro visível na UI.
 - Defaults de mídia (`photos/{team_login}.webp` etc.) são aplicados no cliente, não no servidor.
 

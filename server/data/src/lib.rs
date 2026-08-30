@@ -263,7 +263,15 @@ impl RunsFile {
                 true
             }
             btree_map::Entry::Occupied(mut o) => {
-                if o.get() != t {
+                // Compare only the content, not the `order` field: `order` is a
+                // position inside the downloaded file and shifts for every run
+                // whenever the source appends a new line, which used to make
+                // every run look "fresh" again on each poll.
+                if o.get().time != t.time
+                    || o.get().team_login != t.team_login
+                    || o.get().prob != t.prob
+                    || o.get().answer != t.answer
+                {
                     *o.get_mut() = t.clone();
                     return true;
                 }

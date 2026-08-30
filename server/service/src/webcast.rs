@@ -34,7 +34,10 @@ fn read_bytes_from_file(path: &str) -> Result<Vec<u8>, std::io::Error> {
 }
 
 async fn read_bytes_from_url(uri: &str) -> Result<Vec<u8>, reqwest::Error> {
-    let resp = reqwest::get(uri).await?.bytes().await?;
+    static CLIENT: std::sync::LazyLock<reqwest::Client> =
+        std::sync::LazyLock::new(reqwest::Client::new);
+
+    let resp = CLIENT.get(uri).send().await?.bytes().await?;
 
     Ok(resp.into())
 }

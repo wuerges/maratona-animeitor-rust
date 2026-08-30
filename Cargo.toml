@@ -10,12 +10,15 @@ authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 [workspace.dependencies]
 autometrics = { version = "3", features = ["prometheus-exporter", "metrics"] }
 base64 = "0.22"
+brotli = "8"
 clap = { version = "4", features = ["derive"] }
 color-eyre = "0.6"
+flate2 = "1"
 futures = "0.3"
 html-escape = "0.2"
 hmac = "0.12"
 sha2 = "0.10"
+mime_guess = "2"
 reqwest = { version = "0.13", features = ["json"] }
 regex = "1.11"
 itertools = "0.14"
@@ -37,7 +40,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8", features = ["ws", "http1", "http2", "json", "tokio"] }
 axum-server = { version = "0.8", features = ["tls-rustls"] }
 tower = { version = "0.5", features = ["util"] }
-tower-http = { version = "0.6", features = ["cors", "trace", "fs"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "fs", "compression-gzip"] }
 http-body-util = "0.1"
 rstest = "0.26"
 tokio-stream = { version = "0.1", features = ["sync"] }

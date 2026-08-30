@@ -6,6 +6,10 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+# Note: this unit only wraps `docker compose up`, so this limit applies to
+# the compose CLI, not to the container. The container's limit is set by
+# `ulimits:` in docker-compose.yaml.
+LimitNOFILE=65536
 ExecStart=/bin/bash -c "docker compose -f /home/ew/maratona-animeitor-rust/docker-compose.yaml up --detach"
 ExecStop=/bin/bash -c "docker compose -f /home/ew/maratona-animeitor-rust/docker-compose.yaml stop"
 
