@@ -81,7 +81,7 @@ Single string literal per call: `"foo"` static, `":name"` param, `":name?"` opti
 2. **View/condition/redirect closures must be `Clone + Send`** — capture `ReadSignal`s (Copy) or `Arc`s; clone `String`s inside (`move || path.clone()`).
 3. **`use_params`/`use_params_map` panic outside a matched route** ("Tried to access params outside the context of a matched <Route>.") — never call them in the `fallback`.
 4. **`Redirect` pushes** by default — for guard redirects prefer landing on a different route that navigates back with `replace: true` (see the countdown pattern in `client-v2/src/views/sedes.rs`).
-5. **Matching is exact and case-sensitive**; no trailing-slash leniency.
+5. **Matching is exact and case-sensitive**; a trailing slash breaks matching in practice — always link to the canonical path without a trailing slash (the landing in `client-v2/src/views/landing.rs` does this).
 6. **Query-only navigation does not re-render the fallback or re-run route views** — read `use_query` in a memo/signal if the query drives UI.
 7. Navigation is signal-first: `current_url` updates before browser history; the address bar can lag when route views suspend.
 8. **A component that renders the `<Router>` itself runs OUTSIDE the router context** — calling `use_query`/`use_navigate` in its body panics ("unreachable" in the wasm console; `use_query` panics with a missing-context expect). This bit `Sedes` in `client-v2`: the body builds the Router, so the query hooks must live in the route view closures, not in the body.

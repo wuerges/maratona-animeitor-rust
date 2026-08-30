@@ -37,8 +37,10 @@ pub fn Landing() -> impl IntoView {
                                                             names
                                                                 .into_iter()
                                                                 .map(move |contest| {
+                                                                    // The contest route is exact: no trailing
+                                                                    // slash (the router does not match it).
                                                                     let link =
-                                                                        format!("/animeitor/{event}/{contest}/");
+                                                                        format!("/animeitor/{event}/{contest}");
                                                                     let href = link.clone();
                                                                     view! { <li><a href=href>{link}</a></li> }
                                                                 })
