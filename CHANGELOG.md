@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Runs from teams that are not part of the event (like the judge users of
+  the MOJ feed) no longer reject the batch with `400`: they are skipped and
+  reported in the response's `warnings` array (`unknown_team`), so feeds
+  carrying judge submissions update normally.
 - Split the `data` crate into pure dump/wire types: client-side domain logic
   (scoring engine, reveal driver, panel views, client helpers) moved to
   `client-model`; server-only dump items (contest state, secret config,

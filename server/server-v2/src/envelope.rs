@@ -30,6 +30,18 @@ pub(crate) fn data_json(value: impl Serialize, status: StatusCode) -> Response {
     (status, Json(serde_json::json!({ "data": value }))).into_response()
 }
 
+pub(crate) fn data_json_with_warnings(
+    value: impl Serialize,
+    warnings: Vec<data::event::ErrorEntry>,
+    status: StatusCode,
+) -> Response {
+    (
+        status,
+        Json(serde_json::json!({ "data": value, "warnings": warnings })),
+    )
+        .into_response()
+}
+
 pub(crate) fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Response {
     (
         status,

@@ -313,23 +313,38 @@ impl EventStore {
     /// Applies runs in the order given: a new `id` is added, an existing one
     /// corrects the previous result (last value wins). Returns
     /// (added, updated).
+    /// Adds or corrects runs. Returns `(added, updated, ignored)` where
+    /// `ignored` are the runs from teams not in the event (skipped, not
+    /// rejected — see below).
     pub async fn add_runs(
         &self,
         event_name: &str,
         runs: Vec<Run>,
-    ) -> Result<(usize, usize), StoreError> {
+    ) -> Result<(usize, usize, Vec<Run>), StoreError> {
         let mut inner = self.inner.write().await;
         let event = inner
             .events
             .get_mut(event_name)
             .ok_or_else(|| StoreError::NotFound(format!("evento {event_name}")))?;
+        // Runs from teams that are not part of the event (e.g. the judge
+        // users of the MOJ feed) are ignored and logged, not rejected: the
+        // feeder re-sends the whole state on every poll, so rejecting would
+        // block every update forever.
+        let mut ignored = Vec::new();
+        let runs: Vec<Run> = runs
+            .into_iter()
+            .filter(|run| {
+                let known = event.teams.iter().any(|team| team.login == run.team_login);
+                if !known {
+                    ignored.push(run.clone());
+                }
+                known
+            })
+            .collect();
+        if !ignored.is_empty() {
+            tracing::info!(?ignored, "ignoring runs from teams not in the event");
+        }
         for run in &runs {
-            if !event.teams.iter().any(|team| team.login == run.team_login) {
-                return Err(StoreError::InvalidValue(format!(
-                    "team_login desconhecido: {}",
-                    run.team_login
-                )));
-            }
             if !event.problems.iter().any(|prob| prob == &run.prob) {
                 return Err(StoreError::InvalidValue(format!(
                     "prob desconhecido: {}",
@@ -358,7 +373,7 @@ impl EventStore {
             }
             event.runs_tx.send_memo(run);
         }
-        Ok((added, updated))
+        Ok((added, updated, ignored))
     }
 
     pub async fn clear_runs(&self, event_name: &str) -> bool {
@@ -982,33 +997,49 @@ mod tests {
             answer,
         };
 
-        let (added, updated) = store
+        let (added, updated, ignored) = store
             .add_runs("ensaio", vec![run(1, Answer::No)])
             .await
             .unwrap();
         assert_eq!((added, updated), (1, 0));
+        assert!(ignored.is_empty());
 
         // Same id corrects the previous result.
-        let (added, updated) = store
+        let (added, updated, ignored) = store
             .add_runs("ensaio", vec![run(1, Answer::Yes)])
             .await
             .unwrap();
         assert_eq!((added, updated), (0, 1));
+        assert!(ignored.is_empty());
 
         let runs = store.contest_runs("ensaio", "").await;
         // No contest "" yet: contest_runs returns None.
         assert!(runs.is_none());
 
-        // Unknown team/prob are rejected before applying anything.
-        let bad = Run {
+        // Unknown teams are ignored (reported); unknown probs are rejected.
+        let bad_team = Run {
             id: 2,
             team_login: "desconhecido".to_string(),
             prob: "A".to_string(),
             time_seconds: 100,
             answer: Answer::Yes,
         };
+        let (added, updated, ignored) = store
+            .add_runs("ensaio", vec![bad_team])
+            .await
+            .unwrap();
+        assert_eq!((added, updated), (0, 0));
+        assert_eq!(ignored.len(), 1);
+
+        let bad_prob = Run {
+            id: 2,
+            team_login: "teambr001".to_string(),
+            prob: "Z".to_string(),
+            time_seconds: 100,
+            answer: Answer::Yes,
+        };
         assert!(matches!(
-            store.add_runs("ensaio", vec![bad]).await,
+            store.add_runs("ensaio", vec![bad_prob]).await,
             Err(StoreError::InvalidValue(_))
         ));
     }

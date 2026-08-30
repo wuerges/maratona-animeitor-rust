@@ -184,9 +184,12 @@ pub async fn db_update_loop(internal_token: &str, boca_url: &str, server_url: &s
                     .send()
                     .await
                 {
-                    Ok(result) => match result.error_for_status() {
+                    Ok(result) => match result.error_for_status_ref() {
                         Ok(_) => debug!("runs sent"),
-                        Err(err) => error!(?err, "status error sending runs"),
+                        Err(err) => {
+                            let body = result.text().await.unwrap_or_default();
+                            error!(?err, %body, "status error sending runs");
+                        }
                     },
                     Err(err) => error!(?err, "network error sending runs"),
                 }

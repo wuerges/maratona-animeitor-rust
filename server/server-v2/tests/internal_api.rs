@@ -271,10 +271,11 @@ async fn runs_are_added_and_corrected() {
     assert_eq!(body["data"]["added"], 0);
     assert_eq!(body["data"]["updated"], 1);
 
-    // Unknown team/prob → 400 invalid_value.
+    // Unknown team → ignored (logged), not rejected; unknown prob → 400.
     let bad = serde_json::json!({
         "runs": [
-            { "id": 3, "team_login": "desconhecido", "prob": "A", "time_seconds": 1, "answer": "Y" }
+            { "id": 3, "team_login": "desconhecido", "prob": "A", "time_seconds": 1, "answer": "Y" },
+            { "id": 4, "team_login": "teambr001", "prob": "Z", "time_seconds": 1, "answer": "N" }
         ]
     });
     let req = json_request(
@@ -286,6 +287,28 @@ async fn runs_are_added_and_corrected() {
     let (status, body) = send(&app, req).await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(body["errors"][0]["code"], "invalid_value");
+
+    // The unknown-team run alone succeeds with a warning.
+    let judge = serde_json::json!({
+        "runs": [
+            { "id": 3, "team_login": "desconhecido", "prob": "A", "time_seconds": 1, "answer": "Y" }
+        ]
+    });
+    let req = json_request(
+        Method::POST,
+        "/internal/events/ensaio/runs",
+        Some((&auth.0, auth.1.clone())),
+        &judge,
+    );
+    let (status, body) = send(&app, req).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["data"]["added"], 0);
+    assert_eq!(body["data"]["updated"], 0);
+    assert_eq!(body["warnings"][0]["code"], "unknown_team");
+    assert_eq!(
+        body["warnings"][0]["message"],
+        "run 3 do time desconhecido ignorada: o time não pertence ao evento"
+    );
 }
 
 #[tokio::test]

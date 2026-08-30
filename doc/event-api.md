@@ -340,7 +340,7 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 Respostas:
 
 - `200 OK` — `data`: `{ "added": <quantidade>, "updated": <quantidade> }`, com a quantidade de submissões novas e de resultados corrigidos, respectivamente.
-- `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `team_login`/`prob` desconhecidos.
+- `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `prob` desconhecido. Runs de `team_login` que não está no evento (ex.: usuários juízes do feed do MOJ) são ignoradas e reportadas em `warnings` (`code: "unknown_team"`), sem rejeitar o lote.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 

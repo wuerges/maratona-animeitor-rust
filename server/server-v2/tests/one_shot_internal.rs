@@ -425,7 +425,9 @@ async fn post_runs() {
 }
 
 #[tokio::test]
-async fn post_runs_invalid_team() {
+async fn post_runs_warns_on_unknown_teams() {
+    // Runs from teams not in the event (e.g. judge users of the MOJ feed)
+    // are skipped and reported in the warnings array; the batch succeeds.
     let store = EventStore::new();
     seed_event(&store).await;
     let app = app_for(store);
@@ -433,6 +435,28 @@ async fn post_runs_invalid_team() {
     let body = serde_json::json!({
         "runs": [
             { "id": 1, "team_login": "desconhecido", "prob": "A", "time_seconds": 56, "answer": "Y" }
+        ]
+    });
+    let (status, json) = send(
+        &app,
+        json_request(Method::POST, "/internal/events/ensaio/runs", Some((&auth.0, auth.1.clone())), &body),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(json["data"]["added"], 0);
+    assert_eq!(json["data"]["updated"], 0);
+    assert_eq!(json["warnings"][0]["code"], "unknown_team");
+}
+
+#[tokio::test]
+async fn post_runs_invalid_prob() {
+    let store = EventStore::new();
+    seed_event(&store).await;
+    let app = app_for(store);
+    let auth = auth_header();
+    let body = serde_json::json!({
+        "runs": [
+            { "id": 1, "team_login": "teambr001", "prob": "Z", "time_seconds": 56, "answer": "Y" }
         ]
     });
     let (status, json) = send(

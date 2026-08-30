@@ -271,8 +271,32 @@ async fn post_runs(
         Err(err) => return map_json_rejection(err),
     };
     match store.add_runs(&event_name, body.runs).await {
-        Ok((added, updated)) => {
-            data_json(serde_json::json!({ "added": added, "updated": updated }), StatusCode::OK)
+        Ok((added, updated, ignored)) => {
+            // Ignored runs (unknown teams, e.g. judge users of the MOJ
+            // feed) are reported as warnings, not errors: the batch
+            // succeeded.
+            let warnings: Vec<data::event::ErrorEntry> = ignored
+                .into_iter()
+                .map(|run| data::event::ErrorEntry {
+                    code: "unknown_team".into(),
+                    message: format!(
+                        "run {} do time {} ignorada: o time não pertence ao evento",
+                        run.id, run.team_login
+                    ),
+                })
+                .collect();
+            if warnings.is_empty() {
+                data_json(
+                    serde_json::json!({ "added": added, "updated": updated }),
+                    StatusCode::OK,
+                )
+            } else {
+                crate::envelope::data_json_with_warnings(
+                    serde_json::json!({ "added": added, "updated": updated }),
+                    warnings,
+                    StatusCode::OK,
+                )
+            }
         }
         Err(err) => store_error(err),
     }
