@@ -147,15 +147,6 @@ fn ConfiguredReveleitor(
 pub fn Sedes() -> AnyView {
     let global_settings = use_global_settings();
 
-    let query_params = use_static_query();
-
-    let secret = Signal::derive(move || {
-        query_params
-            .with(|q| q.secret.clone())
-            .or(global_settings.global.with(|g| g.get_secret()))
-    });
-    let secret = Memo::new(move |_| secret.get());
-
     // No animeitor path in the URL: only the landing page (the router
     // fallback) is needed.
     let Some(ec) = event_contest_from_pathname() else {
@@ -174,10 +165,21 @@ pub fn Sedes() -> AnyView {
     // negative; the countdown navigates back once the timer turns positive.
     // The board view re-creates its dynamic pieces per build so the `{}`
     // closures stay reactive (closure children in view! are invoked
-    // reactively; calling them once would freeze the secret switch).
+    // reactively; calling them once would freeze the secret switch). The
+    // query hooks run here, under the Router — `use_static_query` panics
+    // outside it (the Sedes body is outside the Router).
     let board = {
         let ec = ec.clone();
         move || -> AnyView {
+            let query_params = use_static_query();
+
+            let secret = Signal::derive(move || {
+                query_params
+                    .with(|q| q.secret.clone())
+                    .or(global_settings.global.with(|g| g.get_secret()))
+            });
+            let secret = Memo::new(move |_| secret.get());
+
             let settings_panel = move || {
                 query_params
                     .with(|q| q.is_settings_enabled())
