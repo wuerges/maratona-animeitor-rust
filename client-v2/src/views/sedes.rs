@@ -7,7 +7,7 @@ use data::{
 use leptos::prelude::*;
 use leptos_router::{
     components::{ProtectedRoute, Route, Router, Routes},
-    hooks::{use_location, use_navigate, use_params, use_query},
+    hooks::{use_navigate, use_params, use_query, use_url},
     params::Params,
     *,
 };
@@ -300,20 +300,21 @@ pub fn Sedes() -> AnyView {
                     path=path!("/animeitor/:event/:contest")
                     view=ContestScreen
                     // The ProtectedRoute condition and redirect run inside a
-                    // Transition child scope where the matched-route params
-                    // context is NOT available (use_params panics there).
-                    // The location works everywhere under the Router, and
-                    // the URL is the contest path when these run.
+                    // Transition child scope where the matched-route contexts
+                    // (params, location) are NOT available — use_params and
+                    // use_location panic there. use_url falls back to the
+                    // RouterContext URL, which works everywhere under the
+                    // Router, and the URL is the contest path when these run.
                     condition=move || {
-                        let location = use_location();
-                        let Some(ec) = ec_from_pathname(&location.pathname.get()) else {
+                        let url = use_url();
+                        let Some(ec) = ec_from_pathname(url.get().path()) else {
                             return Some(true);
                         };
                         Some(!create_timer(ec).with(|pair| pair.is_negative()))
                     }
                     redirect_path=move || {
-                        let location = use_location();
-                        match ec_from_pathname(&location.pathname.get()) {
+                        let url = use_url();
+                        match ec_from_pathname(url.get().path()) {
                             Some(ec) => format!("/animeitor/{}/{}/countdown", ec.event, ec.contest),
                             None => "/".to_string(),
                         }
