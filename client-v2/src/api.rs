@@ -83,20 +83,22 @@ fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
     client_sdk::create_runs(config(), ec)
 }
 
-/// The timer websocket and its signal, one per (event, contest).
+/// The timer websocket and its signal, one per event.
 ///
-/// Views re-run and routes re-match on navigation; the cache guarantees a
-/// single websocket per contest (no reconnect storm) and the correct timer
-/// when navigating between contests.
+/// The timer endpoint is event-scoped (`/api/events/{event}/timer`), so all
+/// contests of an event share the same stream. Views re-run and routes
+/// re-match on navigation; the cache guarantees a single websocket per
+/// event (no reconnect storm) and the correct timer when navigating between
+/// events.
 pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
-    static TIMERS: OnceLock<Mutex<HashMap<(String, String), ReadSignal<(TimerData, TimerData)>>>> =
+    static TIMERS: OnceLock<Mutex<HashMap<String, ReadSignal<(TimerData, TimerData)>>>> =
         OnceLock::new();
     let mut timers = TIMERS
         .get_or_init(|| Mutex::new(HashMap::new()))
         .lock()
         .expect("timer cache lock");
     timers
-        .entry((ec.event.clone(), ec.contest.clone()))
+        .entry(ec.event.clone())
         .or_insert_with(|| {
             let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
 
