@@ -159,13 +159,14 @@ impl RunsQueue {
     }
 
     fn pop_run(&mut self, contest: &mut ContestFile) {
+        let wrong_penalty = contest.penalty_per_wrong_answer;
         let entry = self.queue.pop();
         match entry {
             None => (),
             Some(score) => match contest.teams.get_mut(&score.team_login) {
                 None => panic!("invalid team!"),
                 Some(team) => {
-                    if team.reveal_run_frozen() {
+                    if team.reveal_run_frozen(wrong_penalty) {
                         self.queue.push(team.score());
                     }
                 }

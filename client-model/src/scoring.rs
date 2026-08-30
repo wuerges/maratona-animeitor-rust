@@ -115,7 +115,7 @@ impl ProblemExt for Problem {
 pub trait TeamExt {
     fn score(&self) -> Score;
 
-    fn reveal_run_frozen(&mut self) -> bool;
+    fn reveal_run_frozen(&mut self, wrong_penalty: i64) -> bool;
 }
 
 impl TeamExt for Team {
@@ -138,9 +138,9 @@ impl TeamExt for Team {
         }
     }
 
-    fn reveal_run_frozen(&mut self) -> bool {
+    fn reveal_run_frozen(&mut self, wrong_penalty: i64) -> bool {
         for p in self.problems.values_mut() {
-            if problem_wait(p) && problem_reveal_run_frozen(p) {
+            if problem_wait(p) && problem_reveal_run_frozen(p, wrong_penalty) {
                 self.id = gen_id();
                 return true;
             }
@@ -163,7 +163,7 @@ pub trait ContestFileExt {
 impl ContestFileExt for ContestFile {
     fn apply_run(&mut self, r: &RunTuple) {
         if let Some(t) = self.teams.get_mut(&r.team_login) {
-            team_apply_run(t, r);
+            team_apply_run(t, r, self.penalty_per_wrong_answer);
         }
     }
 
@@ -224,7 +224,7 @@ fn problem_empty() -> Problem {
     }
 }
 
-fn problem_add_run(problem: &mut Problem, answer: Answer) {
+fn problem_add_run(problem: &mut Problem, answer: Answer, wrong_penalty: i64) {
     if problem.solved {
         return;
     }
@@ -246,7 +246,7 @@ fn problem_add_run(problem: &mut Problem, answer: Answer) {
         }
         Answer::No { run_id } => {
             problem.submissions += 1;
-            problem.penalty += 20;
+            problem.penalty += wrong_penalty;
             problem.waits.remove(&run_id);
         }
         Answer::Wait { run_id } => {
@@ -269,19 +269,19 @@ fn problem_add_run_frozen(problem: &mut Problem, answer: Answer) {
     }
 }
 
-fn problem_reveal_run_frozen(problem: &mut Problem) -> bool {
+fn problem_reveal_run_frozen(problem: &mut Problem, wrong_penalty: i64) -> bool {
     if problem_wait(problem) {
         let a = problem.answers.remove(0);
-        problem_add_run(problem, a);
+        problem_add_run(problem, a, wrong_penalty);
         return true;
     }
     false
 }
 
-fn team_apply_run(team: &mut Team, run: &RunTuple) {
+fn team_apply_run(team: &mut Team, run: &RunTuple, wrong_penalty: i64) {
     team.id = gen_id();
     let problem = team.problems.entry(run.prob.clone()).or_insert_with(problem_empty);
-    problem_add_run(problem, run.answer.clone());
+    problem_add_run(problem, run.answer.clone(), wrong_penalty);
 }
 
 fn team_apply_run_frozen(team: &mut Team, run: &RunTuple) {

@@ -91,17 +91,59 @@ pub async fn load_data_from_url_maybe(uri: &str) -> ServiceResult<ContestState> 
     let reader = std::io::Cursor::new(&zip_data);
     let mut zip = zip::ZipArchive::new(reader)?;
 
+    // The `time` file is already in seconds; contest timings and run times
+    // come in minutes. Internally every time is seconds (doc/public-api.md).
     let time_data: i64 = read_from_zip(&mut zip, "time")?.parse()?;
 
     let contest_data = read_from_zip(&mut zip, "contest")?;
-    let contest_data = read_contest(&contest_data)?;
+    let mut contest_data = read_contest(&contest_data)?;
+    contest_data.maximum_time *= 60;
+    contest_data.current_time *= 60;
+    contest_data.score_freeze_time *= 60;
+    contest_data.penalty_per_wrong_answer *= 60;
 
     let runs_data = read_from_zip(&mut zip, "runs")?;
-    let runs_data = read_runs(&runs_data)?;
+    let mut runs_data = read_runs(&runs_data)?;
+    for run in &mut runs_data {
+        run.time *= 60;
+        if let data::Answer::Yes { time, .. } = &mut run.answer {
+            *time *= 60;
+        }
+    }
 
     Ok(ContestState {
         runs: runs_data,
         time: time_data,
         contest: contest_data,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn moj_webcast_times_become_seconds() -> ServiceResult<()> {
+        let state = load_data_from_url_maybe(
+            "../../tests/inputs/1_fase_2026/webcast-final-depois-do-contest-moj.zip",
+        )
+        .await?;
+
+        // The `time` file is seconds already: 5h contest.
+        assert_eq!(state.time, 18000);
+        // Contest timings come in minutes: 300min -> 18000s, penalty 20min -> 1200s.
+        assert_eq!(state.contest.maximum_time, 18000);
+        assert_eq!(state.contest.current_time, 18000);
+        assert_eq!(state.contest.score_freeze_time, 18000);
+        assert_eq!(state.contest.penalty_per_wrong_answer, 1200);
+        // Runs come in minutes: the first run (1min) becomes 60s, including
+        // the time inside the Yes answer.
+        let first = state.runs.first().expect("the MOJ zip has runs");
+        assert_eq!(first.time, 60);
+        match &first.answer {
+            data::Answer::Yes { time, .. } => assert_eq!(*time, 60),
+            other => panic!("expected a Yes answer, got {other:?}"),
+        }
+        Ok(())
+    }
 }

@@ -13,7 +13,9 @@ pub trait TimerDataExt {
 
 impl TimerDataExt for TimerData {
     fn is_frozen(&self) -> bool {
-        self.current_time >= self.score_freeze_time * 60
+        // Both fields are seconds now; the freeze time used to arrive in
+        // minutes and was converted here.
+        self.current_time >= self.score_freeze_time
     }
 
     fn fake() -> TimerData {
