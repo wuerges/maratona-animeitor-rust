@@ -282,7 +282,7 @@ fn quoted(etag: &str) -> String {
 }
 
 /// Trunk (and bundlers generally) give compiled assets a content hash in the
-/// filename, e.g. `client-v2-82d7749ea33c3f8d_bg.wasm` or
+/// filename, e.g. `animeitor-client-82d7749ea33c3f8d_bg.wasm` or
 /// `styles-48e01c3f2adb8d51.css`. Those names never change content, so they
 /// can be cached forever.
 fn is_hashed_filename(name: &str) -> bool {
@@ -362,7 +362,7 @@ mod tests {
     #[test]
     fn test_is_hashed_filename() {
         assert!(is_hashed_filename("styles-48e01c3f2adb8d51.css"));
-        assert!(is_hashed_filename("dir/client-v2-82d7749ea33c3f8d_bg.wasm"));
+        assert!(is_hashed_filename("dir/animeitor-client-82d7749ea33c3f8d_bg.wasm"));
         assert!(is_hashed_filename("audio-9273674b3492b75f.css"));
         assert!(!is_hashed_filename("index.html"));
         assert!(!is_hashed_filename("user-styles.css"));

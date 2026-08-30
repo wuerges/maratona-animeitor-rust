@@ -18,19 +18,19 @@ SSH_ANIMEITOR=ew@animeitor.naquadah.com.br
 deploy:
 	ssh ${SSH_ANIMEITOR} git -C maratona-animeitor-rust pull
 	ssh ${SSH_ANIMEITOR} mkdir -p maratona-animeitor-rust/${SERVER_RELEASE_DIR}
-	rsync -P ${SERVER_RELEASE_DIR}/simples ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
-	ssh ${SSH_ANIMEITOR} sudo setcap 'cap_net_bind_service=+ep' maratona-animeitor-rust/${SERVER_RELEASE_DIR}/simples
+	rsync -P ${SERVER_RELEASE_DIR}/animeitor-server ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/animeitor-server
+	ssh ${SSH_ANIMEITOR} sudo setcap 'cap_net_bind_service=+ep' maratona-animeitor-rust/${SERVER_RELEASE_DIR}/animeitor-server
 	rsync -P ${SERVER_RELEASE_DIR}/printurls ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SERVER_RELEASE_DIR}/printurls
 	rsync -P ${SECRET} ${SSH_ANIMEITOR}:maratona-animeitor-rust/${SECRET}
 
 run-debug-client:
-	( cd client-v2 && \
+	( cd animeitor-client && \
 		trunk serve )
 
 rebuild-client:
-	( cd client-v2 && \
+	( cd animeitor-client && \
 		trunk build --release -d naquadah )
-	cp config/nacional_2025/config.json client-v2/naquadah/config.json
+	cp config/nacional_2025/config.json animeitor-client/naquadah/config.json
 
 rebuild-debug-server:
 	cargo build -p cli
@@ -53,11 +53,11 @@ SEDES_PARS=\
 
 
 run-standalone:
-	( ${SERVER_RELEASE_DIR}/simples \
+	( ${SERVER_RELEASE_DIR}/animeitor-server \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/naquadah: \
+		-v ./animeitor-client/naquadah: \
 		${SEDES_PARS} \
 		--secret ${SECRET} ${BOCA_URL} \
 	)

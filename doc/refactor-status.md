@@ -19,7 +19,7 @@ Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizad
 - **Endpoints de leitura internos** (usados pelo printurls): `GET /internal/events`, `GET /internal/events/{e}/contests`, `GET /internal/events/{e}/contests/{c}/sites` (salts inclusos — escopo interno).
 - **`PublicConfig.sites`** omitido quando vazio.
 - **403 `not_started`** antes do início (`time_seconds < 0`) nos endpoints públicos do contest (contest, config, runs_ws, runs_secret); lista de eventos e timer continuam disponíveis (decisão do usuário).
-- **Feeder standalone** (`update_contest_state`): publica via `/internal`, preserva o salt do evento entre ticks e cria o contest padrão (codes `[""]`); o loop `-i` do simples foi removido junto com `--default-event` e `dbupdate_v2`.
+- **Feeder standalone** (`animeitor-feeder`): publica via `/internal`, preserva o salt do evento entre ticks e cria o contest padrão (codes `[""]`); o loop `-i` do animeitor-server foi removido junto com `--default-event` e `dbupdate_v2`.
 - **printurls reescrito**: lê a API interna e imprime URLs de contest e reveleitor (chave derivada via HMAC + `?secret=`/`&sede=`); args antigos `-s/-x/-y` (sedes/secrets/salt) removidos do cli.
 - **Cliente**: tela de countdown (nomes vindos do caminho), fix do flash na primeira pintura (placeholder negativo no timer), parsing de caminho movido para client-model (`path.rs`) com testes nativos.
 - **Deploy**: Dockerfile com `--public-url /animeitor/` e binário do feeder na imagem; serviço `feeder` no compose; `.env` sem `SECRET`/`SEDES` e com `SERVER_URL`; Makefile com mount raiz (landing) e `run-standalone-loop` via feeder; naquadah.Makefile, docker-compose.regional-exemplo.yaml, README raiz e server/README atualizados.
@@ -27,7 +27,7 @@ Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizad
 
 ### Migração para axum (2026-08-29)
 
-- **Server HTTP layer migrado de actix-web para axum 0.8** (TLS via axum-server 0.8): rotas, envelope, mensagens de WS e args do `simples` inalterados; dual-listen preservado (HTTP em `-p` + HTTPS em `--tls-port`, graceful shutdown coordenado).
+- **Server HTTP layer migrado de actix-web para axum 0.8** (TLS via axum-server 0.8): rotas, envelope, mensagens de WS e args do `animeitor-server` inalterados; dual-listen preservado (HTTP em `-p` + HTTPS em `--tls-port`, graceful shutdown coordenado).
 - **Contest padrão `""` removido**: contests exigem nome não-vazio (400 `invalid_value`); feeder cria o contest `default`; novo endpoint público `GET /api/events/{event}/contests` (403 `not_started` pré-start) alimenta a landing, que agora lista contests por evento (`/animeitor/{event}/` sem contest não é mais caminho válido no cliente).
 - **OpenSSL removido do workspace**: reqwest com rustls default; feature `vendored` eliminada do Dockerfile/Makefiles.
 - Testes portados para `tower::oneshot` sobre o `Router` (20 testes: 13 internal + 7 public); smoke manual incluiu TLS dual-listen, SPA fallback, WS handshake 101 e printurls com chave derivada.
@@ -41,7 +41,7 @@ O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizad
 - **Client assets em memória portados de actix para axum** (`memory_files.rs`): pré-compressão gzip/brotli, ETag com sufixo de encoding, `Cache-Control` imutável para assets com hash, 304 em revalidação; mounts raiz (landing) e `/animeitor` (SPA fallback) servem da memória com uma carga única por pasta (canonicalizada); mídia (`photos`/`sounds`) continua em `ServeDir`. Testes unitários (negotiate/etag/hash) + integração (`tower::oneshot`).
 - **Detecção de conexões WS mortas portada**: `runs_ws` e `timer_ws` leem a metade de leitura do socket (`tokio::select!` com `receiver.next()`), liberando FDs com o relógio congelado.
 - **Compressão gzip das respostas da API** via `tower-http` `CompressionLayer` (escopo `/api` + `/internal`; assets estáticos ficam de fora por já saírem pré-comprimidos).
-- **Makefile `config/regional_2026/` modernizado** (modelo do `naquadah.Makefile`): feeder `update_contest_state`, args `-v`/`-t`, `printurls --server/--token`, `cargo build -p server-v2`; criado `config/regional_2026/config.json` (prefixos de mídia estáticos). `client-v2/bucket` regenerado a partir do código mesclado.
+- **Makefile `config/regional_2026/` modernizado** (modelo do `naquadah.Makefile`): feeder `animeitor-feeder`, args `-v`/`-t`, `printurls --server/--token`, `cargo build -p server-v2`; criado `config/regional_2026/config.json` (prefixos de mídia estáticos). `animeitor-client/bucket` regenerado a partir do código mesclado.
 
 ## Pendente (backlog)
 

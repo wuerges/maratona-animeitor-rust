@@ -7,7 +7,7 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "simples"
+name = "animeitor-server"
 path = "src/main.rs"
 
 [dependencies]

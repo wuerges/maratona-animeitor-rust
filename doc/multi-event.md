@@ -30,7 +30,7 @@ Convenções (idênticas às da API interna):
 
 ## Servindo o cliente em `/animeitor/{event}/{contest}`
 
-Hoje o build do cliente é servido por volumes estáticos do próprio servidor (`actix_files::Files` com `index.html`, `server/server-v2/src/lib.rs:20-27`), montado na raiz (`docker-compose.yaml`: `-v /dist:`) ou pelo fluxo S3 (`serve-as-bucket/`). Não há roteamento por caminho no cliente: a única rota é `path!("")` e o contest vem de `?contest=` (`client-v2/src/views/sedes.rs:218-227`, `client-v2/src/api.rs:9-25`).
+Hoje o build do cliente é servido por volumes estáticos do próprio servidor (`actix_files::Files` com `index.html`, `server/server-v2/src/lib.rs:20-27`), montado na raiz (`docker-compose.yaml`: `-v /dist:`) ou pelo fluxo S3 (`serve-as-bucket/`). Não há roteamento por caminho no cliente: a única rota é `path!("")` e o contest vem de `?contest=` (`animeitor-client/src/views/sedes.rs:218-227`, `animeitor-client/src/api.rs:9-25`).
 
 Proposta:
 
@@ -100,7 +100,7 @@ Regras de segurança da migração:
 ## Mudanças no cliente
 
 - **SDK** (`client-sdk/src/lib.rs:18-82`): os construtores de URL passam a montar `/api/events/{event}/contests/{contest}/<endpoint>` a partir de `SdkConfig.api_prefix` (padrão `/api` já existe, `config.rs:81-99`) + os dois segmentos; `create_secret_runs` usa o novo caminho e manda a chave por header. `ContestQuery` deixa de existir.
-- **Roteamento** (`client-v2`): substitui `?contest=` pela leitura de `window.location.pathname` (`/animeitor/{event}/{contest}`); a única rota `path!("")` continua bastando, mas o estado inicial passa a vir do caminho. `sede`, `settings`, `secret` e `remote_control` seguem como query params.
+- **Roteamento** (`animeitor-client`): substitui `?contest=` pela leitura de `window.location.pathname` (`/animeitor/{event}/{contest}`); a única rota `path!("")` continua bastando, mas o estado inicial passa a vir do caminho. `sede`, `settings`, `secret` e `remote_control` seguem como query params.
 - **Landing**: com caminho `/` ou `/animeitor/`, o app consulta `GET /api/events` e lista os eventos.
 - **Countdown**: com `time_seconds < 0`, o estado público vem sem `problems`; o cliente mostra a tela de countdown (timer negativo) e só monta o placar quando o timer chega a `0`.
 - **Reveleitor**: usa o novo `runs_secret` com a chave do site vinda das configurações (o `?secret=` da URL pode ser mantido como atalho, mas a chamada à API usa o header).

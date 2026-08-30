@@ -1,5 +1,5 @@
 [package]
-name = "client-v2"
+name = "animeitor-client"
 version = "2.1.0"
 edition = "2021"
 

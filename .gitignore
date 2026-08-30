@@ -10,5 +10,5 @@ Secret.toml
 secret_ccl.toml
 secret_env
 *.pem
-client-v2/naquadah/*
-client-v2/release/*
+animeitor-client/naquadah/*
+animeitor-client/release/*

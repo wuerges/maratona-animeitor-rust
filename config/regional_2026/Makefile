@@ -16,42 +16,42 @@ HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
 #
 # The client is built once by the root Makefile
-# (make rebuild-client-for-release -> client-v2/release) and served from
+# (make rebuild-client-for-release -> animeitor-client/release) and served from
 # there; run `make install-config` after rebuilding it to apply this
 # region's media prefixes.
 
 .PHONY: install-config run-standalone run-standalone-loop run-local run-local-loop printurls-standalone rebuild-release-server
 
 install-config:
-	cp config/regional_2026/config.json client-v2/release/config.json
+	cp config/regional_2026/config.json animeitor-client/release/config.json
 
 rebuild-release-server:
 	cargo build -p server-v2 \
 		--release
 
 run-standalone:
-	( ${SERVER_RELEASE_DIR}/simples \
+	( ${SERVER_RELEASE_DIR}/animeitor-server \
 		-p ${PUBLIC_PORT} \
 		--tls-port ${TLS_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		-v ./client-v2/release:animeitor \
+		-v ./animeitor-client/release: \
+		-v ./animeitor-client/release:animeitor \
 		${HTTPS_OPTS} \
 		-t ${INTERNAL_TOKEN} \
 	)
 
 run-standalone-loop:
-	( ${SERVER_RELEASE_DIR}/simples \
+	( ${SERVER_RELEASE_DIR}/animeitor-server \
 		-p ${PUBLIC_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		-v ./client-v2/release:animeitor \
+		-v ./animeitor-client/release: \
+		-v ./animeitor-client/release:animeitor \
 		${HTTPS_OPTS} \
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
-	cargo run -p cli --bin update_contest_state -- \
+	cargo run -p cli --bin animeitor-feeder -- \
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL}
 
 printurls-standalone:
@@ -64,22 +64,22 @@ printurls-standalone:
 # Local testing: plain HTTP on a high port, no TLS. Uses cargo run so no
 # release build is needed; override LOCAL_PORT if 8000 is taken.
 run-local:
-	cargo run -p server-v2 --bin simples -- \
+	cargo run -p server-v2 --bin animeitor-server -- \
 		-p ${LOCAL_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		-v ./client-v2/release:animeitor \
+		-v ./animeitor-client/release: \
+		-v ./animeitor-client/release:animeitor \
 		-t ${INTERNAL_TOKEN}
 
 run-local-loop:
-	( cargo run -p server-v2 --bin simples -- \
+	( cargo run -p server-v2 --bin animeitor-server -- \
 		-p ${LOCAL_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
-		-v ./client-v2/release: \
-		-v ./client-v2/release:animeitor \
+		-v ./animeitor-client/release: \
+		-v ./animeitor-client/release:animeitor \
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
-	cargo run -p cli --bin update_contest_state -- \
+	cargo run -p cli --bin animeitor-feeder -- \
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://localhost:${LOCAL_PORT}

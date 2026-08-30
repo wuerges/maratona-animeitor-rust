@@ -44,9 +44,9 @@ services:
       - ../../server/photos:/photos
       # place your team sounds inside of ./server/sounds
       - ../../server/sounds:/sounds
-      # the ./client-v2/static/user-styles.css can be edited, and it will
+      # the ./animeitor-client/static/user-styles.css can be edited, and it will
       # overwrite the styles from the app
-      - ../../client-v2/static/user-styles.css:/dist/user-styles.css
+      - ../../animeitor-client/static/user-styles.css:/dist/user-styles.css
     ports:
       - ${PUBLIC_PORT}:8000
 

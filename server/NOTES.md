@@ -4,14 +4,14 @@ Building and deploying the server:
 
 ```bash
 cargo build -p server-v2 --release
-ssh ew@animeitor.naquadah.com.br rm simples
-scp target/release/simples ew@animeitor.naquadah.com.br:
+ssh ew@animeitor.naquadah.com.br rm animeitor-server
+scp target/release/animeitor-server ew@animeitor.naquadah.com.br:
 ```
 
 Setting capabilities to binary so it can open port 80:
 
 ```bash
-sudo setcap 'cap_net_bind_service=+ep' ../simples
+sudo setcap 'cap_net_bind_service=+ep' ../animeitor-server
 ```
 
 Increasing the limit of file descriptors for the shell:

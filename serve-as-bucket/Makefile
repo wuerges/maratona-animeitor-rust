@@ -5,13 +5,13 @@ all: build-client upload-client
 	@echo done
 
 build-client:
-	( cd ../client-v2 && \
+	( cd ../animeitor-client && \
 		trunk build --release -d bucket )
-	cp serve-as-bucket/config.json ../client-v2/bucket/config.json
+	cp serve-as-bucket/config.json ../animeitor-client/bucket/config.json
 
 upload-client:
-	s3cmd put --recursive ../client-v2/bucket s3://static.animeitor/
-	s3cmd put -m text/css ../client-v2/bucket/*.css s3://static.animeitor/
+	s3cmd put --recursive ../animeitor-client/bucket s3://static.animeitor/
+	s3cmd put -m text/css ../animeitor-client/bucket/*.css s3://static.animeitor/
 	s3cmd setacl --acl-public --recursive s3://static.animeitor/
 
 upload-dummy-photo:

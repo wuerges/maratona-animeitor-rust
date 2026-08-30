@@ -1,6 +1,6 @@
 ---
 name: leptos
-description: Reference for Leptos 0.8 (pinned 0.8.20, CSR only) as used in client-v2 — signal/reactive primitives, the #[component] macro and props, view! macro semantics (reactive closure children, static expressions), Show/Suspense/Effect/Resource, and confirmed 0.8 gotchas (untracked component bodies, disposal on re-render, deprecated 0.7 names). Use when writing or reviewing any Leptos view/component/reactive code.
+description: Reference for Leptos 0.8 (pinned 0.8.20, CSR only) as used in animeitor-client — signal/reactive primitives, the #[component] macro and props, view! macro semantics (reactive closure children, static expressions), Show/Suspense/Effect/Resource, and confirmed 0.8 gotchas (untracked component bodies, disposal on re-render, deprecated 0.7 names). Use when writing or reviewing any Leptos view/component/reactive code.
 ---
 
 # Leptos 0.8 (pinned: 0.8.20) — CSR reference
@@ -15,7 +15,7 @@ This repo is **CSR-only** (wasm, `mount_to_body`). All semantics below verified 
 
 Consequences:
 
-- **Never pick UI from a top-level `if signal.get()` in a body** — it is evaluated once and never flips. Put the switch in a tracked closure (`view! { {move || if …} }`) or `<Show when=…>`, or drive it through leptos_router (ProtectedRoute + a second route — see the `leptos-router` skill; this is how the countdown→scoreboard switch works in `client-v2/src/views/sedes.rs`).
+- **Never pick UI from a top-level `if signal.get()` in a body** — it is evaluated once and never flips. Put the switch in a tracked closure (`view! { {move || if …} }`) or `<Show when=…>`, or drive it through leptos_router — see the `leptos-router` skill. The repo's countdown→scoreboard switch (in `animeitor-client/src/views/sedes.rs`) uses a memoized branch inside the contest route's view: `Memo::new(move |_| !timer_negative)` + `{move || if memo.get() { board } else { countdown }}` — the memo flips only on zero-crossing, not per tick. Do NOT use `ProtectedRoute` for it: its guard closures run in a context-less scope (see the leptos-router skill).
 - State that must survive re-renders lives **outside** the body: a parent's `StoredValue`, context, or a `static`/`OnceLock` (the timer signal in `api.rs` uses a `OnceLock`).
 - **Signals cached in a `static`/`OnceLock` must be created under a detached `Owner::new_root(None)`** (then `std::mem::forget` the owner): an arena-allocated signal is disposed when its owner is disposed, and writing to it afterwards panics. A cache created lazily inside a transient route-render closure (like the per-event timer in `api.rs::create_timer`) would die with that closure's owner.
 - One-shot setup in a body runs once per *invocation*, not once per mount — guard with `OnceLock` if the component can re-invoke.
@@ -90,7 +90,7 @@ pub fn Progress(#[prop(into)] progress: Signal<i32>, #[prop(default = 100)] max:
 ```rust
 leptos::task::spawn_local(async move {
     let config = client_sdk::SdkConfig::load().await;   // runtime config BEFORE mounting
-    client_v2::init_config(config);
+    animeitor_client::init_config(config);
     mount_to_body(|| { provide_global_settings(); view! { <Sedes /> } });
 });
 ```

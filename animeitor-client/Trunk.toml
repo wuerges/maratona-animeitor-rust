@@ -1,4 +1,4 @@
-# Local dev: proxy /api, /photos and /sounds to the local `simples` server
+# Local dev: proxy /api, /photos and /sounds to the local `animeitor-server` server
 # (see Makefile run-standalone-*), so the client can use relative URLs and
 # no compile-time env vars are needed.
 

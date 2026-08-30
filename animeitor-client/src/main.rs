@@ -1,4 +1,4 @@
-use client_v2::views::{global_settings::provide_global_settings, sedes::Sedes};
+use animeitor_client::views::{global_settings::provide_global_settings, sedes::Sedes};
 use leptos::{mount::mount_to_body, *};
 
 pub fn main() {
@@ -12,7 +12,7 @@ pub fn main() {
 
     leptos::task::spawn_local(async move {
         let config = client_sdk::SdkConfig::load().await;
-        client_v2::init_config(config);
+        animeitor_client::init_config(config);
 
         mount_to_body(|| {
             provide_global_settings();

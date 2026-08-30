@@ -65,7 +65,7 @@ INTERNAL_TOKEN=token-de-teste
 
 # Customizing animeitor appearance
 
-There is a special CSS file at `client-v2/static/user-styles.css`.
+There is a special CSS file at `animeitor-client/static/user-styles.css`.
 This file is included in the build and mounted by docker.
 It can be edited and overwrites the CSS from animeitor. The client assets
 (including this file) are loaded into memory once when the server starts,
@@ -91,7 +91,7 @@ Each websocket connection holds a file descriptor for its lifetime, so a
 production server needs a raised `nofile` limit (the default soft limit is
 1024, which runs out quickly):
 
-- systemd service (`config/regional_2026/simples.service`): `LimitNOFILE=65536`
+- systemd service (`config/regional_2026/animeitor-server.service`): `LimitNOFILE=65536`
   in the `[Service]` section
 - docker compose: `ulimits: nofile: 65536` (already set in the compose files)
 - running from a shell: `ulimit -n 65536` before starting

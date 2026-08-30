@@ -1,5 +1,5 @@
 [workspace]
-members = ["server/data", "server/cli", "server/service", "server/server-v2", "client-v2", "client-sdk", "client-model"]
+members = ["server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model"]
 resolver = "2"
 
 [workspace.package]
@@ -64,7 +64,7 @@ wasm-bindgen-futures = "0.4"
 [profile.release]
 lto = true
 
-[profile.release.package.client-v2]
+[profile.release.package.animeitor-client]
 opt-level = "z"
 codegen-units = 1
 strip = true

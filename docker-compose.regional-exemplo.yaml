@@ -17,7 +17,7 @@ services:
   feeder:
     # polls BOCA and publishes event + runs into the internal API
     image: wuerges/animeitor:latest
-    entrypoint: "/update_contest_state"
+    entrypoint: "/animeitor-feeder"
     command: "-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://animeitor:8000 --event default"
     volumes:
       - ./tests:/tests
@@ -37,10 +37,10 @@ services:
       - ./server/photos:/photos
       # place your team sounds inside of ./server/sounds
       - ./server/sounds:/sounds
-      # the ./client-v2/static/user-styles.css can be edited; it will
+      # the ./animeitor-client/static/user-styles.css can be edited; it will
       # overwrite the styles from the app after the container is restarted
       # (client assets are loaded into memory once at startup)
-      - ./client-v2/static/user-styles.css:/dist/user-styles.css
+      - ./animeitor-client/static/user-styles.css:/dist/user-styles.css
     ports:
       - ${PUBLIC_PORT}:8000
 

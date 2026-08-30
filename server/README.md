@@ -34,17 +34,17 @@ Compile e rode:
 # compilando o cliente
 make rebuild-client-for-release
 # rodando o servidor (a API interna usa o token; os volumes servem o cliente)
-cargo run -p server-v2 --bin simples -- -t token-de-teste \
-    -v ./client-v2/release: -v ./client-v2/release:animeitor
+cargo run -p server-v2 --bin animeitor-server -- -t token-de-teste \
+    -v ./animeitor-client/release: -v ./animeitor-client/release:animeitor
 # em outro terminal, o feeder publica o estado do BOCA na API interna
-cargo run -p cli --bin update_contest_state -- -t token-de-teste \
+cargo run -p cli --bin animeitor-feeder -- -t token-de-teste \
     -i ./tests/inputs/webcast_jones.zip -s http://localhost:8000
 ```
 
 Mais opções podem ser examinadas com o comando help:
 
 ```bash
-cargo run -p server-v2 --bin simples -- --help
+cargo run -p server-v2 --bin animeitor-server -- --help
 ```
 
 ## Configurando o OBS e customizando o placar

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="/animeitor/styles-efcbb023adcef13.css" integrity="sha384-j31EUW+ZeYamifmB2z96QU35HYSovjmqFE4R2Sh0tsj7VIux3bEOSxAN2ysLM7p3"/>
+  <link rel="stylesheet" href="/animeitor/audio-5837f5f5029360c6.css" integrity="sha384-ILTUMcqmRlFFQ/0jmO7kK6VLanTP0lTqME6sA2DcZEtqZDyTrZIrNiwJw+gw6gjF"/>
+  <link rel="stylesheet" href="/animeitor/balloons-5fe069752bcbc7ec.css" integrity="sha384-MH5TVjb7YtxmM/3MPLk2Kr8Gx2/EPCo/EuAkiPOnUK9aGsqHXnV7bXYXxb3Ii4II"/>
+  <link rel="stylesheet" href="/user-styles.css" />
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="modulepreload" href="/animeitor/client-v2-7dd3ef47bc767374.js" crossorigin="anonymous" integrity="sha384-na2+QZL7RTbwxaxfuE4vxjliOACUnyUGCx78Y1zxG1/ALHmgQK6BjVDA01FBi50M"><link rel="preload" href="/animeitor/client-v2-7dd3ef47bc767374_bg.wasm" crossorigin="anonymous" integrity="sha384-o1pQ5No1fQn0A4RpZTzCiydzElfolRm/8J+hNLaNzP2oIja8rQmQzANcoMJ91DaS" as="fetch" type="application/wasm"></head>
+
+<body id="body">
+<script type="module">
+import init, * as bindings from '/animeitor/client-v2-7dd3ef47bc767374.js';
+const wasm = await init({ module_or_path: '/animeitor/client-v2-7dd3ef47bc767374_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>
