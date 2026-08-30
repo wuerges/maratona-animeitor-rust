@@ -3,6 +3,7 @@
 use std::io::Read;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use axum::Router;
@@ -12,12 +13,17 @@ use http_body_util::BodyExt;
 use server_v2::memory_files::{self, MemoryFiles};
 use tower::ServiceExt;
 
+static DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 fn temp_dir(name: &str) -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    std::env::temp_dir().join(format!("{name}-{}-{nanos}", std::process::id()))
+    // The counter guards against two parallel tests landing on the same
+    // nanosecond, which would make them share (and delete) each other's dir.
+    let counter = DIR_COUNTER.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("{name}-{}-{nanos}-{counter}", std::process::id()))
 }
 
 fn fixture() -> PathBuf {
