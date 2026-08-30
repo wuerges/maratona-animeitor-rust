@@ -26,9 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (HTTP on `-p` and HTTPS on `--tls-port`), as before.
 - The webcast parser now converts every time to seconds: contest timings and
   run times arrive in minutes from the webcast feed and are scaled on load,
-  so the scoreboard and the timer show real seconds instead of minute values
-  (a run at minute 1 no longer appears as 1 second, and the freeze and
-  penalty are applied with their true durations).
+  so all internal times (server and client) are real seconds. The scoreboard
+  display is unchanged: run times and penalties are shown in minutes, as
+  before.
 
 ### Added
 

@@ -43,7 +43,8 @@ pub fn Problem(prob: Letter, problem: Signal<Option<client_model::ProblemView>>)
                             +{number_submissions(p.submissions)}
                         </div>
                         <div class="baixo">
-                            {p.time_solved}
+                            // Internally seconds; the scoreboard shows minutes.
+                            {p.time_solved / 60}
                         </div>
                     </div>
                 }

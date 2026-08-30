@@ -46,7 +46,8 @@ pub fn TeamScoreLine(
                 <TeamName escola name />
                 <div class="cell problema quadrado">
                     <div class="cima">{move || score.with(|s| s.solved)}</div>
-                    <div class="baixo">{move || score.with(|s| s.penalty)}</div>
+                    // Internally seconds; the scoreboard shows minutes.
+                    <div class="baixo">{move || score.with(|s| s.penalty / 60)}</div>
                 </div>
             </div>
             {problems}
