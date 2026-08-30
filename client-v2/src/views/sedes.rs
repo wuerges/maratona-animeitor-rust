@@ -7,7 +7,7 @@ use data::{
 use leptos::prelude::*;
 use leptos_router::{
     components::{ProtectedRoute, Route, Router, Routes},
-    hooks::{use_navigate, use_query},
+    hooks::{use_navigate, use_params, use_query},
     params::Params,
     *,
 };
@@ -17,7 +17,7 @@ use client_model::{
 };
 
 use crate::{
-    api::{create_timer, event_contest_from_pathname, provide_contest, EventContest},
+    api::{create_timer, provide_contest, EventContest},
     views::{
         background_color::BackgroundColor,
         contest::Contest,
@@ -143,34 +143,45 @@ fn ConfiguredReveleitor(
     })
 }
 
+/// The event/contest path params of the contest routes. Fields are
+/// `Option` because `Params` on stable only supports optional fields.
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
+struct ContestParams {
+    event: Option<String>,
+    contest: Option<String>,
+}
+
+impl Params for ContestParams {
+    fn from_map(map: &params::ParamsMap) -> std::result::Result<Self, params::ParamsError> {
+        Ok(ContestParams {
+            event: map.get("event"),
+            contest: map.get("contest"),
+        })
+    }
+}
+
+fn ec_of(params: ContestParams) -> Option<EventContest> {
+    Some(EventContest {
+        event: params.event?,
+        contest: params.contest?,
+    })
+}
+
+/// The scoreboard screen for a contest. Everything reads the route params
+/// reactively: navigating between contests re-runs the `{}` closure and
+/// rebuilds the screen for the new contest.
 #[component]
-pub fn Sedes() -> AnyView {
+fn ContestScreen() -> impl IntoView {
     let global_settings = use_global_settings();
+    let params = use_params::<ContestParams>();
 
-    // No animeitor path in the URL: only the landing page (the router
-    // fallback) is needed.
-    let Some(ec) = event_contest_from_pathname() else {
-        return view! {
-            <Router>
-                <Routes fallback=move || view! { <Landing /> }>{()}</Routes>
-            </Router>
-        }
-        .into_any();
-    };
+    view! {
+        {move || {
+            let Some(ec) = params.get().ok().and_then(ec_of) else {
+                return view! { <Landing /> }.into_any();
+            };
+            let timer = create_timer(ec.clone());
 
-    let timer = create_timer(ec.clone());
-
-    // The countdown/scoreboard switch is router-driven: the contest route is
-    // guarded by the timer, redirecting to its countdown route while it is
-    // negative; the countdown navigates back once the timer turns positive.
-    // The board view re-creates its dynamic pieces per build so the `{}`
-    // closures stay reactive (closure children in view! are invoked
-    // reactively; calling them once would freeze the secret switch). The
-    // query hooks run here, under the Router — `use_static_query` panics
-    // outside it (the Sedes body is outside the Router).
-    let board = {
-        let ec = ec.clone();
-        move || -> AnyView {
             let query_params = use_static_query();
 
             let secret = Signal::derive(move || {
@@ -233,42 +244,73 @@ pub fn Sedes() -> AnyView {
                 {animeitor}
             }
             .into_any()
-        }
-    };
-    let countdown_path = format!("/animeitor/{}/{}/countdown", ec.event, ec.contest);
-    let contest_path = format!("/animeitor/{}/{}", ec.event, ec.contest);
+        }}
+    }
+}
 
-    // While the countdown route is shown, navigate back to the contest route
-    // as soon as the timer turns positive.
-    let countdown = move || -> AnyView {
-        let navigate = use_navigate();
-        let back = contest_path.clone();
-        Effect::new(move |_| {
-            if !timer.with(|pair| pair.is_negative()) {
-                navigate(
-                    &back,
-                    NavigateOptions {
-                        replace: true,
-                        ..Default::default()
-                    },
-                );
-            }
-        });
-        view! { <Countdown ec=ec.clone() timer /> }.into_any()
-    };
+/// The countdown screen: shows the remaining time and navigates back to the
+/// contest route (replacing the history entry) as soon as the timer turns
+/// positive.
+#[component]
+fn CountdownScreen() -> impl IntoView {
+    let params = use_params::<ContestParams>();
 
+    view! {
+        {move || {
+            let Some(ec) = params.get().ok().and_then(ec_of) else {
+                return view! { <Landing /> }.into_any();
+            };
+            let timer = create_timer(ec.clone());
+
+            let navigate = use_navigate();
+            let back = format!("/animeitor/{}/{}", ec.event, ec.contest);
+            Effect::new(move |_| {
+                if !timer.with(|pair| pair.is_negative()) {
+                    navigate(
+                        &back,
+                        NavigateOptions {
+                            replace: true,
+                            ..Default::default()
+                        },
+                    );
+                }
+            });
+            view! { <Countdown ec=ec.clone() timer /> }.into_any()
+        }}
+    }
+}
+
+#[component]
+pub fn Sedes() -> AnyView {
+    // One router for the whole app. The event/contest come from the route
+    // params (not from parsing `window.location`): the landing is a route,
+    // the contest route is guarded by the timer and redirects to its
+    // countdown route while it is negative.
     view! {
         <Router>
             <Routes fallback=move || view! { <Landing /> }>
+                <Route path=path!("/") view=Landing />
                 <ProtectedRoute
                     path=path!("/animeitor/:event/:contest")
-                    view=board
-                    condition=move || Some(!timer.with(|pair| pair.is_negative()))
-                    redirect_path=move || countdown_path.clone()
+                    view=ContestScreen
+                    condition=move || {
+                        let params = use_params::<ContestParams>();
+                        let Some(ec) = params.get().ok().and_then(ec_of) else {
+                            return Some(true);
+                        };
+                        Some(!create_timer(ec).with(|pair| pair.is_negative()))
+                    }
+                    redirect_path=move || {
+                        let params = use_params::<ContestParams>();
+                        match params.get().ok().and_then(ec_of) {
+                            Some(ec) => format!("/animeitor/{}/{}/countdown", ec.event, ec.contest),
+                            None => "/".to_string(),
+                        }
+                    }
                 />
                 <Route
                     path=path!("/animeitor/:event/:contest/countdown")
-                    view=countdown
+                    view=CountdownScreen
                 />
             </Routes>
         </Router>

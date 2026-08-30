@@ -1,4 +1,8 @@
-use std::{future::Future, sync::OnceLock, sync::RwLock};
+use std::{
+    collections::HashMap,
+    future::Future,
+    sync::{Mutex, OnceLock, RwLock},
+};
 
 use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
 use data::TimerData;
@@ -79,15 +83,21 @@ fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
     client_sdk::create_runs(config(), ec)
 }
 
-/// The timer websocket and its signal, created once per page.
+/// The timer websocket and its signal, one per (event, contest).
 ///
-/// Component bodies re-run; creating the stream there would open a new
-/// websocket on every run (a reconnect storm against the server, and the
-/// countdown stuck on the first stream's stale signal).
+/// Views re-run and routes re-match on navigation; the cache guarantees a
+/// single websocket per contest (no reconnect storm) and the correct timer
+/// when navigating between contests.
 pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
-    static TIMER: OnceLock<ReadSignal<(TimerData, TimerData)>> = OnceLock::new();
-    TIMER
-        .get_or_init(|| {
+    static TIMERS: OnceLock<Mutex<HashMap<(String, String), ReadSignal<(TimerData, TimerData)>>>> =
+        OnceLock::new();
+    let mut timers = TIMERS
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .expect("timer cache lock");
+    timers
+        .entry((ec.event.clone(), ec.contest.clone()))
+        .or_insert_with(|| {
             let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
 
             let (timer, set_timer) = signal((TimerData::fake(), data::TimerData::new(0, 1)));
