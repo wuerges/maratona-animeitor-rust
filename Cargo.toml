@@ -44,6 +44,7 @@ tower-http = { version = "0.6", features = ["cors", "trace", "fs", "compression-
 http-body-util = "0.1"
 rstest = "0.26"
 tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-tungstenite = "0.29"
 
 data = { path = "server/data" }
 cli = { path = "server/cli" }

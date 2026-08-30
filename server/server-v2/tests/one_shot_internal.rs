@@ -118,7 +118,7 @@ async fn seed_event(store: &EventStore) {
 }
 
 async fn seed_event_salt(store: &EventStore) {
-    store.set_event_salt("ensaio", Some("salt-do-evento")).await.unwrap();
+    store.set_event_salt("ensaio", Some("salt-do-evento".to_string())).await.unwrap();
 }
 
 async fn seed_contest(store: &EventStore) {
