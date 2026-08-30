@@ -6,8 +6,8 @@ use data::{
 };
 use leptos::prelude::*;
 use leptos_router::{
-    components::{ProtectedRoute, Route, Router, Routes},
-    hooks::{use_navigate, use_params, use_query, use_url},
+    components::{Route, Router, Routes},
+    hooks::{use_params, use_query},
     params::Params,
     *,
 };
@@ -143,8 +143,8 @@ fn ConfiguredReveleitor(
     })
 }
 
-/// The event/contest path params of the contest routes. Fields are
-/// `Option` because `Params` on stable only supports optional fields.
+/// The event/contest path params of the contest route. Fields are `Option`
+/// because `Params` on stable only supports optional fields.
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 struct ContestParams {
     event: Option<String>,
@@ -167,15 +167,11 @@ fn ec_of(params: ContestParams) -> Option<EventContest> {
     })
 }
 
-/// The event/contest from a pathname (`/animeitor/{event}/{contest}[/...]`).
-fn ec_from_pathname(pathname: &str) -> Option<EventContest> {
-    let segments: Vec<&str> = pathname.split('/').filter(|s| !s.is_empty()).collect();
-    client_model::path::event_contest_from_segments(&segments)
-}
-
-/// The scoreboard screen for a contest. Everything reads the route params
-/// reactively: navigating between contests re-runs the `{}` closure and
-/// rebuilds the screen for the new contest.
+/// The contest screen: countdown while the timer is negative, the scoreboard
+/// once it starts. Everything reads the route params reactively, so
+/// navigating between contests rebuilds the screen for the new contest; the
+/// countdown/scoreboard flip is a memoized branch (it swaps only when the
+/// timer actually crosses zero, not on every tick).
 #[component]
 fn ContestScreen() -> impl IntoView {
     let global_settings = use_global_settings();
@@ -188,142 +184,89 @@ fn ContestScreen() -> impl IntoView {
             };
             let timer = create_timer(ec.clone());
 
-            let query_params = use_static_query();
+            let board_visible = Memo::new(move |_| !timer.with(|pair| pair.is_negative()));
 
-            let secret = Signal::derive(move || {
-                query_params
-                    .with(|q| q.secret.clone())
-                    .or(global_settings.global.with(|g| g.get_secret()))
-            });
-            let secret = Memo::new(move |_| secret.get());
+            if board_visible.get() {
+                let query_params = use_static_query();
 
-            let settings_panel = move || {
-                query_params
-                    .with(|q| q.is_settings_enabled())
-                    .then_some(view! {
-                        <SettingsPanel />
-                    })
-            };
-            let animeitor = {
-                let animeitor_ec = ec.clone();
-                move || {
-                    let contest_provider = LocalResource::new({
-                        let ec = animeitor_ec.clone();
-                        move || provide_contest(ec.clone())
-                    });
+                let secret = Signal::derive(move || {
+                    query_params
+                        .with(|q| q.secret.clone())
+                        .or(global_settings.global.with(|g| g.get_secret()))
+                });
+                let secret = Memo::new(move |_| secret.get());
 
-                    match secret.get() {
-                        Some(secret) => {
+                let settings_panel = move || {
+                    query_params
+                        .with(|q| q.is_settings_enabled())
+                        .then_some(view! {
+                            <SettingsPanel />
+                        })
+                };
+                let animeitor = {
+                    let animeitor_ec = ec.clone();
+                    move || {
+                        let contest_provider = LocalResource::new({
                             let ec = animeitor_ec.clone();
-                            (move || view! {
-                                <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
-                            }).into_any()
-                        },
-                        None => {
-                            let suspend = Suspend::new(async move {
-                                let provider = contest_provider.await;
+                            move || provide_contest(ec.clone())
+                        });
+
+                        match secret.get() {
+                            Some(secret) => {
+                                let ec = animeitor_ec.clone();
+                                (move || view! {
+                                    <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
+                                }).into_any()
+                            },
+                            None => {
+                                let suspend = Suspend::new(async move {
+                                    let provider = contest_provider.await;
+
+                                    view! {
+                                        <Navigation config_contest=provider.config_contest.clone() />
+                                        <ProvideSede
+                                                original_contest=provider.starting_contest.clone()
+                                                contest_signal=provider.new_contest_signal.clone()
+                                                panel_items=provider.runs_panel_item_manager
+                                                timer
+                                                config_contest=provider.config_contest.clone()
+                                                sede_param=query_params
+                                                />
+                                    }
+                                });
 
                                 view! {
-                                    <Navigation config_contest=provider.config_contest.clone() />
-                                    <ProvideSede
-                                            original_contest=provider.starting_contest.clone()
-                                            contest_signal=provider.new_contest_signal.clone()
-                                            panel_items=provider.runs_panel_item_manager
-                                            timer
-                                            config_contest=provider.config_contest.clone()
-                                            sede_param=query_params
-                                            />
-                                }
-                            });
-
-                            view! {
-                            {suspend}
-                        }.into_any()}
+                                {suspend}
+                            }.into_any()}
+                        }
+                            .into_view()
                     }
-                        .into_view()
+                };
+                view! {
+                    <BackgroundColor />
+                    <RemoteControl event_contest=ec.clone() />
+                    {settings_panel}
+                    {animeitor}
                 }
-            };
-            view! {
-                <BackgroundColor />
-                <RemoteControl event_contest=ec.clone() />
-                {settings_panel}
-                {animeitor}
+                .into_any()
+            } else {
+                view! { <Countdown ec=ec.clone() timer /> }.into_any()
             }
-            .into_any()
-        }}
-    }
-}
-
-/// The countdown screen: shows the remaining time and navigates back to the
-/// contest route (replacing the history entry) as soon as the timer turns
-/// positive.
-#[component]
-fn CountdownScreen() -> impl IntoView {
-    let params = use_params::<ContestParams>();
-
-    view! {
-        {move || {
-            let Some(ec) = params.get().ok().and_then(ec_of) else {
-                return view! { <Landing /> }.into_any();
-            };
-            let timer = create_timer(ec.clone());
-
-            let navigate = use_navigate();
-            let back = format!("/animeitor/{}/{}", ec.event, ec.contest);
-            Effect::new(move |_| {
-                if !timer.with(|pair| pair.is_negative()) {
-                    navigate(
-                        &back,
-                        NavigateOptions {
-                            replace: true,
-                            ..Default::default()
-                        },
-                    );
-                }
-            });
-            view! { <Countdown ec=ec.clone() timer /> }.into_any()
         }}
     }
 }
 
 #[component]
 pub fn Sedes() -> AnyView {
-    // One router for the whole app. The event/contest come from the route
-    // params (not from parsing `window.location`): the landing is a route,
-    // the contest route is guarded by the timer and redirects to its
-    // countdown route while it is negative.
+    // One router for the whole app; the event/contest come from the route
+    // params. The countdown/scoreboard switch is a branch inside the contest
+    // screen, not a router guard: ProtectedRoute's condition/redirect run in
+    // a context-less Transition scope where no router hooks work.
     view! {
         <Router>
             <Routes fallback=move || view! { <Landing /> }>
                 <Route path=path!("/") view=Landing />
-                <ProtectedRoute
-                    path=path!("/animeitor/:event/:contest")
-                    view=ContestScreen
-                    // The ProtectedRoute condition and redirect run inside a
-                    // Transition child scope where the matched-route contexts
-                    // (params, location) are NOT available — use_params and
-                    // use_location panic there. use_url falls back to the
-                    // RouterContext URL, which works everywhere under the
-                    // Router, and the URL is the contest path when these run.
-                    condition=move || {
-                        let url = use_url();
-                        let Some(ec) = ec_from_pathname(url.get().path()) else {
-                            return Some(true);
-                        };
-                        Some(!create_timer(ec).with(|pair| pair.is_negative()))
-                    }
-                    redirect_path=move || {
-                        let url = use_url();
-                        match ec_from_pathname(url.get().path()) {
-                            Some(ec) => format!("/animeitor/{}/{}/countdown", ec.event, ec.contest),
-                            None => "/".to_string(),
-                        }
-                    }
-                />
-                <Route
-                    path=path!("/animeitor/:event/:contest/countdown")
-                    view=CountdownScreen
-                />
+                <Route path=path!("/animeitor/:event/:contest") view=ContestScreen />
             </Routes>
         </Router>
     }
