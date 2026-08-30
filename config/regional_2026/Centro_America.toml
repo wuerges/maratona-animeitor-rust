@@ -101,3 +101,15 @@ name = "Universidad del Istmo de Guatemala"
 [[sedes]]
 codes = ["cauvgt"]
 name = "Universidad del Valle GT"
+
+[[sedes]]
+codes = ["^(teamcatcli002|teamcaucca004|teamcauigu002|teamcaunce012|teamcaunce017|teamcausoc002)$"]
+name = "Times femininos - 3 competidoras"
+
+[[sedes]]
+codes = ["^(teamcaucca018|teamcaufpe003|teamcaufpe004|teamcauigu009|teamcaunce018|teamcausgu004)$"]
+name = "Times femininos - 2 competidoras"
+
+[[sedes]]
+codes = ["^(teamcatcal003|teamcatcal005|teamcatcal007|teamcatcal011|teamcaucca005|teamcaucca011|teamcaucca012|teamcaucca014|teamcaucca015|teamcauigu004|teamcauigu005|teamcauigu011|teamcauigu012|teamcaunce001|teamcaunce003|teamcaunce004|teamcaunce009|teamcaunce011|teamcaunce016|teamcaunga005|teamcaurqu007|teamcausgu005|teamcauvgt015)$"]
+name = "Times femininos - 1 competidora"

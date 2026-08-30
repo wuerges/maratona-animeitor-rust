@@ -325,7 +325,9 @@ body {
 }
 
 .nomeEscola {
-  display: none;
+  font-size: 100%;
+  color: #CFD8DC;
+  white-space: nowrap;
 }
 
 .nomeTime {

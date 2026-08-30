@@ -20,24 +20,25 @@
 }
 
 .foto_img {
-  max-height: 100vh;
+  /* leave one placar row visible below the photo */
+  max-height: calc(100vh - var(--row-height));
   max-width: 100vw;
   /* margin-left: auto;
   margin-right: auto; */
   /* display: flex; */
 }
 
-.foto_team_label {
+/* .foto_team_label {
   display: none;
-}
+} */
 
-.foto_team_name {
+/* .foto_team_name {
   display: none;
 }
 
 .foto_team_escola {
   display: none;
-}
+} */
 
 .volume_controls {
   display: flex;
