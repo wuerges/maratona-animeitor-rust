@@ -79,24 +79,34 @@ fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
     client_sdk::create_runs(config(), ec)
 }
 
+/// The timer websocket and its signal, created once per page.
+///
+/// Component bodies re-run; creating the stream there would open a new
+/// websocket on every run (a reconnect storm against the server, and the
+/// countdown stuck on the first stream's stale signal).
 pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
-    let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
+    static TIMER: OnceLock<ReadSignal<(TimerData, TimerData)>> = OnceLock::new();
+    TIMER
+        .get_or_init(|| {
+            let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
 
-    let (timer, set_timer) = signal((TimerData::fake(), data::TimerData::new(0, 1)));
+            let (timer, set_timer) = signal((TimerData::fake(), data::TimerData::new(0, 1)));
 
-    spawn_local(async move {
-        loop {
-            let next = timer_stream.next().await;
-            if let Some(next) = next {
-                set_timer.update(|(new, old)| {
-                    *old = *new;
-                    *new = next;
-                });
-            }
-        }
-    });
+            spawn_local(async move {
+                loop {
+                    let next = timer_stream.next().await;
+                    if let Some(next) = next {
+                        set_timer.update(|(new, old)| {
+                            *old = *new;
+                            *new = next;
+                        });
+                    }
+                }
+            });
 
-    timer
+            timer
+        })
+        .clone()
 }
 
 pub fn provide_contest(ec: EventContest) -> impl Future<Output = ContestProvider> {

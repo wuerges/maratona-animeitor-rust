@@ -35,11 +35,12 @@ pub fn create_websocket_stream<M: for<'a> Deserialize<'a> + Clone + 'static>(
     spawn_local(async move {
         loop {
             match WebSocket::open(&url) {
-                Ok(ws) => {
+                Ok(mut ws) => {
                     info!("ws connected: {url}");
-                    let (_, mut read) = ws.split();
+                    // The socket stays whole: dropping a split half would
+                    // close the connection under us.
                     loop {
-                        match parse_message::<M>(read.next().await) {
+                        match parse_message::<M>(ws.next().await) {
                             Ok(next_timer) => {
                                 if let Err(err) = tx.send(next_timer).await {
                                     error!("unbounded channel timeout: {err:?}");

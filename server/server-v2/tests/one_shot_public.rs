@@ -427,6 +427,94 @@ async fn timer_ws_404() {
 }
 
 #[tokio::test]
+async fn timer_ws_survives_production_layers() {
+    // serve_config() wraps app() in TraceLayer + CorsLayer; the upgrade must
+    // survive them (a dropped OnUpgrade extension yields a 101 whose socket
+    // never speaks websocket, which the browser reports as 1006).
+    use tower_http::{cors::CorsLayer, trace::TraceLayer};
+
+    let store = EventStore::new();
+    seed_event(&store).await;
+    let app = make_app(AppState {
+        store,
+        internal_token: Some(TOKEN.to_string()),
+    })
+    .layer(TraceLayer::new_for_http())
+    .layer(CorsLayer::permissive());
+    let base = spawn_server(app).await;
+
+    let mut ws = connect(&base, "/api/events/ensaio/timer").await;
+    let frame = next_text(&mut ws).await;
+    assert_eq!(
+        frame,
+        serde_json::json!({ "current_time_seconds": -60, "score_freeze_time_seconds": 2040 })
+            .to_string()
+    );
+}
+
+#[tokio::test]
+async fn timer_ws_survives_browser_handshake_and_storm() {
+    // Mimics Chrome's handshake (Extensions, Origin, gzip) and a reconnect
+    // storm: connections opened in a tight loop, each read once, kept open,
+    // then some dropped without a close frame. Every handshake response must
+    // be a clean 101 without encoding headers, and every connection must
+    // receive its first frame.
+    use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+    use tower_http::{cors::CorsLayer, trace::TraceLayer};
+
+    let store = EventStore::new();
+    seed_event(&store).await;
+    let app = make_app(AppState {
+        store: store.clone(),
+        internal_token: Some(TOKEN.to_string()),
+    })
+    .layer(TraceLayer::new_for_http())
+    .layer(CorsLayer::permissive());
+    let base = spawn_server(app).await;
+
+    let mut sockets = Vec::new();
+    for i in 0..10 {
+        let mut request = (format!("{base}/api/events/ensaio/timer"))
+            .as_str()
+            .into_client_request()
+            .unwrap();
+        let headers = request.headers_mut();
+        headers.insert("Accept-Encoding", "gzip, deflate".parse().unwrap());
+        headers.insert("Origin", "http://localhost:8000".parse().unwrap());
+        headers.insert(
+            "Sec-WebSocket-Extensions",
+            "permessage-deflate; client_max_window_bits".parse().unwrap(),
+        );
+        let (ws, response) = tokio_tungstenite::connect_async(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::SWITCHING_PROTOCOLS);
+        assert!(
+            !response.headers().contains_key(header::CONTENT_ENCODING),
+            "the 101 must not carry a content encoding: {:?}",
+            response.headers()
+        );
+        sockets.push(ws);
+        // Each connection gets its first frame immediately.
+        let frame = next_text(sockets.last_mut().unwrap()).await;
+        assert_eq!(
+            frame,
+            serde_json::json!({ "current_time_seconds": -60, "score_freeze_time_seconds": 2040 })
+                .to_string(),
+            "connection {i} first frame"
+        );
+    }
+    // Abruptly drop half of them (no close frame), like the browser's 1006.
+    sockets.truncate(5);
+    // The survivors still receive publishes.
+    store.patch_time("ensaio", 1).await;
+    let frame = next_text(sockets.first_mut().unwrap()).await;
+    assert_eq!(
+        frame,
+        serde_json::json!({ "current_time_seconds": 1, "score_freeze_time_seconds": 2040 })
+            .to_string()
+    );
+}
+
+#[tokio::test]
 async fn remote_control_relay() {
     let store = EventStore::new();
     seed_event(&store).await;
