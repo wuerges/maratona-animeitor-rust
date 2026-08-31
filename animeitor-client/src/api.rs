@@ -28,14 +28,6 @@ fn config() -> &'static client_sdk::SdkConfig {
 /// override the deploy-level defaults (media comes from the contest config).
 static MEDIA: RwLock<Option<PublicConfig>> = RwLock::new(None);
 
-/// Extracts the event/contest from `window.location.pathname`; `None` when
-/// the page is not an animeitor path (landing).
-pub fn event_contest_from_pathname() -> Option<EventContest> {
-    let pathname = web_sys::window()?.location().pathname().ok()?;
-    let segments: Vec<&str> = pathname.split('/').filter(|s| !s.is_empty()).collect();
-    client_model::path::event_contest_from_segments(&segments)
-}
-
 pub async fn create_events() -> Vec<String> {
     client_sdk::create_events(config()).await
 }
