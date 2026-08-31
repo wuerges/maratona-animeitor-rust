@@ -763,6 +763,7 @@ dependencies = [
  "reqwest",
  "rstest",
  "sentry",
+ "sentry-tracing",
  "serde",
  "serde_json",
  "service",

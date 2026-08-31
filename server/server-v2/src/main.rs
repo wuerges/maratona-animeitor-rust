@@ -6,7 +6,6 @@ use service::{
     http::{HttpConfig, HttpTlsConfig},
     volume::Volume,
 };
-use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -42,10 +41,8 @@ struct SimpleParser {
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish()
-        .init();
+    tracing::info!("\nSetting up sentry guard");
+    let _guard = sentry::setup();
 
     let SimpleParser {
         port,
@@ -68,8 +65,6 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let tls_port = tls.as_ref().map(|t| t.port);
     let server_config = HttpConfig { port, tls };
 
-    tracing::info!("\nSetting up sentry guard");
-    let _guard = sentry::setup();
     server_v2::metrics::setup();
 
     let app_config = AppConfig {

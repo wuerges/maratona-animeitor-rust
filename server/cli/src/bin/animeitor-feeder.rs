@@ -10,7 +10,6 @@ use data::event::{ContestConfig, EventState, Run, SiteConfig};
 use service::event_store::from_legacy_contest_state;
 use service::webcast;
 use tracing::{debug, error, info};
-use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -158,10 +157,8 @@ fn load_secrets(path: Option<&PathBuf>) -> color_eyre::eyre::Result<HashMap<Stri
 
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish()
-        .init();
+    tracing::info!("\nSetting up sentry guard");
+    let _guard = sentry::setup();
 
     let SimpleParser {
         internal_token,
@@ -174,9 +171,6 @@ async fn main() -> color_eyre::eyre::Result<()> {
         sound_url_format,
         score_freeze_time_seconds,
     } = SimpleParser::parse();
-
-    tracing::info!("\nSetting up sentry guard");
-    let _guard = sentry::setup();
 
     let media = MediaFormats {
         photo: photo_url_format,

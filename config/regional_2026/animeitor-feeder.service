@@ -20,6 +20,8 @@ User=ew
 Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
+# SENTRY_DSN and other secrets live in this gitignored file.
+EnvironmentFile=-/home/ew/maratona-animeitor-rust/config/regional_2026/secret_env
 
 ExecStart=/usr/bin/make -f config/regional_2026/Makefile run-feeder
 

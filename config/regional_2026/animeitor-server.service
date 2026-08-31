@@ -22,6 +22,8 @@ User=ew
 Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
+# SENTRY_DSN and other secrets live in this gitignored file.
+EnvironmentFile=-/home/ew/maratona-animeitor-rust/config/regional_2026/secret_env
 
 # Each websocket connection holds a file descriptor for its lifetime.
 # Without this, the server runs with systemd's default soft limit of 1024

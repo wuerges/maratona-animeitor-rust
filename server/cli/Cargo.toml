@@ -21,6 +21,7 @@ data.workspace = true
 client-model.workspace = true
 service.workspace = true
 sentry.workspace = true
+sentry-tracing.workspace = true
 
 [dev-dependencies]
 rstest.workspace = true
