@@ -14,6 +14,19 @@ HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
 
 # Contests, sites and salts are created via the internal API
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
+CONTEST_FILES = config/regional_2026/Brasil.toml \
+                config/regional_2026/LA.toml \
+                config/regional_2026/Mexico.toml \
+                config/regional_2026/Centro_America.toml \
+                config/regional_2026/Bolivia.toml \
+                config/regional_2026/CCL.toml \
+                config/regional_2026/CCL_Brasil.toml \
+                config/regional_2026/CCL_Bolivia.toml \
+                config/regional_2026/CCL_Mexico.toml \
+                config/regional_2026/CCL_Centro_America.toml
+SECRETS_FILE = config/regional_2026/Secrets_secret.toml
+SECRETS_OPTS = $(if $(wildcard $(SECRETS_FILE)),--secrets $(SECRETS_FILE),)
+
 #
 # The client is built once by the root Makefile
 # (make rebuild-client-for-release -> animeitor-client/release) and served from
@@ -52,7 +65,9 @@ run-standalone-loop:
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
 	cargo run -p cli --bin animeitor-feeder -- \
-		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL}
+		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} \
+		$(addprefix -c ,$(CONTEST_FILES)) \
+		${SECRETS_OPTS}
 
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
@@ -82,4 +97,6 @@ run-local-loop:
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
 	cargo run -p cli --bin animeitor-feeder -- \
-		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://localhost:${LOCAL_PORT}
+		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://localhost:${LOCAL_PORT} \
+		$(addprefix -c ,$(CONTEST_FILES)) \
+		${SECRETS_OPTS}

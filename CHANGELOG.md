@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the MOJ feed) no longer reject the batch with `400`: they are skipped and
   reported in the response's `warnings` array (`unknown_team`), so feeds
   carrying judge submissions update normally.
+- The feeder (`animeitor-feeder`, formerly `update_contest_state`) sends
+  only what changed since the last poll: the event is PUT only when its
+  teams/problems/timings change (the countdown is PATCHed), runs are sent
+  only when new or corrected, and the configured contests and their sites
+  (`-c` files in the old config format, with salts from `--secrets`) are
+  created once. The regional deploy passes all its contest configs, so the
+  landing lists the real contests and each contest filters its runs.
+- The binaries were renamed: the server is `animeitor-server` (formerly
+  `simples`), the feeder is `animeitor-feeder`, and the client package is
+  `animeitor-client` (formerly `client-v2`).
 - Split the `data` crate into pure dump/wire types: client-side domain logic
   (scoring engine, reveal driver, panel views, client helpers) moved to
   `client-model`; server-only dump items (contest state, secret config,

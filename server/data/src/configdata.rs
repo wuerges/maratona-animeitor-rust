@@ -40,6 +40,13 @@ impl Display for RegexSetField {
     }
 }
 
+impl RegexSetField {
+    /// The regex strings, as written in the config file.
+    pub fn codes(&self) -> &[String] {
+        &self.0
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone, Default, PartialEq, Eq)]
 /// A site entry.
 pub struct SedeEntry {
