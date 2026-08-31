@@ -1,0 +1,20 @@
+# Prometheus monitorando o animeitor (animeitor.naquadah.com.br).
+#
+#   docker compose up -d
+#
+# Dashboard em http://localhost:9090 — o alvo configurado é
+# animeitor.naquadah.com.br:80/api/metrics (ver prometheus.yml).
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: animeitor-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
