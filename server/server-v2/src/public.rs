@@ -44,7 +44,6 @@ pub fn router() -> Router<AppState> {
             "/events/{event_name}/contests/{contest_name}/remote_control/{key}",
             get(remote_control_ws),
         )
-        .route("/metrics", get(crate::metrics::get_metrics))
 }
 
 /// The site key sent in the `Authorization` header.

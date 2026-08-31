@@ -233,16 +233,6 @@ Handshake:
 - `101 Switching Protocols` — conexão estabelecida.
 - `404 Not Found` — evento ou contest inexistente (sem corpo).
 
-### Métricas
-
-- `GET /api/metrics`
-- Métricas do processo no formato texto do Prometheus (autometrics). Global: não é por evento.
-
-Resposta:
-
-- `200 OK` — corpo em texto Prometheus, **sem envelope** (não é JSON).
-- `500 Internal Server Error` — falha ao codificar as métricas.
-
 ## Resumo das regras
 
 - Todos os endpoints públicos ficam sob `/api`, espelhando a hierarquia interna.

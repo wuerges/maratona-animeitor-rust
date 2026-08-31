@@ -1,9 +1,12 @@
-# Prometheus monitorando o animeitor (animeitor.naquadah.com.br).
+# Prometheus monitorando o animeitor.
 #
 #   docker compose up -d
 #
-# Dashboard em http://localhost:9090 — o alvo configurado é
-# animeitor.naquadah.com.br:80/api/metrics (ver prometheus.yml).
+# Dashboard em http://localhost:9090. O alvo do scrape vem de SERVER_URL
+# (com ou sem esquema, ex.: http://animeitor.naquadah.com.br ou
+# http://localhost:8000); se não estiver definida, usa
+# animeitor.naquadah.com.br. INTERNAL_TOKEN é o token da API interna
+# (o endpoint /internal/metrics é autenticado).
 
 services:
   prometheus:
@@ -11,9 +14,21 @@ services:
     container_name: animeitor-prometheus
     ports:
       - "9090:9090"
+    environment:
+      - SERVER_URL=${SERVER_URL:-http://animeitor.naquadah.com.br}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN:-token-de-teste}
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus.yml.template:/etc/prometheus/prometheus.yml.template:ro
       - prometheus-data:/prometheus
+    command: >
+      sh -c 'target=$${SERVER_URL#*://};
+             sed -e "s|__TARGET__|$$target|g"
+                 -e "s|__TOKEN__|$$INTERNAL_TOKEN|g"
+                 /etc/prometheus/prometheus.yml.template
+                 > /etc/prometheus/prometheus.yml &&
+             exec /bin/prometheus
+                 --config.file=/etc/prometheus/prometheus.yml
+                 --storage.tsdb.path=/prometheus'
     restart: unless-stopped
 
 volumes:

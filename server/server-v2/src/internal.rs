@@ -139,11 +139,19 @@ pub fn router() -> Router<AppState> {
             "/sites/{event_name}/{contest_name}/{site_name}/salt",
             post(post_site_salt),
         )
+        .route("/metrics", get(get_metrics))
 }
 
 /// Whether an event/contest/site name is valid as a path segment.
 fn valid_name(name: &str) -> bool {
     !name.is_empty()
+}
+
+/// Prometheus metrics (autometrics), behind the internal token.
+#[autometrics]
+async fn get_metrics(_auth: InternalAuth) -> Response {
+    let (status, text) = crate::metrics::get_metrics().await;
+    (status, text).into_response()
 }
 
 // Events

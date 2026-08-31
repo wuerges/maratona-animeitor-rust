@@ -265,6 +265,16 @@ Respostas:
 - `401 Unauthorized`.
 - `404 Not Found` — o evento, o contest ou o site não existe.
 
+### Métricas
+
+- `GET /internal/metrics` (autenticado, como todo o escopo interno)
+- Métricas do processo no formato texto do Prometheus (autometrics). Global: não é por evento.
+
+Resposta:
+
+- `200 OK` — corpo em texto Prometheus, **sem envelope** (não é JSON).
+- `500 Internal Server Error` — falha ao codificar as métricas.
+
 ### Remover um site
 
 - `DELETE /internal/sites/{event-name}/{contest-name}/{site-name}`

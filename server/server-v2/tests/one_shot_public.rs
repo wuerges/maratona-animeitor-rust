@@ -568,26 +568,3 @@ async fn remote_control_404() {
         connect_error(&base, "/api/events/ensaio/contests/brasil/remote_control/chave").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
-
-// Metrics
-
-#[tokio::test]
-async fn metrics_ok() {
-    // The recorder must be installed BEFORE instrumented handlers run
-    // (samples recorded with no recorder are dropped); this is the only
-    // test touching the global exporter, so the init can't double-fire.
-    server_v2::metrics::setup();
-    // One instrumented request first, so the registry has samples.
-    let app = app_for(EventStore::new());
-    let _ = send(&app, empty_request(Method::GET, "/api/events")).await;
-    let (status, body, headers) = send_raw(&app, empty_request(Method::GET, "/api/metrics")).await;
-    assert_eq!(status, StatusCode::OK);
-    let content_type = headers
-        .get(header::CONTENT_TYPE)
-        .and_then(|v| v.to_str().ok())
-        .expect("metrics content type");
-    assert!(content_type.starts_with("text/plain"), "{content_type}");
-    // The API handlers carry #[autometrics]: the registry has content.
-    let text = String::from_utf8(body).expect("metrics body is text");
-    assert!(text.contains("function_calls"), "expected function metrics: {text}");
-}

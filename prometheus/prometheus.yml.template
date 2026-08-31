@@ -1,0 +1,17 @@
+# Template processado pelo container na subida: __TARGET__ vem de SERVER_URL
+# (padrão animeitor.naquadah.com.br) e __TOKEN__ de INTERNAL_TOKEN. As
+# métricas ficam no escopo interno (autenticado): /internal/metrics.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: animeitor
+    metrics_path: /internal/metrics
+    scheme: http
+    basic_auth:
+      username: usuario
+      password: __TOKEN__
+    static_configs:
+      - targets: ["__TARGET__"]

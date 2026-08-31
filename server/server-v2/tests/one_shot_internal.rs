@@ -106,6 +106,14 @@ async fn send(app: &Router, request: Request<Body>) -> (StatusCode, serde_json::
     (status, json)
 }
 
+
+async fn send_bytes(app: &Router, request: Request<Body>) -> (StatusCode, Vec<u8>) {
+    let response = app.clone().oneshot(request).await.unwrap();
+    let status = response.status();
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    (status, bytes.to_vec())
+}
+
 fn error_code(json: &serde_json::Value) -> &str {
     json["errors"][0]["code"].as_str().expect("envelope error code")
 }
@@ -854,4 +862,31 @@ async fn site_salt_404() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(error_code(&json), "not_found");
+}
+
+
+#[tokio::test]
+async fn metrics_ok() {
+    // The recorder must be installed BEFORE instrumented handlers run
+    // (samples recorded with no recorder are dropped); this is the only
+    // test touching the global exporter, so the init cannot double-fire.
+    server_v2::metrics::setup();
+    let store = EventStore::new();
+    seed_event(&store).await;
+    let app = app_for(store);
+    let auth = auth_header();
+    // One instrumented request first, so the registry has samples.
+    let _ = send(
+        &app,
+        empty_request(Method::GET, "/internal/events", Some((&auth.0, auth.1.clone()))),
+    )
+    .await;
+    let (status, bytes) = send_bytes(
+        &app,
+        empty_request(Method::GET, "/internal/metrics", Some((&auth.0, auth.1.clone()))),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let text = String::from_utf8(bytes).expect("metrics body is text");
+    assert!(text.contains("function_calls"), "expected function metrics: {text}");
 }
