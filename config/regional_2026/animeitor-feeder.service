@@ -1,0 +1,30 @@
+# Example systemd service for the webcast feeder.
+#
+# Install (as root):
+#   cp config/regional_2026/animeitor-feeder.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now animeitor-feeder
+#
+# The feeder polls the webcast (BOCA_URL) and publishes the event state,
+# runs, contests and sites into the animeitor-server's internal API, so
+# the server must be running (it retries on network errors either way).
+
+[Unit]
+Description=Maratona Animeitor feeder (animeitor-feeder)
+After=network-online.target animeitor-server.service
+Wants=network-online.target animeitor-server.service
+
+[Service]
+Type=simple
+User=ew
+Group=ew
+WorkingDirectory=/home/ew/maratona-animeitor-rust
+Environment=RUST_LOG=info
+
+ExecStart=/usr/bin/make -f config/regional_2026/Makefile run-feeder
+
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

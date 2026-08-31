@@ -43,7 +43,7 @@ SECRETS_OPTS = $(if $(wildcard $(SECRETS_FILE)),--secrets $(SECRETS_FILE),)
 # from there; the media formats travel with the contest config, set by the
 # feeder.
 
-.PHONY: run-standalone run-standalone-loop run-local run-local-loop printurls-standalone rebuild-release-server
+.PHONY: run-standalone run-standalone-loop run-feeder run-local run-local-loop printurls-standalone rebuild-release-server
 
 rebuild-release-server:
 	cargo build -p server-v2 \
@@ -71,6 +71,16 @@ run-standalone-loop:
 		${HTTPS_OPTS} \
 		-t ${INTERNAL_TOKEN} & ) ; \
 	sleep 2 ; \
+	cargo run -p cli --bin animeitor-feeder -- \
+		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} \
+		$(addprefix -c ,$(CONTEST_FILES)) \
+		${SECRETS_OPTS} \
+		${MEDIA_OPTS} \
+		${FREEZE_OPTS}
+
+# The feeder alone: for production it runs as its own systemd service
+# (animeitor-feeder.service) next to the already-running server.
+run-feeder:
 	cargo run -p cli --bin animeitor-feeder -- \
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} \
 		$(addprefix -c ,$(CONTEST_FILES)) \

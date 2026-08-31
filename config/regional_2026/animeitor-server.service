@@ -5,6 +5,9 @@
 #   systemctl daemon-reload
 #   systemctl enable --now animeitor-server
 #
+# The release binary must be built first:
+#   make -f config/regional_2026/Makefile rebuild-release-server
+#
 # Make sure no other process is already bound to the HTTP port (80)
 # before starting the service.
 
