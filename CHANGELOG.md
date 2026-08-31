@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The binaries were renamed: the server is `animeitor-server` (formerly
   `simples`), the feeder is `animeitor-feeder`, and the client package is
   `animeitor-client` (formerly `client-v2`).
+- The score freeze is now applied by the server: the public runs stream
+  (`runs_ws`) serves runs at or after `score_freeze_time_seconds` as `?`,
+  and only the reveal (`runs_secret`) receives the real answers, which it
+  unlocks with its own mechanics.
 - Split the `data` crate into pure dump/wire types: client-side domain logic
   (scoring engine, reveal driver, panel views, client helpers) moved to
   `client-model`; server-only dump items (contest state, secret config,

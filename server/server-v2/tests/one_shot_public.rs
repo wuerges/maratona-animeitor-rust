@@ -385,6 +385,28 @@ async fn runs_ws_happy() {
 }
 
 #[tokio::test]
+async fn runs_ws_freezes_runs_after_the_freeze_time() {
+    // Runs at or after the score freeze time are served as `?`; the real
+    // answers stay behind the reveal (runs_secret).
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let run: Run = serde_json::from_value(serde_json::json!({
+        "id": 2, "team_login": "teambr001", "prob": "A", "time_seconds": 2040, "answer": "Y"
+    }))
+    .unwrap();
+    store.add_runs("ensaio", vec![run]).await.unwrap();
+    let app = app_for(store);
+    let base = spawn_server(app).await;
+
+    let mut ws = connect(&base, "/api/events/ensaio/contests/brasil/runs_ws").await;
+    let frame = next_text(&mut ws).await;
+    let run: serde_json::Value = serde_json::from_str(&frame).expect("run is JSON");
+    assert_eq!(run["id"], 2);
+    assert_eq!(run["time_seconds"], 2040);
+    assert_eq!(run["answer"], "?");
+}
+
+#[tokio::test]
 async fn runs_ws_404() {
     let app = app_for(EventStore::new());
     let base = spawn_server(app).await;

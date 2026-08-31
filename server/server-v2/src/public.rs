@@ -128,14 +128,21 @@ async fn runs_ws(
         Some(true) => {}
     }
 
-    // The replay carries every run since event creation; the client applies
-    // the freeze. Filtering happens here by the contest codes.
+    // The replay carries every run since event creation; filtering happens
+    // here by the contest codes. Runs at or after the score freeze time are
+    // served as `?`: only the reveal (`runs_secret`) receives the real
+    // answers.
     let Some(codes) = store.contest_codes(&event_name, &contest_name).await else {
         return StatusCode::NOT_FOUND.into_response();
     };
     let Some(mut runs_rx) = store.subscribe_runs(&event_name).await else {
         return StatusCode::NOT_FOUND.into_response();
     };
+    let freeze = store
+        .get_event(&event_name)
+        .await
+        .map(|event| event.score_freeze_time_seconds)
+        .unwrap_or(0);
 
     ws.on_upgrade(move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
@@ -143,10 +150,15 @@ async fn runs_ws(
             tokio::select! {
                 recv = runs_rx.recv() => {
                     match recv {
-                        Ok(run) => {
-                            if codes.is_match(&run.team_login) && !send_json(&mut sender, &run).await {
-                                tracing::debug!("ws connection closed");
-                                break;
+                        Ok(mut run) => {
+                            if codes.is_match(&run.team_login) {
+                                if run.time_seconds >= freeze {
+                                    run.answer = data::event::Answer::Unknown;
+                                }
+                                if !send_json(&mut sender, &run).await {
+                                    tracing::debug!("ws connection closed");
+                                    break;
+                                }
                             }
                         }
                         Err(err) => {

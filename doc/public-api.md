@@ -147,7 +147,7 @@ Exemplo:
 ### Stream público de runs
 
 - `WS /api/events/{event-name}/contests/{contest-name}/runs_ws`
-- Stream ao vivo de runs. Ao conectar, o cliente recebe as runs do contest já recebidas desde a criação do evento e, em seguida, as novas conforme chegam. Somente runs de times cujo login casa com `codes` do contest são enviadas; **cabe ao cliente aplicar o congelamento** (`score_freeze_time_seconds`) na exibição.
+- Stream ao vivo de runs. Ao conectar, o cliente recebe as runs do contest já recebidas desde a criação do evento e, em seguida, as novas conforme chegam. Somente runs de times cujo login casa com `codes` do contest são enviadas; **runs a partir de `score_freeze_time_seconds` são servidas como `?`** — as respostas reais ficam atrás do reveal (`runs_secret`).
 
 Mensagens: objetos JSON, um por mensagem:
 
