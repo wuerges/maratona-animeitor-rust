@@ -17,6 +17,8 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use serde::Deserialize;
 
+use autometrics::autometrics;
+
 use crate::AppState;
 use service::event_store::{ContestConfig, EventState, EventStore, Run, SiteConfig, StoreError};
 
@@ -146,6 +148,7 @@ fn valid_name(name: &str) -> bool {
 
 // Events
 
+#[autometrics]
 async fn create_event(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -165,6 +168,7 @@ async fn create_event(
     }
 }
 
+#[autometrics]
 async fn get_event(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -177,11 +181,13 @@ async fn get_event(
 }
 
 /// Lists the names of all events, in creation order.
+#[autometrics]
 async fn list_events(_auth: InternalAuth, State(store): State<EventStore>) -> Response {
     data_json(store.list_events().await, StatusCode::OK)
 }
 
 /// Lists the contests of an event, with their salts (internal scope).
+#[autometrics]
 async fn list_contests(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -194,6 +200,7 @@ async fn list_contests(
 }
 
 /// Lists the sites of a contest, with their salts (internal scope).
+#[autometrics]
 async fn list_sites(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -205,6 +212,7 @@ async fn list_sites(
     }
 }
 
+#[autometrics]
 async fn put_event(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -221,6 +229,7 @@ async fn put_event(
     }
 }
 
+#[autometrics]
 async fn delete_event(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -238,6 +247,7 @@ struct TimeBody {
     time_seconds: i64,
 }
 
+#[autometrics]
 async fn patch_time(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -260,6 +270,7 @@ struct RunsBody {
     runs: Vec<Run>,
 }
 
+#[autometrics]
 async fn post_runs(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -302,6 +313,7 @@ async fn post_runs(
     }
 }
 
+#[autometrics]
 async fn delete_runs(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -319,6 +331,7 @@ struct SaltBody {
     salt: Option<String>,
 }
 
+#[autometrics]
 async fn post_event_salt(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -338,6 +351,7 @@ async fn post_event_salt(
 
 // Contests
 
+#[autometrics]
 async fn create_contest(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -357,6 +371,7 @@ async fn create_contest(
     }
 }
 
+#[autometrics]
 async fn put_contest(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -376,6 +391,7 @@ async fn put_contest(
     }
 }
 
+#[autometrics]
 async fn delete_contest(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -388,6 +404,7 @@ async fn delete_contest(
     }
 }
 
+#[autometrics]
 async fn post_contest_salt(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -407,6 +424,7 @@ async fn post_contest_salt(
 
 // Sites
 
+#[autometrics]
 async fn create_site(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -429,6 +447,7 @@ async fn create_site(
     }
 }
 
+#[autometrics]
 async fn put_site(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -451,6 +470,7 @@ async fn put_site(
     }
 }
 
+#[autometrics]
 async fn delete_site(
     _auth: InternalAuth,
     State(store): State<EventStore>,
@@ -466,6 +486,7 @@ async fn delete_site(
     }
 }
 
+#[autometrics]
 async fn post_site_salt(
     _auth: InternalAuth,
     State(store): State<EventStore>,

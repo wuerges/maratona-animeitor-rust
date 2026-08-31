@@ -583,6 +583,7 @@ async fn metrics_ok() {
         .and_then(|v| v.to_str().ok())
         .expect("metrics content type");
     assert!(content_type.starts_with("text/plain"), "{content_type}");
-    // No instrumented functions in the workspace: the body may be empty.
-    let _ = String::from_utf8(body).expect("metrics body is text");
+    // The API handlers carry #[autometrics]: the registry has content.
+    let text = String::from_utf8(body).expect("metrics body is text");
+    assert!(text.contains("function_calls"), "expected function metrics: {text}");
 }

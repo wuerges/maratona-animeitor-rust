@@ -11,6 +11,8 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use futures::StreamExt;
 
+use autometrics::autometrics;
+
 use crate::AppState;
 use service::event_store::{EventStore, PublicTimer};
 
@@ -55,12 +57,14 @@ fn bearer_key(headers: &HeaderMap) -> Option<String> {
         .map(str::to_string)
 }
 
+#[autometrics]
 async fn list_events(State(store): State<EventStore>) -> Response {
     data_json(store.list_events().await, StatusCode::OK)
 }
 
 /// Lists the contest names of an event (landing page). Like the rest of the
 /// contest scope, unavailable before the start.
+#[autometrics]
 async fn list_contests(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
@@ -81,6 +85,7 @@ async fn list_contests(
 /// Nothing about a contest may be served before it starts: the state, the
 /// config and the runs all 403 with `not_started` (the timer and the event
 /// list stay available for the countdown and the landing).
+#[autometrics]
 async fn contest_gate(store: &EventStore, event_name: &str) -> Result<(), Response> {
     match store.is_started(event_name).await {
         None => Err(not_found("evento ou contest não existe")),
@@ -89,6 +94,7 @@ async fn contest_gate(store: &EventStore, event_name: &str) -> Result<(), Respon
     }
 }
 
+#[autometrics]
 async fn get_contest_state(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
@@ -102,6 +108,7 @@ async fn get_contest_state(
     }
 }
 
+#[autometrics]
 async fn get_config(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
@@ -115,6 +122,7 @@ async fn get_config(
     }
 }
 
+#[autometrics]
 async fn runs_ws(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
@@ -183,6 +191,7 @@ async fn runs_ws(
     })
 }
 
+#[autometrics]
 async fn get_runs_secret(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
@@ -207,6 +216,7 @@ async fn get_runs_secret(
     }
 }
 
+#[autometrics]
 async fn timer_ws(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
@@ -263,6 +273,7 @@ async fn timer_ws(
     })
 }
 
+#[autometrics]
 async fn remote_control_ws(
     State(store): State<EventStore>,
     Path((event_name, contest_name, key)): Path<(String, String, String)>,
