@@ -43,6 +43,16 @@ struct SimpleParser {
     /// of each contest and site.
     #[clap(long)]
     secrets: Option<PathBuf>,
+
+    /// Photo URL format set on every contest (the client substitutes
+    /// `{team_login}`); served by the contest's public config.
+    #[clap(long)]
+    photo_url_format: Option<String>,
+
+    /// Sound URL format set on every contest (the client substitutes
+    /// `{team_login}`).
+    #[clap(long)]
+    sound_url_format: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -66,7 +76,7 @@ struct ConfiguredContest {
 impl ConfiguredContest {
     /// The catch-all contest used when no config files are given: its empty
     /// regex matches every team login.
-    fn default() -> Self {
+    fn default(media: &MediaFormats) -> Self {
         ConfiguredContest {
             config: ContestConfig {
                 name: "default".to_string(),
@@ -76,17 +86,26 @@ impl ConfiguredContest {
                 ouro: 1,
                 prata: 2,
                 bronze: 3,
-                photo_url_format: None,
-                sound_url_format: None,
+                photo_url_format: media.photo.clone(),
+                sound_url_format: media.sound.clone(),
             },
             sites: Vec::new(),
         }
     }
 }
 
+/// The photo/sound URL formats set on every contest (the client substitutes
+/// `{team_login}`); `None` leaves the client's deploy-level defaults.
+#[derive(Clone)]
+struct MediaFormats {
+    photo: Option<String>,
+    sound: Option<String>,
+}
+
 fn load_contests(
     files: &[PathBuf],
     secrets: &HashMap<String, String>,
+    media: &MediaFormats,
 ) -> color_eyre::eyre::Result<Vec<ConfiguredContest>> {
     let mut contests = Vec::new();
     for file in files {
@@ -101,8 +120,8 @@ fn load_contests(
             ouro: legacy.titulo.ouro,
             prata: legacy.titulo.prata,
             bronze: legacy.titulo.bronze,
-            photo_url_format: None,
-            sound_url_format: None,
+            photo_url_format: media.photo.clone(),
+            sound_url_format: media.sound.clone(),
         };
         let sites = legacy
             .sedes
@@ -146,16 +165,22 @@ async fn main() -> color_eyre::eyre::Result<()> {
         event,
         contests,
         secrets,
+        photo_url_format,
+        sound_url_format,
     } = SimpleParser::parse();
 
     tracing::info!("\nSetting up sentry guard");
     let _guard = sentry::setup();
 
+    let media = MediaFormats {
+        photo: photo_url_format,
+        sound: sound_url_format,
+    };
     let secrets = load_secrets(secrets.as_ref())?;
-    let mut contests = load_contests(&contests, &secrets)?;
+    let mut contests = load_contests(&contests, &secrets, &media)?;
     if contests.is_empty() {
         // No config files: the standalone flow uses the catch-all contest.
-        contests.push(ConfiguredContest::default());
+        contests.push(ConfiguredContest::default(&media));
     }
 
     let mut feeder = Feeder::new(&internal_token, &server_url, &event, contests);

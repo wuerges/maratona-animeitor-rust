@@ -12,9 +12,11 @@ INTERNAL_TOKEN=token-de-teste
 HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
             --tls-key ./privkey.pem \
 
-# Media URLs: the client substitutes {team_login} in the formats below.
+# Media URLs, set by the feeder on every contest (the client substitutes
+# {team_login} in the formats below).
 PHOTO_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-photo?contest=icpc-latam-br-fp-2026&user={team_login}
 SOUND_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}
+MEDIA_OPTS = --photo-url-format '${PHOTO_URL_FORMAT}' --sound-url-format '${SOUND_URL_FORMAT}'
 
 # Contests, sites and salts are created via the internal API
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
@@ -33,16 +35,11 @@ SECRETS_OPTS = $(if $(wildcard $(SECRETS_FILE)),--secrets $(SECRETS_FILE),)
 
 #
 # The client is built once by the root Makefile
-# (make rebuild-client-for-release -> animeitor-client/release) and served from
-# there; run `make install-config` after rebuilding it to apply this
-# region's media prefixes.
+# (make rebuild-client-for-release -> animeitor-client/release) and served
+# from there; the media formats travel with the contest config, set by the
+# feeder.
 
-.PHONY: install-config run-standalone run-standalone-loop run-local run-local-loop printurls-standalone rebuild-release-server
-
-install-config:
-	printf '{\n    "photo_url_format": "%s",\n    "sound_url_format": "%s"\n}\n' \
-		'${PHOTO_URL_FORMAT}' '${SOUND_URL_FORMAT}' \
-		> animeitor-client/release/config.json
+.PHONY: run-standalone run-standalone-loop run-local run-local-loop printurls-standalone rebuild-release-server
 
 rebuild-release-server:
 	cargo build -p server-v2 \
@@ -73,7 +70,8 @@ run-standalone-loop:
 	cargo run -p cli --bin animeitor-feeder -- \
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} \
 		$(addprefix -c ,$(CONTEST_FILES)) \
-		${SECRETS_OPTS}
+		${SECRETS_OPTS} \
+		${MEDIA_OPTS}
 
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
@@ -105,4 +103,5 @@ run-local-loop:
 	cargo run -p cli --bin animeitor-feeder -- \
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://localhost:${LOCAL_PORT} \
 		$(addprefix -c ,$(CONTEST_FILES)) \
-		${SECRETS_OPTS}
+		${SECRETS_OPTS} \
+		${MEDIA_OPTS}
