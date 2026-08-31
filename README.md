@@ -63,6 +63,21 @@ PUBLIC_PORT=8000
 INTERNAL_TOKEN=token-de-teste
 ```
 
+# Monitoring with Prometheus
+
+The optional Prometheus stack scrapes the authenticated `/internal/metrics`
+endpoint. From the `prometheus` directory, start it with the same environment
+file used by the server:
+
+```bash
+cd prometheus
+docker compose --env-file ../.env up -d
+```
+
+Prometheus is then available at `http://localhost:9090`. For a server running
+directly on the host, set `SERVER_URL=http://host.docker.internal:8000` in the
+environment file before starting the stack.
+
 # Customizing animeitor appearance
 
 There is a special CSS file at `animeitor-client/static/user-styles.css`.

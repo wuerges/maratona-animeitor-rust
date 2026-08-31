@@ -1,6 +1,6 @@
 # Prometheus monitorando o animeitor.
 #
-#   docker compose up -d
+#   docker compose --env-file ../.env up -d
 #
 # Dashboard em http://localhost:9090. O alvo do scrape vem de SERVER_URL
 # (com ou sem esquema, ex.: http://animeitor.naquadah.com.br ou
@@ -17,18 +17,17 @@ services:
     environment:
       - SERVER_URL=${SERVER_URL:-http://animeitor.naquadah.com.br}
       - INTERNAL_TOKEN=${INTERNAL_TOKEN:-token-de-teste}
+    extra_hosts:
+      # Testes locais: SERVER_URL=http://host.docker.internal:8000 aponta
+      # para um animeitor-server rodando nesta máquina.
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./prometheus.yml.template:/etc/prometheus/prometheus.yml.template:ro
+      - ./entrypoint.sh:/etc/prometheus/entrypoint.sh:ro
       - prometheus-data:/prometheus
-    command: >
-      sh -c 'target=$${SERVER_URL#*://};
-             sed -e "s|__TARGET__|$$target|g"
-                 -e "s|__TOKEN__|$$INTERNAL_TOKEN|g"
-                 /etc/prometheus/prometheus.yml.template
-                 > /etc/prometheus/prometheus.yml &&
-             exec /bin/prometheus
-                 --config.file=/etc/prometheus/prometheus.yml
-                 --storage.tsdb.path=/prometheus'
+    # A configuração gerada e o arquivo com o token ficam no volume, que é
+    # gravável pelo usuário "nobody" da imagem. O token não é inserido no YAML.
+    entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
     restart: unless-stopped
 
 volumes:
