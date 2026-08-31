@@ -18,6 +18,10 @@ PHOTO_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/cont
 SOUND_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}
 MEDIA_OPTS = --photo-url-format '${PHOTO_URL_FORMAT}' --sound-url-format '${SOUND_URL_FORMAT}'
 
+# Optional freeze override (seconds): the scoreboard freezes at this time
+# instead of the webcast's own freeze time.
+FREEZE_OPTS = $(if $(SCORE_FREEZE_TIME_SECONDS),--score-freeze-time-seconds $(SCORE_FREEZE_TIME_SECONDS),)
+
 # Contests, sites and salts are created via the internal API
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
 CONTEST_FILES = config/regional_2026/Brasil.toml \
@@ -71,7 +75,8 @@ run-standalone-loop:
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} \
 		$(addprefix -c ,$(CONTEST_FILES)) \
 		${SECRETS_OPTS} \
-		${MEDIA_OPTS}
+		${MEDIA_OPTS} \
+		${FREEZE_OPTS}
 
 printurls-standalone:
 	( ${SERVER_RELEASE_DIR}/printurls \
@@ -104,4 +109,5 @@ run-local-loop:
 		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s http://localhost:${LOCAL_PORT} \
 		$(addprefix -c ,$(CONTEST_FILES)) \
 		${SECRETS_OPTS} \
-		${MEDIA_OPTS}
+		${MEDIA_OPTS} \
+		${FREEZE_OPTS}

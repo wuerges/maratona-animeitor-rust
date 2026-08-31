@@ -53,6 +53,11 @@ struct SimpleParser {
     /// `{team_login}`).
     #[clap(long)]
     sound_url_format: Option<String>,
+
+    /// Overrides the score freeze time of the webcast (seconds; the client
+    /// freezes the scoreboard at this time).
+    #[clap(long)]
+    score_freeze_time_seconds: Option<i64>,
 }
 
 #[derive(Deserialize)]
@@ -167,6 +172,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         secrets,
         photo_url_format,
         sound_url_format,
+        score_freeze_time_seconds,
     } = SimpleParser::parse();
 
     tracing::info!("\nSetting up sentry guard");
@@ -183,7 +189,13 @@ async fn main() -> color_eyre::eyre::Result<()> {
         contests.push(ConfiguredContest::default(&media));
     }
 
-    let mut feeder = Feeder::new(&internal_token, &server_url, &event, contests);
+    let mut feeder = Feeder::new(
+        &internal_token,
+        &server_url,
+        &event,
+        contests,
+        score_freeze_time_seconds,
+    );
 
     feeder.db_update_loop(&boca_url).await;
 
@@ -209,10 +221,18 @@ struct Feeder {
     /// Contests/sites confirmed present on the server (`contest:NAME` and
     /// `site:CONTEST/NAME`), so they are not re-sent on every poll.
     confirmed: HashSet<String>,
+    /// Overrides the webcast's score freeze time when set.
+    score_freeze_time_seconds: Option<i64>,
 }
 
 impl Feeder {
-    fn new(internal_token: &str, server_url: &str, event: &str, configured: Vec<ConfiguredContest>) -> Self {
+    fn new(
+        internal_token: &str,
+        server_url: &str,
+        event: &str,
+        configured: Vec<ConfiguredContest>,
+        score_freeze_time_seconds: Option<i64>,
+    ) -> Self {
         Feeder {
             client: reqwest::Client::new(),
             internal_token: internal_token.to_string(),
@@ -225,6 +245,7 @@ impl Feeder {
             known_event: None,
             sent_runs: HashMap::new(),
             confirmed: HashSet::new(),
+            score_freeze_time_seconds,
         }
     }
 
@@ -474,7 +495,10 @@ impl Feeder {
 
             match webcast::load_data_from_url_maybe(boca_url).await {
                 Ok(contest_state) => {
-                    let (state, runs) = from_legacy_contest_state(&contest_state, &self.event);
+                    let (mut state, runs) = from_legacy_contest_state(&contest_state, &self.event);
+                    if let Some(freeze) = self.score_freeze_time_seconds {
+                        state.score_freeze_time_seconds = freeze;
+                    }
                     self.update_event(state).await;
                     self.update_contests().await;
                     self.update_runs(runs).await;
