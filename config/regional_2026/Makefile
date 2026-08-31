@@ -1,4 +1,4 @@
-BOCA_URL ?=./tests/inputs/webcast-2023-1a-fase-final-prova.zip
+BOCA_URL ?= ./tests/inputs/1_fase_2026/webcast-final-depois-do-contest-moj.zip
 PUBLIC_PORT ?= 80
 TLS_PORT ?= 443
 LOCAL_PORT ?= 8000
