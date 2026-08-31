@@ -12,6 +12,10 @@ INTERNAL_TOKEN=token-de-teste
 HTTPS_OPTS ?= --tls-cert ./fullchain.pem \
             --tls-key ./privkey.pem \
 
+# Media URLs: the client substitutes {team_login} in the formats below.
+PHOTO_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-photo?contest=icpc-latam-br-fp-2026&user={team_login}
+SOUND_URL_FORMAT = https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}
+
 # Contests, sites and salts are created via the internal API
 # (POST /internal/contests/{event}/{name}); see doc/event-api.md.
 CONTEST_FILES = config/regional_2026/Brasil.toml \
@@ -36,7 +40,9 @@ SECRETS_OPTS = $(if $(wildcard $(SECRETS_FILE)),--secrets $(SECRETS_FILE),)
 .PHONY: install-config run-standalone run-standalone-loop run-local run-local-loop printurls-standalone rebuild-release-server
 
 install-config:
-	cp config/regional_2026/config.json animeitor-client/release/config.json
+	printf '{\n    "photo_url_format": "%s",\n    "sound_url_format": "%s"\n}\n' \
+		'${PHOTO_URL_FORMAT}' '${SOUND_URL_FORMAT}' \
+		> animeitor-client/release/config.json
 
 rebuild-release-server:
 	cargo build -p server-v2 \
