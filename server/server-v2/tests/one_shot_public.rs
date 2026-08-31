@@ -573,9 +573,13 @@ async fn remote_control_404() {
 
 #[tokio::test]
 async fn metrics_ok() {
-    // Never call metrics::setup() here: init() panics if called twice per
-    // process, and encode_to_string() self-initializes lazily.
+    // The recorder must be installed BEFORE instrumented handlers run
+    // (samples recorded with no recorder are dropped); this is the only
+    // test touching the global exporter, so the init can't double-fire.
+    server_v2::metrics::setup();
+    // One instrumented request first, so the registry has samples.
     let app = app_for(EventStore::new());
+    let _ = send(&app, empty_request(Method::GET, "/api/events")).await;
     let (status, body, headers) = send_raw(&app, empty_request(Method::GET, "/api/metrics")).await;
     assert_eq!(status, StatusCode::OK);
     let content_type = headers
