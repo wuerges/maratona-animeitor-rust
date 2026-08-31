@@ -79,11 +79,10 @@ run-standalone-loop:
 		${FREEZE_OPTS}
 
 printurls-standalone:
-	( ${SERVER_RELEASE_DIR}/printurls \
+	cargo run -p cli --bin printurls -- \
 		--server ${SERVER_URL} \
 		--token ${INTERNAL_TOKEN} \
-		--prefix ${PREFIX} \
-	)
+		--prefix ${PREFIX}
 
 # Local testing: plain HTTP on a high port, no TLS. Uses cargo run so no
 # release build is needed; override LOCAL_PORT if 8000 is taken.
