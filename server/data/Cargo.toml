@@ -6,6 +6,7 @@ version.workspace = true
 
 [dependencies]
 serde.workspace = true
+utoipa.workspace = true
 thiserror.workspace = true
 regex.workspace = true
 derivative = "2.2"

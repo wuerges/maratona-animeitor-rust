@@ -10,6 +10,7 @@ use axum::http::{HeaderMap, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 use futures::StreamExt;
+use utoipa::OpenApi;
 
 use autometrics::autometrics;
 
@@ -21,6 +22,8 @@ use crate::remote_control::relay_remote_control;
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/openapi.json", get(openapi_json))
+        .route("/docs", get(openapi_docs))
         .route("/events", get(list_events))
         .route("/events/{event_name}/contests", get(list_contests))
         .route(
@@ -44,6 +47,18 @@ pub fn router() -> Router<AppState> {
             "/events/{event_name}/contests/{contest_name}/remote_control/{key}",
             get(remote_control_ws),
         )
+}
+
+async fn openapi_json() -> Response {
+    axum::Json(crate::openapi::PublicApiDoc::openapi()).into_response()
+}
+
+async fn openapi_docs() -> Response {
+    (
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        crate::openapi::swagger_html("/api/openapi.json"),
+    )
+        .into_response()
 }
 
 /// The site key sent in the `Authorization` header.

@@ -2,6 +2,7 @@ mod envelope;
 pub mod internal;
 pub mod memory_files;
 pub mod metrics;
+pub mod openapi;
 pub mod public;
 mod remote_control;
 

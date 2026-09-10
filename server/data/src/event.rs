@@ -3,6 +3,7 @@
 //! Shared by the server and the client: this crate is wasm-safe.
 
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 fn one() -> usize {
     1
@@ -15,7 +16,7 @@ fn three() -> usize {
 }
 
 /// A team of the event, as described in `doc/event-api.md`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct TeamInfo {
     pub login: String,
     pub escola: String,
@@ -23,7 +24,7 @@ pub struct TeamInfo {
 }
 
 /// The full state of an event, as accepted and returned by `/internal`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct EventState {
     pub name: String,
     pub problems: Vec<String>,
@@ -37,7 +38,7 @@ pub struct EventState {
 }
 
 /// A contest of an event, as accepted and returned by `/internal`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct ContestConfig {
     pub name: String,
     pub codes: Vec<String>,
@@ -58,7 +59,7 @@ pub struct ContestConfig {
 }
 
 /// A site of a contest, as accepted and returned by `/internal`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct SiteConfig {
     pub name: String,
     pub codes: Vec<String>,
@@ -67,7 +68,7 @@ pub struct SiteConfig {
 }
 
 /// The result of a submission.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub enum Answer {
     #[serde(rename = "Y")]
     Yes,
@@ -80,7 +81,7 @@ pub enum Answer {
 }
 
 /// A run, as described in `doc/event-api.md`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct Run {
     pub id: i64,
     pub team_login: String,
@@ -90,14 +91,14 @@ pub struct Run {
 }
 
 /// The timer message sent over the public timer WebSocket.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, ToSchema)]
 pub struct PublicTimer {
     pub current_time_seconds: i64,
     pub score_freeze_time_seconds: i64,
 }
 
 /// The public state of a contest, served by `/api`.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct PublicContestState {
     pub event: String,
     pub contest: String,
@@ -110,14 +111,14 @@ pub struct PublicContestState {
 }
 
 /// A site as exposed by the public config endpoint (no salt).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct PublicSiteView {
     pub name: String,
     pub codes: Vec<String>,
 }
 
 /// The public config of a contest, served by `/api` (no salts).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct PublicConfig {
     pub name: String,
     pub codes: Vec<String>,

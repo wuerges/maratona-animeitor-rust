@@ -16,6 +16,7 @@ use axum::routing::{get, patch, post};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use serde::Deserialize;
+use utoipa::OpenApi;
 
 use autometrics::autometrics;
 
@@ -107,6 +108,8 @@ fn map_json_rejection(err: JsonRejection) -> Response {
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/openapi.json", get(internal_openapi_json))
+        .route("/docs", get(internal_openapi_docs))
         .route("/events", get(list_events))
         .route(
             "/events/{event_name}",
@@ -143,6 +146,18 @@ pub fn router() -> Router<AppState> {
             post(post_site_salt),
         )
         .route("/metrics", get(get_metrics))
+}
+
+async fn internal_openapi_json(_auth: InternalAuth) -> Response {
+    axum::Json(crate::openapi::InternalApiDoc::openapi()).into_response()
+}
+
+async fn internal_openapi_docs(_auth: InternalAuth) -> Response {
+    (
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        crate::openapi::swagger_html("/internal/openapi.json"),
+    )
+        .into_response()
 }
 
 /// Whether an event/contest/site name is valid as a path segment.
