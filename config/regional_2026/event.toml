@@ -1,0 +1,15 @@
+contest_files = [
+  "Brasil.toml",
+  "LA.toml",
+  "Mexico.toml",
+  "Centro_America.toml",
+  "Bolivia.toml",
+  "CCL.toml",
+  "CCL_Brasil.toml",
+  "CCL_Bolivia.toml",
+  "CCL_Mexico.toml",
+  "CCL_Centro_America.toml",
+]
+
+[event]
+name = "regional-2026"

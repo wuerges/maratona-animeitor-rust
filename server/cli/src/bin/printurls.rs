@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use clap::Parser;
+use serde::Deserialize;
 
 use data::event::{ContestConfig, Envelope, EventState, SiteConfig};
 use service::event_store::site_key_with_event;
@@ -26,9 +29,28 @@ struct SimpleParser {
     #[clap(long)]
     event: Option<String>,
 
+    /// Unified event manifest. Its `[event].name` selects the event.
+    #[clap(long)]
+    config: Option<PathBuf>,
+
     /// The url prefix for the printed URLs.
     #[clap(long, default_value = "http://localhost:8080")]
     prefix: String,
+}
+
+#[derive(Deserialize)]
+struct EventManifest {
+    event: ManifestEvent,
+}
+
+#[derive(Deserialize)]
+struct ManifestEvent {
+    name: String,
+}
+
+fn event_from_config(path: &PathBuf) -> color_eyre::eyre::Result<String> {
+    let raw = std::fs::read_to_string(path)?;
+    Ok(toml::from_str::<EventManifest>(&raw)?.event.name)
 }
 
 /// Fetches an enveloped resource from the internal API.
@@ -67,8 +89,15 @@ async fn main() -> color_eyre::eyre::Result<()> {
         user,
         token,
         event,
+        config,
         prefix,
     } = SimpleParser::parse();
+
+    let event = match (event, config) {
+        (Some(event), _) => Some(event),
+        (None, Some(config)) => Some(event_from_config(&config)?),
+        (None, None) => None,
+    };
 
     let client = reqwest::Client::new();
 

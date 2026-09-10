@@ -9,6 +9,7 @@ urls_placar.txt
 Secret.toml
 secret_ccl.toml
 secret_env
+internal_tokens.toml
 *.pem
 animeitor-client/naquadah/*
 animeitor-client/release/*

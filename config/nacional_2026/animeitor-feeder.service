@@ -9,8 +9,8 @@ User=ew
 Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
-EnvironmentFile=-/home/ew/maratona-animeitor-rust/config/nacional_2026/secret_env
-ExecStart=/usr/bin/make -f config/nacional_2026/Makefile run-feeder
+EnvironmentFile=-/home/ew/maratona-animeitor-rust/secret_env
+ExecStart=/usr/bin/make run-feeder CONFIG=config/nacional_2026/event.toml
 Restart=on-failure
 RestartSec=5
 

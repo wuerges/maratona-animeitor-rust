@@ -40,27 +40,35 @@ automatically.
 
 # Basic configuration
 
-Animeitor can be configured using a few environment variables, than can be set in the `.env` file:
+Public Animeitor settings belong in `.env`; credentials belong in the ignored
+`secret_env` file. Start from the working local examples:
 
 ```bash
-# Boca URL that will be polled by the feeder to get the contest state.
-# It can be either a file or an URL.
-BOCA_URL=./tests/inputs/webcast_jones.zip
+cp secret_env.example secret_env
+cp internal_tokens.toml.example internal_tokens.toml
+```
 
+The public settings in `.env` include:
+
+```bash
 # Animeitor API prefix used to print the contest/reveleitor URLs.
 # This is set to `http://animeitor.naquadah.com.br` during the maratona.
 # `http://localhost:8000` is fine for local testing:
 PREFIX=http://localhost:8000
 
-# URL of the animeitor server, used by printurls and the feeder.
-SERVER_URL=http://animeitor:8000
+# HTTPS URL of the animeitor server, used by printurls and the feeder.
+SERVER_URL=https://localhost:8443
 
 # This is the public port. This is set to `80` during the SBC Maratona.
 # `8000` is fine for local testing:
 PUBLIC_PORT=8000
 
-# Token for the internal API (/internal). The feeder and printurls need the same token.
-INTERNAL_TOKEN=token-de-teste
+# Name of the internal token entry. The token value is only in secret_env.
+INTERNAL_TOKEN_NAME=feeder
+
+TLS_CERT=config/dev-certs/localhost-cert.pem
+TLS_KEY=config/dev-certs/localhost-key.pem
+TLS_PORT=8443
 ```
 
 # Monitoring with Prometheus
@@ -75,8 +83,8 @@ docker compose --env-file ../.env up -d
 ```
 
 Prometheus is then available at `http://localhost:9090`. For a server running
-directly on the host, set `SERVER_URL=http://host.docker.internal:8000` in the
-environment file before starting the stack.
+directly on the host, set an HTTPS `SERVER_URL` reachable from Docker, such as
+`https://host.docker.internal:8443`, before starting the stack.
 
 # Customizing animeitor appearance
 
@@ -121,7 +129,8 @@ The `Makefile` has an example of how to run animeitor without docker.
 
 ```
 make rebuild-client-for-release
-make run-standalone-push
+make generate-dev-certs
+make run-server
 ```
 
 Then check your browser:
@@ -129,8 +138,10 @@ Then check your browser:
 - Landing: http://localhost:8000/
 - Animeitor: http://localhost:8000/animeitor/{event}/{contest}/
 
-To also feed BOCA while running without docker, use `make run-standalone-loop`
-(it starts the server and the feeder together).
+To also feed BOCA while running without docker, use `make run-config
+CONFIG=config/nacional_2026/event.toml BOCA_URL=tests/inputs/webcast_jones.zip` (it starts
+the server and the feeder together). For the minimal example, use
+`make run-basic BOCA_URL=tests/inputs/webcast_jones.zip`.
 
 ## Running the debug client
 

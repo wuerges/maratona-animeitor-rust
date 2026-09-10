@@ -16,7 +16,8 @@ use tracing::{debug, error, info};
 #[command(version, about, long_about = None)]
 /// Feeder: polls the webcast and publishes the event state, runs and the
 /// configured contests/sites into the internal API of an animeitor server.
-/// Only what changed since the last poll is sent.
+/// The complete webcast state is sent on each poll; the server deduplicates
+/// runs by ID and applies corrections.
 struct SimpleParser {
     /// Token for the internal API (/internal).
     #[clap(short = 't', long)]
@@ -27,15 +28,19 @@ struct SimpleParser {
 
     /// The webcast url from BOCA (an URL or a local zip path).
     #[clap(short = 'i')]
-    boca_url: String,
+    boca_url: Option<String>,
 
     /// The animeitor server url.
     #[clap(short = 's')]
     server_url: String,
 
     /// The event fed by this loop.
-    #[clap(long, default_value = "default")]
-    event: String,
+    #[clap(long)]
+    event: Option<String>,
+
+    /// Unified event manifest. Replaces the repeatable legacy contest files.
+    #[clap(long)]
+    config: Option<PathBuf>,
 
     /// Old-format contest config (repeatable): each file's `[titulo]` and
     /// `[[sedes]]` become a contest and its sites in the internal API.
@@ -72,6 +77,119 @@ struct SecretsFile {
 struct SecretEntry {
     name: String,
     secret: String,
+}
+
+#[derive(Deserialize)]
+struct EventManifest {
+    event: ManifestEvent,
+    #[serde(default)]
+    contests: Vec<ManifestContest>,
+    /// Optional legacy files, resolved relative to this manifest. This keeps
+    /// large existing site maps reusable while the event selection is unified.
+    #[serde(default)]
+    contest_files: Vec<PathBuf>,
+}
+
+#[derive(Deserialize)]
+struct ManifestEvent {
+    name: String,
+    #[serde(default)]
+    webcast: Option<String>,
+    #[serde(default)]
+    score_freeze_time_seconds: Option<i64>,
+}
+
+#[derive(Deserialize)]
+struct ManifestContest {
+    name: String,
+    codes: Vec<String>,
+    #[serde(default)]
+    salt: Option<String>,
+    #[serde(default)]
+    style: Option<String>,
+    #[serde(default = "one")]
+    ouro: usize,
+    #[serde(default = "two")]
+    prata: usize,
+    #[serde(default = "three")]
+    bronze: usize,
+    #[serde(default)]
+    photo_url_format: Option<String>,
+    #[serde(default)]
+    sound_url_format: Option<String>,
+    #[serde(default)]
+    sites: Vec<ManifestSite>,
+}
+
+#[derive(Deserialize)]
+struct ManifestSite {
+    name: String,
+    codes: Vec<String>,
+    #[serde(default)]
+    salt: Option<String>,
+}
+
+fn one() -> usize {
+    1
+}
+fn two() -> usize {
+    2
+}
+fn three() -> usize {
+    3
+}
+
+fn load_manifest(
+    path: &PathBuf,
+    secrets: &HashMap<String, String>,
+    media: &MediaFormats,
+) -> color_eyre::eyre::Result<(String, Option<String>, Option<i64>, Vec<ConfiguredContest>)> {
+    let raw = std::fs::read_to_string(path)?;
+    let manifest: EventManifest = toml::from_str(&raw)?;
+    let mut contests = Vec::new();
+    if !manifest.contest_files.is_empty() {
+        let base = path.parent().unwrap_or_else(|| std::path::Path::new("."));
+        let files: Vec<PathBuf> = manifest
+            .contest_files
+            .iter()
+            .map(|file| base.join(file))
+            .collect();
+        contests.extend(load_contests(&files, secrets, media)?);
+    }
+    contests.extend(
+        manifest
+            .contests
+            .into_iter()
+            .map(|contest| ConfiguredContest {
+                config: ContestConfig {
+                    name: contest.name,
+                    codes: contest.codes,
+                    salt: contest.salt,
+                    style: contest.style,
+                    ouro: contest.ouro,
+                    prata: contest.prata,
+                    bronze: contest.bronze,
+                    photo_url_format: contest.photo_url_format,
+                    sound_url_format: contest.sound_url_format,
+                },
+                sites: contest
+                    .sites
+                    .into_iter()
+                    .map(|site| SiteConfig {
+                        name: site.name,
+                        codes: site.codes,
+                        salt: site.salt,
+                    })
+                    .collect(),
+            })
+            .collect::<Vec<_>>(),
+    );
+    Ok((
+        manifest.event.name,
+        manifest.event.webcast,
+        manifest.event.score_freeze_time_seconds,
+        contests,
+    ))
 }
 
 /// One contest and its sites, translated from the old config format to the
@@ -203,6 +321,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         boca_url,
         server_url,
         event,
+        config,
         contests,
         secrets,
         photo_url_format,
@@ -215,7 +334,20 @@ async fn main() -> color_eyre::eyre::Result<()> {
         sound: sound_url_format,
     };
     let secrets = load_secrets(secrets.as_ref())?;
-    let mut contests = load_contests(&contests, &secrets, &media)?;
+    let (manifest_event, manifest_boca, manifest_freeze, mut contests) = match config {
+        Some(path) => load_manifest(&path, &secrets, &media)?,
+        None => (
+            event.clone().unwrap_or_else(|| "default".to_string()),
+            None,
+            None,
+            load_contests(&contests, &secrets, &media)?,
+        ),
+    };
+    let event = event.unwrap_or(manifest_event);
+    let boca_url = boca_url
+        .or(manifest_boca)
+        .ok_or_else(|| color_eyre::eyre::eyre!("BOCA_URL or --boca-url is required"))?;
+    let score_freeze_time_seconds = score_freeze_time_seconds.or(manifest_freeze);
     if contests.is_empty() {
         // No config files: the standalone flow uses the catch-all contest.
         contests.push(ConfiguredContest::default(&media));

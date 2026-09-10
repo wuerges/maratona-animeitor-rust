@@ -1,0 +1,11 @@
+# LATAM 2026-2027 event manifest.
+# The detailed regional site maps are shared from the 2026 regional config
+# until the new webcast's team prefixes are confirmed.
+
+contest_files = [
+  "../regional_2026/LA.toml",
+  "../regional_2026/CCL.toml",
+]
+
+[event]
+name = "latam-2026-2027"

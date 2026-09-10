@@ -6,7 +6,7 @@
 #   systemctl enable --now animeitor-server
 #
 # The release binary must be built first:
-#   make -f config/regional_2026/Makefile rebuild-release-server
+#   make rebuild-server-for-release
 #
 # Make sure no other process is already bound to the HTTP port (80)
 # before starting the service.
@@ -23,7 +23,7 @@ Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
 # SENTRY_DSN and other secrets live in this gitignored file.
-EnvironmentFile=-/home/ew/maratona-animeitor-rust/config/regional_2026/secret_env
+EnvironmentFile=-/home/ew/maratona-animeitor-rust/secret_env
 
 # Each websocket connection holds a file descriptor for its lifetime.
 # Without this, the server runs with systemd's default soft limit of 1024
@@ -36,7 +36,7 @@ LimitNOFILE=65536
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 
-ExecStart=/usr/bin/make -f config/regional_2026/Makefile run-standalone
+ExecStart=/usr/bin/make run-server CONFIG=config/regional_2026/event.toml
 
 # make and the animeitor-server child run in the same cgroup; the default
 # KillMode=control-group stops both on restart/stop.
