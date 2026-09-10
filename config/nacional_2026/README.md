@@ -2,7 +2,7 @@
 
 This directory uses the unified `event.toml` manifest and the multi-event feeder introduced by the refactor. It is
 not compatible with the legacy `--sedes` and `--secret` server flags used by
-`config/nacional_2025`.
+`config/archive/nacional_2025`.
 
 Before running it, copy the root `secret_env.example` to `secret_env` and
 `internal_tokens.toml.example` to `internal_tokens.toml` (both are not tracked),

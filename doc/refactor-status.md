@@ -47,7 +47,8 @@ O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizad
 
 - Testes de handshake de WebSocket: com axum, o gating pré-upgrade dos WS (404/403 do `runs_ws`/`timer`/`remote_control`) é testável com requests HTTP puros (`oneshot`); falta adicionar esses testes. Fluxo completo de mensagens exigiria um client `tokio-tungstenite` contra um servidor spawnado.
 - Fluxo S3 (`serve-as-bucket/`): conferir landing e `config.json` nesse modo (chaves de `config.json` conferem com `SdkConfig`; falta teste real).
-- Flags antigas nos Makefiles de `config/regional_2024/` e `config/regional_2025/` (regional_2026 já migrado).
+- Flags antigas nos Makefiles arquivados em `config/archive/regional_2024/` e
+  `config/archive/regional_2025/` (regional_2026 já migrado).
 - Erros de envelope no client-sdk (`enveloped`) continuam com retry de 5s, agora logados como `error!`; sem estado de erro visível na UI.
 - Defaults de mídia (`photos/{team_login}.webp` etc.) são aplicados no cliente, não no servidor.
 
@@ -56,4 +57,4 @@ O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizad
 - Endpoints legados ficam removidos (sem janela de compatibilidade).
 - `?secret=` ainda é aceito como atalho no cliente, mas a chamada à API usa header Bearer.
 - Pre-start: endpoints públicos do contest respondem 403 `not_started`; remote_control WS continua aberto (não vaza estado).
-- O contest padrão do feeder usa codes `[""]` (regex vazia casa com qualquer login; convenção do `config/basic.toml`).
+- O contest padrão do feeder usa codes `[""]` (regex vazia casa com qualquer login; convenção do `config/archive/legacy/basic.toml`).
