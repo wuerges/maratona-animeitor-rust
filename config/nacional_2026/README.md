@@ -27,6 +27,14 @@ make -f config/nacional_2026/Makefile run-standalone-loop \
   BOCA_URL=/path/to/webcast.zip
 ```
 
+To use HTTPS locally, generate the ignored self-signed certificate first:
+
+```bash
+make -f config/nacional_2026/Makefile generate-dev-certs
+```
+
+The certificate is valid for `localhost`, `127.0.0.1`, and `::1`.
+
 For production, build and run the server and feeder separately:
 
 ```bash

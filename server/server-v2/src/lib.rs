@@ -12,6 +12,9 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::extract::FromRef;
+use axum::http::StatusCode;
+use axum::middleware::{self, Next};
+use axum::response::{IntoResponse, Response};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
@@ -47,6 +50,22 @@ pub fn app(state: AppState) -> Router {
         .nest("/internal", internal::router())
         .layer(CompressionLayer::new())
         .with_state(state)
+}
+
+/// The internal API must never receive credentials over cleartext HTTP.
+async fn reject_internal_over_http(
+    request: axum::http::Request<axum::body::Body>,
+    next: Next,
+) -> Response {
+    if request.uri().path().starts_with("/internal/") || request.uri().path() == "/internal" {
+        return (
+            StatusCode::UPGRADE_REQUIRED,
+            [(axum::http::header::CONNECTION, "close")],
+            "the internal API requires HTTPS",
+        )
+            .into_response();
+    }
+    next.run(request).await
 }
 
 /// Loads the client assets of a folder into memory once per canonical path,
@@ -128,7 +147,10 @@ pub async fn serve_config(
             });
 
             let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            let http = axum::serve(listener, app.clone()).with_graceful_shutdown(async {
+            let http_app = app
+                .clone()
+                .layer(middleware::from_fn(reject_internal_over_http));
+            let http = axum::serve(listener, http_app).with_graceful_shutdown(async {
                 let _ = tokio::signal::ctrl_c().await;
             });
 
@@ -143,7 +165,8 @@ pub async fn serve_config(
         }
         None => {
             let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            axum::serve(listener, app)
+            let http_app = app.layer(middleware::from_fn(reject_internal_over_http));
+            axum::serve(listener, http_app)
                 .with_graceful_shutdown(async {
                     let _ = tokio::signal::ctrl_c().await;
                 })

@@ -10,7 +10,6 @@
 BOCA_URL ?=
 EVENT ?= nacional-2026
 PUBLIC_PORT ?= 8000
-TLS_PORT ?= 443
 LOCAL_PORT ?= 8000
 SERVER_RELEASE_DIR = target/release/
 
@@ -48,7 +47,16 @@ CONTEST_FILES = config/nacional_2026/Brasil.toml \
 SECRETS_FILE = config/nacional_2026/Secrets_secret.toml
 SECRETS_OPTS = $(if $(wildcard $(SECRETS_FILE)),--secrets $(SECRETS_FILE))
 
-.PHONY: rebuild-release-server run-standalone run-standalone-loop run-feeder run-local run-local-loop printurls-standalone
+.PHONY: rebuild-release-server generate-dev-certs run-standalone run-standalone-loop run-feeder run-local run-local-loop printurls-standalone
+
+generate-dev-certs:
+	mkdir -p config/nacional_2026/dev-certs
+	openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 825 \
+		-keyout config/nacional_2026/dev-certs/localhost-key.pem \
+		-out config/nacional_2026/dev-certs/localhost-cert.pem \
+		-subj '/CN=localhost' \
+		-addext 'subjectAltName=DNS:localhost,IP:127.0.0.1,IP:::1'
+	chmod 600 config/nacional_2026/dev-certs/localhost-key.pem
 
 rebuild-release-server:
 	cargo build -p server-v2 --release
@@ -56,7 +64,6 @@ rebuild-release-server:
 run-standalone:
 	${SERVER_RELEASE_DIR}/animeitor-server \
 		-p ${PUBLIC_PORT} \
-		--tls-port ${TLS_PORT} \
 		-v ./server/photos:photos \
 		-v ./server/sounds:sounds \
 		-v ./animeitor-client/release: \
