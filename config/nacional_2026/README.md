@@ -13,6 +13,10 @@ The TOML contest/site mapping was copied from 2025 as a baseline. Verify every
 team-login prefix against the 2026 webcast and decide whether the three
 reference-only CCL configs belong in `CONTEST_FILES` before production.
 
+The feeder generates an event salt, then generates missing contest and site
+salts. Consequently every configured site has a reveal URL once the event is
+fed; values supplied through `Secrets_secret.toml` are preserved.
+
 For a local rehearsal, `run-standalone-loop` starts the server and the feeder
 together, stopping the server when the feeder exits:
 

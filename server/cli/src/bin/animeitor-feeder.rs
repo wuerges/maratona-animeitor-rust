@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use serde::Deserialize;
+use url::Url;
 
 use cli::sentry;
 use data::configdata::{ConfigContest, SedeEntry};
@@ -104,6 +105,36 @@ impl ConfiguredContest {
 struct MediaFormats {
     photo: Option<String>,
     sound: Option<String>,
+}
+
+/// Encodes one value used as a URL path segment. Contest and site names are
+/// display names and commonly contain spaces or accents.
+fn url_with_segments(base: &str, segments: &[&str]) -> String {
+    let mut url = Url::parse(base).expect("server URL is valid");
+    url.path_segments_mut()
+        .expect("server URL has a hierarchical path")
+        .extend(segments.iter().copied());
+    url.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::url_with_segments;
+
+    #[test]
+    fn url_segments_use_percent_encoding_and_preserve_hierarchy() {
+        assert_eq!(
+            url_with_segments(
+                "http://localhost:8000/internal/events/nacional-2026",
+                &["contests", "South America - South Finals", "sites"]
+            ),
+            "http://localhost:8000/internal/events/nacional-2026/contests/South%20America%20-%20South%20Finals/sites"
+        );
+        assert_eq!(
+            url_with_segments("http://localhost:8000/internal/sites", &["Antigua & Barbuda"]),
+            "http://localhost:8000/internal/sites/Antigua%20&%20Barbuda"
+        );
+    }
 }
 
 fn load_contests(
@@ -231,10 +262,10 @@ impl Feeder {
             client: reqwest::Client::new(),
             internal_token: internal_token.to_string(),
             event: event.to_string(),
-            event_url: format!("{server_url}/internal/events/{event}"),
-            runs_url: format!("{server_url}/internal/events/{event}/runs"),
-            contests_url: format!("{server_url}/internal/contests/{event}"),
-            sites_url: format!("{server_url}/internal/sites/{event}"),
+            event_url: url_with_segments(server_url, &["internal", "events", event]),
+            runs_url: url_with_segments(server_url, &["internal", "events", event, "runs"]),
+            contests_url: url_with_segments(server_url, &["internal", "contests", event]),
+            sites_url: url_with_segments(server_url, &["internal", "sites", event]),
             configured,
             known_event: None,
             sent_runs: HashMap::new(),
@@ -258,18 +289,37 @@ impl Feeder {
     }
 
     async fn get_event(&self) -> Option<EventState> {
-        let response = self
+        self.get(&self.event_url).await
+    }
+
+    /// Reads an enveloped internal-API resource.
+    async fn get<T: for<'a> serde::Deserialize<'a>>(&self, url: &str) -> Option<T> {
+        let response = match self
             .client
-            .get(&self.event_url)
+            .get(url)
             .basic_auth("usuario", Some(&self.internal_token))
             .send()
             .await
-            .ok()?;
+        {
+            Ok(response) => response,
+            Err(err) => {
+                error!(%url, ?err, "network error reading internal API resource");
+                return None;
+            }
+        };
         if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            error!(%url, %status, %body, "status error reading internal API resource");
             return None;
         }
-        let envelope: data::event::Envelope<EventState> = response.json().await.ok()?;
-        envelope.data
+        match response.json::<data::event::Envelope<T>>().await {
+            Ok(envelope) => envelope.data,
+            Err(err) => {
+                error!(%url, ?err, "invalid internal API response");
+                None
+            }
+        }
     }
 
     /// Whether two event states differ only in the time (and the salt).
@@ -396,6 +446,80 @@ impl Feeder {
         }
     }
 
+    /// When the event has a salt, every contest and site fed by this process
+    /// must have one too so each site has a usable reveal key. Existing salts
+    /// (including values from `--secrets`) are deliberately preserved: POST
+    /// is only used for resources whose internal representation has no salt.
+    async fn ensure_reveal_salts(&self) {
+        if self
+            .known_event
+            .as_ref()
+            .is_none_or(|event| event.salt.is_none())
+        {
+            return;
+        }
+
+        let Some(contests) = self
+            .get::<Vec<ContestConfig>>(&format!("{}/contests", self.event_url))
+            .await
+        else {
+            error!("could not list contests while enabling reveals");
+            return;
+        };
+
+        for contest in contests {
+            if contest.salt.is_none() {
+                self.generate_salt(
+                    &url_with_segments(
+                        &self.contests_url,
+                        &[contest.name.as_str(), "salt"],
+                    ),
+                    "contest",
+                )
+                .await;
+            }
+
+            let sites_url = url_with_segments(
+                &self.event_url,
+                &["contests", contest.name.as_str(), "sites"],
+            );
+            let Some(sites) = self.get::<Vec<SiteConfig>>(&sites_url).await else {
+                error!(contest = %contest.name, "could not list sites while enabling reveals");
+                continue;
+            };
+            for site in sites {
+                if site.salt.is_none() {
+                    self.generate_salt(
+                        &url_with_segments(
+                            &self.sites_url,
+                            &[contest.name.as_str(), site.name.as_str(), "salt"]
+                        ),
+                        "site",
+                    )
+                    .await;
+                }
+            }
+        }
+    }
+
+    /// Asks the server to generate one salt. This is never called for a
+    /// resource that already has a salt, because it would rotate its URL key.
+    async fn generate_salt(&self, url: &str, resource: &str) {
+        match self
+            .send(reqwest::Method::POST, url, &serde_json::json!({}))
+            .await
+        {
+            Ok(response) if response.status().is_success() => {
+                debug!(%resource, "reveal salt enabled");
+            }
+            Ok(response) => {
+                let body = response.text().await.unwrap_or_default();
+                error!(%resource, %body, "status error enabling reveal salt");
+            }
+            Err(err) => error!(%resource, ?err, "network error enabling reveal salt"),
+        }
+    }
+
     /// Sends only the runs that are new or changed since the last poll.
     async fn update_runs(&mut self, runs: Vec<Run>) {
         let fresh: Vec<Run> = runs
@@ -428,49 +552,81 @@ impl Feeder {
     }
 
     /// Ensures the configured contests and their sites exist. Confirmed ones
-    /// are skipped; conflicts count as confirmed.
+    /// are skipped after they have been synchronized. Existing salts are
+    /// carried forward when a config file does not specify one.
     async fn update_contests(&mut self) {
+        let existing_contests = self
+            .get::<Vec<ContestConfig>>(&format!("{}/contests", self.event_url))
+            .await
+            .unwrap_or_default();
+
         for contest in &self.configured {
             let name = &contest.config.name;
             let key = format!("contest:{name}");
             if !self.confirmed.contains(&key) {
-                let url = format!("{}/{name}", self.contests_url);
-                let body = serde_json::to_value(&contest.config).unwrap();
-                match self.send(reqwest::Method::POST, &url, &body).await {
-                    Ok(response)
-                        if response.status().is_success()
-                            || response.status() == reqwest::StatusCode::CONFLICT =>
-                    {
-                        debug!("contest {name} exists");
+                let url = url_with_segments(&self.contests_url, &[name]);
+                let mut desired = contest.config.clone();
+                let method = if let Some(existing) = existing_contests
+                    .iter()
+                    .find(|existing| existing.name == *name)
+                {
+                    if desired.salt.is_none() {
+                        desired.salt = existing.salt.clone();
+                    }
+                    reqwest::Method::PUT
+                } else {
+                    reqwest::Method::POST
+                };
+                let body = serde_json::to_value(&desired).unwrap();
+                match self.send(method, &url, &body).await {
+                    Ok(response) if response.status().is_success() => {
+                        debug!("contest {name} synchronized");
                         self.confirmed.insert(key);
                     }
                     Ok(response) => {
                         let body = response.text().await.unwrap_or_default();
-                        error!(%body, "status error creating contest {name}");
+                        error!(%body, "status error synchronizing contest {name}");
                     }
-                    Err(err) => error!(?err, "network error creating contest {name}"),
+                    Err(err) => error!(?err, "network error synchronizing contest {name}"),
                 }
             }
+
+            let existing_sites = self
+                .get::<Vec<SiteConfig>>(&url_with_segments(
+                    &self.event_url,
+                    &["contests", name.as_str(), "sites"],
+                ))
+                .await
+                .unwrap_or_default();
             for site in &contest.sites {
                 let site_key = format!("site:{name}/{}", site.name);
                 if self.confirmed.contains(&site_key) {
                     continue;
                 }
-                let url = format!("{}/{name}/{}", self.sites_url, site.name);
-                let body = serde_json::to_value(site).unwrap();
-                match self.send(reqwest::Method::POST, &url, &body).await {
-                    Ok(response)
-                        if response.status().is_success()
-                            || response.status() == reqwest::StatusCode::CONFLICT =>
-                    {
-                        debug!("site {}/{} exists", name, site.name);
+                let url = url_with_segments(&self.sites_url, &[name, site.name.as_str()]);
+                let mut desired = site.clone();
+                let method = if let Some(existing) = existing_sites
+                    .iter()
+                    .find(|existing| existing.name == site.name)
+                {
+                    if desired.salt.is_none() {
+                        desired.salt = existing.salt.clone();
+                    }
+                    reqwest::Method::PUT
+                } else {
+                    reqwest::Method::POST
+                };
+                let body = serde_json::to_value(&desired).unwrap();
+                match self.send(method, &url, &body).await {
+                    Ok(response) if response.status().is_success() => {
+                        debug!("site {}/{} synchronized", name, site.name);
                         self.confirmed.insert(site_key);
                     }
                     Ok(response) => {
                         let body = response.text().await.unwrap_or_default();
-                        error!(%body, "status error creating site {}/{}", name, site.name);
+                        error!(%body, "status error synchronizing site {}/{}", name, site.name);
                     }
-                    Err(err) => error!(?err, "network error creating site {}/{}", name, site.name),
+                    Err(err) => error!(?err, "network error synchronizing site {}/{}", name, site.name),
                 }
             }
         }
@@ -495,6 +651,7 @@ impl Feeder {
                     }
                     self.update_event(state).await;
                     self.update_contests().await;
+                    self.ensure_reveal_salts().await;
                     self.update_runs(runs).await;
                 }
                 Err(err) => error!(?err, "failed loading contest state from BOCA, will retry"),
