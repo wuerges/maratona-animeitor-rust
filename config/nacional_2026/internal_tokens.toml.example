@@ -1,0 +1,12 @@
+# Copy this file to internal_tokens.toml and replace every token.
+# Keep the real file private (recommended permissions: chmod 600).
+
+[[tokens]]
+name = "feeder-nacional-2026"
+token = "replace-with-a-long-random-token"
+enabled = true
+
+[[tokens]]
+name = "printurls-nacional-2026"
+token = "replace-with-another-long-random-token"
+enabled = true

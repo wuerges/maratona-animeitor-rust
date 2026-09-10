@@ -34,12 +34,12 @@ impl FromRequestParts<AppState> for InternalAuth {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let authorized = match &state.internal_token {
-            None => false,
-            Some(expected) => {
-                basic_password(parts).is_some_and(|found| found.as_str() == expected.as_str())
-            }
-        };
+        let authorized = basic_credentials(parts).is_some_and(|(name, password)| {
+            state
+                .internal_tokens
+                .get(&name)
+                .is_some_and(|expected| expected == &password)
+        });
 
         if authorized {
             Ok(InternalAuth)
@@ -49,13 +49,13 @@ impl FromRequestParts<AppState> for InternalAuth {
     }
 }
 
-fn basic_password(parts: &Parts) -> Option<String> {
+fn basic_credentials(parts: &Parts) -> Option<(String, String)> {
     let header = parts.headers.get(AUTHORIZATION)?.to_str().ok()?;
     let encoded = header.strip_prefix("Basic ")?;
     let decoded = BASE64.decode(encoded).ok()?;
     let decoded = String::from_utf8(decoded).ok()?;
-    let (_, password) = decoded.split_once(':')?;
-    Some(password.to_string())
+    let (name, password) = decoded.split_once(':')?;
+    Some((name.to_string(), password.to_string()))
 }
 
 fn unauthorized_response() -> Response {

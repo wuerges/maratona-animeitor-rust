@@ -50,7 +50,10 @@ fn site_body() -> serde_json::Value {
 fn app_for(store: EventStore) -> Router {
     make_app(AppState {
         store,
-        internal_token: Some(TOKEN.to_string()),
+        internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
+            "usuario".to_string(),
+            TOKEN.to_string(),
+        )])),
     })
 }
 
@@ -492,7 +495,10 @@ async fn timer_ws_survives_production_layers() {
     seed_event(&store).await;
     let app = make_app(AppState {
         store,
-        internal_token: Some(TOKEN.to_string()),
+        internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
+            "usuario".to_string(),
+            TOKEN.to_string(),
+        )])),
     })
     .layer(TraceLayer::new_for_http())
     .layer(CorsLayer::permissive());
@@ -521,7 +527,10 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
     seed_event(&store).await;
     let app = make_app(AppState {
         store: store.clone(),
-        internal_token: Some(TOKEN.to_string()),
+        internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
+            "usuario".to_string(),
+            TOKEN.to_string(),
+        )])),
     })
     .layer(TraceLayer::new_for_http())
     .layer(CorsLayer::permissive());

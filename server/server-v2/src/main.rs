@@ -1,5 +1,7 @@
 use clap::Parser;
 use cli::{pair_arg::FromPairArg, sentry};
+use serde::Deserialize;
+use std::{collections::HashMap, path::PathBuf};
 
 use service::{
     app_config::AppConfig,
@@ -27,9 +29,9 @@ struct SimpleParser {
     /// The TCP port for HTTPS. Only used when --tls-cert and --tls-key are set.
     tls_port: u16,
 
-    #[clap(short = 't', long)]
-    /// Token for the internal API (/internal)
-    internal_token: Option<String>,
+    #[clap(long)]
+    /// TOML file containing named credentials for the internal API.
+    internal_tokens: PathBuf,
 
     #[clap(short = 'v', long)]
     /// Maps a local FOLDER to a remote PATH.
@@ -50,7 +52,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         tls_key,
         tls_port,
         volume: volumes,
-        internal_token,
+        internal_tokens,
     } = SimpleParser::parse();
 
     let tls = match (tls_cert, tls_key) {
@@ -63,6 +65,34 @@ async fn main() -> color_eyre::eyre::Result<()> {
         _ => unreachable!("clap requires --tls-cert and --tls-key together"),
     };
     let tls_port = tls.as_ref().map(|t| t.port);
+    #[derive(Deserialize)]
+    struct TokenFile {
+        tokens: Vec<TokenEntry>,
+    }
+    #[derive(Deserialize)]
+    struct TokenEntry {
+        name: String,
+        token: String,
+        #[serde(default = "enabled")]
+        enabled: bool,
+    }
+    fn enabled() -> bool {
+        true
+    }
+    let raw = std::fs::read_to_string(&internal_tokens)?;
+    let file: TokenFile = toml::from_str(&raw)?;
+    let mut tokens = HashMap::new();
+    for entry in file.tokens.into_iter().filter(|t| t.enabled) {
+        if entry.name.is_empty() || entry.token.is_empty() {
+            color_eyre::eyre::bail!("enabled internal tokens need a non-empty name and token");
+        }
+        if tokens.insert(entry.name.clone(), entry.token).is_some() {
+            color_eyre::eyre::bail!("duplicate internal token name: {}", entry.name);
+        }
+    }
+    if tokens.is_empty() {
+        color_eyre::eyre::bail!("internal token file contains no enabled tokens");
+    }
     let server_config = HttpConfig { port, tls };
 
     server_v2::metrics::setup();
@@ -70,7 +100,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let app_config = AppConfig {
         server_config,
         volumes: volumes.into_iter().map(|x| x.into_inner()).collect(),
-        internal_token,
+        internal_tokens: tokens,
     };
 
     tracing::info!("\nMaratona Rustreimator rodando!");

@@ -29,7 +29,7 @@ use service::{
 #[derive(Clone)]
 pub struct AppState {
     pub store: EventStore,
-    pub internal_token: Option<String>,
+    pub internal_tokens: std::sync::Arc<std::collections::HashMap<String, String>>,
 }
 
 impl FromRef<AppState> for EventStore {
@@ -91,12 +91,12 @@ pub async fn serve_config(
     AppConfig {
         server_config: HttpConfig { port, tls },
         volumes,
-        internal_token,
+        internal_tokens,
     }: AppConfig,
 ) -> ServiceResult<()> {
     let state = AppState {
         store: service::event_store::EventStore::new(),
-        internal_token,
+        internal_tokens: Arc::new(internal_tokens),
     };
 
     let mut app = app(state);

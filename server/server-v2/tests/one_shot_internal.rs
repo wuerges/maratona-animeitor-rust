@@ -54,7 +54,10 @@ fn site_body() -> serde_json::Value {
 fn app_for(store: EventStore) -> Router {
     make_app(AppState {
         store,
-        internal_token: Some(TOKEN.to_string()),
+        internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
+            "usuario".to_string(),
+            TOKEN.to_string(),
+        )])),
     })
 }
 

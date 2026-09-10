@@ -18,6 +18,10 @@ struct SimpleParser {
     #[clap(short = 't', long)]
     token: String,
 
+    /// Name of the token entry in the server's TOML credential file.
+    #[clap(long)]
+    user: String,
+
     /// Only print this event.
     #[clap(long)]
     event: Option<String>,
@@ -30,12 +34,13 @@ struct SimpleParser {
 /// Fetches an enveloped resource from the internal API.
 async fn get<T: for<'a> serde::Deserialize<'a>>(
     client: &reqwest::Client,
+    user: &str,
     token: &str,
     url: &str,
 ) -> color_eyre::eyre::Result<T> {
     let envelope: Envelope<T> = client
         .get(url)
-        .basic_auth("usuario", Some(token))
+        .basic_auth(user, Some(token))
         .send()
         .await?
         .error_for_status()?
@@ -59,6 +64,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let SimpleParser {
         server,
+        user,
         token,
         event,
         prefix,
@@ -67,7 +73,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     let client = reqwest::Client::new();
 
     let mut events: Vec<String> =
-        get(&client, &token, &format!("{server}/internal/events")).await?;
+        get(&client, &user, &token, &format!("{server}/internal/events")).await?;
     events.sort();
     if let Some(event) = &event {
         events.retain(|name| name == event);
@@ -80,6 +86,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
     for event in &events {
         let state: EventState = get(
             &client,
+            &user,
             &token,
             &format!("{server}/internal/events/{event}"),
         )
@@ -87,6 +94,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
         let mut contests: Vec<ContestConfig> = get(
             &client,
+            &user,
             &token,
             &format!("{server}/internal/events/{event}/contests"),
         )
@@ -96,6 +104,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
         for contest in &contests {
             let mut sites: Vec<SiteConfig> = get(
                 &client,
+                &user,
                 &token,
                 &format!(
                     "{server}/internal/events/{event}/contests/{}/sites",

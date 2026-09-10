@@ -16,7 +16,9 @@ SERVER_RELEASE_DIR = target/release/
 
 PREFIX ?= http://animeitor.naquadah.com.br
 SERVER_URL ?= http://localhost:${PUBLIC_PORT}
-INTERNAL_TOKEN ?= token-de-teste
+INTERNAL_TOKEN_NAME ?= feeder-nacional-2026
+INTERNAL_TOKEN ?= replace-with-token
+INTERNAL_TOKENS_FILE ?= config/nacional_2026/internal_tokens.toml
 
 # Set these in secret_env for the production server. Keeping TLS opt-in lets
 # `run-standalone-loop` work out of the box for a local rehearsal.
@@ -60,7 +62,7 @@ run-standalone:
 		-v ./animeitor-client/release: \
 		-v ./animeitor-client/release:animeitor \
 		${HTTPS_OPTS} \
-		-t ${INTERNAL_TOKEN}
+		--internal-tokens ${INTERNAL_TOKENS_FILE}
 
 run-standalone-loop:
 	@test -n "${BOCA_URL}" || { echo "BOCA_URL must point to the 2026 webcast" >&2; exit 2; }; \
@@ -71,7 +73,7 @@ run-standalone-loop:
 		-v ./animeitor-client/release: \
 		-v ./animeitor-client/release:animeitor \
 		${HTTPS_OPTS} \
-		-t ${INTERNAL_TOKEN} & server_pid=$$!; \
+		--internal-tokens ${INTERNAL_TOKENS_FILE} & server_pid=$$!; \
 	trap 'kill $$server_pid 2>/dev/null; wait $$server_pid 2>/dev/null' EXIT INT TERM; \
 	sleep 2; \
 	$(MAKE) -f config/nacional_2026/Makefile run-feeder SERVER_URL=${SERVER_URL}
@@ -79,7 +81,8 @@ run-standalone-loop:
 run-feeder:
 	@test -n "${BOCA_URL}" || (echo "BOCA_URL must point to the 2026 webcast" >&2; exit 2)
 	cargo run -p cli --bin animeitor-feeder -- \
-		-t ${INTERNAL_TOKEN} -i ${BOCA_URL} -s ${SERVER_URL} --event ${EVENT} \
+		--internal-user ${INTERNAL_TOKEN_NAME} --internal-token ${INTERNAL_TOKEN} \
+		-i ${BOCA_URL} -s ${SERVER_URL} --event ${EVENT} \
 		$(addprefix -c ,$(CONTEST_FILES)) \
 		${SECRETS_OPTS} \
 		${MEDIA_OPTS} \
@@ -88,7 +91,7 @@ run-feeder:
 printurls-standalone:
 	cargo run -p cli --bin printurls -- \
 		--server ${SERVER_URL} \
-		--token ${INTERNAL_TOKEN} \
+		--user ${INTERNAL_TOKEN_NAME} --token ${INTERNAL_TOKEN} \
 		--event ${EVENT} \
 		--prefix ${PREFIX}
 
@@ -99,7 +102,7 @@ run-local:
 		-v ./server/sounds:sounds \
 		-v ./animeitor-client/release: \
 		-v ./animeitor-client/release:animeitor \
-		-t ${INTERNAL_TOKEN}
+		--internal-tokens ${INTERNAL_TOKENS_FILE}
 
 run-local-loop:
 	$(MAKE) -f config/nacional_2026/Makefile run-standalone-loop \

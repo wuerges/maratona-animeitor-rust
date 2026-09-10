@@ -21,6 +21,9 @@ struct SimpleParser {
     /// Token for the internal API (/internal).
     #[clap(short = 't', long)]
     internal_token: String,
+    /// Name of the token entry in the server's TOML credential file.
+    #[clap(long)]
+    internal_user: String,
 
     /// The webcast url from BOCA (an URL or a local zip path).
     #[clap(short = 'i')]
@@ -196,6 +199,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let SimpleParser {
         internal_token,
+        internal_user,
         boca_url,
         server_url,
         event,
@@ -219,6 +223,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let mut feeder = Feeder::new(
         &internal_token,
+        &internal_user,
         &server_url,
         &event,
         contests,
@@ -236,6 +241,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
 struct Feeder {
     client: reqwest::Client,
     internal_token: String,
+    internal_user: String,
     event: String,
     event_url: String,
     runs_url: String,
@@ -256,6 +262,7 @@ struct Feeder {
 impl Feeder {
     fn new(
         internal_token: &str,
+        internal_user: &str,
         server_url: &str,
         event: &str,
         configured: Vec<ConfiguredContest>,
@@ -264,6 +271,7 @@ impl Feeder {
         Feeder {
             client: reqwest::Client::new(),
             internal_token: internal_token.to_string(),
+            internal_user: internal_user.to_string(),
             event: event.to_string(),
             event_url: url_with_segments(server_url, &["internal", "events", event]),
             runs_url: url_with_segments(server_url, &["internal", "events", event, "runs"]),
@@ -285,7 +293,7 @@ impl Feeder {
     ) -> Result<reqwest::Response, reqwest::Error> {
         self.client
             .request(method, url)
-            .basic_auth("usuario", Some(&self.internal_token))
+            .basic_auth(&self.internal_user, Some(&self.internal_token))
             .json(body)
             .send()
             .await
@@ -300,7 +308,7 @@ impl Feeder {
         let response = match self
             .client
             .get(url)
-            .basic_auth("usuario", Some(&self.internal_token))
+            .basic_auth(&self.internal_user, Some(&self.internal_token))
             .send()
             .await
         {
