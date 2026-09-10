@@ -1,0 +1,27 @@
+[titulo]
+name = "Caribbean Finals"
+codes = ["teamcb"]
+
+[[sedes]]
+name = "Caribbean Finals"
+codes = ["teamcb"]
+
+[[sedes]]
+codes = ["teamcbab"]
+name = "Antigua & Barbuda (Regional Site)"
+
+[[sedes]]
+codes = ["teamcbcu"]
+name = "Cuba (Regional Site)"
+
+[[sedes]]
+codes = ["teamcbdr"]
+name = "Dominican Republic (Regional Site)"
+
+[[sedes]]
+codes = ["teamcbpr"]
+name = "Puerto Rico (Regional Site)"
+
+[[sedes]]
+codes = ["teamcbtt"]
+name = "Trinidad & Tobago (Regional Site)"

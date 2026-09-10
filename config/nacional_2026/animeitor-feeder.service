@@ -1,0 +1,18 @@
+[Unit]
+Description=Maratona Animeitor feeder (Nacional 2026)
+After=network-online.target animeitor-server.service
+Wants=network-online.target animeitor-server.service
+
+[Service]
+Type=simple
+User=ew
+Group=ew
+WorkingDirectory=/home/ew/maratona-animeitor-rust
+Environment=RUST_LOG=info
+EnvironmentFile=-/home/ew/maratona-animeitor-rust/config/nacional_2026/secret_env
+ExecStart=/usr/bin/make -f config/nacional_2026/Makefile run-feeder
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
