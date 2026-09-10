@@ -63,7 +63,11 @@ fn to_ws_prefix(prefix: &str) -> String {
 fn ws_prefix_from_location(path: &str) -> String {
     #[cfg(all(target_family = "wasm", not(test)))]
     {
-        let scheme = if window_protocol_is_https() { "wss" } else { "ws" };
+        let scheme = if window_protocol_is_https() {
+            "wss"
+        } else {
+            "ws"
+        };
         let host = web_sys::window()
             .and_then(|w| w.location().host().ok())
             .unwrap_or_default();

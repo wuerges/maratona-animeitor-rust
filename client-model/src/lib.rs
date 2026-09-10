@@ -20,8 +20,8 @@ pub use timer_ext::TimerDataExt;
 use std::{collections::HashSet, sync::Arc};
 
 use contest_signal::ContestSignal;
-use data::{configdata::ConfigContest, ContestFile, RunTuple, RunsFile};
-use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
+use data::{ContestFile, RunTuple, RunsFile, configdata::ConfigContest};
+use futures::{StreamExt, channel::mpsc::UnboundedReceiver};
 use runs_panel_signal::RunsPanelItemManager;
 
 use crate::annotate_first_solved::annotate_first_solved;

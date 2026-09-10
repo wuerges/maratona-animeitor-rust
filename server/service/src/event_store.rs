@@ -75,8 +75,8 @@ fn base62(bytes: &[u8]) -> String {
 
 /// Derives the key of a site from the three salts, per `doc/event-api.md`.
 ///
-/// Returns `None` when the site has no salt of its own (reveal disabled).
-/// Missing event/contest salts contribute an empty string.
+/// Missing salts contribute empty strings; the site name still provides a
+/// deterministic domain, so revelation remains available without salts.
 pub fn site_key(
     event_salt: Option<&str>,
     contest_salt: Option<&str>,
@@ -84,14 +84,32 @@ pub fn site_key(
     contest_name: &str,
     site_name: &str,
 ) -> Option<String> {
-    let site_salt = site_salt?;
+    site_key_with_event(
+        event_salt,
+        contest_salt,
+        site_salt,
+        "",
+        contest_name,
+        site_name,
+    )
+}
+
+/// Derives a site key including the event name in its domain.
+pub fn site_key_with_event(
+    event_salt: Option<&str>,
+    contest_salt: Option<&str>,
+    site_salt: Option<&str>,
+    event_name: &str,
+    contest_name: &str,
+    site_name: &str,
+) -> Option<String> {
     let key = format!(
         "{}:{}:{}",
         event_salt.unwrap_or_default(),
         contest_salt.unwrap_or_default(),
-        site_salt
+        site_salt.unwrap_or_default()
     );
-    let message = format!("{}:{}", contest_name, site_name);
+    let message = format!("{}:{}:{}", event_name, contest_name, site_name);
     let digest = hmac_sha256(&key, &message);
     let encoded = base62(&digest);
     Some(encoded.chars().take(KEY_LEN).collect())
@@ -188,7 +206,11 @@ impl EventStore {
     }
 
     /// Creates a new event. The `name` in the state must match `event_name`.
-    pub async fn create_event(&self, event_name: &str, state: EventState) -> Result<(), StoreError> {
+    pub async fn create_event(
+        &self,
+        event_name: &str,
+        state: EventState,
+    ) -> Result<(), StoreError> {
         let mut inner = self.inner.write().await;
         if inner.events.contains_key(event_name) {
             return Err(StoreError::AlreadyExists(format!("evento {event_name}")));
@@ -518,13 +540,9 @@ impl EventStore {
         let codes = compile_codes(&config.codes)?;
         let mut config = config;
         config.name = site_name.to_string();
-        contest.sites.insert(
-            site_name.to_string(),
-            SiteEntry {
-                config,
-                codes,
-            },
-        );
+        contest
+            .sites
+            .insert(site_name.to_string(), SiteEntry { config, codes });
         Ok(())
     }
 
@@ -596,12 +614,7 @@ impl EventStore {
         Ok(())
     }
 
-    pub async fn delete_site(
-        &self,
-        event_name: &str,
-        contest_name: &str,
-        site_name: &str,
-    ) -> bool {
+    pub async fn delete_site(&self, event_name: &str, contest_name: &str, site_name: &str) -> bool {
         let mut inner = self.inner.write().await;
         let Some(event) = inner.events.get_mut(event_name) else {
             return false;
@@ -649,14 +662,25 @@ impl EventStore {
         let event = inner.events.get(event_name)?;
         let contest = event.contests.get(contest_name)?;
         for (site_name, entry) in &contest.sites {
-            let derived = site_key(
+            let derived = site_key_with_event(
                 event.salt.as_deref(),
                 contest.config.salt.as_deref(),
                 entry.config.salt.as_deref(),
+                event_name,
                 contest_name,
                 site_name,
             );
-            if derived.as_deref() == Some(key) {
+            if derived.as_deref() == Some(key)
+                || site_key(
+                    event.salt.as_deref(),
+                    contest.config.salt.as_deref(),
+                    entry.config.salt.as_deref(),
+                    contest_name,
+                    site_name,
+                )
+                .as_deref()
+                    == Some(key)
+            {
                 return Some((site_name.clone(), entry.config.clone()));
             }
         }
@@ -774,7 +798,10 @@ impl EventStore {
     }
 
     /// Subscribes to the timer of an event.
-    pub async fn subscribe_timer(&self, event_name: &str) -> Option<broadcast::Receiver<PublicTimer>> {
+    pub async fn subscribe_timer(
+        &self,
+        event_name: &str,
+    ) -> Option<broadcast::Receiver<PublicTimer>> {
         let inner = self.inner.read().await;
         Some(inner.events.get(event_name)?.timer_tx.subscribe())
     }
@@ -921,16 +948,31 @@ mod tests {
     #[test]
     fn site_key_changes_when_any_salt_changes() {
         let base = site_key(Some("a"), Some("b"), Some("c"), "c", "s").unwrap();
-        assert_ne!(base, site_key(Some("a2"), Some("b"), Some("c"), "c", "s").unwrap());
-        assert_ne!(base, site_key(Some("a"), Some("b2"), Some("c"), "c", "s").unwrap());
-        assert_ne!(base, site_key(Some("a"), Some("b"), Some("c2"), "c", "s").unwrap());
-        assert_ne!(base, site_key(Some("a"), Some("b"), Some("c"), "c2", "s").unwrap());
-        assert_ne!(base, site_key(Some("a"), Some("b"), Some("c"), "c", "s2").unwrap());
+        assert_ne!(
+            base,
+            site_key(Some("a2"), Some("b"), Some("c"), "c", "s").unwrap()
+        );
+        assert_ne!(
+            base,
+            site_key(Some("a"), Some("b2"), Some("c"), "c", "s").unwrap()
+        );
+        assert_ne!(
+            base,
+            site_key(Some("a"), Some("b"), Some("c2"), "c", "s").unwrap()
+        );
+        assert_ne!(
+            base,
+            site_key(Some("a"), Some("b"), Some("c"), "c2", "s").unwrap()
+        );
+        assert_ne!(
+            base,
+            site_key(Some("a"), Some("b"), Some("c"), "c", "s2").unwrap()
+        );
     }
 
     #[test]
-    fn site_without_salt_has_no_key() {
-        assert_eq!(site_key(Some("a"), Some("b"), None, "c", "s"), None);
+    fn site_without_salt_still_has_key() {
+        assert!(site_key(Some("a"), Some("b"), None, "c", "s").is_some());
     }
 
     fn event_state(name: &str) -> EventState {
@@ -971,10 +1013,7 @@ mod tests {
         ));
 
         store.patch_time("ensaio", 10).await.unwrap();
-        assert_eq!(
-            store.get_event("ensaio").await.unwrap().time_seconds,
-            10
-        );
+        assert_eq!(store.get_event("ensaio").await.unwrap().time_seconds, 10);
 
         assert!(store.delete_event("ensaio").await);
         assert!(!store.delete_event("ensaio").await);
@@ -1024,10 +1063,7 @@ mod tests {
             time_seconds: 100,
             answer: Answer::Yes,
         };
-        let (added, updated, ignored) = store
-            .add_runs("ensaio", vec![bad_team])
-            .await
-            .unwrap();
+        let (added, updated, ignored) = store.add_runs("ensaio", vec![bad_team]).await.unwrap();
         assert_eq!((added, updated), (0, 0));
         assert_eq!(ignored.len(), 1);
 
@@ -1108,10 +1144,12 @@ mod tests {
             .unwrap();
 
         // A site without its own salt has no key.
-        assert!(store
-            .site_by_key("ensaio", "brasil", "qualquer")
-            .await
-            .is_none());
+        assert!(
+            store
+                .site_by_key("ensaio", "brasil", "qualquer")
+                .await
+                .is_none()
+        );
 
         store
             .set_event_salt("ensaio", Some("e".into()))
@@ -1126,7 +1164,8 @@ mod tests {
             .await
             .unwrap();
 
-        let key = site_key(Some("e"), Some("c"), Some("s"), "brasil", "fiemg").unwrap();
+        let key = site_key_with_event(Some("e"), Some("c"), Some("s"), "ensaio", "brasil", "fiemg")
+            .unwrap();
         let found = store.site_by_key("ensaio", "brasil", &key).await;
         assert_eq!(found.map(|(name, _)| name).as_deref(), Some("fiemg"));
 
@@ -1136,8 +1175,21 @@ mod tests {
             .await
             .unwrap();
         assert!(store.site_by_key("ensaio", "brasil", &key).await.is_none());
-        let new_key = site_key(Some("e"), Some("c"), Some("s2"), "brasil", "fiemg").unwrap();
-        assert!(store.site_by_key("ensaio", "brasil", &new_key).await.is_some());
+        let new_key = site_key_with_event(
+            Some("e"),
+            Some("c"),
+            Some("s2"),
+            "ensaio",
+            "brasil",
+            "fiemg",
+        )
+        .unwrap();
+        assert!(
+            store
+                .site_by_key("ensaio", "brasil", &new_key)
+                .await
+                .is_some()
+        );
 
         // Contest deletion removes its sites.
         assert!(store.delete_contest("ensaio", "brasil").await);

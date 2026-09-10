@@ -289,8 +289,8 @@ Respostas:
 
 Cada nível da hierarquia tem um salt opcional: o evento, cada contest e cada site. As chaves dos sites são **derivadas** desses salts; não há envio de chaves.
 
-- Chave de um site: `key(site) = HMAC-SHA256(salt_evento : salt_contest : salt_site, contest_name : site_name)`, codificada em base62 e truncada em 12 caracteres. O `:` é um separador literal; salt ausente contribui com string vazia na sua posição.
-- Site sem `salt` próprio não tem chave (revelação desabilitada para aquele site).
+- Chave de um site: `key(site) = HMAC-SHA256(salt_evento : salt_contest : salt_site, event_name : contest_name : site_name)`, codificada em base62 e truncada em 12 caracteres. O `:` é um separador literal; salt ausente contribui com string vazia na sua posição.
+- Mesmo sem salts configurados, a chave continua sendo derivada usando strings vazias e os nomes da hierarquia; portanto a revelação permanece habilitada.
 - Dois sites exibindo o mesmo contest têm chaves distintas, pois o salt do site entra na derivação.
 - Alcance da troca de salt: trocar o salt de um site muda somente a chave daquele site; trocar o salt de um contest muda as chaves de todos os seus sites; trocar o salt do evento muda todas as chaves do evento.
 - Para remover um salt, atualize o recurso inteiro (`PUT`) sem o campo `salt`.

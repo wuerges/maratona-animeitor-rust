@@ -1,8 +1,8 @@
 use futures::{
-    channel::mpsc::{self, UnboundedReceiver},
     SinkExt, StreamExt,
+    channel::mpsc::{self, UnboundedReceiver},
 };
-use gloo_net::websocket::{futures::WebSocket, Message, WebSocketError};
+use gloo_net::websocket::{Message, WebSocketError, futures::WebSocket};
 use gloo_timers::future::TimeoutFuture;
 use log::{error, info, warn};
 use serde::Deserialize;

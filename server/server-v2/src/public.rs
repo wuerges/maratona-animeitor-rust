@@ -208,7 +208,10 @@ async fn get_runs_secret(
 
     match store.site_by_key(&event_name, &contest_name, &key).await {
         None => invalid_key("chave não casa com nenhum site do contest"),
-        Some((site_name, _)) => match store.site_runs(&event_name, &contest_name, &site_name).await {
+        Some((site_name, _)) => match store
+            .site_runs(&event_name, &contest_name, &site_name)
+            .await
+        {
             Some(runs) => data_json(serde_json::json!({ "runs": runs }), StatusCode::OK),
             None => not_found("evento, contest ou site não existe"),
         },

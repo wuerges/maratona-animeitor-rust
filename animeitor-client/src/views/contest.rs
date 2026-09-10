@@ -9,14 +9,12 @@ use client_model::{
     team_signal::TeamSignal, TimerDataExt,
 };
 
-use crate::{
-    views::{
-        compress_placements::compress_placements,
-        runs_panel::RunsPanel,
-        team_media::{use_global_photo_state, PhotoState, TeamMedia},
-        team_score_line::TeamScoreLine,
-        timer::Timer,
-    },
+use crate::views::{
+    compress_placements::compress_placements,
+    runs_panel::RunsPanel,
+    team_media::{use_global_photo_state, PhotoState, TeamMedia},
+    team_score_line::TeamScoreLine,
+    timer::Timer,
 };
 
 use super::compress_placements::Compress;

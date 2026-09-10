@@ -7,11 +7,9 @@ use leptos::{logging::log, prelude::*};
 use client_model::runs_panel_signal::RunsPanelItemManager;
 use client_model::RunsPanelItem;
 
-use crate::{
-    views::{
-        compress_placements::compress_placements, placement::Placement, problem::Problem,
-        team_name::TeamName,
-    },
+use crate::views::{
+    compress_placements::compress_placements, placement::Placement, problem::Problem,
+    team_name::TeamName,
 };
 
 use super::compress_placements::Compress;

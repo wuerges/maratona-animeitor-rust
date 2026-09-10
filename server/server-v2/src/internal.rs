@@ -4,15 +4,15 @@
 //! configured at startup (`--internal-token`). Responses use the
 //! `{ data, errors, warnings }` envelope.
 
+use axum::Json;
 use axum::Router;
 use axum::extract::FromRequestParts;
 use axum::extract::rejection::JsonRejection;
 use axum::extract::{Path, State};
-use axum::http::{StatusCode, header, request::Parts};
 use axum::http::header::AUTHORIZATION;
+use axum::http::{StatusCode, header, request::Parts};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, patch, post};
-use axum::Json;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use serde::Deserialize;
@@ -36,7 +36,9 @@ impl FromRequestParts<AppState> for InternalAuth {
     ) -> Result<Self, Self::Rejection> {
         let authorized = match &state.internal_token {
             None => false,
-            Some(expected) => basic_password(parts).is_some_and(|found| found.as_str() == expected.as_str()),
+            Some(expected) => {
+                basic_password(parts).is_some_and(|found| found.as_str() == expected.as_str())
+            }
         };
 
         if authorized {
@@ -77,9 +79,7 @@ fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Res
 
 fn store_error(err: StoreError) -> Response {
     match err {
-        StoreError::AlreadyExists(message) => {
-            error_json(StatusCode::CONFLICT, "conflict", message)
-        }
+        StoreError::AlreadyExists(message) => error_json(StatusCode::CONFLICT, "conflict", message),
         StoreError::NotFound(message) => error_json(StatusCode::NOT_FOUND, "not_found", message),
         StoreError::InvalidValue(message) => {
             error_json(StatusCode::BAD_REQUEST, "invalid_value", message)
@@ -110,7 +110,10 @@ pub fn router() -> Router<AppState> {
         .route("/events", get(list_events))
         .route(
             "/events/{event_name}",
-            get(get_event).post(create_event).put(put_event).delete(delete_event),
+            get(get_event)
+                .post(create_event)
+                .put(put_event)
+                .delete(delete_event),
         )
         .route("/events/{event_name}/contests", get(list_contests))
         .route(
@@ -216,7 +219,11 @@ async fn list_sites(
 ) -> Response {
     match store.list_sites(&event_name, &contest_name).await {
         Some(sites) => data_json(sites, StatusCode::OK),
-        None => error_json(StatusCode::NOT_FOUND, "not_found", "evento ou contest não existe"),
+        None => error_json(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "evento ou contest não existe",
+        ),
     }
 }
 
@@ -268,7 +275,10 @@ async fn patch_time(
     };
     // Negative values are allowed: the contest starts with a countdown.
     match store.patch_time(&event_name, body.time_seconds).await {
-        Some(seconds) => data_json(serde_json::json!({ "time_seconds": seconds }), StatusCode::OK),
+        Some(seconds) => data_json(
+            serde_json::json!({ "time_seconds": seconds }),
+            StatusCode::OK,
+        ),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
     }
 }
@@ -408,7 +418,11 @@ async fn delete_contest(
     if store.delete_contest(&event_name, &contest_name).await {
         StatusCode::NO_CONTENT.into_response()
     } else {
-        error_json(StatusCode::NOT_FOUND, "not_found", "evento ou contest não existe")
+        error_json(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "evento ou contest não existe",
+        )
     }
 }
 
@@ -424,7 +438,10 @@ async fn post_contest_salt(
         Err(err) => return map_json_rejection(err),
     };
     let salt = body.and_then(|Json(body)| body.salt);
-    match store.set_contest_salt(&event_name, &contest_name, salt).await {
+    match store
+        .set_contest_salt(&event_name, &contest_name, salt)
+        .await
+    {
         Ok(salt) => data_json(serde_json::json!({ "salt": salt }), StatusCode::OK),
         Err(err) => store_error(err),
     }
@@ -490,7 +507,11 @@ async fn delete_site(
     {
         StatusCode::NO_CONTENT.into_response()
     } else {
-        error_json(StatusCode::NOT_FOUND, "not_found", "evento, contest ou site não existe")
+        error_json(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "evento, contest ou site não existe",
+        )
     }
 }
 

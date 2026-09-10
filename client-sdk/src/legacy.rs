@@ -41,8 +41,7 @@ fn to_sede_entry(
     style: Option<&str>,
     medals: (usize, usize, usize),
 ) -> SedeEntry {
-    let codes: RegexSetField =
-        serde_json::from_value(serde_json::json!(codes)).unwrap_or_default();
+    let codes: RegexSetField = serde_json::from_value(serde_json::json!(codes)).unwrap_or_default();
     SedeEntry {
         name: name.to_string(),
         codes,

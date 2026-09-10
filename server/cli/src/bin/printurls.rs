@@ -1,7 +1,7 @@
 use clap::Parser;
 
 use data::event::{ContestConfig, Envelope, EventState, SiteConfig};
-use service::event_store::site_key;
+use service::event_store::site_key_with_event;
 use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 use url::Url;
 
@@ -78,8 +78,12 @@ async fn main() -> color_eyre::eyre::Result<()> {
 
     let mut found_any = false;
     for event in &events {
-        let state: EventState =
-            get(&client, &token, &format!("{server}/internal/events/{event}")).await?;
+        let state: EventState = get(
+            &client,
+            &token,
+            &format!("{server}/internal/events/{event}"),
+        )
+        .await?;
 
         let mut contests: Vec<ContestConfig> = get(
             &client,
@@ -102,13 +106,17 @@ async fn main() -> color_eyre::eyre::Result<()> {
             sites.sort_by(|a, b| a.name.cmp(&b.name));
 
             println!("-> {event} / {}", contest.name);
-            println!("    Animeitor em {}", contest_url(&prefix, event, &contest.name)?);
+            println!(
+                "    Animeitor em {}",
+                contest_url(&prefix, event, &contest.name)?
+            );
 
             for site in &sites {
-                match site_key(
+                match site_key_with_event(
                     state.salt.as_deref(),
                     contest.salt.as_deref(),
                     site.salt.as_deref(),
+                    &event,
                     &contest.name,
                     &site.name,
                 ) {
@@ -119,7 +127,7 @@ async fn main() -> color_eyre::eyre::Result<()> {
                             .append_pair("sede", &site.name);
                         println!("    {}: Reveleitor em {url}", site.name);
                     }
-                    None => println!("    {}: revelação desabilitada (site sem salt)", site.name),
+                    None => println!("    {}: revelação indisponível", site.name),
                 }
             }
             found_any = true;

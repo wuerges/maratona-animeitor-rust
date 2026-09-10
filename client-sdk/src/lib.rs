@@ -9,8 +9,8 @@ use data::configdata::ConfigContest;
 use data::event::{Envelope, PublicConfig, PublicContestState, PublicTimer, Run, RunsData};
 use data::{ContestFile, RunTuple, TimerData};
 use futures::{
-    channel::mpsc::{self, UnboundedReceiver},
     SinkExt, StreamExt,
+    channel::mpsc::{self, UnboundedReceiver},
 };
 use gloo_timers::future::TimeoutFuture;
 use log::{error, warn};

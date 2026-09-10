@@ -131,7 +131,10 @@ mod tests {
             "http://localhost:8000/internal/events/nacional-2026/contests/South%20America%20-%20South%20Finals/sites"
         );
         assert_eq!(
-            url_with_segments("http://localhost:8000/internal/sites", &["Antigua & Barbuda"]),
+            url_with_segments(
+                "http://localhost:8000/internal/sites",
+                &["Antigua & Barbuda"]
+            ),
             "http://localhost:8000/internal/sites/Antigua%20&%20Barbuda"
         );
     }
@@ -340,7 +343,10 @@ impl Feeder {
             None => {
                 // First poll: create, or adopt the existing event.
                 let body = serde_json::to_value(&state).unwrap();
-                match self.send(reqwest::Method::POST, &self.event_url, &body).await {
+                match self
+                    .send(reqwest::Method::POST, &self.event_url, &body)
+                    .await
+                {
                     Ok(response) if response.status().is_success() => {
                         info!("event created");
                         self.known_event = Some(state);
@@ -358,14 +364,17 @@ impl Feeder {
                     }
                     Err(err) => error!(?err, "network error creating event"),
                 }
-                self.ensure_event_salt().await;
             }
             Some(known) => {
                 if Self::same_static(known, &state) {
                     if known.time_seconds != state.time_seconds {
                         let body = serde_json::json!({ "time_seconds": state.time_seconds });
                         match self
-                            .send(reqwest::Method::PATCH, &format!("{}/time", self.event_url), &body)
+                            .send(
+                                reqwest::Method::PATCH,
+                                &format!("{}/time", self.event_url),
+                                &body,
+                            )
                             .await
                         {
                             Ok(response) if response.status().is_success() => {
@@ -381,12 +390,15 @@ impl Feeder {
                         }
                     }
                 } else {
-                    // An existing event keeps its salt: PUT replaces every
-                    // field, and the webcast shape carries no salt.
+                    // An existing event keeps its optional salt: PUT replaces
+                    // every field, and the webcast shape carries no salt.
                     let mut state = state;
                     state.salt = known.salt.clone();
                     let body = serde_json::to_value(&state).unwrap();
-                    match self.send(reqwest::Method::PUT, &self.event_url, &body).await {
+                    match self
+                        .send(reqwest::Method::PUT, &self.event_url, &body)
+                        .await
+                    {
                         Ok(response) if response.status().is_success() => {
                             info!("event updated");
                             self.known_event = Some(state);
@@ -405,121 +417,6 @@ impl Feeder {
         }
     }
 
-    /// Generates the event salt once (the server derives site keys from it;
-    /// regenerating it would invalidate every site key).
-    async fn ensure_event_salt(&mut self) {
-        if self
-            .known_event
-            .as_ref()
-            .is_none_or(|event| event.salt.is_some())
-        {
-            return;
-        }
-        match self
-            .send(
-                reqwest::Method::POST,
-                &format!("{}/salt", self.event_url),
-                &serde_json::json!({}),
-            )
-            .await
-        {
-            Ok(response) if response.status().is_success() => {
-                if let Ok(envelope) = response
-                    .json::<data::event::Envelope<serde_json::Value>>()
-                    .await
-                {
-                    if let Some(salt) = envelope
-                        .data
-                        .and_then(|data| data["salt"].as_str().map(String::from))
-                    {
-                        if let Some(event) = &mut self.known_event {
-                            event.salt = Some(salt);
-                        }
-                    }
-                }
-            }
-            Ok(response) => {
-                let body = response.text().await.unwrap_or_default();
-                error!(%body, "status error setting event salt");
-            }
-            Err(err) => error!(?err, "network error setting event salt"),
-        }
-    }
-
-    /// When the event has a salt, every contest and site fed by this process
-    /// must have one too so each site has a usable reveal key. Existing salts
-    /// (including values from `--secrets`) are deliberately preserved: POST
-    /// is only used for resources whose internal representation has no salt.
-    async fn ensure_reveal_salts(&self) {
-        if self
-            .known_event
-            .as_ref()
-            .is_none_or(|event| event.salt.is_none())
-        {
-            return;
-        }
-
-        let Some(contests) = self
-            .get::<Vec<ContestConfig>>(&format!("{}/contests", self.event_url))
-            .await
-        else {
-            error!("could not list contests while enabling reveals");
-            return;
-        };
-
-        for contest in contests {
-            if contest.salt.is_none() {
-                self.generate_salt(
-                    &url_with_segments(
-                        &self.contests_url,
-                        &[contest.name.as_str(), "salt"],
-                    ),
-                    "contest",
-                )
-                .await;
-            }
-
-            let sites_url = url_with_segments(
-                &self.event_url,
-                &["contests", contest.name.as_str(), "sites"],
-            );
-            let Some(sites) = self.get::<Vec<SiteConfig>>(&sites_url).await else {
-                error!(contest = %contest.name, "could not list sites while enabling reveals");
-                continue;
-            };
-            for site in sites {
-                if site.salt.is_none() {
-                    self.generate_salt(
-                        &url_with_segments(
-                            &self.sites_url,
-                            &[contest.name.as_str(), site.name.as_str(), "salt"]
-                        ),
-                        "site",
-                    )
-                    .await;
-                }
-            }
-        }
-    }
-
-    /// Asks the server to generate one salt. This is never called for a
-    /// resource that already has a salt, because it would rotate its URL key.
-    async fn generate_salt(&self, url: &str, resource: &str) {
-        match self
-            .send(reqwest::Method::POST, url, &serde_json::json!({}))
-            .await
-        {
-            Ok(response) if response.status().is_success() => {
-                debug!(%resource, "reveal salt enabled");
-            }
-            Ok(response) => {
-                let body = response.text().await.unwrap_or_default();
-                error!(%resource, %body, "status error enabling reveal salt");
-            }
-            Err(err) => error!(%resource, ?err, "network error enabling reveal salt"),
-        }
-    }
-
     /// Sends only the runs that are new or changed since the last poll.
     async fn update_runs(&mut self, runs: Vec<Run>) {
         let fresh: Vec<Run> = runs
@@ -530,10 +427,16 @@ impl Feeder {
             return;
         }
         let body = serde_json::json!({ "runs": fresh });
-        match self.send(reqwest::Method::POST, &self.runs_url, &body).await {
+        match self
+            .send(reqwest::Method::POST, &self.runs_url, &body)
+            .await
+        {
             Ok(response) => match response.error_for_status_ref() {
                 Ok(_) => {
-                    debug!("{} runs sent", body["runs"].as_array().map_or(0, |r| r.len()));
+                    debug!(
+                        "{} runs sent",
+                        body["runs"].as_array().map_or(0, |r| r.len())
+                    );
                     if let Some(runs) = body["runs"].as_array() {
                         for run in runs {
                             if let Ok(run) = serde_json::from_value::<Run>(run.clone()) {
@@ -626,7 +529,10 @@ impl Feeder {
                         let body = response.text().await.unwrap_or_default();
                         error!(%body, "status error synchronizing site {}/{}", name, site.name);
                     }
-                    Err(err) => error!(?err, "network error synchronizing site {}/{}", name, site.name),
+                    Err(err) => error!(
+                        ?err,
+                        "network error synchronizing site {}/{}", name, site.name
+                    ),
                 }
             }
         }
@@ -651,7 +557,6 @@ impl Feeder {
                     }
                     self.update_event(state).await;
                     self.update_contests().await;
-                    self.ensure_reveal_salts().await;
                     self.update_runs(runs).await;
                 }
                 Err(err) => error!(?err, "failed loading contest state from BOCA, will retry"),

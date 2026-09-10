@@ -87,7 +87,9 @@ async fn send_raw(app: &Router, request: Request<Body>) -> (StatusCode, Vec<u8>,
 }
 
 fn error_code(json: &serde_json::Value) -> &str {
-    json["errors"][0]["code"].as_str().expect("envelope error code")
+    json["errors"][0]["code"]
+        .as_str()
+        .expect("envelope error code")
 }
 
 // Seeding (direct store calls; no HTTP).
@@ -98,17 +100,26 @@ async fn seed_event(store: &EventStore) {
 }
 
 async fn seed_event_salt(store: &EventStore) {
-    store.set_event_salt("ensaio", Some("salt-do-evento".to_string())).await.unwrap();
+    store
+        .set_event_salt("ensaio", Some("salt-do-evento".to_string()))
+        .await
+        .unwrap();
 }
 
 async fn seed_contest(store: &EventStore) {
     let config: ContestConfig = serde_json::from_value(contest_body()).unwrap();
-    store.create_contest("ensaio", "brasil", config).await.unwrap();
+    store
+        .create_contest("ensaio", "brasil", config)
+        .await
+        .unwrap();
 }
 
 async fn seed_site(store: &EventStore) {
     let config: SiteConfig = serde_json::from_value(site_body()).unwrap();
-    store.create_site("ensaio", "brasil", "fiemg", config).await.unwrap();
+    store
+        .create_site("ensaio", "brasil", "fiemg", config)
+        .await
+        .unwrap();
 }
 
 /// A site without a salt: no key can ever match it.
@@ -118,7 +129,10 @@ async fn seed_site_without_salt(store: &EventStore) {
         "codes": ["teambr"]
     }))
     .unwrap();
-    store.create_site("ensaio", "brasil", "sem-salt", config).await.unwrap();
+    store
+        .create_site("ensaio", "brasil", "sem-salt", config)
+        .await
+        .unwrap();
 }
 
 async fn seed_run(store: &EventStore) {
@@ -156,7 +170,10 @@ async fn spawn_server(app: Router) -> String {
 fn ws_request(base: &str, path: &str) -> Request<()> {
     use tokio_tungstenite::tungstenite::client::IntoClientRequest;
     let url = format!("{base}{path}");
-    let mut request = url.as_str().into_client_request().expect("ws url is a valid request");
+    let mut request = url
+        .as_str()
+        .into_client_request()
+        .expect("ws url is a valid request");
     request
         .headers_mut()
         .insert("Accept-Encoding", "gzip".parse().unwrap());
@@ -176,7 +193,9 @@ async fn connect(base: &str, path: &str) -> WsStream {
 /// Connects expecting a handshake rejection: tungstenite surfaces non-101
 /// responses as `Error::Http`.
 async fn connect_error(base: &str, path: &str) -> StatusCode {
-    let err = tokio_tungstenite::connect_async(ws_request(base, path)).await.unwrap_err();
+    let err = tokio_tungstenite::connect_async(ws_request(base, path))
+        .await
+        .unwrap_err();
     match err {
         tokio_tungstenite::tungstenite::Error::Http(response) => response.status(),
         other => panic!("expected an HTTP handshake error, got {other:?}"),
@@ -212,7 +231,11 @@ async fn contests_pre_start_forbidden() {
     let store = EventStore::new();
     seed_event(&store).await;
     let app = app_for(store);
-    let (status, json) = send(&app, empty_request(Method::GET, "/api/events/ensaio/contests")).await;
+    let (status, json) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests"),
+    )
+    .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(error_code(&json), "not_started");
 }
@@ -224,7 +247,11 @@ async fn contests_after_start() {
     seed_contest(&store).await;
     seed_started(&store).await;
     let app = app_for(store);
-    let (status, json) = send(&app, empty_request(Method::GET, "/api/events/ensaio/contests")).await;
+    let (status, json) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests"),
+    )
+    .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(json["data"], serde_json::json!(["brasil"]));
 }
@@ -314,7 +341,10 @@ async fn runs_secret_wrong_key() {
     let app = app_for(store);
     let (status, json) = send(
         &app,
-        bearer_request("/api/events/ensaio/contests/brasil/runs_secret", Some("chave-errada")),
+        bearer_request(
+            "/api/events/ensaio/contests/brasil/runs_secret",
+            Some("chave-errada"),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
@@ -357,7 +387,10 @@ async fn runs_secret_site_without_salt() {
     let app = app_for(store);
     let (status, json) = send(
         &app,
-        bearer_request("/api/events/ensaio/contests/brasil/runs_secret", Some("qualquer")),
+        bearer_request(
+            "/api/events/ensaio/contests/brasil/runs_secret",
+            Some("qualquer"),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
@@ -505,7 +538,9 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
         headers.insert("Origin", "http://localhost:8000".parse().unwrap());
         headers.insert(
             "Sec-WebSocket-Extensions",
-            "permessage-deflate; client_max_window_bits".parse().unwrap(),
+            "permessage-deflate; client_max_window_bits"
+                .parse()
+                .unwrap(),
         );
         let (ws, response) = tokio_tungstenite::connect_async(request).await.unwrap();
         assert_eq!(response.status(), StatusCode::SWITCHING_PROTOCOLS);
@@ -545,10 +580,18 @@ async fn remote_control_relay() {
     let base = spawn_server(app).await;
 
     // A is the screen being controlled; B is the controller.
-    let mut a = connect(&base, "/api/events/ensaio/contests/brasil/remote_control/chave").await;
+    let mut a = connect(
+        &base,
+        "/api/events/ensaio/contests/brasil/remote_control/chave",
+    )
+    .await;
     // Let the server-side subscription land before B sends.
     tokio::time::sleep(Duration::from_millis(100)).await;
-    let mut b = connect(&base, "/api/events/ensaio/contests/brasil/remote_control/chave").await;
+    let mut b = connect(
+        &base,
+        "/api/events/ensaio/contests/brasil/remote_control/chave",
+    )
+    .await;
     b.send(tokio_tungstenite::tungstenite::Message::Text(
         r#"{"query":"?sede=fiemg"}"#.into(),
     ))
@@ -564,7 +607,10 @@ async fn remote_control_relay() {
 async fn remote_control_404() {
     let app = app_for(EventStore::new());
     let base = spawn_server(app).await;
-    let status =
-        connect_error(&base, "/api/events/ensaio/contests/brasil/remote_control/chave").await;
+    let status = connect_error(
+        &base,
+        "/api/events/ensaio/contests/brasil/remote_control/chave",
+    )
+    .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }

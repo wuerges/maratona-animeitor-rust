@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use data::{gen_id, Answer, ContestFile, Letter, Problem, RunTuple, Team};
+use data::{Answer, ContestFile, Letter, Problem, RunTuple, Team, gen_id};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -280,12 +280,18 @@ fn problem_reveal_run_frozen(problem: &mut Problem, wrong_penalty: i64) -> bool 
 
 fn team_apply_run(team: &mut Team, run: &RunTuple, wrong_penalty: i64) {
     team.id = gen_id();
-    let problem = team.problems.entry(run.prob.clone()).or_insert_with(problem_empty);
+    let problem = team
+        .problems
+        .entry(run.prob.clone())
+        .or_insert_with(problem_empty);
     problem_add_run(problem, run.answer.clone(), wrong_penalty);
 }
 
 fn team_apply_run_frozen(team: &mut Team, run: &RunTuple) {
     team.id = gen_id();
-    let problem = team.problems.entry(run.prob.clone()).or_insert_with(problem_empty);
+    let problem = team
+        .problems
+        .entry(run.prob.clone())
+        .or_insert_with(problem_empty);
     problem_add_run_frozen(problem, run.answer.clone());
 }

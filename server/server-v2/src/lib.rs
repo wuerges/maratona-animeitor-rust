@@ -62,7 +62,10 @@ fn load_assets(
         .clone()
 }
 
-fn volume_router(volume: Volume, loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>) -> Router {
+fn volume_router(
+    volume: Volume,
+    loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>,
+) -> Router {
     match volume.path.as_str() {
         "" => {
             // Root mount (landing): anything unmatched by the APIs is served
@@ -106,7 +109,11 @@ pub async fn serve_config(
         .layer(CorsLayer::permissive());
 
     match tls {
-        Some(HttpTlsConfig { cert, key, port: tls_port }) => {
+        Some(HttpTlsConfig {
+            cert,
+            key,
+            port: tls_port,
+        }) => {
             // Like the old actix server, both listeners stay up: HTTP on
             // `port` and HTTPS on `tls_port`.
             let mut tls_config = load_rustls_config(&cert, &key)?;
@@ -126,9 +133,7 @@ pub async fn serve_config(
 
             let https = axum_server::tls_rustls::bind_rustls(
                 std::net::SocketAddr::from(([0, 0, 0, 0], tls_port)),
-                axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(
-                    tls_config,
-                )),
+                axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(tls_config)),
             )
             .handle(handle)
             .serve(app.into_make_service());

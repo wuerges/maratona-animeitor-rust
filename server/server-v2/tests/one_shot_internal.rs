@@ -7,7 +7,7 @@
 
 use axum::Router;
 use axum::body::Body;
-use axum::http::{Method, Request, StatusCode, header, HeaderName};
+use axum::http::{HeaderName, Method, Request, StatusCode, header};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use http_body_util::BodyExt;
@@ -106,7 +106,6 @@ async fn send(app: &Router, request: Request<Body>) -> (StatusCode, serde_json::
     (status, json)
 }
 
-
 async fn send_bytes(app: &Router, request: Request<Body>) -> (StatusCode, Vec<u8>) {
     let response = app.clone().oneshot(request).await.unwrap();
     let status = response.status();
@@ -115,7 +114,9 @@ async fn send_bytes(app: &Router, request: Request<Body>) -> (StatusCode, Vec<u8
 }
 
 fn error_code(json: &serde_json::Value) -> &str {
-    json["errors"][0]["code"].as_str().expect("envelope error code")
+    json["errors"][0]["code"]
+        .as_str()
+        .expect("envelope error code")
 }
 
 // Seeding (direct store calls; no HTTP).
@@ -126,17 +127,26 @@ async fn seed_event(store: &EventStore) {
 }
 
 async fn seed_event_salt(store: &EventStore) {
-    store.set_event_salt("ensaio", Some("salt-do-evento".to_string())).await.unwrap();
+    store
+        .set_event_salt("ensaio", Some("salt-do-evento".to_string()))
+        .await
+        .unwrap();
 }
 
 async fn seed_contest(store: &EventStore) {
     let config: ContestConfig = serde_json::from_value(contest_body()).unwrap();
-    store.create_contest("ensaio", "brasil", config).await.unwrap();
+    store
+        .create_contest("ensaio", "brasil", config)
+        .await
+        .unwrap();
 }
 
 async fn seed_site(store: &EventStore) {
     let config: SiteConfig = serde_json::from_value(site_body()).unwrap();
-    store.create_site("ensaio", "brasil", "fiemg", config).await.unwrap();
+    store
+        .create_site("ensaio", "brasil", "fiemg", config)
+        .await
+        .unwrap();
 }
 
 async fn seed_all(store: &EventStore) {
@@ -164,7 +174,11 @@ async fn list_events_empty() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -179,7 +193,11 @@ async fn list_events() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -194,7 +212,11 @@ async fn get_event() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/ensaio", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -208,7 +230,11 @@ async fn get_event_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/inexistente", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/inexistente",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -223,7 +249,12 @@ async fn create_event() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio", Some((&auth.0, auth.1.clone())), &event_body()),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            &event_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CREATED);
@@ -238,7 +269,12 @@ async fn create_event_conflict() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio", Some((&auth.0, auth.1.clone())), &event_body()),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            &event_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CONFLICT);
@@ -251,7 +287,12 @@ async fn create_event_bad_json() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        raw_json_request(Method::POST, "/internal/events/ensaio", Some((&auth.0, auth.1.clone())), "{ não é json"),
+        raw_json_request(
+            Method::POST,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            "{ não é json",
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
@@ -268,7 +309,12 @@ async fn put_event() {
     body["time_seconds"] = serde_json::json!(300);
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/events/ensaio", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::PUT,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -281,7 +327,12 @@ async fn put_event_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/events/inexistente", Some((&auth.0, auth.1.clone())), &event_body()),
+        json_request(
+            Method::PUT,
+            "/internal/events/inexistente",
+            Some((&auth.0, auth.1.clone())),
+            &event_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -296,7 +347,11 @@ async fn delete_event() {
     let auth = auth_header();
     let (status, _) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/events/ensaio", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
@@ -308,7 +363,11 @@ async fn delete_event_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/events/inexistente", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/events/inexistente",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -326,7 +385,11 @@ async fn list_contests() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/ensaio/contests", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/ensaio/contests",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -340,7 +403,11 @@ async fn list_contests_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/inexistente/contests", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/inexistente/contests",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -357,7 +424,11 @@ async fn list_sites() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/ensaio/contests/brasil/sites", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/ensaio/contests/brasil/sites",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -373,7 +444,11 @@ async fn list_sites_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::GET, "/internal/events/ensaio/contests/brasil/sites", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events/ensaio/contests/brasil/sites",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -390,7 +465,12 @@ async fn patch_time() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::PATCH, "/internal/events/ensaio/time", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "time_seconds": 123 })),
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio/time",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "time_seconds": 123 }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -403,7 +483,12 @@ async fn patch_time_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::PATCH, "/internal/events/inexistente/time", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "time_seconds": 123 })),
+        json_request(
+            Method::PATCH,
+            "/internal/events/inexistente/time",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "time_seconds": 123 }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -424,7 +509,12 @@ async fn post_runs() {
     });
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio/runs", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/runs",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -447,7 +537,12 @@ async fn post_runs_warns_on_unknown_teams() {
     });
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio/runs", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/runs",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -469,7 +564,12 @@ async fn post_runs_invalid_prob() {
     });
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio/runs", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/runs",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
@@ -487,7 +587,12 @@ async fn post_runs_404() {
     });
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/inexistente/runs", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::POST,
+            "/internal/events/inexistente/runs",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -502,7 +607,11 @@ async fn delete_runs() {
     let auth = auth_header();
     let (status, _) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/events/ensaio/runs", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/events/ensaio/runs",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
@@ -514,7 +623,11 @@ async fn delete_runs_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/events/inexistente/runs", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/events/inexistente/runs",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -531,7 +644,12 @@ async fn event_salt_explicit() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/ensaio/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "meu-salt" })),
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "meu-salt" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -546,7 +664,11 @@ async fn event_salt_generated() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::POST, "/internal/events/ensaio/salt", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::POST,
+            "/internal/events/ensaio/salt",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -561,7 +683,12 @@ async fn event_salt_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/events/inexistente/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "x" })),
+        json_request(
+            Method::POST,
+            "/internal/events/inexistente/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "x" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -578,7 +705,12 @@ async fn create_contest() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/brasil", Some((&auth.0, auth.1.clone())), &contest_body()),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &contest_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CREATED);
@@ -594,7 +726,12 @@ async fn create_contest_conflict() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/brasil", Some((&auth.0, auth.1.clone())), &contest_body()),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &contest_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CONFLICT);
@@ -607,7 +744,12 @@ async fn create_contest_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/brasil", Some((&auth.0, auth.1.clone())), &contest_body()),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &contest_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -623,7 +765,12 @@ async fn create_contest_invalid_regex() {
     let body = serde_json::json!({ "name": "ruim", "codes": ["("] });
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/ruim", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/ruim",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
@@ -640,7 +787,12 @@ async fn put_contest() {
     let body = serde_json::json!({ "name": "brasil", "codes": ["teambr"], "ouro": 7 });
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/contests/ensaio/brasil", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::PUT,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -655,7 +807,12 @@ async fn put_contest_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/contests/ensaio/inexistente", Some((&auth.0, auth.1.clone())), &contest_body()),
+        json_request(
+            Method::PUT,
+            "/internal/contests/ensaio/inexistente",
+            Some((&auth.0, auth.1.clone())),
+            &contest_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -671,7 +828,11 @@ async fn delete_contest() {
     let auth = auth_header();
     let (status, _) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/contests/ensaio/brasil", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
@@ -685,7 +846,11 @@ async fn delete_contest_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/contests/ensaio/inexistente", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/contests/ensaio/inexistente",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -701,7 +866,12 @@ async fn contest_salt_explicit() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/brasil/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "meu-salt" })),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/brasil/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "meu-salt" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -716,7 +886,12 @@ async fn contest_salt_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/contests/ensaio/inexistente/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "x" })),
+        json_request(
+            Method::POST,
+            "/internal/contests/ensaio/inexistente/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "x" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -734,7 +909,12 @@ async fn create_site() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/sites/ensaio/brasil/fiemg", Some((&auth.0, auth.1.clone())), &site_body()),
+        json_request(
+            Method::POST,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &site_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CREATED);
@@ -749,7 +929,12 @@ async fn create_site_conflict() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/sites/ensaio/brasil/fiemg", Some((&auth.0, auth.1.clone())), &site_body()),
+        json_request(
+            Method::POST,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &site_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::CONFLICT);
@@ -764,7 +949,12 @@ async fn create_site_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/sites/ensaio/brasil/fiemg", Some((&auth.0, auth.1.clone())), &site_body()),
+        json_request(
+            Method::POST,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &site_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -780,11 +970,19 @@ async fn put_site() {
     let body = serde_json::json!({ "name": "fiemg", "codes": ["teambr", "outros"] });
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/sites/ensaio/brasil/fiemg", Some((&auth.0, auth.1.clone())), &body),
+        json_request(
+            Method::PUT,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &body,
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(json["data"]["codes"], serde_json::json!(["teambr", "outros"]));
+    assert_eq!(
+        json["data"]["codes"],
+        serde_json::json!(["teambr", "outros"])
+    );
 }
 
 #[tokio::test]
@@ -796,7 +994,12 @@ async fn put_site_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::PUT, "/internal/sites/ensaio/brasil/inexistente", Some((&auth.0, auth.1.clone())), &site_body()),
+        json_request(
+            Method::PUT,
+            "/internal/sites/ensaio/brasil/inexistente",
+            Some((&auth.0, auth.1.clone())),
+            &site_body(),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -811,7 +1014,11 @@ async fn delete_site() {
     let auth = auth_header();
     let (status, _) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/sites/ensaio/brasil/fiemg", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
@@ -826,7 +1033,11 @@ async fn delete_site_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        empty_request(Method::DELETE, "/internal/sites/ensaio/brasil/inexistente", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::DELETE,
+            "/internal/sites/ensaio/brasil/inexistente",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -841,7 +1052,12 @@ async fn site_salt_explicit() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/sites/ensaio/brasil/fiemg/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "meu-salt" })),
+        json_request(
+            Method::POST,
+            "/internal/sites/ensaio/brasil/fiemg/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "meu-salt" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -857,13 +1073,17 @@ async fn site_salt_404() {
     let auth = auth_header();
     let (status, json) = send(
         &app,
-        json_request(Method::POST, "/internal/sites/ensaio/brasil/inexistente/salt", Some((&auth.0, auth.1.clone())), &serde_json::json!({ "salt": "x" })),
+        json_request(
+            Method::POST,
+            "/internal/sites/ensaio/brasil/inexistente/salt",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({ "salt": "x" }),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(error_code(&json), "not_found");
 }
-
 
 #[tokio::test]
 async fn metrics_ok() {
@@ -878,15 +1098,26 @@ async fn metrics_ok() {
     // One instrumented request first, so the registry has samples.
     let _ = send(
         &app,
-        empty_request(Method::GET, "/internal/events", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/events",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     let (status, bytes) = send_bytes(
         &app,
-        empty_request(Method::GET, "/internal/metrics", Some((&auth.0, auth.1.clone()))),
+        empty_request(
+            Method::GET,
+            "/internal/metrics",
+            Some((&auth.0, auth.1.clone())),
+        ),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
     let text = String::from_utf8(bytes).expect("metrics body is text");
-    assert!(text.contains("function_calls"), "expected function metrics: {text}");
+    assert!(
+        text.contains("function_calls"),
+        "expected function metrics: {text}"
+    );
 }

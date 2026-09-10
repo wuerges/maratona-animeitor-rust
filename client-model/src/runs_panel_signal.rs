@@ -2,12 +2,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use data::configdata::Sede;
 use itertools::Itertools;
-use reactive_graph::{
-    computed::Memo,
-    prelude::*,
-    signal::RwSignal,
-    wrappers::read::Signal,
-};
+use reactive_graph::{computed::Memo, prelude::*, signal::RwSignal, wrappers::read::Signal};
 
 use crate::scoring::RunsPanelItem;
 

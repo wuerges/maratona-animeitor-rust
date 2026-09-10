@@ -127,16 +127,12 @@ async fn serve(State(mount): State<MemoryMount>, uri: OriginalUri, headers: Head
     };
     let name = if name.is_empty() { "index.html" } else { name };
 
-    let asset = mount
-        .assets
-        .files
-        .get(name)
-        .or_else(|| {
-            mount
-                .spa_fallback
-                .then(|| mount.assets.files.get("index.html"))
-                .flatten()
-        });
+    let asset = mount.assets.files.get(name).or_else(|| {
+        mount
+            .spa_fallback
+            .then(|| mount.assets.files.get("index.html"))
+            .flatten()
+    });
     let Some(asset) = asset else {
         return StatusCode::NOT_FOUND.into_response();
     };
@@ -187,7 +183,8 @@ async fn serve(State(mount): State<MemoryMount>, uri: OriginalUri, headers: Head
     *response.status_mut() = StatusCode::OK;
     response.headers_mut().insert(
         header::CONTENT_TYPE,
-        HeaderValue::from_str(asset.mime.as_ref()).expect("mime_guess produces valid header values"),
+        HeaderValue::from_str(asset.mime.as_ref())
+            .expect("mime_guess produces valid header values"),
     );
     let body = match encoding {
         Some(Encoding::Br) => {
@@ -197,10 +194,9 @@ async fn serve(State(mount): State<MemoryMount>, uri: OriginalUri, headers: Head
             asset.br.clone().expect("br variant exists")
         }
         Some(Encoding::Gzip) => {
-            response.headers_mut().insert(
-                header::CONTENT_ENCODING,
-                HeaderValue::from_static("gzip"),
-            );
+            response
+                .headers_mut()
+                .insert(header::CONTENT_ENCODING, HeaderValue::from_static("gzip"));
             asset.gz.clone().expect("gzip variant exists")
         }
         None => asset.raw.clone(),
@@ -294,7 +290,10 @@ fn is_hashed_filename(name: &str) -> bool {
     let rest = &stem[dash + 1..];
     rest.len() >= 16
         && rest[..16].bytes().all(|b| b.is_ascii_hexdigit())
-        && rest[16..].chars().next().is_none_or(|c| c == '.' || c == '_' || c == '-')
+        && rest[16..]
+            .chars()
+            .next()
+            .is_none_or(|c| c == '.' || c == '_' || c == '-')
 }
 
 fn gzip(bytes: &[u8]) -> Option<Vec<u8>> {
@@ -332,13 +331,22 @@ mod tests {
     #[test]
     fn test_negotiate_prefers_brotli() {
         let a = asset(true, true);
-        assert!(matches!(negotiate(Some("gzip, br"), &a), Some(Encoding::Br)));
+        assert!(matches!(
+            negotiate(Some("gzip, br"), &a),
+            Some(Encoding::Br)
+        ));
         // Like the actix-era server, brotli wins whenever it has any positive
         // q, even when gzip was preferred: both are acceptable to the client.
-        assert!(matches!(negotiate(Some("br;q=0.5, gzip;q=1"), &a), Some(Encoding::Br)));
+        assert!(matches!(
+            negotiate(Some("br;q=0.5, gzip;q=1"), &a),
+            Some(Encoding::Br)
+        ));
         // Without a brotli variant, gzip serves.
         let a = asset(true, false);
-        assert!(matches!(negotiate(Some("br, gzip"), &a), Some(Encoding::Gzip)));
+        assert!(matches!(
+            negotiate(Some("br, gzip"), &a),
+            Some(Encoding::Gzip)
+        ));
     }
 
     #[test]
@@ -362,7 +370,9 @@ mod tests {
     #[test]
     fn test_is_hashed_filename() {
         assert!(is_hashed_filename("styles-48e01c3f2adb8d51.css"));
-        assert!(is_hashed_filename("dir/animeitor-client-82d7749ea33c3f8d_bg.wasm"));
+        assert!(is_hashed_filename(
+            "dir/animeitor-client-82d7749ea33c3f8d_bg.wasm"
+        ));
         assert!(is_hashed_filename("audio-9273674b3492b75f.css"));
         assert!(!is_hashed_filename("index.html"));
         assert!(!is_hashed_filename("user-styles.css"));

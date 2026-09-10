@@ -318,11 +318,15 @@ mod tests {
         // MOJ serves the runs file ascending (oldest first). When a line is
         // appended, the `order` of existing runs must not shift, otherwise
         // RunsFile::refresh treats the whole file as fresh on every poll.
-        let r1 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y")?;
+        let r1 = read_runs(
+            "1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y",
+        )?;
         let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
         assert_eq!(orders1, vec![0, 1, 2]);
 
-        let r2 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N")?;
+        let r2 = read_runs(
+            "1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N",
+        )?;
         let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
         assert_eq!(orders2, vec![0, 1, 2, 3]);
 
@@ -337,11 +341,15 @@ mod tests {
     fn test_orders_stable_across_appends_descending() -> ServiceResult<()> {
         // The old source served the runs file descending (newest first);
         // new runs are prepended and existing orders must not shift either.
-        let r1 = read_runs("3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let r1 = read_runs(
+            "3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N",
+        )?;
         let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
         assert_eq!(orders1, vec![0, 1, 2]);
 
-        let r2 = read_runs("4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let r2 = read_runs(
+            "4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N",
+        )?;
         let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
         assert_eq!(orders2, vec![0, 1, 2, 3]);
 

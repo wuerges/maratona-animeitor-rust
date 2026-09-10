@@ -12,7 +12,12 @@ static CALCULATED: LazyLock<Vec<Letter>> = LazyLock::new(|| {
             ALPHABET
                 .iter()
                 .combinations_with_replacement(l)
-                .map(|t| t.into_iter().collect::<String>().parse().expect("valid letter"))
+                .map(|t| {
+                    t.into_iter()
+                        .collect::<String>()
+                        .parse()
+                        .expect("valid letter")
+                })
                 .collect_vec()
         })
         .sorted()

@@ -5,8 +5,8 @@ use std::{
 };
 
 use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
-use data::TimerData;
 use data::event::PublicConfig;
+use data::TimerData;
 use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
 use leptos::{prelude::*, task::spawn_local};
 
@@ -100,9 +100,8 @@ pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
             // its owner (writing to it afterwards panics). The root owner is
             // leaked on purpose so the signal never disposes.
             let owner = Owner::new_root(None);
-            let (timer, set_timer) = owner.with(|| {
-                signal((TimerData::fake(), data::TimerData::new(0, 1)))
-            });
+            let (timer, set_timer) =
+                owner.with(|| signal((TimerData::fake(), data::TimerData::new(0, 1))));
             std::mem::forget(owner);
 
             spawn_local(async move {
