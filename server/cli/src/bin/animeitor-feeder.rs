@@ -250,8 +250,6 @@ struct Feeder {
     configured: Vec<ConfiguredContest>,
     /// The state the server is known to hold (None until first confirmed).
     known_event: Option<EventState>,
-    /// Runs already accepted by the server, by id.
-    sent_runs: HashMap<i64, Run>,
     /// Contests/sites confirmed present on the server (`contest:NAME` and
     /// `site:CONTEST/NAME`), so they are not re-sent on every poll.
     confirmed: HashSet<String>,
@@ -279,7 +277,6 @@ impl Feeder {
             sites_url: url_with_segments(server_url, &["internal", "sites", event]),
             configured,
             known_event: None,
-            sent_runs: HashMap::new(),
             confirmed: HashSet::new(),
             score_freeze_time_seconds,
         }
@@ -358,12 +355,10 @@ impl Feeder {
                     Ok(response) if response.status().is_success() => {
                         info!("event created");
                         self.known_event = Some(state);
-                        self.sent_runs.clear();
                     }
                     Ok(response) if response.status() == reqwest::StatusCode::CONFLICT => {
                         if let Some(existing) = self.get_event().await {
                             self.known_event = Some(existing);
-                            self.sent_runs.clear();
                         }
                     }
                     Ok(response) => {
@@ -410,9 +405,6 @@ impl Feeder {
                         Ok(response) if response.status().is_success() => {
                             info!("event updated");
                             self.known_event = Some(state);
-                            // Teams/problems changed: re-send every run so
-                            // runs of newly-known teams get applied.
-                            self.sent_runs.clear();
                         }
                         Ok(response) => {
                             let body = response.text().await.unwrap_or_default();
@@ -425,16 +417,13 @@ impl Feeder {
         }
     }
 
-    /// Sends only the runs that are new or changed since the last poll.
+    /// Sends the complete webcast run list. Deduplication and correction
+    /// handling belong to the server, which indexes runs by their ID.
     async fn update_runs(&mut self, runs: Vec<Run>) {
-        let fresh: Vec<Run> = runs
-            .into_iter()
-            .filter(|run| self.sent_runs.get(&run.id) != Some(run))
-            .collect();
-        if fresh.is_empty() {
+        if runs.is_empty() {
             return;
         }
-        let body = serde_json::json!({ "runs": fresh });
+        let body = serde_json::json!({ "runs": runs });
         match self
             .send(reqwest::Method::POST, &self.runs_url, &body)
             .await
@@ -445,13 +434,6 @@ impl Feeder {
                         "{} runs sent",
                         body["runs"].as_array().map_or(0, |r| r.len())
                     );
-                    if let Some(runs) = body["runs"].as_array() {
-                        for run in runs {
-                            if let Ok(run) = serde_json::from_value::<Run>(run.clone()) {
-                                self.sent_runs.insert(run.id, run);
-                            }
-                        }
-                    }
                 }
                 Err(err) => {
                     let body = response.text().await.unwrap_or_default();

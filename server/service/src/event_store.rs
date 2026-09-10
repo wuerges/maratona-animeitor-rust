@@ -332,10 +332,9 @@ impl EventStore {
         Ok(salt)
     }
 
-    /// Applies runs in the order given: a new `id` is added, an existing one
-    /// corrects the previous result (last value wins). Returns
-    /// (added, updated).
-    /// Adds or corrects runs. Returns `(added, updated, ignored)` where
+    /// Normalizes and applies runs by `(time_seconds, id)`: a new `id` is
+    /// added, and an existing one corrects the previous result. Returns
+    /// `(added, updated, ignored)` where
     /// `ignored` are the runs from teams not in the event (skipped, not
     /// rejected — see below).
     pub async fn add_runs(
@@ -353,7 +352,7 @@ impl EventStore {
         // feeder re-sends the whole state on every poll, so rejecting would
         // block every update forever.
         let mut ignored = Vec::new();
-        let runs: Vec<Run> = runs
+        let mut runs: Vec<Run> = runs
             .into_iter()
             .filter(|run| {
                 let known = event.teams.iter().any(|team| team.login == run.team_login);
@@ -363,6 +362,7 @@ impl EventStore {
                 known
             })
             .collect();
+        runs.sort_by_key(|run| (run.time_seconds, run.id));
         if !ignored.is_empty() {
             tracing::info!(?ignored, "ignoring runs from teams not in the event");
         }
@@ -394,6 +394,13 @@ impl EventStore {
                 }
             }
             event.runs_tx.send_memo(run);
+        }
+        // A correction can change a run's timestamp. Keep the stored replay
+        // canonical and rebuild the ID index after sorting.
+        event.runs.sort_by_key(|run| (run.time_seconds, run.id));
+        event.runs_index.clear();
+        for (index, run) in event.runs.iter().enumerate() {
+            event.runs_index.insert(run.id, index);
         }
         Ok((added, updated, ignored))
     }
