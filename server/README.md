@@ -87,12 +87,11 @@ ulimit -n unlimited
 
 # Client only setup
 
-The client can be redirected to another server, using an environment variable:
+The client uses same-origin `/api`, `/photos`, and `/sounds` paths. Serve the
+client from the desired public host (or provide a runtime `config.json` with
+explicit prefixes); no compile-time environment variables are required.
 
 ```bash
-# generating the client pointing to animeitor
-URL_PREFIX="http://animeitor.naquadah.com.br" wasm-pack build client --release --out-dir www/pkg --target web --out-name package
-
 # serving the client assets locally
 python3 -m http.server 8000 -d client/www
 ```

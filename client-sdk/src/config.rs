@@ -80,25 +80,19 @@ fn ws_prefix_from_location(path: &str) -> String {
 }
 
 impl SdkConfig {
-    /// Same-origin relative defaults, overridden by the legacy compile-time
-    /// env vars when set. Runtime `config.json` overrides both (see `load`).
+    /// Same-origin relative defaults. Runtime `config.json` may override them
+    /// (see `load`).
     pub fn from_defaults() -> Self {
-        let api_prefix = option_env!("URL_PREFIX")
-            .map(String::from)
-            .unwrap_or_else(|| "/api".to_string());
+        let api_prefix = "/api".to_string();
         let api_prefix = upgrade_absolute_http(api_prefix);
 
         SdkConfig {
             ws_prefix: derive_ws_prefix(&api_prefix),
             api_prefix,
-            photo_prefix: option_env!("PHOTO_PREFIX")
-                .map(String::from)
-                .unwrap_or_else(|| "/photos".to_string()),
-            sound_prefix: option_env!("SOUND_PREFIX")
-                .map(String::from)
-                .unwrap_or_else(|| "/sounds".to_string()),
-            photo_url_format: option_env!("PHOTO_URL_FORMAT").map(String::from),
-            sound_url_format: option_env!("SOUND_URL_FORMAT").map(String::from),
+            photo_prefix: "/photos".to_string(),
+            sound_prefix: "/sounds".to_string(),
+            photo_url_format: None,
+            sound_url_format: None,
         }
     }
 
@@ -158,6 +152,10 @@ mod tests {
     fn check_url_prefix() {
         let config = SdkConfig::from_defaults();
         assert_eq!(config.api_prefix, "/api");
+        assert_eq!(config.photo_prefix, "/photos");
+        assert_eq!(config.sound_prefix, "/sounds");
+        assert_eq!(config.photo_url_format, None);
+        assert_eq!(config.sound_url_format, None);
     }
 
     #[test]

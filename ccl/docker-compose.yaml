@@ -36,5 +36,3 @@ services:
     build:
       context: ..
       dockerfile: client.Dockerfile
-      args:
-        - URL_PREFIX=http://localhost:8001
