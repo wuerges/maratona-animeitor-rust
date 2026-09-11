@@ -73,11 +73,12 @@ fn base62(bytes: &[u8]) -> String {
     String::from_utf8(out).expect("base62 alphabet is valid UTF-8")
 }
 
-/// Derives the key of a site from the three salts, per `doc/event-api.md`.
+/// Legacy derivation retained only for regression tests.
 ///
 /// Missing salts contribute empty strings; the site name still provides a
 /// deterministic domain, so revelation remains available without salts.
-pub fn site_key(
+#[cfg(test)]
+fn site_key(
     event_salt: Option<&str>,
     contest_salt: Option<&str>,
     site_salt: Option<&str>,
@@ -94,8 +95,9 @@ pub fn site_key(
     )
 }
 
-/// Derives a site key including the event name in its domain.
-pub fn site_key_with_event(
+/// Legacy event-aware derivation retained only for regression tests.
+#[cfg(test)]
+fn site_key_with_event(
     event_salt: Option<&str>,
     contest_salt: Option<&str>,
     site_salt: Option<&str>,
@@ -113,6 +115,32 @@ pub fn site_key_with_event(
     let digest = hmac_sha256(&key, &message);
     let encoded = base62(&digest);
     Some(encoded.chars().take(KEY_LEN).collect())
+}
+
+/// Deployment-bound site key. Event values are public inputs, not HMAC keys.
+pub fn deployment_site_key(
+    server_salt: &str,
+    event_name: &str,
+    contest_name: &str,
+    site_name: &str,
+    event_secret: &str,
+    contest_secret: &str,
+    site_secret: &str,
+) -> String {
+    let message = serde_json::to_string(&[
+        "animeitor-site-key-v1",
+        event_name,
+        contest_name,
+        site_name,
+        event_secret,
+        contest_secret,
+        site_secret,
+    ])
+    .expect("strings serialize");
+    base62(&hmac_sha256(server_salt, &message))
+        .chars()
+        .take(KEY_LEN)
+        .collect()
 }
 
 fn generate_salt() -> String {
@@ -192,12 +220,19 @@ struct Inner {
 /// The shared store of all events of the server.
 #[derive(Clone)]
 pub struct EventStore {
+    revelation_salt: Arc<String>,
     inner: Arc<RwLock<Inner>>,
 }
 
 impl EventStore {
     pub fn new() -> Self {
+        Self::with_revelation_salt(generate_salt())
+    }
+
+    pub fn with_revelation_salt(salt: String) -> Self {
+        assert!(!salt.is_empty(), "revelation salt must not be empty");
         Self {
+            revelation_salt: Arc::new(salt),
             inner: Arc::new(RwLock::new(Inner {
                 order: Vec::new(),
                 events: HashMap::new(),
@@ -669,25 +704,16 @@ impl EventStore {
         let event = inner.events.get(event_name)?;
         let contest = event.contests.get(contest_name)?;
         for (site_name, entry) in &contest.sites {
-            let derived = site_key_with_event(
-                event.salt.as_deref(),
-                contest.config.salt.as_deref(),
-                entry.config.salt.as_deref(),
+            let derived = deployment_site_key(
+                &self.revelation_salt,
                 event_name,
                 contest_name,
                 site_name,
+                event.salt.as_deref().unwrap_or_default(),
+                contest.config.salt.as_deref().unwrap_or_default(),
+                entry.config.salt.as_deref().unwrap_or_default(),
             );
-            if derived.as_deref() == Some(key)
-                || site_key(
-                    event.salt.as_deref(),
-                    contest.config.salt.as_deref(),
-                    entry.config.salt.as_deref(),
-                    contest_name,
-                    site_name,
-                )
-                .as_deref()
-                    == Some(key)
-            {
+            if derived == key {
                 return Some((site_name.clone(), entry.config.clone()));
             }
         }
@@ -1171,8 +1197,31 @@ mod tests {
             .await
             .unwrap();
 
-        let key = site_key_with_event(Some("e"), Some("c"), Some("s"), "ensaio", "brasil", "fiemg")
-            .unwrap();
+        let legacy =
+            site_key_with_event(Some("e"), Some("c"), Some("s"), "ensaio", "brasil", "fiemg")
+                .unwrap();
+        assert!(
+            store
+                .site_by_key("ensaio", "brasil", &legacy)
+                .await
+                .is_none()
+        );
+        let legacy = site_key(Some("e"), Some("c"), Some("s"), "brasil", "fiemg").unwrap();
+        assert!(
+            store
+                .site_by_key("ensaio", "brasil", &legacy)
+                .await
+                .is_none()
+        );
+        let key = deployment_site_key(
+            &store.revelation_salt,
+            "ensaio",
+            "brasil",
+            "fiemg",
+            "e",
+            "c",
+            "s",
+        );
         let found = store.site_by_key("ensaio", "brasil", &key).await;
         assert_eq!(found.map(|(name, _)| name).as_deref(), Some("fiemg"));
 
@@ -1182,15 +1231,15 @@ mod tests {
             .await
             .unwrap();
         assert!(store.site_by_key("ensaio", "brasil", &key).await.is_none());
-        let new_key = site_key_with_event(
-            Some("e"),
-            Some("c"),
-            Some("s2"),
+        let new_key = deployment_site_key(
+            &store.revelation_salt,
             "ensaio",
             "brasil",
             "fiemg",
-        )
-        .unwrap();
+            "e",
+            "c",
+            "s2",
+        );
         assert!(
             store
                 .site_by_key("ensaio", "brasil", &new_key)
@@ -1236,6 +1285,35 @@ mod tests {
         assert_eq!(
             state.problems.as_deref(),
             Some(&["A".to_string(), "B".to_string()][..])
+        );
+    }
+}
+
+#[cfg(test)]
+mod deployment_key_tests {
+    use super::deployment_site_key as key;
+    #[test]
+    fn fixed_vectors_and_domains() {
+        assert_eq!(key("private", "e", "c", "s", "ev", "", ""), "bhTCntI0yu9R");
+        assert_eq!(
+            key("private", "e:c", "c", "s:ü", "ev", "c", "s"),
+            "ZDvT1wW3ao4y"
+        );
+        let base = key("private", "e", "c", "s", "ev", "", "");
+        for changed in [
+            key("other", "e", "c", "s", "ev", "", ""),
+            key("private", "e2", "c", "s", "ev", "", ""),
+            key("private", "e", "c2", "s", "ev", "", ""),
+            key("private", "e", "c", "s2", "ev", "", ""),
+            key("private", "e", "c", "s", "ev2", "", ""),
+            key("private", "e", "c", "s", "ev", "c", ""),
+            key("private", "e", "c", "s", "ev", "", "s"),
+        ] {
+            assert_ne!(base, changed);
+        }
+        assert_ne!(
+            key("private", "a:b", "c", "s", "", "", ""),
+            key("private", "a", "b:c", "s", "", "", "")
         );
     }
 }

@@ -16,6 +16,7 @@ rand.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 reqwest.workspace = true
+regex.workspace = true
 
 data.workspace = true
 client-model.workspace = true

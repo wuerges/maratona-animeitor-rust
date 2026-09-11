@@ -174,7 +174,7 @@ Exemplo de mensagem:
 - `GET /api/events/{event-name}/contests/{contest-name}/runs_secret`
 - Todas as runs do site (incluindo as congeladas), para a revelação. O site é identificado pela **chave**: o servidor compara a chave recebida com as chaves derivadas dos sites do contest (ver [event-api.md](event-api.md), seção Salts) e casa com o site correspondente.
 - Cabeçalho obrigatório: `Authorization: Bearer <site-key>`. A chave não vai na URL (evita vazamento em logs).
-- Site sem `salt` próprio não tem chave derivada e, portanto, nenhuma chave funciona.
+- Site sem `salt` próprio usa string vazia nesse nível; a chave ainda depende do segredo privado do servidor. Chaves antigas sem esse segredo são rejeitadas.
 
 Resposta:
 

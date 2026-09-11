@@ -1,10 +1,17 @@
-# Basic configuration example
+# basic
 
-`event.toml` is the smallest complete event manifest. Run it with a local
-webcast using:
+The committed event.toml contains this event's complete contest/site definitions
+and public key-derivation values. No external contest files are loaded.
+
+Copy the root server configuration and event-secrets examples as described in
+[the main README](../../README.md). The private webcast mapping must contain
+this event's name. Then run:
 
 ```bash
-make run-basic BOCA_URL=tests/inputs/webcast_jones.zip
+make run-docker EVENT_CONFIG=config/basic/event.toml
+# Without Docker, use the host server configuration example:
+make run-config EVENT_CONFIG=config/basic/event.toml
+make printurls EVENT_CONFIG=config/basic/event.toml
 ```
 
-For a real event, use `make run-config CONFIG=...` with that event's manifest.
+The server itself needs only server.toml and learns events through the internal API.

@@ -1,0 +1,39 @@
+# Docker development. Copy to server.toml (ignored).
+# Replace these development credentials before deployment.
+revelation_salt = "development-server-salt-change-in-production"
+public_port = 8000
+tls_port = 8443
+tls_cert = "config/dev-certs/localhost-cert.pem"
+tls_key = "config/dev-certs/localhost-key.pem"
+tls_ca_cert = "config/dev-certs/localhost-cert.pem"
+server_url = "https://animeitor:8443"
+public_url = "http://localhost:8000"
+client_token = "feeder"
+
+[[tokens]]
+name = "feeder"
+token = "development-token"
+enabled = true
+
+[[assets]]
+directory = "/dist"
+path = ""
+[[assets]]
+directory = "/dist"
+path = "animeitor"
+[[assets]]
+directory = "/photos"
+path = "photos"
+[[assets]]
+directory = "/sounds"
+path = "sounds"
+
+[[docker.mounts]]
+source = "server/photos"
+target = "/photos"
+[[docker.mounts]]
+source = "server/sounds"
+target = "/sounds"
+[[docker.mounts]]
+source = "animeitor-client/static/user-styles.css"
+target = "/dist/user-styles.css"

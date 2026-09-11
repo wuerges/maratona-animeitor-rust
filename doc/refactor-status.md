@@ -1,6 +1,6 @@
 # Status do refactor multi-evento
 
-Estado atual do refactor descrito em [multi-event.md](multi-event.md). Atualizado a cada commit do refactor.
+Estado atual do refactor descrito em [multi-event.md](multi-event.md). As seções datadas abaixo são históricas; o fluxo atual está no README raiz.
 
 ## Feito
 
@@ -47,8 +47,6 @@ O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizad
 
 - Testes de handshake de WebSocket: com axum, o gating pré-upgrade dos WS (404/403 do `runs_ws`/`timer`/`remote_control`) é testável com requests HTTP puros (`oneshot`); falta adicionar esses testes. Fluxo completo de mensagens exigiria um client `tokio-tungstenite` contra um servidor spawnado.
 - Fluxo S3 (`serve-as-bucket/`): conferir landing e `config.json` nesse modo (chaves de `config.json` conferem com `SdkConfig`; falta teste real).
-- Flags antigas nos Makefiles arquivados em `config/archive/regional_2024/` e
-  `config/archive/regional_2025/` (regional_2026 já migrado).
 - Erros de envelope no client-sdk (`enveloped`) continuam com retry de 5s, agora logados como `error!`; sem estado de erro visível na UI.
 - Defaults de mídia (`photos/{team_login}.webp` etc.) são aplicados no cliente, não no servidor.
 
@@ -57,4 +55,11 @@ O merge do branch `regional2026/preparation` (hotfixes do contest 2026, realizad
 - Endpoints legados ficam removidos (sem janela de compatibilidade).
 - `?secret=` ainda é aceito como atalho no cliente, mas a chamada à API usa header Bearer.
 - Pre-start: endpoints públicos do contest respondem 403 `not_started`; remote_control WS continua aberto (não vaza estado).
-- O contest padrão do feeder usa codes `[""]` (regex vazia casa com qualquer login; convenção do `config/archive/legacy/basic.toml`).
+- Para casar qualquer login, use codes `[""]` (regex vazia) no manifesto explícito do evento.
+
+## Limpeza das configurações obsoletas
+
+Os TOMLs por contest foram substituídos pelos quatro manifests autocontidos em
+`config/*/event.toml`. Configurações arquivadas, Compose antigos e aliases de
+Makefile foram removidos; continuam disponíveis no histórico do Git. O servidor
+usa apenas server.toml; os exemplos ativos estão documentados no README raiz.

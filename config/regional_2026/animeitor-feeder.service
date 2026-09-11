@@ -5,7 +5,7 @@
 #   systemctl daemon-reload
 #   systemctl enable --now animeitor-feeder
 #
-# The feeder polls the webcast (BOCA_URL) and publishes the event state,
+# The feeder polls the configured webcast and publishes the event state,
 # runs, contests and sites into the animeitor-server's internal API, so
 # the server must be running (it retries on network errors either way).
 
@@ -20,10 +20,8 @@ User=ew
 Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
-# SENTRY_DSN and other secrets live in this gitignored file.
-EnvironmentFile=-/home/ew/maratona-animeitor-rust/secret_env
 
-ExecStart=/usr/bin/make run-feeder CONFIG=config/regional_2026/event.toml
+ExecStart=/home/ew/maratona-animeitor-rust/target/release/animeitor-feeder --server-config server.toml --event-config config/regional_2026/event.toml --event-secrets event-secrets.toml
 
 Restart=on-failure
 RestartSec=5

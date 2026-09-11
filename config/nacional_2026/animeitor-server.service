@@ -9,11 +9,10 @@ User=ew
 Group=ew
 WorkingDirectory=/home/ew/maratona-animeitor-rust
 Environment=RUST_LOG=info
-EnvironmentFile=-/home/ew/maratona-animeitor-rust/secret_env
 LimitNOFILE=65536
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE
-ExecStart=/usr/bin/make run-server CONFIG=config/nacional_2026/event.toml
+ExecStart=/home/ew/maratona-animeitor-rust/target/release/animeitor-server --server-config server.toml
 Restart=on-failure
 RestartSec=5
 

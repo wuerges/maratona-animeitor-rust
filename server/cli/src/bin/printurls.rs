@@ -1,180 +1,51 @@
-use std::path::PathBuf;
-
 use clap::Parser;
-use serde::Deserialize;
-
-use data::event::{ContestConfig, Envelope, EventState, SiteConfig};
-use service::event_store::site_key_with_event;
-use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
+use cli::configuration::{EventConfig, ServerConfig};
+use service::event_store::deployment_site_key;
+use std::path::PathBuf;
 use url::Url;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
-/// Prints the contest and reveleitor URLs of an animeitor server, reading
-/// events, contests, sites and salts from the internal API.
-struct SimpleParser {
-    /// The animeitor server url.
-    #[clap(short = 's', long, default_value = "http://localhost:8000")]
-    server: String,
-
-    /// Token for the internal API (/internal).
-    #[clap(short = 't', long)]
-    token: String,
-
-    /// Name of the token entry in the server's TOML credential file.
-    #[clap(long)]
-    user: String,
-
-    /// Only print this event.
-    #[clap(long)]
-    event: Option<String>,
-
-    /// Unified event manifest. Its `[event].name` selects the event.
-    #[clap(long)]
-    config: Option<PathBuf>,
-
-    /// The url prefix for the printed URLs.
-    #[clap(long, default_value = "http://localhost:8080")]
-    prefix: String,
+#[command(
+    version,
+    about = "Print scoreboard and revelation URLs offline from configuration"
+)]
+struct Args {
+    #[arg(long)]
+    event_config: PathBuf,
+    #[arg(long)]
+    server_config: PathBuf,
 }
-
-#[derive(Deserialize)]
-struct EventManifest {
-    event: ManifestEvent,
-}
-
-#[derive(Deserialize)]
-struct ManifestEvent {
-    name: String,
-}
-
-fn event_from_config(path: &PathBuf) -> color_eyre::eyre::Result<String> {
-    let raw = std::fs::read_to_string(path)?;
-    Ok(toml::from_str::<EventManifest>(&raw)?.event.name)
-}
-
-/// Fetches an enveloped resource from the internal API.
-async fn get<T: for<'a> serde::Deserialize<'a>>(
-    client: &reqwest::Client,
-    user: &str,
-    token: &str,
-    url: &str,
-) -> color_eyre::eyre::Result<T> {
-    let envelope: Envelope<T> = client
-        .get(url)
-        .basic_auth(user, Some(token))
-        .send()
-        .await?
-        .error_for_status()?
-        .json()
-        .await?;
-    envelope
-        .data
-        .ok_or_else(|| color_eyre::eyre::eyre!("resposta sem data: {url}"))
-}
-
-fn contest_url(prefix: &str, event: &str, contest: &str) -> color_eyre::eyre::Result<Url> {
-    Ok(Url::parse(prefix)?.join(&format!("/animeitor/{event}/{contest}/"))?)
-}
-
-#[tokio::main]
-async fn main() -> color_eyre::eyre::Result<()> {
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish()
-        .init();
-
-    let SimpleParser {
-        server,
-        user,
-        token,
-        event,
-        config,
-        prefix,
-    } = SimpleParser::parse();
-
-    let event = match (event, config) {
-        (Some(event), _) => Some(event),
-        (None, Some(config)) => Some(event_from_config(&config)?),
-        (None, None) => None,
-    };
-
-    let client = reqwest::Client::new();
-
-    let mut events: Vec<String> =
-        get(&client, &user, &token, &format!("{server}/internal/events")).await?;
-    events.sort();
-    if let Some(event) = &event {
-        events.retain(|name| name == event);
-        if events.is_empty() {
-            color_eyre::eyre::bail!("evento {event} não existe");
-        }
-    }
-
-    let mut found_any = false;
-    for event in &events {
-        let state: EventState = get(
-            &client,
-            &user,
-            &token,
-            &format!("{server}/internal/events/{event}"),
-        )
-        .await?;
-
-        let mut contests: Vec<ContestConfig> = get(
-            &client,
-            &user,
-            &token,
-            &format!("{server}/internal/events/{event}/contests"),
-        )
-        .await?;
-        contests.sort_by(|a, b| a.name.cmp(&b.name));
-
-        for contest in &contests {
-            let mut sites: Vec<SiteConfig> = get(
-                &client,
-                &user,
-                &token,
-                &format!(
-                    "{server}/internal/events/{event}/contests/{}/sites",
-                    contest.name
-                ),
-            )
-            .await?;
-            sites.sort_by(|a, b| a.name.cmp(&b.name));
-
-            println!("-> {event} / {}", contest.name);
-            println!(
-                "    Animeitor em {}",
-                contest_url(&prefix, event, &contest.name)?
+fn main() -> color_eyre::eyre::Result<()> {
+    let args = Args::parse();
+    let event = EventConfig::load(&args.event_config)?;
+    let server = ServerConfig::load(&args.server_config)?;
+    for contest in &event.contests {
+        let mut url = Url::parse(&server.public_url)?;
+        url.path_segments_mut()
+            .map_err(|_| color_eyre::eyre::eyre!("public_url must support paths"))?
+            .clear()
+            .extend(["animeitor", &event.event.name, &contest.name, ""]);
+        println!(
+            "-> {} / {}\n    Animeitor em {url}",
+            event.event.name, contest.name
+        );
+        for site in &contest.sites {
+            let key = deployment_site_key(
+                &server.revelation_salt,
+                &event.event.name,
+                &contest.name,
+                &site.name,
+                &event.event.secret,
+                &contest.secret,
+                &site.secret,
             );
-
-            for site in &sites {
-                match site_key_with_event(
-                    state.salt.as_deref(),
-                    contest.salt.as_deref(),
-                    site.salt.as_deref(),
-                    &event,
-                    &contest.name,
-                    &site.name,
-                ) {
-                    Some(key) => {
-                        let mut url = contest_url(&prefix, event, &contest.name)?;
-                        url.query_pairs_mut()
-                            .append_pair("secret", &key)
-                            .append_pair("sede", &site.name);
-                        println!("    {}: Reveleitor em {url}", site.name);
-                    }
-                    None => println!("    {}: revelação indisponível", site.name),
-                }
-            }
-            found_any = true;
+            let mut reveal = url.clone();
+            reveal
+                .query_pairs_mut()
+                .append_pair("secret", &key)
+                .append_pair("sede", &site.name);
+            println!("    {}: Reveleitor em {reveal}", site.name);
         }
     }
-
-    if !found_any {
-        println!("nenhum contest encontrado");
-    }
-
     Ok(())
 }

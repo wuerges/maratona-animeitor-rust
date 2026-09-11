@@ -1,13 +1,17 @@
-# LATAM 2026-2027
+# latam_2026_2027
 
-This event uses the unified `event.toml` manifest. The initial site maps are
-shared from `config/regional_2026`; update those references or replace them
-with inline `[[contests]]` and `[[contests.sites]]` entries after the webcast
-team prefixes are confirmed.
+The committed event.toml contains this event's complete contest/site definitions
+and public key-derivation values. No external contest files are loaded.
 
-Run the feeder with:
+Copy the root server configuration and event-secrets examples as described in
+[the main README](../../README.md). The private webcast mapping must contain
+this event's name. Then run:
 
 ```bash
-make run-feeder CONFIG=config/latam_2026_2027/event.toml \
-  BOCA_URL=tests/inputs/webcast_jones.zip
+make run-docker EVENT_CONFIG=config/latam_2026_2027/event.toml
+# Without Docker, use the host server configuration example:
+make run-config EVENT_CONFIG=config/latam_2026_2027/event.toml
+make printurls EVENT_CONFIG=config/latam_2026_2027/event.toml
 ```
+
+The server itself needs only server.toml and learns events through the internal API.

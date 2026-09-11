@@ -112,10 +112,11 @@ pub async fn serve_config(
         server_config: HttpConfig { port, tls },
         volumes,
         internal_tokens,
+        revelation_salt,
     }: AppConfig,
 ) -> ServiceResult<()> {
     let state = AppState {
-        store: service::event_store::EventStore::new(),
+        store: service::event_store::EventStore::with_revelation_salt(revelation_salt),
         internal_tokens: Arc::new(internal_tokens),
     };
 

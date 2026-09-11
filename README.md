@@ -1,174 +1,135 @@
 # Maratona Animeitor
 
-## Live Scoreboard to use with BOCA
+Live scoreboard for BOCA and South American ICPC contests.
 
-This is the scoreboard used for South American ICPC contests.
+## Run with Docker Compose
 
-## Prerequisites:
-
-- `docker` and `docker compose`.
-
-## Running:
-
-Install docker, and docker compose, clone the repo and bring the services up:
-
-```
-git clone https://github.com/wuerges/maratona-animeitor-rust
-cd maratona-animeitor-rust
-docker compose up
-```
-
-## URLs:
-
-To see the urls served by Animeitor:
-
-```
-docker compose run printurls
-```
-
-The client is served per event and contest at `/animeitor/{event}/{contest}/`,
-and `http://localhost:8000/` lists the active events. The compose setup feeds
-BOCA into the `default` event, so with the defaults:
-
-- Animeitor: http://localhost:8000/animeitor/default/
-- Reveleitor: the URL printed by `printurls` (e.g.
-  `http://localhost:8000/animeitor/default/?secret=<site-key>&sede=<site>`)
-
-Events, contests, sites and salts are created through the internal API
-(`doc/event-api.md`) — the feeder creates the `default` event and contest
-automatically.
-
-# Basic configuration
-
-Public Animeitor settings belong in `.env`; credentials belong in the ignored
-`secret_env` file. Start from the working local examples:
+Install Docker with Compose, Make, and OpenSSL. From the repository root:
 
 ```bash
-cp secret_env.example secret_env
-cp internal_tokens.toml.example internal_tokens.toml
-```
-
-The public settings in `.env` include:
-
-```bash
-# Animeitor API prefix used to print the contest/reveleitor URLs.
-# This is set to `http://animeitor.naquadah.com.br` during the maratona.
-# `http://localhost:8000` is fine for local testing:
-PREFIX=http://localhost:8000
-
-# HTTPS URL of the animeitor server, used by printurls and the feeder.
-SERVER_URL=https://localhost:8443
-
-# This is the public port. This is set to `80` during the SBC Maratona.
-# `8000` is fine for local testing:
-PUBLIC_PORT=8000
-
-# Name of the internal token entry. The token value is only in secret_env.
-INTERNAL_TOKEN_NAME=feeder
-
-TLS_CERT=config/dev-certs/localhost-cert.pem
-TLS_KEY=config/dev-certs/localhost-key.pem
-TLS_PORT=8443
-```
-
-# Monitoring with Prometheus
-
-The optional Prometheus stack scrapes the authenticated `/internal/metrics`
-endpoint. From the `prometheus` directory, start it with the same environment
-file used by the server:
-
-```bash
-cd prometheus
-docker compose --env-file ../.env up -d
-```
-
-Prometheus is then available at `http://localhost:9090`. For a server running
-directly on the host, set an HTTPS `SERVER_URL` reachable from Docker, such as
-`https://host.docker.internal:8443`, before starting the stack.
-
-# Customizing animeitor appearance
-
-There is a special CSS file at `animeitor-client/static/user-styles.css`.
-This file is included in the build and mounted by docker.
-It can be edited and overwrites the CSS from animeitor. The client assets
-(including this file) are loaded into memory once when the server starts,
-so after editing, restart the server (`docker compose restart animeitor`)
-and reload the browser with `ctrl+shift+R` to see the changes.
-
-```css
-/* This file is intended to house user CSS */
-/* It will not be included in the minimizer, but it will be used in the app */
-
-/* remove this comment to make the background of animeitor yellowgreen
-body {
-  background-color: yellowgreen;
-}
-*/
-```
-
-Animeitor was made to be customizable using CSS.
-
-# File descriptors
-
-Each websocket connection holds a file descriptor for its lifetime, so a
-production server needs a raised `nofile` limit (the default soft limit is
-1024, which runs out quickly):
-
-- systemd service (`config/regional_2026/animeitor-server.service`): `LimitNOFILE=65536`
-  in the `[Service]` section
-- docker compose: `ulimits: nofile: 65536` (already set in the compose files)
-- running from a shell: `ulimit -n 65536` before starting
-
-Client assets are served from memory, so they cost no file descriptors.
-
-# Run without docker
-
-The `Makefile` has an example of how to run animeitor without docker.
-
-## Running local server using the prebuilt release client
-
-```
-make rebuild-client-for-release
+cp server.docker.toml.example server.toml
+cp event-secrets.toml.example event-secrets.toml
 make generate-dev-certs
-make run-server
-```
-
-Then check your browser:
-
-- Landing: http://localhost:8000/
-- Animeitor: http://localhost:8000/animeitor/{event}/{contest}/
-
-To also feed BOCA while running without docker, use `make run-config
-CONFIG=config/nacional_2026/event.toml BOCA_URL=tests/inputs/webcast_jones.zip` (it starts
-the server and the feeder together). For the minimal example, use
-`make run-basic BOCA_URL=tests/inputs/webcast_jones.zip`.
-
-## Running the debug client
-
-In other terminal, without closing the server above:
-
-```
-make run-debug-client
-```
-
-Then check your browser:
-
-- Landing: http://localhost:8080/
-- Animeitor: http://localhost:8080/animeitor/{event}/{contest}/
-
-
-## Dependencies
-
-- `rust`: https://rustup.rs/
-- `trunk`: To install `trunk`, visit the project page: https://trunk-rs.github.io/trunk/
-
-All project dependencies have been updated in september 16, 2025.
-
-## Rebuilding the docker image:
-
-```
 make rebuild-docker-image
+make run-docker
 ```
+
+Rebuild the image after server, CLI, generator, or web-client code changes.
+`make run-docker` regenerates `.generated/compose.json` from the TOML files and
+starts the stack. After generation, plain `docker compose up` also works.
+Stop it with `make stop-docker`. Docker does not require host Rust or Python.
+
+- Public landing: http://localhost:8000/
+- Scoreboards: `http://localhost:8000/animeitor/{event}/{contest}/`
+- Internal docs: https://localhost:8443/internal/docs (named-token Basic auth).
+- Optional Prometheus: http://localhost:9090/ — start with `make monitor-docker`.
+
+Internal HTTP requests are rejected. Containers trust the configured CA without
+disabling TLS verification. Browsers need to trust the local certificate for HTTPS
+docs. Development certificate SANs include localhost, both loopback addresses,
+and the Compose hostname animeitor.
+
+`printurls` runs offline and exits after printing URLs; no running server or
+webcast credentials are needed. Print them again with:
+
+```bash
+docker compose run --rm printurls
+```
+
+## Three configuration files
+
+| File | Purpose | Committed? |
+| --- | --- | --- |
+| `config/<event>/event.toml` | One complete event, contests/sites, scoring/media settings, public derivation values | Yes |
+| `event-secrets.toml` | Private webcast URL/path per event | No; copy the example |
+| `server.toml` | Ports, TLS paths, API tokens, public/internal URLs, assets, private revelation salt | No; copy a Docker or host example |
+
+The server reads **only server.toml**. It has no event-file paths or webcast
+sources and receives event state through its internal API. Each feeder selects
+one event and its corresponding entry from the minimal private mapping:
+
+```toml
+[webcasts]
+nacional-2026 = "tests/inputs/webcast_jones.zip"
+regional-2026 = "https://boca.example/webcast?key=private-credential"
+```
+
+Multiple feeder processes can publish different events to the same server.
+Filesystem paths are relative to the file declaring them. Certificates and private
+keys are separate ignored assets referenced by server.toml. Select files with:
+
+```bash
+make run-docker EVENT_CONFIG=config/regional_2026/event.toml \
+  EVENT_SECRETS=event-secrets.toml SERVER_CONFIG=server.toml
+```
+
+Public event `secret` fields are derivation values, safe to commit. The event value
+is required; contest/site values default to empty strings. Authentication also
+requires the private server `revelation_salt`. Keep production server configuration
+private and replace all development credentials. There is no legacy-key fallback.
+
+Keys use HMAC-SHA256 with the private server salt and the compact JSON array
+`["animeitor-site-key-v1", event_name, contest_name, site_name, event_secret, contest_secret, site_secret]`,
+then the existing base62 encoding truncated to 12 characters. Offline printurls and
+the server use the same function. These keys differ from the old salt-only keys.
+Changing the server salt rotates all deployment keys; changing an event, contest,
+or site value rotates that scope. Restart affected programs and redistribute URLs.
+
+The Rust `animeitor-config compose` helper generates Compose and Prometheus
+artifacts in the ignored `.generated` directory. Generated Compose contains
+configuration paths, not tokens. The separate generated Prometheus token file is
+private. Application containers receive only the configuration files they need;
+the server never mounts event configuration files. Do not place those files under
+server asset mounts. Docker mount sources are host paths; targets are container
+paths. Production certificates/CA and assets can use configurable absolute paths.
+
+The old `.env`, `secret_env`, standalone token TOML, and configuration CLI flags
+are no longer read. Existing private files are not overwritten. Obsolete contest configurations and launchers have been removed; Git history
+preserves the historical examples.
+
+## Run without Docker
+
+Install Rust, Trunk, Make, and OpenSSL. Use the host configuration example:
+
+```bash
+cp server.toml.example server.toml
+cp event-secrets.toml.example event-secrets.toml
+make generate-dev-certs
+# Match the wasm-bindgen CLI to Cargo.lock before building the web client.
+cargo install --locked "wasm-bindgen-cli@$(awk -F'"' '/^name = "wasm-bindgen"$/{f=1} f && /^version = /{print $2; exit}' Cargo.lock)"
+make rebuild-client-for-release
+make run-config
+```
+
+Or start the programs independently:
+
+```bash
+make run-server
+make run-feeder EVENT_CONFIG=config/nacional_2026/event.toml
+make printurls EVENT_CONFIG=config/nacional_2026/event.toml
+```
+
+The binary interfaces are:
+
+```text
+animeitor-server --server-config server.toml
+animeitor-feeder --event-config config/nacional_2026/event.toml --event-secrets event-secrets.toml --server-config server.toml
+printurls --event-config config/nacional_2026/event.toml --server-config server.toml
+```
+
+For a minimal event, use `make run-basic`. The host example uses localhost for the
+internal URL and the release client directory for assets; the Docker example uses
+animeitor and /dist. Both use ports 8000 and 8443. To develop the client interactively,
+run `make run-debug-client` alongside the server and open http://localhost:8080/.
+
+## Appearance and file descriptors
+
+Edit `animeitor-client/static/user-styles.css` and restart the Docker server to
+reload assets. Outside Docker, rebuild the release client first. Refresh the browser
+afterward. Configure photos/sounds and other static mappings in server.toml.
+
+Compose and systemd examples raise the nofile limit to 65536 because each websocket
+uses a descriptor. For local shell deployments, use `ulimit -n 65536` as needed.
 
 # Keyboard shortcuts:
 

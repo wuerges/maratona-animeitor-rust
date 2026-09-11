@@ -7,7 +7,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use http_body_util::BodyExt;
 use server_v2::{AppState, app as make_app};
-use service::event_store::{EventStore, site_key};
+use service::event_store::{EventStore, deployment_site_key};
 use tower::ServiceExt;
 
 const TOKEN: &str = "token-de-teste";
@@ -32,7 +32,7 @@ fn event_body() -> serde_json::Value {
 
 fn app() -> Router {
     make_app(AppState {
-        store: EventStore::new(),
+        store: EventStore::with_revelation_salt("test-server-salt".into()),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
             TOKEN.to_string(),
@@ -198,14 +198,15 @@ async fn pre_start_endpoints_are_forbidden() {
     }
 
     // Even a valid site key does not unlock data before the start.
-    let key = site_key(
-        Some("salt-do-evento"),
-        Some("salt-do-contest"),
-        Some("salt-do-site"),
+    let key = deployment_site_key(
+        "test-server-salt",
+        "ensaio",
         "brasil",
         "fiemg",
-    )
-    .expect("site has a salt");
+        "salt-do-evento",
+        "salt-do-contest",
+        "salt-do-site",
+    );
     let req = Request::builder()
         .uri("/api/events/ensaio/contests/brasil/runs_secret")
         .header(header::AUTHORIZATION, format!("Bearer {key}"))
@@ -306,14 +307,15 @@ async fn secret_runs_require_the_site_key() {
     assert_eq!(body["errors"][0]["code"], "invalid_key");
 
     // With the derived site key: the site's runs.
-    let key = site_key(
-        Some("salt-do-evento"),
-        Some("salt-do-contest"),
-        Some("salt-do-site"),
+    let key = deployment_site_key(
+        "test-server-salt",
+        "ensaio",
         "brasil",
         "fiemg",
-    )
-    .expect("site has a salt");
+        "salt-do-evento",
+        "salt-do-contest",
+        "salt-do-site",
+    );
     let req = Request::builder()
         .uri("/api/events/ensaio/contests/brasil/runs_secret")
         .header(header::AUTHORIZATION, format!("Bearer {key}"))

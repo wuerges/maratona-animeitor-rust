@@ -1,15 +1,1698 @@
-contest_files = [
-  "Brasil.toml",
-  "LA.toml",
-  "Mexico.toml",
-  "Centro_America.toml",
-  "Bolivia.toml",
-  "CCL.toml",
-  "CCL_Brasil.toml",
-  "CCL_Bolivia.toml",
-  "CCL_Mexico.toml",
-  "CCL_Centro_America.toml",
-]
-
+# Public derivation values are safe to commit; keys also require the private server salt.
 [event]
 name = "regional-2026"
+secret = "development-event-value"
+
+[[contests]]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+
+[[contests.sites]]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+[[contests.sites]]
+name = "Norte"
+codes = ["bracrb", "bramma", "brapmc", "brpabe", "brpama", "brpasa", "brropv", "brrrbv"]
+
+[[contests.sites]]
+name = "Sul"
+codes = ["brprcm", "brprcu", "brprfi", "brrspe", "brrspf", "brscfl", "brscpi"]
+
+[[contests.sites]]
+name = "Centro-Oeste"
+codes = ["brdfdf", "brgogo", "brmscg", "brmsdo", "brmtcu"]
+
+[[contests.sites]]
+name = "Sudeste"
+codes = ["bresse", "brmgbe", "brmgit", "brmgmc", "brmgpa", "brmgsj", "brmgti", "brmgub", "brmgud", "brmgvi", "brrjrj", "brspma", "brsprp", "brspsj", "brspso", "brspsp"]
+
+[[contests.sites]]
+name = "Nordeste"
+codes = ["bralma", "brbagu", "brbaju", "brbasa", "brcecr", "brcefo", "brcejn", "brceqx", "brceti", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brrnna", "brrnpf", "brsesc"]
+
+[[contests.sites]]
+name = "AC"
+codes = ["brac"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AL"
+codes = ["bral"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AM"
+codes = ["bram"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AP"
+codes = ["brap"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "BA"
+codes = ["brba"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE"
+codes = ["brce"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "DF"
+codes = ["brdf"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "ES"
+codes = ["bres"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "GO"
+codes = ["brgo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MA"
+codes = ["brma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG"
+codes = ["brmg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MS"
+codes = ["brms"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MT"
+codes = ["brmt"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PA"
+codes = ["brpa"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PB"
+codes = ["brpb"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PE"
+codes = ["brpe"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PI"
+codes = ["brpi"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PR"
+codes = ["brpr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RJ"
+codes = ["brrj"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RN"
+codes = ["brrn"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RO"
+codes = ["brro"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RR"
+codes = ["brrr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RS"
+codes = ["brrs"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SC"
+codes = ["brsc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SE"
+codes = ["brse"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP"
+codes = ["brsp"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede estadual do Ceará"
+codes = ["brcecr", "brcefo", "brcejn", "brceqx"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede estadual de Minas Gerais"
+codes = ["brmgmc", "brmgpa", "brmgti", "brmgud"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede estadual do Rio Grande do Norte"
+codes = ["brrnna", "brrnpf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede da região Norte"
+codes = ["bracrb", "bramma", "brapmc", "brropv", "brrrbv"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede da região Nordeste"
+codes = ["bralma", "brbagu", "brbaju", "brmaba", "brmasl", "brpbcg", "brpere", "brpite", "brsesc"]
+ouro = 4
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede da região Sul"
+codes = ["brprcm", "brscfl"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Supersede Brasil"
+codes = ["brmscg", "brmsdo", "brmtcu"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "DF, Brasília"
+codes = ["brdfdf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "GO, Goiânia"
+codes = ["brgogo"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MS, Campo Grande"
+codes = ["brmscg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MS, Dourados"
+codes = ["brmsdo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MT, Cuiabá"
+codes = ["brmtcu"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AL, Maceió"
+codes = ["bralma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "BA, Guanambi"
+codes = ["brbagu"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "BA, Juazeiro"
+codes = ["brbaju"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "BA, Salvador"
+codes = ["brbasa"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE, Crateús"
+codes = ["brcecr"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE, Fortaleza"
+codes = ["brcefo"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE, Juazeiro do Norte"
+codes = ["brcejn"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE, Quixadá"
+codes = ["brceqx"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "CE, Tianguá"
+codes = ["brceti"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MA, Balsas"
+codes = ["brmaba"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MA, São Luis"
+codes = ["brmasl"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PB, Campina Grande"
+codes = ["brpbcg"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PE, Recife"
+codes = ["brpere"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PI, Teresina"
+codes = ["brpite"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RN, Natal"
+codes = ["brrnna"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RN, Pau dos Ferros"
+codes = ["brrnpf"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SE, São Cristóvão"
+codes = ["brsesc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AC, Rio Branco"
+codes = ["bracrb"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AM, Manaus"
+codes = ["bramma"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "AP, Macapá"
+codes = ["brapmc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PA, Belém"
+codes = ["brpabe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PA, Marabá"
+codes = ["brpama"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PA, Santarém"
+codes = ["brpasa"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RO, Porto Velho"
+codes = ["brropv"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RR, Boa Vista"
+codes = ["brrrbv"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "ES, Serra"
+codes = ["bresse"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Belo Horizonte"
+codes = ["brmgbe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Itajubá"
+codes = ["brmgit"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Montes Claros"
+codes = ["brmgmc"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Paracatu"
+codes = ["brmgpa"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, São João del Rei"
+codes = ["brmgsj"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Timóteo"
+codes = ["brmgti"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Uberaba"
+codes = ["brmgub"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Uberlândia"
+codes = ["brmgud"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "MG, Viçosa"
+codes = ["brmgvi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RJ, Rio de Janeiro"
+codes = ["brrjrj"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP, Marília"
+codes = ["brspma"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP, Ribeirão Preto"
+codes = ["brsprp"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP, São José dos Campos"
+codes = ["brspsj"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP, Sorocaba"
+codes = ["brspso"]
+ouro = 2
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SP, São Paulo"
+codes = ["brspsp"]
+ouro = 3
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PR, Campo Mourão"
+codes = ["brprcm"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PR, Curitiba"
+codes = ["brprcu"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "PR, Foz do Iguaçu"
+codes = ["brprfi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RS, Pelotas"
+codes = ["brrspe"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "RS, Passo Fundo"
+codes = ["brrspf"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SC, Florianópolis"
+codes = ["brscfl"]
+ouro = 0
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "SC, Pinhalzinho"
+codes = ["brscpi"]
+ouro = 1
+prata = 0
+bronze = 0
+
+[[contests.sites]]
+name = "Times femininos - 3 competidoras"
+codes = ["^(teambralma009|teambramma001|teambrbagu005|teambrbasa008|teambrbasa020|teambrcecr006|teambrcefo007|teambrcejn002|teambrdfdf007|teambrdfdf008|teambrdfdf015|teambresse008|teambrgogo002|teambrgogo017|teambrgogo024|teambrgogo036|teambrgogo038|teambrgogo041|teambrmgbe009|teambrmgbe011|teambrmgbe013|teambrmgbe021|teambrmgbe023|teambrmgbe026|teambrmgbe033|teambrmgbe035|teambrmgbe036|teambrmgit025|teambrmgsj008|teambrmgsj012|teambrmgsj013|teambrmgsj014|teambrmgsj019|teambrmgti005|teambrmgub006|teambrmgub021|teambrmgud007|teambrmgud008|teambrmgvi009|teambrmgvi010|teambrmgvi013|teambrmscg003|teambrmscg005|teambrmscg007|teambrmtcu006|teambrpabe001|teambrpabe005|teambrpabe015|teambrpabe024|teambrpama008|teambrpasa001|teambrpasa005|teambrpbcg014|teambrpere006|teambrpere007|teambrpere010|teambrprcm015|teambrprcm016|teambrprcu005|teambrprcu011|teambrprcu021|teambrprcu026|teambrrjrj008|teambrrjrj009|teambrrjrj010|teambrrjrj012|teambrrnpf014|teambrscfl005|teambrscpi007|teambrscpi014|teambrsesc003|teambrspma016|teambrsprp016|teambrspsj022|teambrspso028|teambrspso041|teambrspsp033|teambrspsp043)$"]
+
+[[contests.sites]]
+name = "Times femininos - 2 competidoras"
+codes = ["^(teambramma011|teambrbasa013|teambrcecr008|teambrcecr014|teambrceqx003|teambrceqx009|teambrdfdf018|teambrdfdf020|teambrdfdf023|teambresse009|teambresse011|teambrgogo004|teambrgogo018|teambrmgbe004|teambrmgbe019|teambrmgbe028|teambrmgit019|teambrmgsj010|teambrmgsj023|teambrmgsj024|teambrmgub009|teambrmgub014|teambrmgub018|teambrmgvi002|teambrmgvi018|teambrmscg010|teambrmscg012|teambrmtcu007|teambrpabe007|teambrpama006|teambrpasa006|teambrpasa009|teambrpite002|teambrprcu020|teambrprfi017|teambrprfi019|teambrrjrj014|teambrrjrj040|teambrrnna004|teambrrnpf001|teambrrspe003|teambrrspe011|teambrrspe019|teambrrspf002|teambrrspf005|teambrrspf007|teambrrspf015|teambrscpi006|teambrscpi008|teambrspma002|teambrspma014|teambrsprp006|teambrspsj015|teambrspsj029|teambrspsp018|teambrspsp036)$"]
+
+[[contests.sites]]
+name = "Times femininos - 1 competidora"
+codes = ["^(teambracrb002|teambralma002|teambralma005|teambralma007|teambramma002|teambramma003|teambramma004|teambramma007|teambramma009|teambramma010|teambrapmc009|teambrbagu006|teambrbaju003|teambrbasa011|teambrbasa014|teambrbasa015|teambrbasa016|teambrbasa019|teambrcecr004|teambrcecr009|teambrcecr011|teambrcecr013|teambrcefo003|teambrcefo008|teambrcefo013|teambrcefo014|teambrcefo016|teambrcefo017|teambrcejn006|teambrcejn010|teambrcejn012|teambrceqx002|teambrceqx005|teambrceqx013|teambrceti001|teambrceti005|teambrceti010|teambrceti011|teambrdfdf011|teambrdfdf012|teambrdfdf016|teambrgogo009|teambrgogo015|teambrgogo020|teambrgogo027|teambrgogo040|teambrmasl001|teambrmasl002|teambrmasl004|teambrmasl005|teambrmgbe002|teambrmgbe005|teambrmgbe006|teambrmgbe010|teambrmgbe012|teambrmgbe017|teambrmgbe020|teambrmgbe022|teambrmgbe032|teambrmgbe034|teambrmgit001|teambrmgit010|teambrmgit013|teambrmgit015|teambrmgit020|teambrmgit022|teambrmgit026|teambrmgmc002|teambrmgmc004|teambrmgsj004|teambrmgsj016|teambrmgub005|teambrmgub016|teambrmgub020|teambrmgud006|teambrmgud009|teambrmgud011|teambrmgud012|teambrmgud013|teambrmgvi019|teambrmscg002|teambrmscg004|teambrmsdo002|teambrmsdo003|teambrmtcu008|teambrpabe002|teambrpabe013|teambrpabe018|teambrpama001|teambrpama004|teambrpama005|teambrpasa003|teambrpasa010|teambrpbcg006|teambrpbcg013|teambrpere004|teambrpere013|teambrpite001|teambrpite007|teambrprcm002|teambrprcm003|teambrprcm005|teambrprcm006|teambrprcm009|teambrprcm013|teambrprcm017|teambrprcu006|teambrprcu012|teambrprcu014|teambrprcu032|teambrprcu037|teambrprfi004|teambrprfi009|teambrprfi012|teambrprfi021|teambrprfi024|teambrrjrj005|teambrrjrj013|teambrrjrj015|teambrrjrj028|teambrrjrj039|teambrrnna001|teambrrnna003|teambrrnna008|teambrrnna010|teambrrnna012|teambrrnna014|teambrrnna017|teambrrnna018|teambrrnna021|teambrrnpf007|teambrrnpf008|teambrrnpf011|teambrrnpf012|teambrrnpf015|teambrrnpf017|teambrrspe020|teambrrspf008|teambrrspf014|teambrrspf019|teambrrspf026|teambrrspf032|teambrrspf035|teambrrspf040|teambrrspf043|teambrscfl003|teambrscfl008|teambrscfl013|teambrscpi003|teambrscpi004|teambrscpi005|teambrscpi009|teambrscpi015|teambrsesc004|teambrsesc005|teambrsesc008|teambrsesc013|teambrsesc014|teambrspma004|teambrspma006|teambrspma011|teambrspma024|teambrsprp010|teambrsprp011|teambrsprp019|teambrspsj009|teambrspsj010|teambrspsj017|teambrspsj020|teambrspsj021|teambrspso003|teambrspso014|teambrspso044|teambrspsp002|teambrspsp008|teambrspsp010|teambrspsp011|teambrspsp017|teambrspsp025|teambrspsp027|teambrspsp028|teambrspsp035|teambrspsp040|teambrspsp041|teambrspsp042|teambrspsp044|teambrspsp049|teambrspsp050)$"]
+
+[[contests]]
+name = "Latin America"
+codes = ["team"]
+
+[[contests.sites]]
+name = "Latin America"
+codes = ["team"]
+
+[[contests.sites]]
+name = "Brasil"
+codes = ["teambr"]
+ouro = 4
+prata = 8
+bronze = 12
+
+[[contests.sites]]
+name = "Bolivia"
+codes = ["teambo"]
+
+[[contests.sites]]
+codes = ["teammx"]
+name = "Mexico"
+
+[[contests.sites]]
+codes = ["teamca"]
+name = "Centro America"
+
+[[contests.sites]]
+name = "Times femininos - 3 competidoras"
+codes = ["^(teambococh021|teambococh022|teambolapa006|teambolapa009|teambolapa020|teambolapa021|teambollal011|teambollal015|teambollal019|teamboorur001|teamboorur014|teamboorur019|teamboorur020|teamboorur022|teambopoto013|teambosacr018|teambosacr028|teambosacr041|teambosacr045|teambosucr011|teambralma009|teambramma001|teambrbagu005|teambrbasa008|teambrbasa020|teambrcecr006|teambrcefo007|teambrcejn002|teambrdfdf007|teambrdfdf008|teambrdfdf015|teambresse008|teambrgogo002|teambrgogo017|teambrgogo024|teambrgogo036|teambrgogo038|teambrgogo041|teambrmgbe009|teambrmgbe011|teambrmgbe013|teambrmgbe021|teambrmgbe023|teambrmgbe026|teambrmgbe033|teambrmgbe035|teambrmgbe036|teambrmgit025|teambrmgsj008|teambrmgsj012|teambrmgsj013|teambrmgsj014|teambrmgsj019|teambrmgti005|teambrmgub006|teambrmgub021|teambrmgud007|teambrmgud008|teambrmgvi009|teambrmgvi010|teambrmgvi013|teambrmscg003|teambrmscg005|teambrmscg007|teambrmtcu006|teambrpabe001|teambrpabe005|teambrpabe015|teambrpabe024|teambrpama008|teambrpasa001|teambrpasa005|teambrpbcg014|teambrpere006|teambrpere007|teambrpere010|teambrprcm015|teambrprcm016|teambrprcu005|teambrprcu011|teambrprcu021|teambrprcu026|teambrrjrj008|teambrrjrj009|teambrrjrj010|teambrrjrj012|teambrrnpf014|teambrscfl005|teambrscpi007|teambrscpi014|teambrsesc003|teambrspma016|teambrsprp016|teambrspsj022|teambrspso028|teambrspso041|teambrspsp033|teambrspsp043|teamcatcli002|teamcaucca004|teamcauigu002|teamcaunce012|teamcaunce017|teamcausoc002|teammxccon014|teammxccsu025|teammxcppr001|teammxcppr009|teammxcppr013|teammxinca003|teammxipco019|teammxipco020|teammxipco027|teammxipco054|teammxitsa006|teammxtmme003|teammxtmmo003|teammxtmmo011|teammxtmmo018|teammxtmmo030|teammxuaag004|teammxuahi012|teammxuahi018|teammxuapo005|teammxuaza011|teammxuncu003|teammxunin008|teammxunin022|teammxunma017|teammxunmo005|teammxunmo007|teammxupgu002|teammxupgu003|teammxupgu006|teammxuppu002|teammxuppu007|teammxuvsu002)$"]
+
+[[contests.sites]]
+name = "Times femininos - 2 competidoras"
+codes = ["^(teambolapa038|teambollal005|teambollal006|teambollal018|teambopoto016|teambosacr020|teambosacr021|teambosacr036|teambramma011|teambrbasa013|teambrcecr008|teambrcecr014|teambrceqx003|teambrceqx009|teambrdfdf018|teambrdfdf020|teambrdfdf023|teambresse009|teambresse011|teambrgogo004|teambrgogo018|teambrmgbe004|teambrmgbe019|teambrmgbe028|teambrmgit019|teambrmgsj010|teambrmgsj023|teambrmgsj024|teambrmgub009|teambrmgub014|teambrmgub018|teambrmgvi002|teambrmgvi018|teambrmscg010|teambrmscg012|teambrmtcu007|teambrpabe007|teambrpama006|teambrpasa006|teambrpasa009|teambrpite002|teambrprcu020|teambrprfi017|teambrprfi019|teambrrjrj014|teambrrjrj040|teambrrnna004|teambrrnpf001|teambrrspe003|teambrrspe011|teambrrspe019|teambrrspf002|teambrrspf005|teambrrspf007|teambrrspf015|teambrscpi006|teambrscpi008|teambrspma002|teambrspma014|teambrsprp006|teambrspsj015|teambrspsj029|teambrspsp018|teambrspsp036|teamcaucca018|teamcaufpe003|teamcaufpe004|teamcauigu009|teamcaunce018|teamcausgu004|teammxbupu005|teammxbupu013|teammxbupu015|teammxbupu019|teammxcppr002|teammxcppr005|teammxcppr007|teammxcppr012|teammxcppr023|teammxipco014|teammxipco031|teammxipco039|teammxipco055|teammxitca003|teammxitju004|teammxitla020|teammxitsa003|teammxitsa004|teammxitsa008|teammxitun008|teammxleon003|teammxpapa001|teammxtmgu005|teammxtmme005|teammxtmpu004|teammxtmpu007|teammxtmpu008|teammxtmqu002|teammxuaen010|teammxuale006|teammxuale014|teammxuale016|teammxuncu007|teammxunin002|teammxupbo010|teammxuppu008|teammxuppu010)$"]
+
+[[contests.sites]]
+name = "Times femininos - 1 competidora"
+codes = ["^(teamboberm002|teamboberm003|teambocobi006|teambococh001|teambococh003|teambococh005|teambococh006|teambococh008|teambococh010|teambococh014|teambococh019|teambococh027|teambococh028|teambococh032|teambolapa007|teambolapa016|teambolapa019|teambolapa032|teambolapa033|teambolapa037|teambollal004|teambollal013|teambollal014|teambollal016|teambollal020|teamboorur005|teamboorur008|teamboorur011|teamboorur012|teamboorur015|teamboorur016|teambopoto003|teambopoto014|teambopoto018|teambosacr002|teambosacr010|teambosacr011|teambosacr014|teambosacr022|teambosacr026|teambosacr033|teambosacr038|teambosacr046|teambosucr003|teambosucr004|teambotari005|teambotrin001|teambotupi004|teambotupi005|teambracrb002|teambralma002|teambralma005|teambralma007|teambramma002|teambramma003|teambramma004|teambramma007|teambramma009|teambramma010|teambrapmc009|teambrbagu006|teambrbaju003|teambrbasa011|teambrbasa014|teambrbasa015|teambrbasa016|teambrbasa019|teambrcecr004|teambrcecr009|teambrcecr011|teambrcecr013|teambrcefo003|teambrcefo008|teambrcefo013|teambrcefo014|teambrcefo016|teambrcefo017|teambrcejn006|teambrcejn010|teambrcejn012|teambrceqx002|teambrceqx005|teambrceqx013|teambrceti001|teambrceti005|teambrceti010|teambrceti011|teambrdfdf011|teambrdfdf012|teambrdfdf016|teambrgogo009|teambrgogo015|teambrgogo020|teambrgogo027|teambrgogo040|teambrmasl001|teambrmasl002|teambrmasl004|teambrmasl005|teambrmgbe002|teambrmgbe005|teambrmgbe006|teambrmgbe010|teambrmgbe012|teambrmgbe017|teambrmgbe020|teambrmgbe022|teambrmgbe032|teambrmgbe034|teambrmgit001|teambrmgit010|teambrmgit013|teambrmgit015|teambrmgit020|teambrmgit022|teambrmgit026|teambrmgmc002|teambrmgmc004|teambrmgsj004|teambrmgsj016|teambrmgub005|teambrmgub016|teambrmgub020|teambrmgud006|teambrmgud009|teambrmgud011|teambrmgud012|teambrmgud013|teambrmgvi019|teambrmscg002|teambrmscg004|teambrmsdo002|teambrmsdo003|teambrmtcu008|teambrpabe002|teambrpabe013|teambrpabe018|teambrpama001|teambrpama004|teambrpama005|teambrpasa003|teambrpasa010|teambrpbcg006|teambrpbcg013|teambrpere004|teambrpere013|teambrpite001|teambrpite007|teambrprcm002|teambrprcm003|teambrprcm005|teambrprcm006|teambrprcm009|teambrprcm013|teambrprcm017|teambrprcu006|teambrprcu012|teambrprcu014|teambrprcu032|teambrprcu037|teambrprfi004|teambrprfi009|teambrprfi012|teambrprfi021|teambrprfi024|teambrrjrj005|teambrrjrj013|teambrrjrj015|teambrrjrj028|teambrrjrj039|teambrrnna001|teambrrnna003|teambrrnna008|teambrrnna010|teambrrnna012|teambrrnna014|teambrrnna017|teambrrnna018|teambrrnna021|teambrrnpf007|teambrrnpf008|teambrrnpf011|teambrrnpf012|teambrrnpf015|teambrrnpf017|teambrrspe020|teambrrspf008|teambrrspf014|teambrrspf019|teambrrspf026|teambrrspf032|teambrrspf035|teambrrspf040|teambrrspf043|teambrscfl003|teambrscfl008|teambrscfl013|teambrscpi003|teambrscpi004|teambrscpi005|teambrscpi009|teambrscpi015|teambrsesc004|teambrsesc005|teambrsesc008|teambrsesc013|teambrsesc014|teambrspma004|teambrspma006|teambrspma011|teambrspma024|teambrsprp010|teambrsprp011|teambrsprp019|teambrspsj009|teambrspsj010|teambrspsj017|teambrspsj020|teambrspsj021|teambrspso003|teambrspso014|teambrspso044|teambrspsp002|teambrspsp008|teambrspsp010|teambrspsp011|teambrspsp017|teambrspsp025|teambrspsp027|teambrspsp028|teambrspsp035|teambrspsp040|teambrspsp041|teambrspsp042|teambrspsp044|teambrspsp049|teambrspsp050|teamcatcal003|teamcatcal005|teamcatcal007|teamcatcal011|teamcaucca005|teamcaucca011|teamcaucca012|teamcaucca014|teamcaucca015|teamcauigu004|teamcauigu005|teamcauigu011|teamcauigu012|teamcaunce001|teamcaunce003|teamcaunce004|teamcaunce009|teamcaunce011|teamcaunce016|teamcaunga005|teamcaurqu007|teamcausgu005|teamcauvgt015|teammxbupu002|teammxbupu004|teammxbupu009|teammxbupu020|teammxcanc003|teammxcanc004|teammxcanc005|teammxcanc009|teammxccmi018|teammxccon003|teammxccon004|teammxccon005|teammxccon008|teammxccon009|teammxcppr003|teammxcppr015|teammxcppr017|teammxcppr018|teammxcuco001|teammxcusu001|teammxcusu002|teammxinca004|teammxingu005|teammxingu006|teammxingu007|teammxinle001|teammxinmo005|teammxinve001|teammxinza001|teammxinza002|teammxipco001|teammxipco007|teammxipco011|teammxipco021|teammxipco025|teammxipco026|teammxipco033|teammxipco034|teammxipco048|teammxipco058|teammxitca001|teammxitca002|teammxitca004|teammxitju001|teammxitla001|teammxitla005|teammxitla006|teammxitla009|teammxitla016|teammxitla021|teammxitla028|teammxitun012|teammxleon002|teammxteme002|teammxteme006|teammxteme008|teammxteme010|teammxtmgu001|teammxtmgu002|teammxtmgu003|teammxtmme002|teammxtmme004|teammxtmme006|teammxtmmo004|teammxtmmo009|teammxtmmo012|teammxtmmo020|teammxtmmo021|teammxtmmo025|teammxtmmo026|teammxtmpu002|teammxtmpu006|teammxtmpu010|teammxtmqu003|teammxtmto001|teammxuaag002|teammxuaag008|teammxuaen001|teammxuaen009|teammxuaen012|teammxuaen013|teammxuaen014|teammxuaen015|teammxuagu001|teammxuahi002|teammxuahi008|teammxuahi010|teammxuahi016|teammxuahi017|teammxuaju001|teammxuale012|teammxuale017|teammxuale018|teammxuale020|teammxuaoa002|teammxuaoa003|teammxuaoa005|teammxuapo006|teammxuapo013|teammxuapo017|teammxuapo019|teammxuaza003|teammxuaza004|teammxuaza008|teammxuaza013|teammxuaza016|teammxuaza017|teammxudgu002|teammxudgu003|teammxudmo005|teammxugcu001|teammxunci002|teammxunci003|teammxuncu004|teammxuncu013|teammxuncu014|teammxuncu015|teammxuncu018|teammxunin023|teammxunma014|teammxunma024|teammxunma027|teammxunmo001|teammxunmo003|teammxunmo004|teammxunmo006|teammxupal001|teammxupal004|teammxupbo004|teammxupbo005|teammxupbo006|teammxupbo007|teammxupbo008|teammxupgu008|teammxupgu009|teammxupgu011|teammxupme002|teammxuppu001|teammxuppu004|teammxuppu006|teammxuppu009|teammxuppu011|teammxuvsu001|teammxuvsu003)$"]
+
+[[contests]]
+name = "Mexico"
+codes = ["teammx"]
+
+# MEXICO
+[[contests.sites]]
+codes = ["teammx"]
+name = "Mexico"
+
+[[contests.sites]]
+codes = ["mxbupu"]
+name = "Benemerita Universidad Autonóma de Puebla"
+
+[[contests.sites]]
+codes = ["mxceme"]
+name = "Centro de Enseñanza Tècnica y Superior Universidad Campus Mexicali"
+
+[[contests.sites]]
+codes = ["mxccsu"]
+name = "Coding CUP ITSUR Media Superior"
+
+[[contests.sites]]
+codes = ["mxccmi"]
+name = "Coding CUP Michoacán"
+
+[[contests.sites]]
+codes = ["mxccsi"]
+name = "Coding CUP Sinaloa 2026"
+
+[[contests.sites]]
+codes = ["mxccin"]
+name = "Coding Cup Sinaloa 2026 - Invitados"
+
+[[contests.sites]]
+codes = ["mxccon"]
+name = "Coding Cup TecNM 2026 - Online"
+
+[[contests.sites]]
+codes = ["mxcoon"]
+name = "Coding Cup TecNM 2026 - Onsite"
+
+[[contests.sites]]
+codes = ["mxcpan"]
+name = "Concurso de Programación ANIEI 2025"
+
+[[contests.sites]]
+codes = ["mxcpot"]
+name = "Concurso de Programación ITESO - Otoño 2025"
+
+[[contests.sites]]
+codes = ["mxcppr"]
+name = "Concurso de Programación ITESO - Primavera 2026"
+
+[[contests.sites]]
+codes = ["mxitun"]
+name = "ITESO University"
+
+[[contests.sites]]
+codes = ["mxipco"]
+name = "Instituto Politécnico Nacional - Escuela Superior de Cómputo"
+
+[[contests.sites]]
+codes = ["mxitta"]
+name = "Instituto Tecnologico Superior de Tantoyuca"
+
+[[contests.sites]]
+codes = ["mxitca"]
+name = "Instituto Tecnológico Lázaro Cárdenas"
+
+[[contests.sites]]
+codes = ["mxitcl"]
+name = "Instituto Tecnológico Superior Juan Rodríguez Clara"
+
+[[contests.sites]]
+codes = ["mxitgr"]
+name = "Instituto Tecnológico Superior Nuevo Casas Grandes"
+
+[[contests.sites]]
+codes = ["mxitsi"]
+name = "Instituto Tecnológico Superior Región Sierra"
+
+[[contests.sites]]
+codes = ["mxitte"]
+name = "Instituto Tecnológico Superior San Martín Texmelucan"
+
+[[contests.sites]]
+codes = ["mxitno"]
+name = "Instituto Tecnológico Superior Zacatecas Norte"
+
+[[contests.sites]]
+codes = ["mxitsu"]
+name = "Instituto Tecnológico Superior Zacatecas Sur"
+
+[[contests.sites]]
+codes = ["mxitos"]
+name = "Instituto Tecnológico Superior de Acatlán de Osorio"
+
+[[contests.sites]]
+codes = ["mxitac"]
+name = "Instituto Tecnológico Superior de Acayúcan"
+
+[[contests.sites]]
+codes = ["mxital"]
+name = "Instituto Tecnológico Superior de Alvarado"
+
+[[contests.sites]]
+codes = ["mxitap"]
+name = "Instituto Tecnológico Superior de Apatzingán"
+
+[[contests.sites]]
+codes = ["mxitat"]
+name = "Instituto Tecnológico Superior de Atlixco"
+
+[[contests.sites]]
+codes = ["mxinca"]
+name = "Instituto Tecnológico Superior de Calkiní"
+
+[[contests.sites]]
+codes = ["mxitce"]
+name = "Instituto Tecnológico Superior de Centla"
+
+[[contests.sites]]
+codes = ["mxitch"]
+name = "Instituto Tecnológico Superior de Champotón"
+
+[[contests.sites]]
+codes = ["mxinac"]
+name = "Instituto Tecnológico Superior de Ciudad Acuña"
+
+[[contests.sites]]
+codes = ["mxitco"]
+name = "Instituto Tecnológico Superior de Ciudad Constitución"
+
+[[contests.sites]]
+codes = ["mxithi"]
+name = "Instituto Tecnológico Superior de Ciudad Hidalgo"
+
+[[contests.sites]]
+codes = ["mxinco"]
+name = "Instituto Tecnológico Superior de Coatzacoalcos"
+
+[[contests.sites]]
+codes = ["mxcoma"]
+name = "Instituto Tecnológico Superior de Comalcaco"
+
+[[contests.sites]]
+codes = ["mxitma"]
+name = "Instituto Tecnológico Superior de El Mante"
+
+[[contests.sites]]
+codes = ["mxites"]
+name = "Instituto Tecnológico Superior de Escárcega"
+
+[[contests.sites]]
+codes = ["mxitpu"]
+name = "Instituto Tecnológico Superior de Felipe Carrillo Puerto"
+
+[[contests.sites]]
+codes = ["mxitfr"]
+name = "Instituto Tecnológico Superior de Fresnillo"
+
+[[contests.sites]]
+codes = ["mxitgu"]
+name = "Instituto Tecnológico Superior de Guanajuato"
+
+[[contests.sites]]
+codes = ["mxithu"]
+name = "Instituto Tecnológico Superior de Huatusco"
+
+[[contests.sites]]
+codes = ["mxinhu"]
+name = "Instituto Tecnológico Superior de Huauchinango"
+
+[[contests.sites]]
+codes = ["mxhuet"]
+name = "Instituto Tecnológico Superior de Huetamo"
+
+[[contests.sites]]
+codes = ["mxhuic"]
+name = "Instituto Tecnológico Superior de Huichapan"
+
+[[contests.sites]]
+codes = ["mxitir"]
+name = "Instituto Tecnológico Superior de Irapuato"
+
+[[contests.sites]]
+codes = ["mxcarr"]
+name = "Instituto Tecnológico Superior de Jesús Carranza"
+
+[[contests.sites]]
+codes = ["mxitle"]
+name = "Instituto Tecnológico Superior de Lerdo"
+
+[[contests.sites]]
+codes = ["mxitli"]
+name = "Instituto Tecnológico Superior de Libres"
+
+[[contests.sites]]
+codes = ["mxitre"]
+name = "Instituto Tecnológico Superior de Los Reyes"
+
+[[contests.sites]]
+codes = ["mxitmi"]
+name = "Instituto Tecnológico Superior de Misantla"
+
+[[contests.sites]]
+codes = ["mxitmo"]
+name = "Instituto Tecnológico Superior de Monclova"
+
+[[contests.sites]]
+codes = ["mxitna"]
+name = "Instituto Tecnológico Superior de Naranjos"
+
+[[contests.sites]]
+codes = ["mxitri"]
+name = "Instituto Tecnológico Superior de Poza Rica"
+
+[[contests.sites]]
+codes = ["mxitpe"]
+name = "Instituto Tecnológico Superior de Puerto Peñasco"
+
+[[contests.sites]]
+codes = ["mxinri"]
+name = "Instituto Tecnológico Superior de Purísima del Rincón"
+
+[[contests.sites]]
+codes = ["mxitpa"]
+name = "Instituto Tecnológico Superior de Pánuco"
+
+[[contests.sites]]
+codes = ["mxinpa"]
+name = "Instituto Tecnológico Superior de Pátzcuaro"
+
+[[contests.sites]]
+codes = ["mxriov"]
+name = "Instituto Tecnológico Superior de Rioverde"
+
+[[contests.sites]]
+codes = ["mxitsa"]
+name = "Instituto Tecnológico Superior de Salvatierra"
+
+[[contests.sites]]
+codes = ["mxittu"]
+name = "Instituto Tecnológico Superior de San Andrés Tuxtla"
+
+[[contests.sites]]
+codes = ["mxpapa"]
+name = "Instituto Tecnológico Superior de Santiago Papasquiaro"
+
+[[contests.sites]]
+codes = ["mxinta"]
+name = "Instituto Tecnológico Superior de Tacámbaro"
+
+[[contests.sites]]
+codes = ["mxitro"]
+name = "Instituto Tecnológico Superior de Tepexi de Rodríguez"
+
+[[contests.sites]]
+codes = ["mxinte"]
+name = "Instituto Tecnológico Superior de Teposcolula"
+
+[[contests.sites]]
+codes = ["mxtezu"]
+name = "Instituto Tecnológico Superior de Tezuitlán"
+
+[[contests.sites]]
+codes = ["mxitur"]
+name = "Instituto Tecnológico Superior de Uruapan"
+
+[[contests.sites]]
+codes = ["mxitve"]
+name = "Instituto Tecnológico Superior de Villa La Venta"
+
+[[contests.sites]]
+codes = ["mxitza"]
+name = "Instituto Tecnológico Superior de Zacapoaxtla"
+
+[[contests.sites]]
+codes = ["mxitzo"]
+name = "Instituto Tecnológico Superior de Zongolica"
+
+[[contests.sites]]
+codes = ["mxinpu"]
+name = "Instituto Tecnológico Superior de la Sierra Norte de Puebla"
+
+[[contests.sites]]
+codes = ["mxtema"]
+name = "Instituto Tecnológico Superior de Álamo Temapache"
+
+[[contests.sites]]
+codes = ["mxinhi"]
+name = "Instituto Tecnológico Superior del Occidente del Estado de Hidalgo"
+
+[[contests.sites]]
+codes = ["mxhida"]
+name = "Instituto Tecnológico Superior del Oriente del Estado de Hidalgo"
+
+[[contests.sites]]
+codes = ["mxingu"]
+name = "Instituto Tecnológico Superior del Sur de Guanajuato"
+
+[[contests.sites]]
+codes = ["mxitpr"]
+name = "Instituto Tecnológico de Agua Prieta"
+
+[[contests.sites]]
+codes = ["mxitag"]
+name = "Instituto Tecnológico de Aguascalientes"
+
+[[contests.sites]]
+codes = ["mxinat"]
+name = "Instituto Tecnológico de Atitalaquia"
+
+[[contests.sites]]
+codes = ["mxcanc"]
+name = "Instituto Tecnológico de Cancún"
+
+[[contests.sites]]
+codes = ["mxince"]
+name = "Instituto Tecnológico de Celaya"
+
+[[contests.sites]]
+codes = ["mxitii"]
+name = "Instituto Tecnológico de Chihuahua II"
+
+[[contests.sites]]
+codes = ["mxinch"]
+name = "Instituto Tecnológico de Chilpancingo"
+
+[[contests.sites]]
+codes = ["mxinal"]
+name = "Instituto Tecnológico de Ciudad Altamirano"
+
+[[contests.sites]]
+codes = ["mxitcu"]
+name = "Instituto Tecnológico de Ciudad Cuauhtémoc"
+
+[[contests.sites]]
+codes = ["mxitji"]
+name = "Instituto Tecnológico de Ciudad Jiménez"
+
+[[contests.sites]]
+codes = ["mxitju"]
+name = "Instituto Tecnológico de Ciudad Juárez"
+
+[[contests.sites]]
+codes = ["mxinma"]
+name = "Instituto Tecnológico de Ciudad Madero"
+
+[[contests.sites]]
+codes = ["mxitse"]
+name = "Instituto Tecnológico de Ciudad Serdán"
+
+[[contests.sites]]
+codes = ["mxitva"]
+name = "Instituto Tecnológico de Ciudad Valles"
+
+[[contests.sites]]
+codes = ["mxcomi"]
+name = "Instituto Tecnológico de Comitán"
+
+[[contests.sites]]
+codes = ["mxincu"]
+name = "Instituto Tecnológico de Cuautla"
+
+[[contests.sites]]
+codes = ["mxculi"]
+name = "Instituto Tecnológico de Culiacán"
+
+[[contests.sites]]
+codes = ["mxitig"]
+name = "Instituto Tecnológico de Iguala"
+
+[[contests.sites]]
+codes = ["mxinji"]
+name = "Instituto Tecnológico de Jiquilpan"
+
+[[contests.sites]]
+codes = ["mxinle"]
+name = "Instituto Tecnológico de León"
+
+[[contests.sites]]
+codes = ["mxitme"]
+name = "Instituto Tecnológico de Mexicali"
+
+[[contests.sites]]
+codes = ["mxitix"]
+name = "Instituto Tecnológico de Milpa Alta I"
+
+[[contests.sites]]
+codes = ["mxinii"]
+name = "Instituto Tecnológico de Milpa Alta II"
+
+[[contests.sites]]
+codes = ["mxinmo"]
+name = "Instituto Tecnológico de Morelia"
+
+[[contests.sites]]
+codes = ["mxinme"]
+name = "Instituto Tecnológico de Mérida"
+
+[[contests.sites]]
+codes = ["mxleon"]
+name = "Instituto Tecnológico de Nuevo León"
+
+[[contests.sites]]
+codes = ["mxitoa"]
+name = "Instituto Tecnológico de Oaxaca"
+
+[[contests.sites]]
+codes = ["mxitoc"]
+name = "Instituto Tecnológico de Ocotlán"
+
+[[contests.sites]]
+codes = ["mxitor"]
+name = "Instituto Tecnológico de Orizaba"
+
+[[contests.sites]]
+codes = ["mxpach"]
+name = "Instituto Tecnológico de Pachuca"
+
+[[contests.sites]]
+codes = ["mxparr"]
+name = "Instituto Tecnológico de Parral"
+
+[[contests.sites]]
+codes = ["mxitne"]
+name = "Instituto Tecnológico de Piedras Negras"
+
+[[contests.sites]]
+codes = ["mxitpo"]
+name = "Instituto Tecnológico de Pochutla"
+
+[[contests.sites]]
+codes = ["mxitqu"]
+name = "Instituto Tecnológico de Querétaro"
+
+[[contests.sites]]
+codes = ["mxinsa"]
+name = "Instituto Tecnológico de Saltillo"
+
+[[contests.sites]]
+codes = ["mxriox"]
+name = "Instituto Tecnológico de San Juan del Río"
+
+[[contests.sites]]
+codes = ["mxinpo"]
+name = "Instituto Tecnológico de San Luis Potosí"
+
+[[contests.sites]]
+codes = ["mxmarc"]
+name = "Instituto Tecnológico de San Marcos"
+
+[[contests.sites]]
+codes = ["mxteha"]
+name = "Instituto Tecnológico de Tehaucan"
+
+[[contests.sites]]
+codes = ["mxitti"]
+name = "Instituto Tecnológico de Tizimin"
+
+[[contests.sites]]
+codes = ["mxittl"]
+name = "Instituto Tecnológico de Tláhuac"
+
+[[contests.sites]]
+codes = ["mxiixx"]
+name = "Instituto Tecnológico de Tláhuac II"
+
+[[contests.sites]]
+codes = ["mxitto"]
+name = "Instituto Tecnológico de Toluca"
+
+[[contests.sites]]
+codes = ["mxinve"]
+name = "Instituto Tecnológico de Veracruz"
+
+[[contests.sites]]
+codes = ["mxinza"]
+name = "Instituto Tecnológico de Zacatepec"
+
+[[contests.sites]]
+codes = ["mxitzi"]
+name = "Instituto Tecnológico de Zitácuaro"
+
+[[contests.sites]]
+codes = ["mxitla"]
+name = "Instituto Tecnológico de la Laguna"
+
+[[contests.sites]]
+codes = ["mxitis"]
+name = "Instituto Tecnológico del Istmo"
+
+[[contests.sites]]
+codes = ["mxzamo"]
+name = "Instituto Tecnológico y de Estudios Superiores de Zamora"
+
+[[contests.sites]]
+codes = ["mxomin"]
+name = "Olimpiada Mexicana de Informatica"
+
+[[contests.sites]]
+codes = ["mxteiz"]
+name = "Tecnológico de Estudios Superiores de Cuautitlán Izcalli"
+
+[[contests.sites]]
+codes = ["mxteec"]
+name = "Tecnológico de Estudios Superiores de Ecatepec"
+
+[[contests.sites]]
+codes = ["mxtehu"]
+name = "Tecnológico de Estudios Superiores de Huixquilucan"
+
+[[contests.sites]]
+codes = ["mxteix"]
+name = "Tecnológico de Estudios Superiores de Ixtapaluca"
+
+[[contests.sites]]
+codes = ["mxteji"]
+name = "Tecnológico de Estudios Superiores de Jilotepec"
+
+[[contests.sites]]
+codes = ["mxtejo"]
+name = "Tecnológico de Estudios Superiores de Jocotitlán"
+
+[[contests.sites]]
+codes = ["mxtmme"]
+name = "Tecnológico de Monterrey Campus Ciudad de México"
+
+[[contests.sites]]
+codes = ["mxtmcu"]
+name = "Tecnológico de Monterrey Campus Cuernavaca"
+
+[[contests.sites]]
+codes = ["mxteme"]
+name = "Tecnológico de Monterrey Campus Estado de México"
+
+[[contests.sites]]
+codes = ["mxtmgu"]
+name = "Tecnológico de Monterrey Campus Guadalajara"
+
+[[contests.sites]]
+codes = ["mxtmmo"]
+name = "Tecnológico de Monterrey Campus Monterrey"
+
+[[contests.sites]]
+codes = ["mxtmpu"]
+name = "Tecnológico de Monterrey Campus Puebla"
+
+[[contests.sites]]
+codes = ["mxtmqu"]
+name = "Tecnológico de Monterrey Campus Querétaro"
+
+[[contests.sites]]
+codes = ["mxtmfe"]
+name = "Tecnológico de Monterrey Campus Santa Fe"
+
+[[contests.sites]]
+codes = ["mxtmto"]
+name = "Tecnológico de Monterrey Campus Toluca"
+
+[[contests.sites]]
+codes = ["mxuaoa"]
+name = "Universidad Anahuac Oaxaca"
+
+[[contests.sites]]
+codes = ["mxuaag"]
+name = "Universidad Autónoma de Aguascalientes"
+
+[[contests.sites]]
+codes = ["mxuaen"]
+name = "Universidad Autónoma de Baja California Ensenada"
+
+[[contests.sites]]
+codes = ["mxuach"]
+name = "Universidad Autónoma de Chihuahua"
+
+[[contests.sites]]
+codes = ["mxuaju"]
+name = "Universidad Autónoma de Ciudad Juárez"
+
+[[contests.sites]]
+codes = ["mxuagu"]
+name = "Universidad Autónoma de Guadalajara"
+
+[[contests.sites]]
+codes = ["mxuale"]
+name = "Universidad Autónoma de Nuevo Leon"
+
+[[contests.sites]]
+codes = ["mxuaqu"]
+name = "Universidad Autónoma de Querétaro"
+
+[[contests.sites]]
+codes = ["mxuapo"]
+name = "Universidad Autónoma de San Luis Potosí"
+
+[[contests.sites]]
+codes = ["mxuama"]
+name = "Universidad Autónoma de Sinaloa - Facultad de Informática Mazatlán"
+
+[[contests.sites]]
+codes = ["mxuata"]
+name = "Universidad Autónoma de Tamaulipas"
+
+[[contests.sites]]
+codes = ["mxuate"]
+name = "Universidad Autónoma de Tlaxcala - Facultad de Ciencias Básicas, Ingeniería y Tecnología"
+
+[[contests.sites]]
+codes = ["mxuati"]
+name = "Universidad Autónoma de Yucatan Unidad Multidisciplinaria Tizimín"
+
+[[contests.sites]]
+codes = ["mxunma"]
+name = "Universidad Autónoma de Yucatán - Facultad de Matemáticas"
+
+[[contests.sites]]
+codes = ["mxuaza"]
+name = "Universidad Autónoma de Zacatecas"
+
+[[contests.sites]]
+codes = ["mxuahi"]
+name = "Universidad Autónoma del Estado de Hidalgo"
+
+[[contests.sites]]
+codes = ["mxumgu"]
+name = "Universidad Marista de Guadalajara"
+
+[[contests.sites]]
+codes = ["mxumhi"]
+name = "Universidad Michoacana de San Nicolás de Hidalgo"
+
+[[contests.sites]]
+codes = ["mxunin"]
+name = "Universidad Nacional Autónoma de México -  Facultad de Ingeniería"
+
+[[contests.sites]]
+codes = ["mxunna"]
+name = "Universidad Nacional Autónoma de México - Centro de Nanociencias y Nanotecnologia"
+
+[[contests.sites]]
+codes = ["mxunmo"]
+name = "Universidad Nacional Autónoma de México - Escuela Nacional de Estudios Superiores Campus Morelia"
+
+[[contests.sites]]
+codes = ["mxunci"]
+name = "Universidad Nacional Autónoma de México - Facultad de Ciencias"
+
+[[contests.sites]]
+codes = ["mxunsi"]
+name = "Universidad Nacional Autónoma de México - Instituto de Investigaciones en Matemáticas Aplicadas y en Sistemas"
+
+[[contests.sites]]
+codes = ["mxupbo"]
+name = "Universidad Panamericana Campus Bonaterra"
+
+[[contests.sites]]
+codes = ["mxupme"]
+name = "Universidad Panamericana Campus Ciudad de México"
+
+[[contests.sites]]
+codes = ["mxupgu"]
+name = "Universidad Panamericana Campus Guadalajara"
+
+[[contests.sites]]
+codes = ["mxupal"]
+name = "Universidad Politécnica de Altamira"
+
+[[contests.sites]]
+codes = ["mxupdu"]
+name = "Universidad Politécnica de Durango"
+
+[[contests.sites]]
+codes = ["mxuppu"]
+name = "Universidad Popular Autónoma del Estado de Puebla"
+
+[[contests.sites]]
+codes = ["mxutgu"]
+name = "Universidad TecMilenio Guadalajara"
+
+[[contests.sites]]
+codes = ["mxutto"]
+name = "Universidad TecMilenio Toluca"
+
+[[contests.sites]]
+codes = ["mxutmo"]
+name = "Universidad TecMileno Monterrey"
+
+[[contests.sites]]
+codes = ["mxutag"]
+name = "Universidad Tecnológica de Aguascalientes"
+
+[[contests.sites]]
+codes = ["mxunve"]
+name = "Universidad Veracruzana"
+
+[[contests.sites]]
+codes = ["mxudco"]
+name = "Universidad de Colima"
+
+[[contests.sites]]
+codes = ["mxugcu"]
+name = "Universidad de Guadalajara campus CUALTOS"
+
+[[contests.sites]]
+codes = ["mxuncu"]
+name = "Universidad de Guadalajara campus CUCEI"
+
+[[contests.sites]]
+codes = ["mxcuco"]
+name = "Universidad de Guadalajara campus CUCOSTA"
+
+[[contests.sites]]
+codes = ["mxcusu"]
+name = "Universidad de Guadalajara campus CUSUR"
+
+[[contests.sites]]
+codes = ["mxcuto"]
+name = "Universidad de Guadalajara campus CUTONALA"
+
+[[contests.sites]]
+codes = ["mxcuva"]
+name = "Universidad de Guadalajara campus CUVALLES"
+
+[[contests.sites]]
+codes = ["mxudgu"]
+name = "Universidad de Guanajuato"
+
+[[contests.sites]]
+codes = ["mxudmo"]
+name = "Universidad de Monterrey"
+
+[[contests.sites]]
+codes = ["mxuvat"]
+name = "Universidad del Valle de Atemajac"
+
+[[contests.sites]]
+codes = ["mxuvsu"]
+name = "Universidad del Valle de México Campus Guadalajara Sur"
+
+[[contests.sites]]
+codes = ["^(teammxccon014|teammxccsu025|teammxcppr001|teammxcppr009|teammxcppr013|teammxinca003|teammxipco019|teammxipco020|teammxipco027|teammxipco054|teammxitsa006|teammxtmme003|teammxtmmo003|teammxtmmo011|teammxtmmo018|teammxtmmo030|teammxuaag004|teammxuahi012|teammxuahi018|teammxuapo005|teammxuaza011|teammxuncu003|teammxunin008|teammxunin022|teammxunma017|teammxunmo005|teammxunmo007|teammxupgu002|teammxupgu003|teammxupgu006|teammxuppu002|teammxuppu007|teammxuvsu002)$"]
+name = "Times femininos - 3 competidoras"
+
+[[contests.sites]]
+codes = ["^(teammxbupu005|teammxbupu013|teammxbupu015|teammxbupu019|teammxcppr002|teammxcppr005|teammxcppr007|teammxcppr012|teammxcppr023|teammxipco014|teammxipco031|teammxipco039|teammxipco055|teammxitca003|teammxitju004|teammxitla020|teammxitsa003|teammxitsa004|teammxitsa008|teammxitun008|teammxleon003|teammxpapa001|teammxtmgu005|teammxtmme005|teammxtmpu004|teammxtmpu007|teammxtmpu008|teammxtmqu002|teammxuaen010|teammxuale006|teammxuale014|teammxuale016|teammxuncu007|teammxunin002|teammxupbo010|teammxuppu008|teammxuppu010)$"]
+name = "Times femininos - 2 competidoras"
+
+[[contests.sites]]
+codes = ["^(teammxbupu002|teammxbupu004|teammxbupu009|teammxbupu020|teammxcanc003|teammxcanc004|teammxcanc005|teammxcanc009|teammxccmi018|teammxccon003|teammxccon004|teammxccon005|teammxccon008|teammxccon009|teammxcppr003|teammxcppr015|teammxcppr017|teammxcppr018|teammxcuco001|teammxcusu001|teammxcusu002|teammxinca004|teammxingu005|teammxingu006|teammxingu007|teammxinle001|teammxinmo005|teammxinve001|teammxinza001|teammxinza002|teammxipco001|teammxipco007|teammxipco011|teammxipco021|teammxipco025|teammxipco026|teammxipco033|teammxipco034|teammxipco048|teammxipco058|teammxitca001|teammxitca002|teammxitca004|teammxitju001|teammxitla001|teammxitla005|teammxitla006|teammxitla009|teammxitla016|teammxitla021|teammxitla028|teammxitun012|teammxleon002|teammxteme002|teammxteme006|teammxteme008|teammxteme010|teammxtmgu001|teammxtmgu002|teammxtmgu003|teammxtmme002|teammxtmme004|teammxtmme006|teammxtmmo004|teammxtmmo009|teammxtmmo012|teammxtmmo020|teammxtmmo021|teammxtmmo025|teammxtmmo026|teammxtmpu002|teammxtmpu006|teammxtmpu010|teammxtmqu003|teammxtmto001|teammxuaag002|teammxuaag008|teammxuaen001|teammxuaen009|teammxuaen012|teammxuaen013|teammxuaen014|teammxuaen015|teammxuagu001|teammxuahi002|teammxuahi008|teammxuahi010|teammxuahi016|teammxuahi017|teammxuaju001|teammxuale012|teammxuale017|teammxuale018|teammxuale020|teammxuaoa002|teammxuaoa003|teammxuaoa005|teammxuapo006|teammxuapo013|teammxuapo017|teammxuapo019|teammxuaza003|teammxuaza004|teammxuaza008|teammxuaza013|teammxuaza016|teammxuaza017|teammxudgu002|teammxudgu003|teammxudmo005|teammxugcu001|teammxunci002|teammxunci003|teammxuncu004|teammxuncu013|teammxuncu014|teammxuncu015|teammxuncu018|teammxunin023|teammxunma014|teammxunma024|teammxunma027|teammxunmo001|teammxunmo003|teammxunmo004|teammxunmo006|teammxupal001|teammxupal004|teammxupbo004|teammxupbo005|teammxupbo006|teammxupbo007|teammxupbo008|teammxupgu008|teammxupgu009|teammxupgu011|teammxupme002|teammxuppu001|teammxuppu004|teammxuppu006|teammxuppu009|teammxuppu011|teammxuvsu001|teammxuvsu003)$"]
+name = "Times femininos - 1 competidora"
+
+[[contests]]
+name = "Centro America"
+codes = ["teamca"]
+
+[[contests.sites]]
+codes = ["teamca"]
+name = "Centro America"
+
+[[contests.sites]]
+codes = ["catcli"]
+name = "Tecnológico de Costa Rica Centro Académico de Limón"
+
+[[contests.sites]]
+codes = ["catcal"]
+name = "Tecnológico de Costa Rica Sede Alajuela"
+
+[[contests.sites]]
+codes = ["catcca"]
+name = "Tecnológico de Costa Rica Sede Cartago"
+
+[[contests.sites]]
+codes = ["cateli"]
+name = "Tecnológico de Costa Rica sede Limón"
+
+[[contests.sites]]
+codes = ["caunce"]
+name = "Universidad Cenfotec"
+
+[[contests.sites]]
+codes = ["caucca"]
+name = "Universidad Centroamericana \"José Simeón Cañas\""
+
+[[contests.sites]]
+codes = ["caudbo"]
+name = "Universidad Don Bosco"
+
+[[contests.sites]]
+codes = ["caufpe"]
+name = "Universidad Fidélitas (San Pedro)"
+
+[[contests.sites]]
+codes = ["caufga"]
+name = "Universidad Francisco Gavidia"
+
+[[contests.sites]]
+codes = ["caunga"]
+name = "Universidad Galileo"
+
+[[contests.sites]]
+codes = ["caumch"]
+name = "Universidad Mariano Galvez de Guatemala Campus Chiquimulilla"
+
+[[contests.sites]]
+codes = ["caunma"]
+name = "Universidad Nacional Autónoma de Nicaragua sede Managua"
+
+[[contests.sites]]
+codes = ["caunni"]
+name = "Universidad Nacional Chorotega - Nicoya"
+
+[[contests.sites]]
+codes = ["caunin"]
+name = "Universidad Nacional de Ingeniería"
+
+[[contests.sites]]
+codes = ["caunco"]
+name = "Universidad Nacional sede Coto"
+
+[[contests.sites]]
+codes = ["caurla"]
+name = "Universidad Rafael Landívar"
+
+[[contests.sites]]
+codes = ["caurqu"]
+name = "Universidad Rafael Landívar sede Quetzaltenango"
+
+[[contests.sites]]
+codes = ["causgu"]
+name = "Universidad San Carlos de Guatemala"
+
+[[contests.sites]]
+codes = ["causoc"]
+name = "Universidad San Carlos,  Centro Universitario de Occidente"
+
+[[contests.sites]]
+codes = ["caucpa"]
+name = "Universidad de Costa Rica sede Pacífico"
+
+[[contests.sites]]
+codes = ["caucpe"]
+name = "Universidad de Costa Rica sede San Pedro"
+
+[[contests.sites]]
+codes = ["caudor"]
+name = "Universidad de Oriente"
+
+[[contests.sites]]
+codes = ["cauigu"]
+name = "Universidad del Istmo de Guatemala"
+
+[[contests.sites]]
+codes = ["cauvgt"]
+name = "Universidad del Valle GT"
+
+[[contests.sites]]
+codes = ["^(teamcatcli002|teamcaucca004|teamcauigu002|teamcaunce012|teamcaunce017|teamcausoc002)$"]
+name = "Times femininos - 3 competidoras"
+
+[[contests.sites]]
+codes = ["^(teamcaucca018|teamcaufpe003|teamcaufpe004|teamcauigu009|teamcaunce018|teamcausgu004)$"]
+name = "Times femininos - 2 competidoras"
+
+[[contests.sites]]
+codes = ["^(teamcatcal003|teamcatcal005|teamcatcal007|teamcatcal011|teamcaucca005|teamcaucca011|teamcaucca012|teamcaucca014|teamcaucca015|teamcauigu004|teamcauigu005|teamcauigu011|teamcauigu012|teamcaunce001|teamcaunce003|teamcaunce004|teamcaunce009|teamcaunce011|teamcaunce016|teamcaunga005|teamcaurqu007|teamcausgu005|teamcauvgt015)$"]
+name = "Times femininos - 1 competidora"
+
+[[contests]]
+name = "Bolivia"
+codes = ["teambo"]
+
+[[contests.sites]]
+name = "Bolivia"
+codes = ["teambo"]
+
+[[contests.sites]]
+name = "Bermejo"
+codes = ["boberm"]
+
+[[contests.sites]]
+name = "Cobija"
+codes = ["bocobi"]
+
+[[contests.sites]]
+name = "Cochabamba"
+codes = ["bococh"]
+
+[[contests.sites]]
+name = "El Alto"
+codes = ["boelal"]
+
+[[contests.sites]]
+name = "La Paz"
+codes = ["bolapa"]
+
+[[contests.sites]]
+name = "Llallagua"
+codes = ["bollal"]
+
+[[contests.sites]]
+name = "Oruro"
+codes = ["boorur"]
+
+[[contests.sites]]
+name = "Potosí"
+codes = ["bopoto"]
+
+[[contests.sites]]
+name = "Santa Cruz"
+codes = ["bosacr"]
+
+[[contests.sites]]
+name = "Sucre"
+codes = ["bosucr"]
+
+[[contests.sites]]
+name = "Tarija"
+codes = ["botari"]
+
+[[contests.sites]]
+name = "Trinidad"
+codes = ["botrin"]
+
+[[contests.sites]]
+name = "Tupiza"
+codes = ["botupi"]
+
+[[contests.sites]]
+name = "Yacuiba"
+codes = ["boyacu"]
+
+[[contests.sites]]
+name = "Times femininos - 3 competidoras"
+codes = ["^(teambococh021|teambococh022|teambolapa006|teambolapa009|teambolapa020|teambolapa021|teambollal011|teambollal015|teambollal019|teamboorur001|teamboorur014|teamboorur019|teamboorur020|teamboorur022|teambopoto013|teambosacr018|teambosacr028|teambosacr041|teambosacr045|teambosucr011)$"]
+
+[[contests.sites]]
+name = "Times femininos - 2 competidoras"
+codes = ["^(teambolapa038|teambollal005|teambollal006|teambollal018|teambopoto016|teambosacr020|teambosacr021|teambosacr036)$"]
+
+[[contests.sites]]
+name = "Times femininos - 1 competidora"
+codes = ["^(teamboberm002|teamboberm003|teambocobi006|teambococh001|teambococh003|teambococh005|teambococh006|teambococh008|teambococh010|teambococh014|teambococh019|teambococh027|teambococh028|teambococh032|teambolapa007|teambolapa016|teambolapa019|teambolapa032|teambolapa033|teambolapa037|teambollal004|teambollal013|teambollal014|teambollal016|teambollal020|teamboorur005|teamboorur008|teamboorur011|teamboorur012|teamboorur015|teamboorur016|teambopoto003|teambopoto014|teambopoto018|teambosacr002|teambosacr010|teambosacr011|teambosacr014|teambosacr022|teambosacr026|teambosacr033|teambosacr038|teambosacr046|teambosucr003|teambosucr004|teambotari005|teambotrin001|teambotupi004|teambotupi005)$"]
+
+[[contests]]
+name = "CCL"
+codes = ["ccl"]
+
+[[contests.sites]]
+codes = ["ccl"]
+name = "CCL"
+
+[[contests.sites]]
+name = "CCL Brasil"
+codes = ["cclbr"]
+
+[[contests.sites]]
+name = "CCL Bolivia"
+codes = ["cclbo"]
+
+[[contests.sites]]
+codes = ["cclca"]
+name = "CCL Centro America"
+
+[[contests.sites]]
+codes = ["cclmx"]
+name = "Mexico CCL"
+
+[[contests]]
+name = "Brasil CCL"
+codes = ["cclbr"]
+
+[[contests.sites]]
+codes = ["cclbr"]
+name = "Brasil CCL"
+
+[[contests]]
+name = "Bolivia CCL"
+codes = ["cclbo"]
+
+[[contests.sites]]
+name = "Bolivia CCL"
+codes = ["cclbo"]
+
+[[contests]]
+name = "Mexico CCL"
+codes = ["cclmx"]
+
+[[contests.sites]]
+codes = ["cclmx"]
+name = "Mexico CCL"
+
+[[contests]]
+name = "Centro America CCL"
+codes = ["cclca"]
+
+[[contests.sites]]
+codes = ["cclca"]
+name = "Centro America CCL"
+
+[[contests.sites]]
+codes = ["^(cclcaadsi003)$"]
+name = "Times femininos - 1 competidora"
+

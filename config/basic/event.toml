@@ -1,7 +1,9 @@
+# Public derivation values are safe to commit; keys also require the private server salt.
 # Minimal manifest used by `make run-basic`.
 
 [event]
 name = "basic-example"
+secret = "development-event-value"
 
 [[contests]]
 name = "Contest Exemplo"

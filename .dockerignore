@@ -8,6 +8,7 @@ ccl
 doc
 serve-as-bucket
 secret_env
+internal_tokens.toml
 .env
 Makefile
 *.Makefile
@@ -21,3 +22,6 @@ client-v2/release
 client-v2/dist
 client-v2/bucket
 client-v2/naquadah
+**/server.toml
+**/event-secrets.toml
+**/.generated

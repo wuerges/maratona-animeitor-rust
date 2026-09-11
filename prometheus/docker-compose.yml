@@ -1,34 +1,5 @@
-# Prometheus monitorando o animeitor.
-#
-#   docker compose --env-file ../.env up -d
-#
-# Dashboard em http://localhost:9090. O alvo do scrape vem de SERVER_URL
-# (com ou sem esquema, ex.: http://animeitor.naquadah.com.br ou
-# http://localhost:8000); se não estiver definida, usa
-# animeitor.naquadah.com.br. INTERNAL_TOKEN é o token da API interna
-# (o endpoint /internal/metrics é autenticado).
-
-services:
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: animeitor-prometheus
-    ports:
-      - "9090:9090"
-    environment:
-      - SERVER_URL=${SERVER_URL:-http://animeitor.naquadah.com.br}
-      - INTERNAL_TOKEN=${INTERNAL_TOKEN:-token-de-teste}
-    extra_hosts:
-      # Testes locais: SERVER_URL=http://host.docker.internal:8000 aponta
-      # para um animeitor-server rodando nesta máquina.
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ./prometheus.yml.template:/etc/prometheus/prometheus.yml.template:ro
-      - ./entrypoint.sh:/etc/prometheus/entrypoint.sh:ro
-      - prometheus-data:/prometheus
-    # A configuração gerada e o arquivo com o token ficam no volume, que é
-    # gravável pelo usuário "nobody" da imagem. O token não é inserido no YAML.
-    entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
-    restart: unless-stopped
-
-volumes:
-  prometheus-data:
+# Generate from the repository root with `make configure-docker`.
+# Start using `docker compose --profile monitoring up -d` here,
+# or `make monitor-docker` from the root.
+include:
+  - ../.generated/compose.json
