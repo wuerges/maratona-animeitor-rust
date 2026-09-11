@@ -3,7 +3,23 @@ include .env
 
 .PHONY: run-basic run-config run-server run-feeder printurls generate-dev-certs \
 	check-server check-feeder rebuild-client-for-release rebuild-server-for-release \
-	rebuild-docker-image republish-docker-image run-debug-client
+	rebuild-docker-image republish-docker-image run-debug-client help
+
+# Default target: `make` prints the available commands.
+help:
+	@echo "Animeitor targets:"
+	@echo "  make run-basic BOCA_URL=...                         Run the basic example"
+	@echo "  make run-config CONFIG=... BOCA_URL=...             Run server and feeder"
+	@echo "  make run-server                                      Run only the HTTPS server"
+	@echo "  make run-feeder CONFIG=... BOCA_URL=...             Run feeder against a server"
+	@echo "  make printurls CONFIG=...                            Print contest/reveal URLs"
+	@echo "  make generate-dev-certs                              Generate local TLS certs"
+	@echo "  make rebuild-client-for-release                      Build the release client"
+	@echo "  make rebuild-server-for-release                      Build the release server"
+	@echo "  make rebuild-docker-image                            Build the Docker image"
+	@echo "  make republish-docker-image                          Build and push the image"
+	@echo
+	@echo "Defaults: CONFIG=${CONFIG}, SERVER_URL=${SERVER_URL}"
 
 # Select an event with CONFIG. The server always uses HTTPS for internal API calls.
 CONFIG ?= config/nacional_2026/event.toml
