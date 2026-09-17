@@ -1,95 +1,51 @@
 use clap::Parser;
-use cli::SimpleArgs;
-use data::configdata::{Contest, Secret, Sede};
-use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
+use cli::configuration::{EventConfig, ServerConfig};
+use service::event_store::deployment_site_key;
+use std::path::PathBuf;
 use url::Url;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
-/// Maratona Rustrimeitor Server
-struct SimpleParser {
-    #[clap(flatten)]
-    args: SimpleArgs,
-
-    /// The url prefix for the animeitor server.
-    #[clap(long, default_value = "http://localhost:8080", required = true)]
-    prefix: String,
-
-    /// Show filters.
-    #[clap(long, default_value = "false")]
-    filters: bool,
+#[command(
+    version,
+    about = "Print scoreboard and revelation URLs offline from configuration"
+)]
+struct Args {
+    #[arg(long)]
+    event_config: PathBuf,
+    #[arg(long)]
+    server_config: PathBuf,
 }
-
-fn print_sede(
-    parse: &SimpleParser,
-    sede: &Sede,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&parse.prefix)?;
-    if !contest_name.is_empty() {
-        url.query_pairs_mut().append_pair("contest", contest_name);
-    }
-    url.query_pairs_mut().append_pair("sede", &sede.entry.name);
-
-    println!("-> {}", sede.entry.name);
-    println!("    Animeitor em {}", url.as_str());
-    if parse.filters {
-        println!("    Filters = {:?}", sede.entry.codes);
-    }
-    Ok(())
-}
-
-fn print_reveleitor(
-    parse: &SimpleParser,
-    sede: &Sede,
-    secret: &str,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    let mut url = Url::parse(&parse.prefix)?;
-    url.query_pairs_mut()
-        .append_pair("secret", secret)
-        .append_pair("sede", &sede.entry.name)
-        .append_pair("contest", contest_name);
-
-    println!("-> {}", sede.entry.name);
-    println!("    Reveleitor em {}", url.as_str());
-    if parse.filters {
-        println!("    Filters = {:?}", sede.entry.codes);
-    }
-    Ok(())
-}
-
-fn print_urls(
-    parse: &SimpleParser,
-    contest: &Contest,
-    config_secret: &Secret,
-    contest_name: &str,
-) -> color_eyre::eyre::Result<()> {
-    println!("\n");
-    print_sede(parse, &contest.titulo, contest_name)?;
-    // for (_secret, sede) in &contest.sedes {
-    //     print_sede(parse, sede, contest_name)?;
-    // }
-
-    for (secret, sede) in &config_secret.sedes_by_secret {
-        print_reveleitor(parse, sede, secret, contest_name)?;
-    }
-    Ok(())
-}
-
 fn main() -> color_eyre::eyre::Result<()> {
-    tracing_subscriber::FmtSubscriber::builder()
-        .with_env_filter(EnvFilter::from_default_env())
-        .finish()
-        .init();
-
-    let parse = SimpleParser::parse();
-
-    let map = parse.args.into_contest_and_secret()?;
-
-    for (name, (_, contest, config_secret)) in &map {
-        print_urls(&parse, contest, config_secret, name)?;
+    let args = Args::parse();
+    let event = EventConfig::load(&args.event_config)?;
+    let server = ServerConfig::load(&args.server_config)?;
+    for contest in &event.contests {
+        let mut url = Url::parse(&server.public_url)?;
+        url.path_segments_mut()
+            .map_err(|_| color_eyre::eyre::eyre!("public_url must support paths"))?
+            .clear()
+            .extend(["animeitor", &event.event.name, &contest.name, ""]);
+        println!(
+            "-> {} / {}\n    Animeitor em {url}",
+            event.event.name, contest.name
+        );
+        for site in &contest.sites {
+            let key = deployment_site_key(
+                &server.revelation_salt,
+                &event.event.name,
+                &contest.name,
+                &site.name,
+                &event.event.secret,
+                &contest.secret,
+                &site.secret,
+            );
+            let mut reveal = url.clone();
+            reveal
+                .query_pairs_mut()
+                .append_pair("secret", &key)
+                .append_pair("sede", &site.name);
+            println!("    {}: Reveleitor em {reveal}", site.name);
+        }
     }
-
     Ok(())
 }

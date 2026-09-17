@@ -1,18 +1,17 @@
-use actix_web::{get, HttpResponse, Responder};
 use autometrics::prometheus_exporter;
+use axum::http::StatusCode;
 
 pub fn setup() {
     prometheus_exporter::init();
 }
 
-#[get("/metrics")]
-pub async fn get_metrics() -> impl Responder {
+pub async fn get_metrics() -> (StatusCode, String) {
     match prometheus_exporter::encode_to_string() {
-        Ok(string) => HttpResponse::Ok().body(string),
+        Ok(string) => (StatusCode::OK, string),
         Err(err) => {
             tracing::error!(?err, "metrics");
 
-            HttpResponse::InternalServerError().finish()
+            (StatusCode::INTERNAL_SERVER_ERROR, String::new())
         }
     }
 }

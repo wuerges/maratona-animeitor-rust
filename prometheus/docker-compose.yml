@@ -1,0 +1,3 @@
+# From here: docker compose --profile monitoring up
+include:
+  - ../docker-compose.yaml

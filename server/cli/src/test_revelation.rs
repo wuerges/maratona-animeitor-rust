@@ -1,5 +1,6 @@
-use data::{RunsFile, contest_state::ContestState, revelation::RevelationDriver};
+use client_model::RevelationDriver;
 use service::webcast::load_data_from_url_maybe;
+use service::{contest_state::ContestState, runs_file_new};
 
 pub async fn build_revelation(input_file: &str) -> color_eyre::eyre::Result<Vec<String>> {
     let ContestState {
@@ -8,7 +9,7 @@ pub async fn build_revelation(input_file: &str) -> color_eyre::eyre::Result<Vec<
         contest: contest_data,
     } = load_data_from_url_maybe(input_file).await?;
 
-    let mut driver = RevelationDriver::new(contest_data, RunsFile::new(runs_data));
+    let mut driver = RevelationDriver::new(contest_data, runs_file_new(runs_data));
     let mut result = Vec::new();
 
     while !driver.is_empty() {

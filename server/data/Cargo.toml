@@ -5,15 +5,8 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-utoipa.workspace = true
 serde.workspace = true
-serde_json.workspace = true
+utoipa.workspace = true
 thiserror.workspace = true
-tracing.workspace = true
-itertools.workspace = true
 regex.workspace = true
 derivative = "2.2"
-
-[dev-dependencies]
-quickcheck.workspace = true
-quickcheck_macros.workspace = true

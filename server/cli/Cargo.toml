@@ -15,18 +15,17 @@ url.workspace = true
 rand.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-openssl-sys = { optional = true, version = "0.9" }
-reqwest = { version = "0.13", features = ["json"]}
+reqwest.workspace = true
+regex.workspace = true
 
 data.workspace = true
+client-model.workspace = true
 service.workspace = true
-server-v2.workspace = true
+sentry.workspace = true
+sentry-tracing.workspace = true
 
 [dev-dependencies]
 rstest.workspace = true
-quickcheck.workspace = true
-quickcheck_macros.workspace = true
 
 [features]
 slow_tests = []
-vendored = ["openssl-sys/vendored"]

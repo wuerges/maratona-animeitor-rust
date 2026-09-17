@@ -1,0 +1,5 @@
+{
+    "api_prefix": "http://animeitor.naquadah.com.br/api",
+    "photo_prefix": "https://static.animeitor.naquadah.com.br/photos",
+    "sound_prefix": "https://static.animeitor.naquadah.com.br/sounds"
+}

@@ -1,0 +1,148 @@
+use std::{
+    collections::HashMap,
+    future::Future,
+    sync::{Mutex, OnceLock, RwLock},
+};
+
+use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
+use data::event::PublicConfig;
+use data::TimerData;
+use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
+use leptos::{prelude::*, task::spawn_local};
+
+/// The event and contest a client is showing, parsed from the URL path
+/// (`/animeitor/{event}/{contest}`; the empty contest segment is the default).
+pub use client_sdk::EventContest;
+
+static CONFIG: OnceLock<client_sdk::SdkConfig> = OnceLock::new();
+
+pub fn init_config(config: client_sdk::SdkConfig) {
+    let _ = CONFIG.set(config);
+}
+
+fn config() -> &'static client_sdk::SdkConfig {
+    CONFIG.get().expect("sdk config not initialized")
+}
+
+/// The public config of the contest being shown; its photo/sound formats
+/// override the deploy-level defaults (media comes from the contest config).
+static MEDIA: RwLock<Option<PublicConfig>> = RwLock::new(None);
+
+pub async fn create_events() -> Vec<String> {
+    client_sdk::create_events(config()).await
+}
+
+pub async fn create_contests(event: String) -> Vec<String> {
+    client_sdk::create_contests(config(), event).await
+}
+
+pub fn remote_control_url(ec: &EventContest, key: &str) -> String {
+    client_sdk::remote_control_url(config(), ec, key)
+}
+
+fn media_formats() -> Option<PublicConfig> {
+    MEDIA.read().ok().and_then(|media| media.clone())
+}
+
+pub fn team_photo_location(team_login: &str) -> String {
+    match media_formats() {
+        Some(public) => client_sdk::team_photo_location_with(
+            config(),
+            public.photo_url_format.as_deref(),
+            team_login,
+        ),
+        None => client_sdk::team_photo_location(config(), team_login),
+    }
+}
+
+pub fn team_sound_location(team_login: &str) -> String {
+    match media_formats() {
+        Some(public) => client_sdk::team_sound_location_with(
+            config(),
+            public.sound_url_format.as_deref(),
+            team_login,
+        ),
+        None => client_sdk::team_sound_location(config(), team_login),
+    }
+}
+
+pub async fn create_secret_runs(key: String, ec: EventContest) -> data::RunsFile {
+    let data = client_sdk::create_secret_runs(config(), key, ec).await;
+    client_sdk::legacy::to_runs_file(data)
+}
+
+fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
+    client_sdk::create_runs(config(), ec)
+}
+
+/// The timer websocket and its signal, one per event.
+///
+/// The timer endpoint is event-scoped (`/api/events/{event}/timer`), so all
+/// contests of an event share the same stream. Views re-run and routes
+/// re-match on navigation; the cache guarantees a single websocket per
+/// event (no reconnect storm) and the correct timer when navigating between
+/// events.
+pub fn create_timer(ec: EventContest) -> ReadSignal<(TimerData, TimerData)> {
+    static TIMERS: OnceLock<Mutex<HashMap<String, ReadSignal<(TimerData, TimerData)>>>> =
+        OnceLock::new();
+    let mut timers = TIMERS
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .expect("timer cache lock");
+    timers
+        .entry(ec.event.clone())
+        .or_insert_with(|| {
+            let mut timer_stream = client_sdk::create_timer_stream(config(), ec);
+
+            // The signal lives in a detached root owner: the cache is read
+            // from transient route-render scopes whose owners are disposed
+            // between evaluations, and an arena-allocated signal dies with
+            // its owner (writing to it afterwards panics). The root owner is
+            // leaked on purpose so the signal never disposes.
+            let owner = Owner::new_root(None);
+            let (timer, set_timer) =
+                owner.with(|| signal((TimerData::fake(), data::TimerData::new(0, 1))));
+            std::mem::forget(owner);
+
+            spawn_local(async move {
+                loop {
+                    let next = timer_stream.next().await;
+                    if let Some(next) = next {
+                        set_timer.update(|(new, old)| {
+                            *old = *new;
+                            *new = next;
+                        });
+                    }
+                }
+            });
+
+            timer
+        })
+        .clone()
+}
+
+pub fn provide_contest(ec: EventContest) -> impl Future<Output = ContestProvider> {
+    let ec_for_runs = ec.clone();
+    async move {
+        let public_config = client_sdk::create_public_config(config(), ec.clone()).await;
+
+        *MEDIA.write().expect("media lock poisoned") = Some(public_config.clone());
+
+        let provider = client_model::provide_contest(
+            client_sdk::create_contest(config(), ec.clone()),
+            async { client_sdk::to_legacy_config(public_config) },
+        )
+        .await;
+
+        spawn_local(poll_runs(
+            provider.starting_contest.clone(),
+            create_runs(ec_for_runs),
+            provider.new_contest_signal.clone(),
+            provider.runs_panel_item_manager.clone(),
+            Options::default(),
+            || gloo_timers::future::TimeoutFuture::new(1_000),
+        ));
+
+        provider
+    }
+}

@@ -1,0 +1,25 @@
+# Public derivation values are safe to commit; keys also require the private server salt.
+# Minimal manifest used by `make run-basic`.
+
+[event]
+name = "basic-example"
+secret = "development-event-value"
+
+[[contests]]
+name = "Contest Exemplo"
+codes = [""]
+ouro = 1
+prata = 2
+bronze = 3
+
+[[contests.sites]]
+name = "Geral"
+codes = [""]
+
+[[contests.sites]]
+name = "ARQ"
+codes = ["arq"]
+
+[[contests.sites]]
+name = "CTD"
+codes = ["ctd"]

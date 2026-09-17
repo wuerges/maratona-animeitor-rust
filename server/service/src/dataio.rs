@@ -1,9 +1,11 @@
 use crate::errors::{Error, ServiceResult};
+use data::configdata::Sede;
 use data::*;
 use html_escape::decode_html_entities_to_string;
+use std::collections::BTreeMap;
 use tracing::{Level, instrument};
 
-pub trait FromString {
+pub(crate) trait FromString {
     fn from_string(s: &str) -> ServiceResult<Self>
     where
         Self: std::marker::Sized;
@@ -17,7 +19,7 @@ impl FromString for Team {
         }
         let mut team_name = String::new();
         decode_html_entities_to_string(team_line[2], &mut team_name);
-        Ok(Team::new(team_line[0], team_line[1], team_name))
+        Ok(team_new(team_line[0], team_line[1], team_name))
     }
 }
 
@@ -98,7 +100,7 @@ impl FromString for ContestFile {
             teams.push(t);
         }
 
-        Ok(Self::new(
+        Ok(contest_file_new(
             contest_name.to_string(),
             teams,
             current_time,
@@ -113,23 +115,15 @@ impl FromString for ContestFile {
 impl FromString for RunsFile {
     fn from_string(s: &str) -> ServiceResult<Self> {
         let runs = read_runs(s)?;
-        Ok(RunsFile::new(runs))
+        Ok(runs_file_new(runs))
     }
 }
 
-#[derive(Debug)]
-pub struct DB {
-    run_file: RunsFile,
-    pub run_file_secret: RunsFile,
-    pub contest_file_begin: ContestFile,
-    pub time_file: TimeFile,
-}
-
-pub fn read_contest(s: &str) -> ServiceResult<ContestFile> {
+pub(crate) fn read_contest(s: &str) -> ServiceResult<ContestFile> {
     ContestFile::from_string(s)
 }
 
-pub fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
+pub(crate) fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
     let mut runs = s
         .lines()
         .map(RunTuple::from_string)
@@ -154,40 +148,103 @@ pub fn read_runs(s: &str) -> ServiceResult<Vec<RunTuple>> {
     Ok(runs)
 }
 
-impl DB {
-    pub fn empty() -> Self {
-        DB {
-            run_file: RunsFile::empty(),
-            run_file_secret: RunsFile::empty(),
-            contest_file_begin: ContestFile::dummy(),
-            time_file: 0,
+fn team_new(login: &str, escola: &str, name: String) -> Team {
+    Team {
+        login: login.to_string(),
+        escola: escola.to_string(),
+        name,
+        placement: 0,
+        placement_global: 0,
+        problems: BTreeMap::new(),
+        id: data::gen_id(),
+    }
+}
+
+fn contest_file_new(
+    contest_name: String,
+    teams: Vec<Team>,
+    current_time: i64,
+    maximum_time: i64,
+    score_freeze_time: i64,
+    penalty: i64,
+    number_problems: usize,
+) -> ContestFile {
+    let mut m = BTreeMap::new();
+    for t in teams {
+        m.insert(t.login.clone(), t);
+    }
+    ContestFile {
+        contest_name,
+        teams: m,
+        current_time,
+        maximum_time,
+        score_freeze_time,
+        penalty_per_wrong_answer: penalty,
+        number_problems,
+    }
+}
+
+pub fn runs_file_new(runs: Vec<RunTuple>) -> RunsFile {
+    let mut t = RunsFile::empty();
+    for r in runs {
+        t.refresh_1(&r);
+    }
+    t
+}
+
+/// Server-side transforms of the shared [`RunsFile`] wire type.
+pub trait RunsFileExt {
+    /// Rewrites runs at or after `frozen_time` to `Answer::Wait`.
+    fn filter_frozen(&self, frozen_time: i64) -> RunsFile;
+
+    /// Keeps only the runs of teams belonging to the given site.
+    fn filter_sede(&self, sede: &Sede) -> RunsFile;
+
+    /// Inserts/updates the given runs, returning the ones that changed.
+    fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple>;
+}
+
+impl RunsFileExt for RunsFile {
+    fn filter_frozen(&self, frozen_time: i64) -> RunsFile {
+        runs_file_new(
+            self.sorted()
+                .into_iter()
+                .map(|mut r| {
+                    if r.time >= frozen_time {
+                        let run_id = match r.answer {
+                            Answer::Yes { run_id, .. }
+                            | Answer::No { run_id }
+                            | Answer::Wait { run_id }
+                            | Answer::Unk { run_id } => run_id,
+                        };
+                        r.answer = Answer::Wait { run_id };
+                    }
+                    r
+                })
+                .collect(),
+        )
+    }
+
+    fn filter_sede(&self, sede: &Sede) -> RunsFile {
+        let mut out = RunsFile::empty();
+        for run in self.sorted() {
+            if sede.team_belongs_str(&run.team_login) {
+                out.refresh_1(&run);
+            }
         }
+        out
     }
 
-    pub fn refresh_db(
-        &mut self,
-        time: i64,
-        contest: ContestFile,
-        mut runs: RunsFile,
-    ) -> ServiceResult<Vec<RunTuple>> {
-        self.time_file = time;
-        self.contest_file_begin = contest;
+    fn refresh(&mut self, fresh: Vec<RunTuple>) -> Vec<RunTuple> {
+        let mut rec = Vec::new();
 
-        runs.filter_teams(&self.contest_file_begin);
-        let runs_frozen = runs.filter_frozen(self.contest_file_begin.score_freeze_time);
+        for t in fresh {
+            if self.refresh_1(&t) {
+                rec.push(t);
+            }
+        }
 
-        let fresh = self.run_file.refresh(runs_frozen.sorted());
-        self.run_file_secret = runs;
-
-        Ok(fresh)
-    }
-
-    pub fn timer_data(&self) -> TimerData {
-        TimerData::new(self.time_file, self.contest_file_begin.score_freeze_time)
-    }
-
-    pub fn all_runs(&self) -> Vec<RunTuple> {
-        self.run_file.sorted()
+        rec
     }
 }
 
@@ -197,7 +254,6 @@ mod tests {
     use std::io::{self, Read};
 
     use super::*;
-    // use data::revelation::RevelationDriver;
 
     trait FromFile {
         fn from_file(s: &str) -> ServiceResult<Self>
@@ -258,57 +314,23 @@ mod tests {
     }
 
     #[test]
-    fn test_db_file_1a_fase_2020() -> ServiceResult<()> {
-        let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-        let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-        assert_eq!(runs.len(), 6285);
-
-        let mut db = DB::empty();
-        db.refresh_db(0, contest, runs)?;
-
-        assert_eq!(db.run_file.len(), 4927);
-        assert_eq!(db.run_file_secret.len(), 6285);
-
-        Ok(())
-    }
-
-    // #[test]
-    // fn test_revelation_1a_fase_2020() -> ServiceResult<()> {
-    //     let contest = ContestFile::from_file("test/webcast_zip_1a_fase_2020/contest")?;
-
-    //     let runs = RunsFile::from_file("test/webcast_zip_1a_fase_2020/runs")?;
-    //     assert_eq!(runs.len(), 6285);
-
-    //     let r1 = RevelationDriver::new(contest.clone(), runs.clone())?;
-    //     let r2 = RevelationDriver::new(contest, runs)?;
-
-    //     for t in r1.contest().teams.values() {
-    //         let t2_p = r2.contest().placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t2_p);
-    //     }
-
-    //     for t in r2.contest().teams.values() {
-    //         let t1_p = r1.contest().placement(&t.login).unwrap();
-    //         assert_eq!(t.placement, t1_p);
-    //     }
-
-    //     Ok(())
-    // }
-
-    #[test]
     fn test_orders_stable_across_appends_ascending() -> ServiceResult<()> {
         // MOJ serves the runs file ascending (oldest first). When a line is
         // appended, the `order` of existing runs must not shift, otherwise
         // RunsFile::refresh treats the whole file as fresh on every poll.
-        let r1 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y")?;
+        let r1 = read_runs(
+            "1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y",
+        )?;
         let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
         assert_eq!(orders1, vec![0, 1, 2]);
 
-        let r2 = read_runs("1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N")?;
+        let r2 = read_runs(
+            "1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N",
+        )?;
         let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
         assert_eq!(orders2, vec![0, 1, 2, 3]);
 
-        let mut runs = RunsFile::new(r1);
+        let mut runs = runs_file_new(r1);
         let fresh = runs.refresh(r2);
         assert_eq!(fresh.len(), 1);
         assert_eq!(fresh[0].id, 4);
@@ -319,15 +341,19 @@ mod tests {
     fn test_orders_stable_across_appends_descending() -> ServiceResult<()> {
         // The old source served the runs file descending (newest first);
         // new runs are prepended and existing orders must not shift either.
-        let r1 = read_runs("3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let r1 = read_runs(
+            "3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N",
+        )?;
         let orders1: Vec<u64> = r1.iter().map(|r| r.order).collect();
         assert_eq!(orders1, vec![0, 1, 2]);
 
-        let r2 = read_runs("4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N")?;
+        let r2 = read_runs(
+            "4\u{1c}4\u{1c}teamx\u{1c}B\u{1c}N\n3\u{1c}3\u{1c}teamx\u{1c}A\u{1c}Y\n2\u{1c}2\u{1c}teamx\u{1c}A\u{1c}N\n1\u{1c}1\u{1c}teamx\u{1c}A\u{1c}N",
+        )?;
         let orders2: Vec<u64> = r2.iter().map(|r| r.order).collect();
         assert_eq!(orders2, vec![0, 1, 2, 3]);
 
-        let mut runs = RunsFile::new(r1);
+        let mut runs = runs_file_new(r1);
         let fresh = runs.refresh(r2);
         assert_eq!(fresh.len(), 1);
         assert_eq!(fresh[0].id, 4);

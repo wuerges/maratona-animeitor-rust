@@ -1,0 +1,17 @@
+[Unit]
+Description=Maratona Animeitor feeder (Nacional 2026)
+After=network-online.target animeitor-server.service
+Wants=network-online.target animeitor-server.service
+
+[Service]
+Type=simple
+User=ew
+Group=ew
+WorkingDirectory=/home/ew/maratona-animeitor-rust
+Environment=RUST_LOG=info
+ExecStart=/home/ew/maratona-animeitor-rust/target/release/animeitor-feeder --server-config server.toml --event-config config/nacional_2026/event.toml --event-secrets event-secrets.toml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

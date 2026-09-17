@@ -43,12 +43,12 @@ impl<T: Clone> Sender<T> {
         }
     }
 
-    pub fn send_memo(&self, value: T) -> usize {
+    pub(crate) fn send_memo(&self, value: T) -> usize {
         self.messages.write().push(value.clone());
         self.tx.send(value).unwrap_or(0)
     }
 
-    pub fn subscribe(&self) -> Receiver<T> {
+    pub(crate) fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
         Receiver::new(rx, &self.messages.read())
     }
@@ -59,7 +59,7 @@ impl<T: Clone> Sender<T> {
     }
 }
 
-pub fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
+pub(crate) fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let (tx, rx) = broadcast::channel(capacity);
     let mem_tx = Sender::new(tx);
     let mem_rx = Receiver::new(rx, &mem_tx.messages.read());

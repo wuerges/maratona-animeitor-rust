@@ -1,60 +1,30 @@
-use std::time::Duration;
-
-use actix_web::{get, web, HttpRequest, HttpResponse};
-use actix_ws::{Message, MessageStream, Session};
-use autometrics::autometrics;
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
+use axum::response::Response;
 use data::remote_control::ControlMessage;
-use futures::StreamExt;
-use tokio::sync::broadcast::{
-    error::{RecvError, SendError},
-    Receiver, Sender,
-};
+use futures::stream::{SplitSink, SplitStream};
+use futures::{SinkExt, StreamExt};
+use tokio::sync::broadcast::{Receiver, Sender, error::SendError};
 use tokio_stream::wrappers::BroadcastStream;
-use tracing::{debug, instrument, Level};
+use tracing::{debug, instrument};
 
-use crate::app_data::AppData;
+use service::remote_control::{ConnectionControlMessage, ControlSender, next_request_id};
 
-#[get("/remote_control/{key}")]
-async fn remote_control_ws(
-    data: web::Data<AppData>,
-    req: HttpRequest,
-    body: web::Payload,
-    key: web::Path<String>,
-) -> Result<HttpResponse, actix_web::Error> {
-    run_remote_control_ws(data, req, body, key.into_inner()).await
-}
-
-pub type ControlSender = Sender<ConnectionControlMessage>;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ConnectionControlMessage {
-    request_id: u64,
-    message: ControlMessage,
-}
-
-fn create_remote_control() -> ControlSender {
-    let (sender, _) = tokio::sync::broadcast::channel(100);
-    sender
-}
+use crate::envelope::send_json;
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
-    #[error(transparent)]
-    RecvError(#[from] RecvError),
     #[error(transparent)]
     SendError(#[from] SendError<ConnectionControlMessage>),
     #[error(transparent)]
     Serde(#[from] serde_json::Error),
     #[error(transparent)]
-    Closed(#[from] actix_ws::Closed),
-    #[error(transparent)]
-    ProtocolError(#[from] actix_ws::ProtocolError),
+    Axum(#[from] axum::Error),
 }
 
-#[instrument(skip(rec, session), err)]
+#[instrument(skip(rec, sender), err)]
 async fn send_to_clients(
     rec: Receiver<ConnectionControlMessage>,
-    mut session: Session,
+    mut sender: SplitSink<WebSocket, Message>,
     connection_request_id: u64,
 ) -> Result<(), Error> {
     let mut rec_stream = BroadcastStream::new(rec);
@@ -64,30 +34,24 @@ async fn send_to_clients(
         message,
     })) = rec_stream.next().await
     {
-        if request_id != connection_request_id {
-            let text = serde_json::to_string(&message)?;
-            session.text(text).await?;
+        if request_id != connection_request_id && !send_json(&mut sender, &message).await {
+            return Ok(());
         }
     }
 
-    Ok(session.close(None).await?)
+    Ok(sender.send(Message::Close(None)).await?)
 }
 
 fn get_text(message: Message) -> Result<Option<ControlMessage>, Error> {
     match message {
-        Message::Text(text) => Ok(Some(serde_json::from_slice(text.as_bytes())?)),
-        Message::Binary(_) => Ok(None),
-        Message::Continuation(_) => Ok(None),
-        Message::Ping(_) => Ok(None),
-        Message::Pong(_) => Ok(None),
-        Message::Close(_) => Ok(None),
-        Message::Nop => Ok(None),
+        Message::Text(text) => Ok(Some(serde_json::from_str(text.as_str())?)),
+        Message::Binary(_) | Message::Ping(_) | Message::Pong(_) | Message::Close(_) => Ok(None),
     }
 }
 
 #[instrument(skip(stream, sender), err)]
 async fn read_from_clients(
-    stream: &mut MessageStream,
+    stream: &mut SplitStream<WebSocket>,
     sender: Sender<ConnectionControlMessage>,
     request_id: u64,
 ) -> Result<(), Error> {
@@ -98,46 +62,30 @@ async fn read_from_clients(
                 request_id,
                 message,
             })?;
-        } else {
-            tokio::time::sleep(Duration::from_secs(1)).await
         }
     }
 
     Ok(())
 }
 
-#[autometrics]
-#[tracing::instrument(level = Level::DEBUG, skip(data, body), ret)]
-async fn run_remote_control_ws(
-    data: web::Data<AppData>,
-    req: HttpRequest,
-    body: web::Payload,
-    key: String,
-) -> Result<HttpResponse, actix_web::Error> {
-    let (response, session, mut msg_stream) = actix_ws::handle(&req, body)?;
+/// Relays control messages between every client of the same sender channel.
+pub(crate) async fn relay_remote_control(sender: ControlSender, ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(move |socket| async move {
+        let (sender_half, mut receiver_half) = socket.split();
+        let rec = sender.subscribe();
 
-    let sender = {
-        let mut lock = data.remote_control.lock().await;
+        let request_id = next_request_id();
+        tracing::info!(?request_id, "established remote control");
 
-        lock.entry(key).or_insert(create_remote_control()).clone()
-    };
-
-    let rec = sender.subscribe();
-
-    let request_id = rand::random();
-    tracing::info!(?request_id, "established remote control");
-
-    actix_web::rt::spawn(async move {
-        if let Err(err) = send_to_clients(rec, session, request_id).await {
+        let (send_result, read_result) = tokio::join!(
+            send_to_clients(rec, sender_half, request_id),
+            read_from_clients(&mut receiver_half, sender, request_id),
+        );
+        if let Err(err) = send_result {
             tracing::debug!(?err, "failed sending");
         }
-    });
-
-    actix_web::rt::spawn(async move {
-        if let Err(err) = read_from_clients(&mut msg_stream, sender, request_id).await {
+        if let Err(err) = read_result {
             tracing::debug!(?err, "failed reading");
         }
-    });
-
-    Ok(response)
+    })
 }

@@ -1,9 +1,10 @@
 use std::{collections::HashSet, path::PathBuf};
 
 use clap::Parser;
+use cli::config_secret::{ConfigSecret, SedeSecret};
 use color_eyre::eyre::WrapErr;
-use data::configdata::{ConfigContest, ConfigSecret, SedeSecret};
-use rand::{Rng, distr::Alphanumeric};
+use data::configdata::ConfigContest;
+use rand::distr::{Alphanumeric, SampleString};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -19,11 +20,7 @@ struct Args {
 }
 
 fn secret() -> String {
-    rand::rng()
-        .sample_iter(&Alphanumeric)
-        .take(12)
-        .map(char::from)
-        .collect()
+    Alphanumeric.sample_string(&mut rand::rng(), 12)
 }
 
 fn main() -> color_eyre::eyre::Result<()> {
@@ -36,8 +33,8 @@ fn main() -> color_eyre::eyre::Result<()> {
     for path in &args.files {
         let f = std::fs::read_to_string(path)
             .wrap_err_with(|| format!("reading {}", path.display()))?;
-        let contest: ConfigContest = toml::from_str(&f)
-            .wrap_err_with(|| format!("parsing {}", path.display()))?;
+        let contest: ConfigContest =
+            toml::from_str(&f).wrap_err_with(|| format!("parsing {}", path.display()))?;
         for name in std::iter::once(contest.titulo.name)
             .chain(contest.sedes.into_iter().flatten().map(|s| s.name))
         {
@@ -62,8 +59,7 @@ fn main() -> color_eyre::eyre::Result<()> {
     let out = toml::to_string(&ConfigSecret { secrets })?;
     match &args.output {
         Some(path) => {
-            std::fs::write(path, &out)
-                .wrap_err_with(|| format!("writing {}", path.display()))?;
+            std::fs::write(path, &out).wrap_err_with(|| format!("writing {}", path.display()))?;
             eprintln!("wrote {} secrets to {}", count, path.display());
         }
         None => print!("{out}"),

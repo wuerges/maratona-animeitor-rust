@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="/styles-efcbb023adcef13.css" integrity="sha384-j31EUW+ZeYamifmB2z96QU35HYSovjmqFE4R2Sh0tsj7VIux3bEOSxAN2ysLM7p3"/>
+  <link rel="stylesheet" href="/audio-5837f5f5029360c6.css" integrity="sha384-ILTUMcqmRlFFQ/0jmO7kK6VLanTP0lTqME6sA2DcZEtqZDyTrZIrNiwJw+gw6gjF"/>
+  <link rel="stylesheet" href="/balloons-5fe069752bcbc7ec.css" integrity="sha384-MH5TVjb7YtxmM/3MPLk2Kr8Gx2/EPCo/EuAkiPOnUK9aGsqHXnV7bXYXxb3Ii4II"/>
+  <link rel="stylesheet" href="/user-styles.css" />
+  
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="modulepreload" href="/client-v2-f21216b5c3a8b99c.js" crossorigin="anonymous" integrity="sha384-+uVhl0VbHR4QCqWD35z03b4rpoRJ7QkihMqfLap47J4W1jAdfCOLE/nfASMaogUi"><link rel="preload" href="/client-v2-f21216b5c3a8b99c_bg.wasm" crossorigin="anonymous" integrity="sha384-6ZfOx/UmQo4VIfhTqAwHSgcPQ7m/3dfqfkZvHi7ewCeNrsYL/GYXbULsJqYuoJ8C" as="fetch" type="application/wasm"></head>
+
+<body id="body">
+<script type="module">
+import init, * as bindings from '/client-v2-f21216b5c3a8b99c.js';
+const wasm = await init({ module_or_path: '/client-v2-f21216b5c3a8b99c_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>

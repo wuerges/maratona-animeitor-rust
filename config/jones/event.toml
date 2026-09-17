@@ -1,0 +1,11 @@
+[event]
+name = "jones"
+secret = "development-event-value"
+
+[[contests]]
+name = "Jones"
+codes = [""]
+
+[[contests.sites]]
+name = "Geral"
+codes = [""]

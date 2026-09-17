@@ -1,120 +1,179 @@
-mod api;
-mod app_data;
-mod endpoints;
-mod memory_files;
+mod envelope;
+pub mod internal;
+pub mod memory_files;
 pub mod metrics;
+pub mod openapi;
+pub mod public;
 mod remote_control;
-mod volumes;
 
-use std::{collections::HashMap, fs::File, io::BufReader, path::Path, sync::Arc};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-use actix_cors::Cors;
-use actix_web::*;
-use actix_web::middleware::Compress;
-use app_data::AppData;
-use rustls::ServerConfig;
-use tokio::sync::broadcast;
+use axum::Router;
+use axum::extract::FromRef;
+use axum::http::StatusCode;
+use axum::middleware::{self, Next};
+use axum::response::{IntoResponse, Response};
+use tower_http::compression::CompressionLayer;
+use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
 
-use metrics::get_metrics;
-use remote_control::remote_control_ws;
-use service::DB;
-use service::dbupdate_v2::db_update_loop;
-use service::membroadcast;
-use service::{app_config::AppConfig, errors::ServiceResult, http::{HttpConfig, HttpTlsConfig}};
-use tokio::sync::Mutex;
-use tracing_actix_web::TracingLogger;
-use volumes::configure_volumes;
+use service::event_store::EventStore;
+use service::http::load_rustls_config;
+use service::volume::Volume;
+use service::{
+    app_config::AppConfig,
+    errors::ServiceResult,
+    http::{HttpConfig, HttpTlsConfig},
+};
 
-fn load_rustls_config(cert: &Path, key: &Path) -> ServiceResult<ServerConfig> {
-    let certs = rustls_pemfile::certs(&mut BufReader::new(File::open(cert)?))
-        .collect::<std::io::Result<Vec<_>>>()?;
-    let key = rustls_pemfile::private_key(&mut BufReader::new(File::open(key)?))?
-        .ok_or_else(|| std::io::Error::other("no private key found in PEM file"))?;
-    ServerConfig::builder()
-        .with_no_client_auth()
-        .with_single_cert(certs, key)
-        .map_err(std::io::Error::other)
-        .map_err(Into::into)
+/// The state shared by all handlers of the server.
+#[derive(Clone)]
+pub struct AppState {
+    pub store: EventStore,
+    pub internal_tokens: std::sync::Arc<std::collections::HashMap<String, String>>,
+}
+
+impl FromRef<AppState> for EventStore {
+    fn from_ref(state: &AppState) -> Self {
+        state.store.clone()
+    }
+}
+
+/// Builds the router with the `/api` and `/internal` scopes. The state is
+/// provided here: the result is a `Router<()>` ready to serve.
+pub fn app(state: AppState) -> Router {
+    Router::new()
+        .nest("/api", public::router())
+        .nest("/internal", internal::router())
+        .layer(CompressionLayer::new())
+        .with_state(state)
+}
+
+/// The internal API must never receive credentials over cleartext HTTP.
+async fn reject_internal_over_http(
+    request: axum::http::Request<axum::body::Body>,
+    next: Next,
+) -> Response {
+    if request.uri().path().starts_with("/internal/") || request.uri().path() == "/internal" {
+        return (
+            StatusCode::UPGRADE_REQUIRED,
+            [(axum::http::header::CONNECTION, "close")],
+            "the internal API requires HTTPS",
+        )
+            .into_response();
+    }
+    next.run(request).await
+}
+
+/// Loads the client assets of a folder into memory once per canonical path,
+/// so volumes mounting the same folder (e.g. `-v dist: -v dist:animeitor`)
+/// share a single copy.
+fn load_assets(
+    folder: &str,
+    loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>,
+) -> Arc<memory_files::MemoryFiles> {
+    let canonical = std::fs::canonicalize(folder).unwrap_or_else(|_| PathBuf::from(folder));
+    loaded
+        .entry(canonical)
+        .or_insert_with_key(|dir| Arc::new(memory_files::MemoryFiles::load(dir)))
+        .clone()
+}
+
+fn volume_router(
+    volume: Volume,
+    loaded: &mut HashMap<PathBuf, Arc<memory_files::MemoryFiles>>,
+) -> Router {
+    match volume.path.as_str() {
+        "" => {
+            // Root mount (landing): anything unmatched by the APIs is served
+            // from the client assets held in memory.
+            memory_files::router(load_assets(&volume.folder, loaded), "", false)
+        }
+        "animeitor" => {
+            // The client build is an SPA served at /animeitor/{event}/{contest}:
+            // unmatched paths fall back to its index.html.
+            Router::new().nest(
+                "/animeitor",
+                memory_files::router(load_assets(&volume.folder, loaded), "/animeitor", true),
+            )
+        }
+        path => Router::new().nest_service(
+            &format!("/{path}"),
+            ServeDir::new(&volume.folder).append_index_html_on_directories(true),
+        ),
+    }
 }
 
 pub async fn serve_config(
     AppConfig {
-        config,
-        boca_url,
         server_config: HttpConfig { port, tls },
         volumes,
-        server_api_key,
+        internal_tokens,
+        revelation_salt,
     }: AppConfig,
 ) -> ServiceResult<()> {
-    let config = Arc::new(config);
-
-    let shared_db = Arc::new(Mutex::new(DB::empty()));
-    let (runs_tx, _) = membroadcast::channel(1000000);
-    let (time_tx, _) = broadcast::channel(1000000);
-
-    let remote_control = Arc::new(Mutex::new(HashMap::new()));
-
-    if let Some(url) = boca_url {
-        let _update = tokio::task::spawn(db_update_loop(
-            url.clone(),
-            shared_db.clone(),
-            runs_tx.clone(),
-            time_tx.clone(),
-        ));
-    }
-
-    // The volume mounted at the server root holds the client assets. Load it
-    // into memory once at startup and serve it without touching the disk.
-    let (root_volumes, disk_volumes): (Vec<_>, Vec<_>) =
-        volumes.into_iter().partition(|volume| volume.path.is_empty());
-    if root_volumes.len() > 1 {
-        tracing::warn!(
-            "multiple root-mounted volumes given; serving {} from memory and ignoring the others",
-            root_volumes[0].folder
-        );
-    }
-    let client_assets = root_volumes
-        .first()
-        .map(|volume| web::Data::new(memory_files::MemoryFiles::load(Path::new(&volume.folder))));
-
-    let server = HttpServer::new(move || {
-        let mut app = App::new()
-            .wrap(TracingLogger::default())
-            .wrap(Cors::permissive())
-            .app_data(web::Data::new(AppData {
-                shared_db: shared_db.clone(),
-                runs_tx: runs_tx.clone(),
-                time_tx: time_tx.clone(),
-                config: config.clone(),
-                remote_control: remote_control.clone(),
-                server_api_key: server_api_key.clone(),
-            }))
-            .service(
-                web::scope("api")
-                    .wrap(Compress::default())
-                    .configure(api::configure)
-                    .service(get_metrics)
-                    .service(remote_control_ws),
-            )
-            .service(configure_volumes(disk_volumes.clone()));
-        if let Some(client_assets) = client_assets.clone() {
-            app = app
-                .app_data(client_assets)
-                .service(memory_files::client_service());
-        }
-        app
-    })
-    .bind(("0.0.0.0", port))?;
-
-    let server = match tls {
-        Some(HttpTlsConfig { cert, key, port: tls_port }) => {
-            let tls_config = load_rustls_config(&cert, &key)?;
-            server.bind_rustls_0_23(("0.0.0.0", tls_port), tls_config)?
-        }
-        None => server,
+    let state = AppState {
+        store: service::event_store::EventStore::with_revelation_salt(revelation_salt),
+        internal_tokens: Arc::new(internal_tokens),
     };
 
-    server.run().await?;
+    let mut app = app(state);
+    let mut loaded_assets = HashMap::new();
+    for volume in volumes {
+        app = app.merge(volume_router(volume, &mut loaded_assets));
+    }
+    let app = app
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::permissive());
+
+    match tls {
+        Some(HttpTlsConfig {
+            cert,
+            key,
+            port: tls_port,
+        }) => {
+            // Like the old actix server, both listeners stay up: HTTP on
+            // `port` and HTTPS on `tls_port`.
+            let mut tls_config = load_rustls_config(&cert, &key)?;
+            tls_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+
+            let handle = axum_server::Handle::new();
+            let shutdown_handle = handle.clone();
+            tokio::spawn(async move {
+                let _ = tokio::signal::ctrl_c().await;
+                shutdown_handle.graceful_shutdown(None);
+            });
+
+            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
+            let http_app = app
+                .clone()
+                .layer(middleware::from_fn(reject_internal_over_http));
+            let http = axum::serve(listener, http_app).with_graceful_shutdown(async {
+                let _ = tokio::signal::ctrl_c().await;
+            });
+
+            let https = axum_server::tls_rustls::bind_rustls(
+                std::net::SocketAddr::from(([0, 0, 0, 0], tls_port)),
+                axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(tls_config)),
+            )
+            .handle(handle)
+            .serve(app.into_make_service());
+
+            tokio::try_join!(http, https)?;
+        }
+        None => {
+            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
+            let http_app = app.layer(middleware::from_fn(reject_internal_over_http));
+            axum::serve(listener, http_app)
+                .with_graceful_shutdown(async {
+                    let _ = tokio::signal::ctrl_c().await;
+                })
+                .await?;
+        }
+    }
 
     Ok(())
 }

@@ -1,0 +1,191 @@
+# Public derivation values are safe to commit; keys also require the private server salt.
+[event]
+name = "nacional-2026"
+secret = "development-event-value"
+photo_url_format = "https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-photo?contest=icpc-latam-br-fp-2026&user={team_login}"
+sound_url_format = "https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}"
+
+[[contests]]
+codes = ["teambr"]
+name = "Brazilian Finals"
+
+[[contests.sites]]
+codes = ["teambr"]
+name = "Brazilian Finals"
+
+[[contests]]
+name = "CCL - Brazilian Finals"
+codes = ["cclbr"]
+
+[[contests.sites]]
+name = "CCL - Brazilian Finals"
+codes = ["cclbr"]
+
+[[contests]]
+name = "Caribbean Finals"
+codes = ["teamcb"]
+
+[[contests.sites]]
+name = "Caribbean Finals"
+codes = ["teamcb"]
+
+[[contests.sites]]
+codes = ["teamcbab"]
+name = "Antigua & Barbuda (Regional Site)"
+
+[[contests.sites]]
+codes = ["teamcbcu"]
+name = "Cuba (Regional Site)"
+
+[[contests.sites]]
+codes = ["teamcbdr"]
+name = "Dominican Republic (Regional Site)"
+
+[[contests.sites]]
+codes = ["teamcbpr"]
+name = "Puerto Rico (Regional Site)"
+
+[[contests.sites]]
+codes = ["teamcbtt"]
+name = "Trinidad & Tobago (Regional Site)"
+
+[[contests]]
+name = "Latin America - Invitados - Café con Leche"
+codes = ["ccl"]
+
+[[contests.sites]]
+name = "Latin America - Invitados - Café con Leche"
+codes = ["ccl"]
+
+[[contests.sites]]
+codes = ["br"]
+name = "CCL - Brazilian Finals"
+
+[[contests.sites]]
+codes = ["ca"]
+name = "CCL - Central America Finals"
+
+[[contests.sites]]
+name = "CCL - Caribbean Finals"
+codes = ["cb"]
+
+[[contests.sites]]
+name = "CCL - Mexico Finals"
+codes = ["mxmx"]
+
+[[contests.sites]]
+name = "CCL - South America - North Finals"
+codes = ["no"]
+
+[[contests.sites]]
+name = "CCL - South America - South Finals"
+codes = ["so"]
+
+[[contests]]
+name = "Central America Finals"
+codes = ["teamca"]
+
+[[contests.sites]]
+name = "Central America Finals"
+codes = ["teamca"]
+
+[[contests.sites]]
+codes = ["teamcacr"]
+name = "Costa Rica Site"
+
+[[contests.sites]]
+codes = ["teamcael"]
+name = "El Salvador Site"
+
+[[contests.sites]]
+codes = ["teamcagt"]
+name = "Guatemala Site"
+
+[[contests]]
+name = "Latin America"
+codes = ["team"]
+
+[[contests.sites]]
+name = "Latin America"
+codes = [""]
+
+[[contests.sites]]
+codes = ["teambr"]
+name = "Brazilian Finals"
+
+[[contests.sites]]
+codes = ["teamca"]
+name = "Central America Finals"
+
+[[contests.sites]]
+name = "Caribbean Finals"
+codes = ["teamcb"]
+
+[[contests.sites]]
+name = "Mexico Finals"
+codes = ["teammx"]
+
+[[contests.sites]]
+name = "South America - North Finals"
+codes = ["teamno"]
+
+[[contests.sites]]
+name = "South America - South Finals"
+codes = ["teamso"]
+
+[[contests]]
+name = "Mexico Finals"
+codes = ["teammx"]
+
+[[contests.sites]]
+name = "Mexico Finals"
+codes = ["teammx"]
+
+[[contests]]
+name = "South America - North Finals"
+codes = ["teamno"]
+
+[[contests.sites]]
+name = "South America - North Finals"
+codes = ["teamno"]
+
+[[contests.sites]]
+codes = ["teamnoco", "teamnoec"]
+name = "Colombia"
+
+[[contests.sites]]
+codes = ["teamnovz"]
+name = "Venezuela"
+
+[[contests]]
+name = "South America - South Finals"
+codes = ["teamso"]
+
+[[contests.sites]]
+name = "South America - South Finals"
+codes = ["teamso"]
+
+[[contests.sites]]
+codes = ["teamsoar"]
+name = "Argentina"
+
+[[contests.sites]]
+codes = ["teamsobo"]
+name = "Bolivia"
+
+[[contests.sites]]
+codes = ["teamsoch"]
+name = "Chile"
+
+[[contests.sites]]
+codes = ["teamsopa", "teamsope"]
+name = "Peru"
+
+[[contests.sites]]
+codes = ["teamsopa"]
+name = "Peru - Arequipa"
+
+[[contests.sites]]
+codes = ["teamsope"]
+name = "Peru - Lima"
+
