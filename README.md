@@ -128,8 +128,10 @@ formats and server asset mounts, described below.
 
 ## Reveleitor hotkeys
 
-Open a Reveleitor link printed by `printurls` and click the page so it receives
-keyboard input. These controls let you present the frozen results interactively:
+Open a Reveleitor link printed by `printurls`. A welcome dialog explains that
+the scores are not final until all submissions have been revealed and lists the
+keyboard controls. Click **OK** to open Reveleitor, then click the page if it needs
+keyboard focus. These controls let you present the frozen results interactively:
 
 | Key | Action |
 | --- | --- |

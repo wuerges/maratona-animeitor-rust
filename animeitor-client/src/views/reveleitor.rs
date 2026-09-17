@@ -136,6 +136,42 @@ pub fn Control(state: WriteSignal<State>) -> impl IntoView {
 }
 
 #[component]
+fn RevelationWelcome(on_confirm: Callback<()>) -> impl IntoView {
+    let dialog = NodeRef::<leptos::html::Dialog>::new();
+    Effect::new(move |_| {
+        if let Some(dialog) = dialog.get() {
+            let _ = dialog.show_modal();
+        }
+    });
+    view! {
+        <dialog
+            node_ref=dialog
+            class="revelation-welcome"
+            aria-labelledby="revelation-welcome-title"
+            aria-describedby="revelation-welcome-description"
+            on:cancel=move |event: web_sys::Event| event.prevent_default()
+        >
+            <h1 id="revelation-welcome-title">"These are not the final scores"</h1>
+            <p id="revelation-welcome-description">
+                "Reveleitor starts with unrevealed submissions. Reveal all submissions to reach the final scores and standings."
+            </p>
+            <h2>"Keyboard controls"</h2>
+            <dl>
+                <dt><kbd>"→"</kbd></dt><dd>"Reveal the next submission"</dd>
+                <dt><kbd>"←"</kbd></dt><dd>"Go back one submission"</dd>
+                <dt><kbd>"↑"</kbd></dt><dd>"Step up one team"</dd>
+                <dt><kbd>"↓"</kbd></dt><dd>"Step down one team"</dd>
+                <dt><kbd>"Backspace"</kbd></dt><dd>"Reset the revelation"</dd>
+                <dt><kbd>"Y"</kbd></dt><dd>"Show or hide the team photo"</dd>
+                <dt><kbd>"M"</kbd></dt><dd>"Toggle automatic team-song playback"</dd>
+            </dl>
+            <p>"Photos and songs are available when configured for this contest."</p>
+            <button autofocus on:click=move |_| on_confirm.run(())>"OK"</button>
+        </dialog>
+    }
+}
+
+#[component]
 pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) -> impl IntoView {
     log!("revelation");
     let contest_signal = Arc::new(ContestSignal::new(&contest));
@@ -169,11 +205,19 @@ pub fn Revelation(sede: Arc<Sede>, runs_file: RunsFile, contest: ContestFile) ->
         });
     });
 
+    let (acknowledged, set_acknowledged) = signal(false);
     view! {
-        <Control state=set_driver />
-        <div class="revelationpanel">
-            <RevelationPanel original_contest contest_signal state=get_driver sede=get_sede.into() />
-        </div>
+        <Show
+            when=move || acknowledged.get()
+            fallback=move || view! {
+                <RevelationWelcome on_confirm=Callback::new(move |_| set_acknowledged.set(true)) />
+            }
+        >
+            <Control state=set_driver />
+            <div class="revelationpanel">
+                <RevelationPanel original_contest=original_contest.clone() contest_signal=contest_signal.clone() state=get_driver sede=get_sede.into() />
+            </div>
+        </Show>
     }
 }
 

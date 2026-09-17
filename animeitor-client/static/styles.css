@@ -565,3 +565,39 @@ a {
 div#runheader>.cell {
   background-color: #263238 !important;
 }
+
+/* The scoreboard and its keyboard listeners mount only after confirmation. */
+.revelation-welcome {
+  box-sizing: border-box;
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  margin: auto;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #cbd5e1;
+  border-radius: 1rem;
+  background: #fff;
+  color: #172033;
+  font: 1rem/1.5 system-ui, sans-serif;
+  text-align: left;
+  box-shadow: 0 1rem 4rem #0005;
+}
+.revelation-welcome::backdrop { background: #0f172acc; }
+.revelation-welcome h1 { margin: 0 0 1rem; font-size: 1.6rem; line-height: 1.2; }
+.revelation-welcome h2 { margin: 1.25rem 0 .75rem; font-size: 1.15rem; }
+.revelation-welcome dl { display: grid; grid-template-columns: max-content 1fr; gap: .6rem 1rem; }
+.revelation-welcome dd { margin: 0; }
+.revelation-welcome kbd { font: bold .95rem ui-monospace, monospace; }
+.revelation-welcome button {
+  display: block;
+  margin: 1.25rem 0 0 auto;
+  min-width: 6rem;
+  padding: .7rem 1.5rem;
+  border: 0;
+  border-radius: .5rem;
+  background: #1d4ed8;
+  color: white;
+  font: bold 1rem system-ui, sans-serif;
+  cursor: pointer;
+}
+.revelation-welcome button:focus-visible { outline: 3px solid #0f172a; outline-offset: 3px; }
