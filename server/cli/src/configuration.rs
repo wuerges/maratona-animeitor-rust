@@ -212,8 +212,6 @@ pub struct ServerConfig {
     pub tokens: Vec<Token>,
     #[serde(default)]
     pub assets: Vec<Asset>,
-    #[serde(default)]
-    pub docker: Docker,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -232,18 +230,6 @@ pub struct Asset {
     pub directory: PathBuf,
     pub path: String,
 }
-#[derive(Deserialize, Default)]
-#[serde(deny_unknown_fields)]
-pub struct Docker {
-    #[serde(default)]
-    pub mounts: Vec<Mount>,
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Mount {
-    pub source: PathBuf,
-    pub target: PathBuf,
-}
 impl ServerConfig {
     pub fn load(path: &Path) -> Result<Self> {
         let mut value: Self = read(path)?;
@@ -255,9 +241,6 @@ impl ServerConfig {
         value.tls_ca_cert = relative(path, &value.tls_ca_cert)?;
         for a in &mut value.assets {
             a.directory = relative(path, &a.directory)?;
-        }
-        for m in &mut value.docker.mounts {
-            m.source = relative(path, &m.source)?;
         }
         Ok(value)
     }
@@ -293,19 +276,6 @@ impl ServerConfig {
             nonempty(&t.token, "token")?;
         }
         self.credential()?;
-        unique(
-            self.docker
-                .mounts
-                .iter()
-                .map(|m| m.target.to_str().unwrap_or("")),
-            "Docker mount target",
-        )?;
-        for m in &self.docker.mounts {
-            ensure!(
-                m.target.is_absolute(),
-                "Docker mount target must be absolute"
-            );
-        }
         Ok(())
     }
     pub fn credential(&self) -> Result<&Token> {

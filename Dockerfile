@@ -31,7 +31,6 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /build/target/release/animeitor-server /animeitor-server
 COPY --from=builder /build/target/release/printurls /printurls
-COPY --from=builder /build/target/release/animeitor-config /animeitor-config
 COPY --from=builder /build/target/release/animeitor-feeder /animeitor-feeder
 COPY --from=builder /build/animeitor-client/release /dist
 ENTRYPOINT ["/animeitor-server"]

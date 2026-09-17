@@ -8,10 +8,11 @@ Copy the root server configuration and event-secrets examples as described in
 this event's name. Then run:
 
 ```bash
-make run-docker EVENT_CONFIG=config/nacional_2026/event.toml
-# Without Docker, use the host server configuration example:
+# Use the host server configuration example:
 make run-config EVENT_CONFIG=config/nacional_2026/event.toml
 make printurls EVENT_CONFIG=config/nacional_2026/event.toml
 ```
 
 The server itself needs only server.toml and learns events through the internal API.
+
+The root Compose demo runs Jones. To use this event in Docker, update the event mounts and arguments in Compose and provide its actual webcast in the private source mapping.

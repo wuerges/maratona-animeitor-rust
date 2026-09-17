@@ -25,4 +25,4 @@ private server salt and the public event/contest/site values. Old keys without t
 server salt are not accepted.
 
 Historical Compose files for older images have been removed. Use the root
-Makefile and generated Compose configuration for current deployments.
+Makefile and checked-in Compose configuration for current deployments.

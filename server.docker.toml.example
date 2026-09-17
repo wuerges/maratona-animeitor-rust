@@ -1,4 +1,4 @@
-# Docker development. Copy to server.toml (ignored).
+# Docker development: mounted directly by the example Compose stack.
 # Replace these development credentials before deployment.
 revelation_salt = "development-server-salt-change-in-production"
 public_port = 8000
@@ -27,13 +27,3 @@ path = "photos"
 [[assets]]
 directory = "/sounds"
 path = "sounds"
-
-[[docker.mounts]]
-source = "server/photos"
-target = "/photos"
-[[docker.mounts]]
-source = "server/sounds"
-target = "/sounds"
-[[docker.mounts]]
-source = "animeitor-client/static/user-styles.css"
-target = "/dist/user-styles.css"

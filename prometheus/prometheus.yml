@@ -1,0 +1,15 @@
+# Development credentials match server.docker.toml.example.
+# For production, use a private configuration with your named token and CA.
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: animeitor
+    scheme: https
+    metrics_path: /internal/metrics
+    tls_config:
+      ca_file: /etc/animeitor-ca.pem
+    basic_auth:
+      username: feeder
+      password: development-token
+    static_configs:
+      - targets: [animeitor:8443]

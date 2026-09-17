@@ -1,3 +1,50 @@
-# Run `make configure-docker` first. This contains no deployment settings.
-include:
-  - .generated/compose.json
+# Published-image Jones demo. Generate the development certificate, then compose up.
+name: animeitor
+services:
+  animeitor:
+    image: wuerges/animeitor:latest
+    entrypoint: /animeitor-server
+    command: [--server-config, /workspace/server.toml]
+    ports: ["8000:8000", "8443:8443"]
+    environment:
+      RUST_LOG: info
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    volumes:
+      - ./server.docker.toml.example:/workspace/server.toml:ro
+      - ./config/dev-certs/localhost-cert.pem:/workspace/config/dev-certs/localhost-cert.pem:ro
+      - ./config/dev-certs/localhost-key.pem:/workspace/config/dev-certs/localhost-key.pem:ro
+      - ./server/photos:/photos:ro
+      - ./server/sounds:/sounds:ro
+      - ./animeitor-client/static/user-styles.css:/dist/user-styles.css:ro
+  feeder:
+    image: wuerges/animeitor:latest
+    entrypoint: /animeitor-feeder
+    command: [--server-config, /workspace/server.toml, --event-config, /workspace/config/jones/event.toml, --event-secrets, /workspace/event-secrets.toml]
+    depends_on: [animeitor]
+    environment:
+      RUST_LOG: info
+    volumes:
+      - ./server.docker.toml.example:/workspace/server.toml:ro
+      - ./event-secrets.toml.example:/workspace/event-secrets.toml:ro
+      - ./config/jones/event.toml:/workspace/config/jones/event.toml:ro
+      - ./tests/inputs/webcast_jones.zip:/workspace/tests/inputs/webcast_jones.zip:ro
+      - ./config/dev-certs/localhost-cert.pem:/workspace/config/dev-certs/localhost-cert.pem:ro
+  printurls:
+    image: wuerges/animeitor:latest
+    entrypoint: /printurls
+    command: [--server-config, /workspace/server.toml, --event-config, /workspace/config/jones/event.toml]
+    volumes:
+      - ./server.docker.toml.example:/workspace/server.toml:ro
+      - ./config/jones/event.toml:/workspace/config/jones/event.toml:ro
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: [monitoring]
+    ports: ["9090:9090"]
+    depends_on: [animeitor]
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/dev-certs/localhost-cert.pem:/etc/animeitor-ca.pem:ro
+      - prometheus-data:/prometheus
+volumes:
+  prometheus-data:

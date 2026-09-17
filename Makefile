@@ -1,24 +1,23 @@
 .DEFAULT_GOAL := help
-EVENT_CONFIG ?= config/nacional_2026/event.toml
+EVENT_CONFIG ?= config/jones/event.toml
 EVENT_SECRETS ?= event-secrets.toml
 SERVER_CONFIG ?= server.toml
 IMAGE = wuerges/animeitor:latest
-GENERATED = ${CURDIR}/.generated
 CONFIG_ARGS = --event-config "${EVENT_CONFIG}" --server-config "${SERVER_CONFIG}"
 FEEDER_ARGS = ${CONFIG_ARGS} --event-secrets "${EVENT_SECRETS}"
 
 .PHONY: help run-basic run-config run-server run-feeder printurls generate-dev-certs \
  rebuild-client-for-release rebuild-server-for-release rebuild-docker-image \
- republish-docker-image run-debug-client configure-docker run-docker stop-docker monitor-docker
+ republish-docker-image run-debug-client run-docker stop-docker monitor-docker
 help:
 	@echo 'make rebuild-docker-image    Build image (no configuration required)'
-	@echo 'make run-docker              Generate Compose configuration and start'
-	@echo 'make stop-docker             Stop the generated stack'
+	@echo 'make run-docker              Start the example Compose stack'
+	@echo 'make stop-docker             Stop the example stack'
 	@echo 'make monitor-docker          Start stack with Prometheus on port 9090'
 	@echo 'make run-config              Run server and feeder without Docker'
 	@echo 'make run-server / run-feeder  Run one program without Docker'
 	@echo 'make printurls               Print URLs offline without Docker'
-	@echo 'Selectors: EVENT_CONFIG, EVENT_SECRETS, SERVER_CONFIG'
+	@echo 'Host selectors: EVENT_CONFIG, EVENT_SECRETS, SERVER_CONFIG'
 
 run-server:
 	cargo run -p server-v2 --bin animeitor-server -- --server-config "${SERVER_CONFIG}"
@@ -33,7 +32,7 @@ run-config:
 	server_pid=$$!; \
 	target/debug/animeitor-feeder ${FEEDER_ARGS}
 run-basic:
-	$(MAKE) run-config EVENT_CONFIG=config/basic/event.toml
+	$(MAKE) run-config EVENT_CONFIG=config/jones/event.toml
 
 generate-dev-certs:
 	mkdir -p config/dev-certs
@@ -43,23 +42,12 @@ generate-dev-certs:
 		-addext 'subjectAltName=DNS:localhost,DNS:animeitor,IP:127.0.0.1,IP:::1'
 	chmod 600 config/dev-certs/localhost-key.pem
 
-# Mount the configuration roots at their host paths. The helper needs no socket.
-configure-docker:
-	mkdir -p "${GENERATED}"
-	docker run --rm --user "$$(id -u):$$(id -g)" \
-		--mount 'type=bind,source=${CURDIR},target=${CURDIR},readonly' \
-		--mount 'type=bind,source=$(abspath ${EVENT_CONFIG}),target=$(abspath ${EVENT_CONFIG}),readonly' \
-		--mount 'type=bind,source=$(abspath ${EVENT_SECRETS}),target=$(abspath ${EVENT_SECRETS}),readonly' \
-		--mount 'type=bind,source=$(abspath ${SERVER_CONFIG}),target=$(abspath ${SERVER_CONFIG}),readonly' \
-		--mount 'type=bind,source=${GENERATED},target=${GENERATED}' \
-		--workdir "${CURDIR}" --entrypoint /animeitor-config ${IMAGE} \
-		compose ${FEEDER_ARGS} --output-dir "${GENERATED}"
-run-docker: configure-docker
-	docker compose -f "${GENERATED}/compose.json" up
-monitor-docker: configure-docker
-	docker compose -f "${GENERATED}/compose.json" --profile monitoring up -d
+run-docker:
+	docker compose up
+monitor-docker:
+	docker compose --profile monitoring up -d
 stop-docker:
-	docker compose -f "${GENERATED}/compose.json" down
+	docker compose --profile monitoring down
 run-debug-client:
 	(cd animeitor-client && trunk serve)
 rebuild-client-for-release:

@@ -1,5 +1,3 @@
-# Generate from the repository root with `make configure-docker`.
-# Start using `docker compose --profile monitoring up -d` here,
-# or `make monitor-docker` from the root.
+# From here: docker compose --profile monitoring up
 include:
-  - ../.generated/compose.json
+  - ../docker-compose.yaml

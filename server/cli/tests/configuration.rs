@@ -33,6 +33,7 @@ fn root() -> PathBuf {
 fn active_manifests_are_self_contained_and_preserve_counts() {
     for (name, count) in [
         ("basic", 1),
+        ("jones", 1),
         ("nacional_2026", 9),
         ("regional_2026", 10),
         ("latam_2026_2027", 2),
@@ -100,58 +101,49 @@ fn rejects_unknown_fields_and_duplicate_names() {
         .push(read::<ServerConfig>(&p).unwrap().tokens.remove(0));
     assert!(s.validate().is_err());
 }
-#[test]
-fn generated_server_never_mounts_event_configuration_or_exposes_tokens() {
-    let t = Temp::new();
-    let output = t.0.join("generated");
-    let server = root().join("server.docker.toml.example");
-    let event = root().join("config/basic/event.toml");
-    let private = root().join("event-secrets.toml.example");
-    let value = cli::deployment::compose(&event, &private, &server, &output).unwrap();
-    let json = serde_json::to_string(&value).unwrap();
-    assert!(!json.contains("development-token"));
-    assert!(!json.contains("development-server-salt"));
-    let srv = serde_json::to_string(&value["services"]["animeitor"]).unwrap();
-    assert!(!srv.contains("event.toml"));
-    assert!(!srv.contains("event-secrets"));
-    let print = serde_json::to_string(&value["services"]["printurls"]).unwrap();
-    assert!(!print.contains("event-secrets"));
-    assert!(!print.contains("depends_on"));
+
+#[tokio::test]
+async fn jones_fixture_populates_the_public_scoreboard() {
+    use service::event_store::{EventStore, from_legacy_contest_state};
+    let config = EventConfig::load(&root().join("config/jones/event.toml")).unwrap();
+    let source = EventSecrets::source(
+        &root().join("event-secrets.toml.example"),
+        &config.event.name,
+    )
+    .unwrap();
+    let legacy = service::webcast::load_data_from_url_maybe(&source)
+        .await
+        .unwrap();
+    let (mut event, runs) = from_legacy_contest_state(&legacy, &config.event.name);
+    event.salt = Some(config.event.secret.clone());
+    let store = EventStore::new();
+    store.create_event("jones", event).await.unwrap();
+    for contest in config.configured() {
+        store
+            .create_contest("jones", &contest.config.name.clone(), contest.config)
+            .await
+            .unwrap();
+        for site in contest.sites {
+            store
+                .create_site("jones", "Jones", &site.name.clone(), site)
+                .await
+                .unwrap();
+        }
+    }
+    store.add_runs("jones", runs).await.unwrap();
+    let public = store.public_state("jones", "Jones").await.unwrap();
+    assert_eq!(public.teams.len(), 20);
+    assert_eq!(public.problems.unwrap().len(), 8);
     assert_eq!(
-        value["services"]["animeitor"]["command"]
-            .as_array()
+        store.contest_runs("jones", "Jones").await.unwrap().len(),
+        134
+    );
+    assert_eq!(
+        store
+            .site_runs("jones", "Jones", "Geral")
+            .await
             .unwrap()
             .len(),
-        2
-    );
-    use std::os::unix::fs::PermissionsExt;
-    assert_eq!(
-        std::fs::metadata(output.join("prometheus-token"))
-            .unwrap()
-            .permissions()
-            .mode()
-            & 0o777,
-        0o600
-    );
-}
-#[test]
-fn rejects_server_mount_exposing_event_files() {
-    let t = Temp::new();
-    let path = t.write(
-        "server.toml",
-        &format!(
-            "{}\n[[docker.mounts]]\nsource = '{}'\ntarget = '/leak'\n",
-            std::fs::read_to_string(root().join("server.toml.example")).unwrap(),
-            root().display()
-        ),
-    );
-    assert!(
-        cli::deployment::compose(
-            &root().join("config/basic/event.toml"),
-            &root().join("event-secrets.toml.example"),
-            &path,
-            &t.0.join("out")
-        )
-        .is_err()
+        134
     );
 }
