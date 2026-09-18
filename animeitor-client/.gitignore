@@ -1,2 +1,6 @@
 target
-dist
+# Generated Trunk output; source assets remain in static/.
+/dist/
+/release/
+/bucket/
+/naquadah/

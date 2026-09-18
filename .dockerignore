@@ -18,10 +18,10 @@ fundo.webp
 .vscode
 server/photos
 server/sounds
-client-v2/release
-client-v2/dist
-client-v2/bucket
-client-v2/naquadah
+animeitor-client/release
+animeitor-client/dist
+animeitor-client/bucket
+animeitor-client/naquadah
 **/server.toml
 **/event-secrets.toml
 **/.generated

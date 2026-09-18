@@ -12,8 +12,6 @@ secret_env
 Secrets_secret.toml
 internal_tokens.toml
 *.pem
-animeitor-client/naquadah/*
-animeitor-client/release/*
 server.toml
 event-secrets.toml
 .generated/
