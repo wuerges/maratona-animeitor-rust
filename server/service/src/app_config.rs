@@ -1,6 +1,7 @@
 use crate::{http::HttpConfig, volume::Volume};
 
 pub struct AppConfig {
+    pub public_url: url::Url,
     pub revelation_salt: String,
     pub server_config: HttpConfig,
     pub volumes: Vec<Volume>,

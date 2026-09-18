@@ -1,7 +1,7 @@
 //! The internal API, per `doc/event-api.md`.
 //!
 //! All endpoints are private: HTTP Basic authentication with the token
-//! configured at startup (`--internal-token`). Responses use the
+//! configured in the server configuration. Responses use the
 //! `{ data, errors, warnings }` envelope.
 
 use axum::Json;
@@ -25,7 +25,7 @@ use service::event_store::{ContestConfig, EventState, EventStore, Run, SiteConfi
 
 /// Extractor: rejects requests without valid Basic credentials.
 ///
-/// The username is ignored; the password must be the configured token.
+/// Both the username and its configured token must match.
 pub struct InternalAuth;
 
 impl FromRequestParts<AppState> for InternalAuth {
@@ -111,6 +111,10 @@ pub fn router() -> Router<AppState> {
         .route("/openapi.json", get(internal_openapi_json))
         .route("/docs", get(internal_openapi_docs))
         .route("/events", get(list_events))
+        .route(
+            "/events/{event_name}/revelation_urls",
+            get(list_revelation_urls),
+        )
         .route(
             "/events/{event_name}",
             get(get_event)
@@ -272,8 +276,9 @@ async fn delete_event(
     }
 }
 
-#[derive(Deserialize)]
-struct TimeBody {
+#[derive(Deserialize, utoipa::ToSchema)]
+pub(crate) struct TimeBody {
+    /// Required elapsed seconds. Negative means countdown; zero opens public contest endpoints.
     time_seconds: i64,
 }
 
@@ -298,8 +303,9 @@ async fn patch_time(
     }
 }
 
-#[derive(Deserialize)]
-struct RunsBody {
+#[derive(Deserialize, utoipa::ToSchema)]
+pub(crate) struct RunsBody {
+    /// Submissions to ingest; may be empty. Existing IDs are corrected, not duplicated.
     runs: Vec<Run>,
 }
 
@@ -359,8 +365,9 @@ async fn delete_runs(
     }
 }
 
-#[derive(Deserialize)]
-struct SaltBody {
+#[derive(Deserialize, utoipa::ToSchema)]
+pub(crate) struct SaltBody {
+    /// Omitted, null, or empty generates a random salt; nonempty sets the supplied value.
     salt: Option<String>,
 }
 
@@ -549,4 +556,28 @@ async fn post_site_salt(
         Ok(salt) => data_json(serde_json::json!({ "salt": salt }), StatusCode::OK),
         Err(err) => store_error(err),
     }
+}
+
+/// Ready-to-use private frontend links for all sites of an event.
+async fn list_revelation_urls(
+    auth: Result<InternalAuth, Response>,
+    State(state): State<AppState>,
+    Path(event_name): Path<String>,
+) -> Response {
+    let mut response = match auth {
+        Err(response) => response,
+        Ok(_) => match state
+            .store
+            .revelation_urls(&event_name, &state.public_url)
+            .await
+        {
+            Some(urls) => data_json(urls, StatusCode::OK),
+            None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
+        },
+    };
+    response.headers_mut().insert(
+        header::CACHE_CONTROL,
+        header::HeaderValue::from_static("no-store"),
+    );
+    response
 }

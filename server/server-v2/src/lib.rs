@@ -32,6 +32,7 @@ use service::{
 /// The state shared by all handlers of the server.
 #[derive(Clone)]
 pub struct AppState {
+    pub public_url: url::Url,
     pub store: EventStore,
     pub internal_tokens: std::sync::Arc<std::collections::HashMap<String, String>>,
 }
@@ -109,6 +110,7 @@ fn volume_router(
 
 pub async fn serve_config(
     AppConfig {
+        public_url,
         server_config: HttpConfig { port, tls },
         volumes,
         internal_tokens,
@@ -116,6 +118,7 @@ pub async fn serve_config(
     }: AppConfig,
 ) -> ServiceResult<()> {
     let state = AppState {
+        public_url,
         store: service::event_store::EventStore::with_revelation_salt(revelation_salt),
         internal_tokens: Arc::new(internal_tokens),
     };

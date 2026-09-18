@@ -1,8 +1,8 @@
 use clap::Parser;
 use cli::configuration::{EventConfig, ServerConfig};
 use service::event_store::deployment_site_key;
+use service::revelation::{revelation_url, scoreboard_url};
 use std::path::PathBuf;
-use url::Url;
 
 #[derive(Parser)]
 #[command(
@@ -20,11 +20,11 @@ fn main() -> color_eyre::eyre::Result<()> {
     let event = EventConfig::load(&args.event_config)?;
     let server = ServerConfig::load(&args.server_config)?;
     for contest in &event.contests {
-        let mut url = Url::parse(&server.public_url)?;
-        url.path_segments_mut()
-            .map_err(|_| color_eyre::eyre::eyre!("public_url must support paths"))?
-            .clear()
-            .extend(["animeitor", &event.event.name, &contest.name, ""]);
+        let url = scoreboard_url(
+            &server.public_url.parse()?,
+            &event.event.name,
+            &contest.name,
+        );
         println!(
             "-> {} / {}\n    Animeitor em {url}",
             event.event.name, contest.name
@@ -39,11 +39,7 @@ fn main() -> color_eyre::eyre::Result<()> {
                 &contest.secret,
                 &site.secret,
             );
-            let mut reveal = url.clone();
-            reveal
-                .query_pairs_mut()
-                .append_pair("secret", &key)
-                .append_pair("sede", &site.name);
+            let reveal = revelation_url(&url, &site.name, &key);
             println!("    {}: Reveleitor em {reveal}", site.name);
         }
     }

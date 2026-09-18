@@ -26,3 +26,19 @@ server salt are not accepted.
 
 Historical Compose files for older images have been removed. Use the root
 Makefile and checked-in Compose configuration for current deployments.
+
+## API documentation and event setup
+
+The authenticated `/internal/docs` Swagger page and `/internal/openapi.json`
+contain the complete [event setup walkthrough](../doc/internal-api-setup.md),
+request examples, schemas, and error handling. Use the configured HTTPS endpoint
+with HTTP Basic authentication (enabled username and its token). Public API docs
+are at `/api/docs` and `/api/openapi.json`.
+
+To obtain current revelation links for an API-configured event, request
+`GET /internal/events/{event_name}/revelation_urls` with the same credentials.
+It returns `data: [{contest, site, url}]`, sorted by contest and site, using the
+configured `public_url` origin. Each private URL contains the site's `secret`
+Bearer key and `sede` selection; no separate key endpoint is needed. Retrieve new
+URLs after salt rotation. Unlike offline `printurls`, this endpoint uses the
+server's current in-memory event configuration.

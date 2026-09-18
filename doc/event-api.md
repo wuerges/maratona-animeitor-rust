@@ -2,6 +2,8 @@
 
 Esta API substitui o antigo arquivo webcast. Todos os tempos são expressos em **segundos**, sem exceção, e a unidade faz parte do nome do campo (ex.: `score_freeze_time_seconds`).
 
+A especificação executável e o roteiro completo em inglês estão em `/internal/openapi.json` e `/internal/docs` (autenticados). O roteiro também está em [internal-api-setup.md](internal-api-setup.md).
+
 ## Escopo
 
 Todos os endpoints desta API ficam sob o escopo `/internal`.
@@ -10,7 +12,8 @@ Todos os endpoints desta API ficam sob o escopo `/internal`.
 
 Todos os endpoints são privados e exigem autenticação HTTP Basic com um token:
 
-- Cabeçalho: `Authorization: Basic <base64(usuario:token)>`.
+- Cabeçalho: `Authorization: Basic <base64(usuario:token)>`. Tanto o usuário quanto seu token devem corresponder a uma credencial habilitada no servidor.
+- Use HTTPS; o listener HTTP responde `426` em texto, sem envelope.
 - Sem credenciais válidas: `401 Unauthorized`.
 
 ## Envelope de resposta
@@ -63,7 +66,7 @@ A API organiza os recursos em hierarquia: **events** → **contests** → **site
 
 O estado do evento é um objeto JSON com os seguintes campos:
 
-- `name`: nome do evento (string).
+- `name`: identificador do evento (string); deve ser igual ao nome no caminho da requisição.
 - `problems`: lista de letras dos problemas (strings unicode); a ordem da lista define a letra de cada problema.
 - `teams`: lista de times, cada um com os campos `login`, `escola` e `nome` (strings).
 - `score_freeze_time_seconds`: instante do congelamento do placar, em segundos.
@@ -71,13 +74,13 @@ O estado do evento é um objeto JSON com os seguintes campos:
 - `time_seconds`: tempo decorrido, em segundos; pode ser negativo (countdown anterior ao início).
 - `salt`: string usada para derivar as chaves dos sites (ver seção Salts); opcional.
 
-Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times. Antes do início (`time_seconds < 0`), a API pública omite `problems`; a API interna devolve sempre o estado completo.
+Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times. Antes do início (`time_seconds < 0`), os endpoints públicos do contest respondem `403 not_started`; a API interna devolve sempre o estado completo. O servidor não avança o relógio automaticamente: o controlador/feeder deve atualizar `time_seconds`. O estado fica em memória e é perdido no reinício.
 
 ### Exemplo
 
 ```json
 {
-    "name": "ENSAIO - Maratona 2026",
+    "name": "ensaio-2026",
     "problems": ["A", "B", "C", "D"],
     "teams": [
         { "login": "teambrmscg001", "escola": "FACOM - UFMS", "nome": "Time de Teste" }
@@ -116,7 +119,7 @@ Respostas:
 ### Atualizar todos os valores do evento
 
 - `PUT /internal/events/{event-name}`
-- Corpo: estado completo do evento.
+- Corpo: estado completo do evento. Preserva contests, sites e runs; campos opcionais omitidos voltam ao padrão (`time_seconds: 0`, `salt: null`).
 
 Respostas:
 
@@ -154,7 +157,7 @@ Um contest é um agrupamento de times do evento, identificado por um nome não-v
 
 ### Formato de um contest
 
-- `name`: nome do contest (string); obrigatório e não-vazio.
+- `name`: nome do contest (string); obrigatório, não-vazio e igual ao nome no caminho.
 - `codes`: lista de expressões regulares que casam com o login dos times pertencentes ao contest; obrigatório.
 - `salt`: string usada para derivar as chaves dos sites deste contest (ver seção Salts); opcional.
 - `style`: nome do estilo visual do contest; opcional.
@@ -163,6 +166,8 @@ Um contest é um agrupamento de times do evento, identificado por um nome não-v
 - `bronze`: idem para bronze; opcional, padrão `3`.
 - `photo_url_format`: formato de URL das fotos do contest (ver seção Mídia); opcional.
 - `sound_url_format`: formato de URL dos sons do contest (ver seção Mídia); opcional.
+
+`codes` combina regexes Rust por OR, sem ancoragem automática; `[]` não seleciona times e `[".*"]` seleciona todos.
 
 Chaves não listadas aqui são ignoradas.
 
@@ -220,13 +225,15 @@ Respostas:
 
 ## Sites
 
-Um site é um agrupamento de times de um contest, identificado por um nome — tipicamente a sede física que exibe o placar. Cada site tem sua própria chave para as runs secretas (ver seção Salts).
+Um site é um agrupamento de times de um contest, identificado por um nome — tipicamente a sede física que exibe o placar. Cada site tem sua própria chave para as runs secretas (ver seção Salts). Configure os filtros como subconjunto dos times do contest: as runs secretas usam os filtros do site sobre as runs do evento, sem impor essa interseção.
 
 ### Formato de um site
 
 - `name`: nome do site (string); obrigatório.
 - `codes`: lista de expressões regulares que casam com o login dos times do site; obrigatório.
 - `salt`: string usada para derivar a chave do site (ver seção Salts); opcional.
+
+`codes` combina regexes Rust por OR, sem ancoragem automática; `[]` não seleciona times e `[".*"]` seleciona todos.
 
 Chaves não listadas aqui são ignoradas.
 
@@ -284,6 +291,24 @@ Respostas:
 - `204 No Content` — sem corpo.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento, o contest ou o site não existe.
+
+## Consultar configurações e URLs de revelação
+
+- `GET /internal/events`: nomes dos eventos em ordem de criação.
+- `GET /internal/events/{event-name}/contests`: configurações completas dos contests, com salts, em ordem não especificada.
+- `GET /internal/events/{event-name}/contests/{contest-name}/sites`: configurações completas dos sites, com salts, em ordem não especificada.
+- Não existem rotas GET individuais para contest ou site.
+- `GET /internal/events/{event-name}/revelation_urls`: URLs completas de todos os sites do evento, ordenadas por contest e site. Funciona antes do início e exige a mesma autenticação interna.
+
+Exemplo de resposta `200`, com `Cache-Control: no-store`:
+
+```json
+{"data":[{"contest":"brasil","site":"fiemg","url":"https://example.com/animeitor/regional-2026/brasil/?secret=EXAMPLE_KEY&sede=fiemg"}]}
+```
+
+Evento sem sites retorna `{"data":[]}`; evento inexistente retorna `404 not_found`; credenciais inválidas retornam `401 unauthorized`. A origem vem de `public_url`; o caminho configurado é substituído por `/animeitor/{evento}/{contest}/`, como no `printurls`. O frontend deve estar publicado nessa origem.
+
+O parâmetro `secret` contém a chave usada como Bearer em `runs_secret`; `sede` seleciona o site. Não há endpoint separado para consultar chaves. As URLs são credenciais privadas: não publique junto dos links públicos. Após trocar salts, consulte novamente as URLs afetadas.
 
 ## Salts
 
@@ -345,7 +370,7 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 
 - `POST /internal/events/{event-name}/runs`
 - Corpo: `{ "runs": [ ... ] }`.
-- Aplica as runs às existentes, na ordem em que aparecem no corpo: um `id` novo adiciona a submissão; um `id` já existente substitui o resultado anterior — o último valor é o considerado (correção do juiz).
+- Ignora times desconhecidos com warnings e ordena as demais runs por `(time_seconds, id)` antes de validar os problemas e aplicar. Um `id` novo adiciona a submissão; um `id` existente com campos alterados corrige a submissão; reenvios idênticos não alteram nem incrementam `updated`. Entradas com a mesma chave de ordenação preservam a ordem do corpo.
 
 Respostas:
 
@@ -357,6 +382,7 @@ Respostas:
 ### Remover todas as runs
 
 - `DELETE /internal/events/{event-name}/runs`
+- Limpa as runs armazenadas, mas mantém o histórico de replay do WebSocket e não envia mensagem de reset. Reconexões podem receber runs antigas; para limpar também esse histórico, recrie o evento e sua configuração.
 
 Respostas:
 

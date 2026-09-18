@@ -32,6 +32,7 @@ fn event_body() -> serde_json::Value {
 
 fn app() -> Router {
     make_app(AppState {
+        public_url: "https://example.com".parse().unwrap(),
         store: EventStore::new(),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),

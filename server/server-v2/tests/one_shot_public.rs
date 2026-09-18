@@ -51,6 +51,7 @@ fn site_body() -> serde_json::Value {
 
 fn app_for(store: EventStore) -> Router {
     make_app(AppState {
+        public_url: "https://example.com".parse().unwrap(),
         store,
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
@@ -497,6 +498,7 @@ async fn timer_ws_survives_production_layers() {
     let store = EventStore::with_revelation_salt("test-server-salt".into());
     seed_event(&store).await;
     let app = make_app(AppState {
+        public_url: "https://example.com".parse().unwrap(),
         store,
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
@@ -529,6 +531,7 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
     let store = EventStore::with_revelation_salt("test-server-salt".into());
     seed_event(&store).await;
     let app = make_app(AppState {
+        public_url: "https://example.com".parse().unwrap(),
         store: store.clone(),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),

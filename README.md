@@ -246,7 +246,7 @@ example to `server.toml` before configuring a real deployment.
 | `public_port`, `tls_port` | Distinct HTTP and HTTPS listening ports; development defaults are 8000 and 8443 |
 | `tls_cert`, `tls_key`, `tls_ca_cert` | Server certificate/key and the CA trusted by the feeder |
 | `server_url` | HTTPS address used by the feeder; `https://animeitor:8443` inside Compose |
-| `public_url` | Browser-facing base address used by `printurls` |
+| `public_url` | Browser-facing base address used by `printurls` and API revelation URLs |
 | `client_token` | Name of an enabled entry in `[[tokens]]` to use for API requests |
 | `[[tokens]]` | Named credentials with `name`, `token`, and optional `enabled` (defaults to true) |
 | `revelation_salt` | Private deployment-wide salt used to derive revelation keys |

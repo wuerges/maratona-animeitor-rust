@@ -1,6 +1,6 @@
 # API pública
 
-Esta API pública fica sob o escopo `/api` e espelha a hierarquia da API interna ([event-api.md](event-api.md)): `events → contests → sites`. Ela descreve os endpoints **como ficam após a migração** planejada em [multi-event.md](multi-event.md). Todos os tempos são expressos em **segundos**, sem exceção, e a unidade faz parte do nome do campo (ex.: `score_freeze_time_seconds`).
+Esta API pública fica sob o escopo `/api` e espelha a hierarquia da API interna ([event-api.md](event-api.md)): `events → contests → sites`. A especificação atual está em `/api/openapi.json` e `/api/docs`; o roteiro de configuração está em [internal-api-setup.md](internal-api-setup.md). Todos os tempos são expressos em **segundos**, sem exceção, e a unidade faz parte do nome do campo (ex.: `score_freeze_time_seconds`).
 
 Salvo indicação contrária, os endpoints públicos **não exigem autenticação**. A única exceção é `runs_secret`, que exige a chave do site.
 
@@ -76,7 +76,7 @@ Resposta:
 - `200 OK` — `data`: objeto com os campos:
 
   - `event`: nome do evento (string).
-  - `contest`: nome do contest (string); `""` é o contest padrão.
+  - `contest`: nome não-vazio do contest (string); não há contest padrão.
   - `problems`: lista de letras dos problemas (strings unicode).
   - `teams`: lista de times do contest, cada um com `login`, `escola` e `nome` (strings).
   - `time_seconds`: tempo decorrido, em segundos.
@@ -174,6 +174,7 @@ Exemplo de mensagem:
 - `GET /api/events/{event-name}/contests/{contest-name}/runs_secret`
 - Todas as runs do site (incluindo as congeladas), para a revelação. O site é identificado pela **chave**: o servidor compara a chave recebida com as chaves derivadas dos sites do contest (ver [event-api.md](event-api.md), seção Salts) e casa com o site correspondente.
 - Cabeçalho obrigatório: `Authorization: Bearer <site-key>`. A chave não vai na URL (evita vazamento em logs).
+- Obtenha as URLs privadas em `GET /internal/events/{event-name}/revelation_urls` com autenticação interna e extraia `secret` usando um parser de URL; esse valor é o Bearer token.
 - Site sem `salt` próprio usa string vazia nesse nível; a chave ainda depende do segredo privado do servidor. Chaves antigas sem esse segredo são rejeitadas.
 
 Resposta:
@@ -220,13 +221,13 @@ Exemplo de mensagem:
 ### Controle remoto
 
 - `WS /api/events/{event-name}/contests/{contest-name}/remote_control/{key}`
-- Relay de mensagens de controle entre as abas/browsers que usam a mesma chave, isolado por contest. Cada mensagem recebida de um cliente é retransmitida a todos os outros clientes da mesma chave; o remetente não recebe a própria mensagem.
+- Relay de mensagens de controle entre as abas/browsers que usam a mesma chave, isolado por contest. Essa chave é um identificador livre do canal, não a chave de revelação. Cada mensagem recebida de um cliente é retransmitida a todos os outros clientes da mesma chave; o remetente não recebe a própria mensagem.
 
 Mensagens: frames de texto com um dos objetos abaixo (JSON):
 
-- `{ "WindowScroll": { "y": <posição> } }` — sincroniza a rolagem da janela.
-- `{ "QueryString": { "query": <string> } }` — sincroniza a query string (ex.: troca de sede).
-- `{ "PhotoState": "Hidden" }` ou `{ "PhotoState": { "Show": <team_login> } }` — sincroniza a foto exibida.
+- `{ "y": <posição> }` — sincroniza a rolagem da janela.
+- `{ "query": <string> }` — sincroniza a query string (ex.: troca de sede).
+- `"Hidden"` ou `{ "Show": <team_login> }` — sincroniza a foto exibida.
 
 Handshake:
 

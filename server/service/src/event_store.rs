@@ -693,6 +693,39 @@ impl EventStore {
         Ok(salt)
     }
 
+    /// Snapshot every site's current revelation URL under one read lock.
+    pub async fn revelation_urls(
+        &self,
+        event_name: &str,
+        public_url: &url::Url,
+    ) -> Option<Vec<data::event::RevelationUrl>> {
+        let inner = self.inner.read().await;
+        let event = inner.events.get(event_name)?;
+        let mut urls = Vec::new();
+        for (contest_name, contest) in &event.contests {
+            let scoreboard =
+                crate::revelation::scoreboard_url(public_url, event_name, contest_name);
+            for (site_name, site) in &contest.sites {
+                let key = deployment_site_key(
+                    &self.revelation_salt,
+                    event_name,
+                    contest_name,
+                    site_name,
+                    event.salt.as_deref().unwrap_or_default(),
+                    contest.config.salt.as_deref().unwrap_or_default(),
+                    site.config.salt.as_deref().unwrap_or_default(),
+                );
+                urls.push(data::event::RevelationUrl {
+                    contest: contest_name.clone(),
+                    site: site_name.clone(),
+                    url: crate::revelation::revelation_url(&scoreboard, site_name, &key).into(),
+                });
+            }
+        }
+        urls.sort_by(|a, b| (&a.contest, &a.site).cmp(&(&b.contest, &b.site)));
+        Some(urls)
+    }
+
     /// The site whose derived key matches `key`, if any.
     pub async fn site_by_key(
         &self,
