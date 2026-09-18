@@ -499,6 +499,37 @@ body {
   border-radius: 5px;
 }
 
+.countdown {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: center;
+}
+
+.countdown .timer {
+  font-size: clamp(2rem, 10vw, 9rem);
+  margin: 0 0 24px;
+  padding: 16px 8px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.countdown .event-name {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  overflow-wrap: anywhere;
+}
+
+.countdown .contest-name {
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.countdown-message {
+  margin-top: 16px;
+}
+
 .frozen {
   border-color: #004567;
   color: #004567;
