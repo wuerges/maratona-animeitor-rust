@@ -76,16 +76,13 @@ async fn list_events(State(store): State<EventStore>) -> Response {
     data_json(store.list_events().await, StatusCode::OK)
 }
 
-/// Lists the contest names of an event (landing page). Like the rest of the
-/// contest scope, unavailable before the start.
+/// Lists contest names before and after start so the landing page can link
+/// to upcoming contests and their countdown screens.
 #[autometrics]
 async fn list_contests(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    if let Err(response) = contest_gate(&store, &event_name).await {
-        return response;
-    }
     match store.list_contests(&event_name).await {
         Some(contests) => {
             let mut names: Vec<String> = contests.into_iter().map(|config| config.name).collect();
@@ -96,9 +93,9 @@ async fn list_contests(
     }
 }
 
-/// Nothing about a contest may be served before it starts: the state, the
-/// config and the runs all 403 with `not_started` (the timer and the event
-/// list stay available for the countdown and the landing).
+/// Contest state, configuration, and runs remain gated until start.
+/// Event/contest discovery and the timer remain available for the landing
+/// page and countdown.
 #[autometrics]
 async fn contest_gate(store: &EventStore, event_name: &str) -> Result<(), Response> {
     match store.is_started(event_name).await {

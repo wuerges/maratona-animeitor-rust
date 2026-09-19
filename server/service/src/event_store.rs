@@ -4,6 +4,8 @@
 //! contests → sites, with optional salts at the three levels, runs and
 //! per-event broadcasters.
 
+mod incremental;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -29,6 +31,8 @@ pub use data::event::{
 /// Why an internal-API operation failed.
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum StoreError {
+    #[error("{0}")]
+    Conflict(String),
     #[error("{0} já existe")]
     AlreadyExists(String),
     #[error("{0} não existe")]

@@ -4,7 +4,7 @@ The public API reads event scoreboards; configuration is performed through the a
 
 Discover event identifiers with `GET /api/events`, then contest identifiers with `GET /api/events/{event_name}/contests`. Fetch the contest's `/contest` for selected teams, problems, and timing and `/config` for appearance and site choices. Identifiers are nonempty path segments; percent-encode them when constructing URLs. Public JSON responses contain `data` on success or `errors:[{code,message}]` on failure. Optional envelope fields are absent. There are no salts or derived keys in public configurations.
 
-All time values are seconds since event start, not timestamps. Before the supplied event time reaches zero, contest discovery, state, config, and submissions return `403 not_started`. Only event discovery, the event timer, and remote control remain available. The clock is supplied by a feeder or controller; the server does not advance it automatically.
+All time values are seconds since event start, not timestamps. Before the supplied event time reaches zero, contest state, config, and submissions return `403 not_started`. Event and contest discovery, the event timer, and remote control remain available. The landing page links upcoming contests to their countdown screens. The clock is supplied by a feeder or controller; the server does not advance it automatically.
 
 Use WebSocket upgrades (`ws://` or `wss://`) for `/timer`, `/runs_ws`, and `/remote_control/{key}`. Successful upgrades return `101`; subsequent text frames carry bare JSON without envelopes. Their schemas are PublicTimer, Run, and ControlMessage respectively. Resource/pre-start handshake errors have no JSON body. A malformed WebSocket upgrade can also be rejected by the HTTP framework.
 

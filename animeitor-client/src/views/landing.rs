@@ -1,6 +1,5 @@
 //! Landing page: lists the active events and their contests (`/` and
-//! `/animeitor/`). Before a contest starts its name is not served, so the
-//! contest list is empty until then.
+//! `/animeitor/`), including upcoming contests that open their countdown page.
 
 use leptos::prelude::*;
 use leptos_router::components::A;

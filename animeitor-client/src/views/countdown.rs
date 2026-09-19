@@ -1,6 +1,6 @@
 //! Countdown screen shown while the contest has not started.
 //!
-//! The public API serves nothing about the contest before the start, so the
+//! The public API withholds contest details before the start, so the
 //! event/contest names come from the URL path.
 
 use data::TimerData;

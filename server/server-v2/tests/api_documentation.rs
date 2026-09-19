@@ -127,14 +127,14 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
             }
         }
     }
-    assert_eq!(ids.len(), 29);
+    assert_eq!(ids.len(), 42);
     let methods: Vec<_> = internal["paths"]["/internal/contests/{event_name}/{contest_name}"]
         .as_object()
         .unwrap()
         .keys()
         .map(String::as_str)
         .collect();
-    assert_eq!(methods, ["delete", "post", "put"]);
+    assert_eq!(methods, ["delete", "get", "patch", "post", "put"]);
     assert_eq!(internal["security"], json!([{"basicAuth": []}]));
     assert_eq!(
         internal["components"]["securitySchemes"]["basicAuth"]["scheme"],

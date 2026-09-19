@@ -150,18 +150,18 @@ async fn lists_events() {
 }
 
 #[tokio::test]
-async fn contests_are_listed_after_start() {
+async fn contests_are_listed_before_and_after_start() {
     let app = app();
     seed(&app).await;
 
-    // Before the start, the contest list is not served (no name leaks).
+    // Upcoming contests must be discoverable from the landing page.
     let (status, body) = send(
         &app,
         empty_request(Method::GET, "/api/events/ensaio/contests"),
     )
     .await;
-    assert_eq!(status, StatusCode::FORBIDDEN);
-    assert_eq!(body["errors"][0]["code"], "not_started");
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["data"], serde_json::json!(["brasil"]));
 
     // After the start, the names are listed.
     start(&app).await;

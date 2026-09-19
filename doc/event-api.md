@@ -297,7 +297,7 @@ Respostas:
 - `GET /internal/events`: nomes dos eventos em ordem de criação.
 - `GET /internal/events/{event-name}/contests`: configurações completas dos contests, com salts, em ordem não especificada.
 - `GET /internal/events/{event-name}/contests/{contest-name}/sites`: configurações completas dos sites, com salts, em ordem não especificada.
-- Não existem rotas GET individuais para contest ou site.
+- `GET /internal/contests/{event-name}/{contest-name}` e `GET /internal/sites/{event-name}/{contest-name}/{site-name}` retornam configurações individuais.
 - `GET /internal/events/{event-name}/revelation_urls`: URLs completas de todos os sites do evento, ordenadas por contest e site. Funciona antes do início e exige a mesma autenticação interna.
 
 Exemplo de resposta `200`, com `Cache-Control: no-store`:
@@ -412,3 +412,15 @@ Respostas:
 - Atualizações completas via `PUT`; atualização de tempo via `PATCH /internal/events/{event-name}/time`.
 - Salts opcionais nos três níveis (evento, contest, site); as chaves dos sites são derivadas do segredo privado do servidor e dos três salts públicos (HMAC-SHA256, base62, 12 caracteres) e trocadas via `POST .../salt`.
 - Mídia é configurada por formatos de URL, não por volumes.
+
+## Operações incrementais
+
+PATCH nos caminhos de evento, contest e site altera apenas os campos enviados, atomicamente; arrays substituem a lista inteira. `null` limpa campos opcionais, mas é inválido para campos obrigatórios. Nomes não podem mudar. Campos desconhecidos e patches vazios são rejeitados.
+
+Times: `POST .../events/{evento}/teams` adiciona `{login,escola,nome}`; GET, PATCH e DELETE em `.../teams/{login}` consultam, editam nome/escola e removem. Problemas: `POST .../events/{evento}/problems` adiciona `{"problem":"C"}`; DELETE em `.../problems/{problema}` remove.
+
+Remoção de item com runs retorna `409 conflict`. Para times, `?keep_runs=true` permite remover preservando as runs (também no PATCH de evento substituindo `teams`). Runs preservadas continuam no armazenamento e no replay; podem aparecer em streams filtrados por regex. Não há essa opção para problemas. PUT mantém o comportamento anterior, sem essas verificações novas.
+
+PATCH em `.../contests/{evento}/{contest}/codes` ou `.../sites/{evento}/{contest}/{site}/codes` recebe `{"add":["regex"],"remove":["regex-antiga"]}`. As strings são comparadas exatamente; adições existentes e remoções ausentes não alteram nada. Toda validação ocorre antes da alteração.
+
+Veja [o contrato completo e exemplos](internal-api-setup.md#atomic-incremental-management), também incluídos na especificação OpenAPI interna. O feeder mantém seu comportamento e pode sobrescrever mudanças manuais a partir da fonte.

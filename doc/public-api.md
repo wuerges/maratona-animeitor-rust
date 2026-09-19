@@ -26,7 +26,7 @@ Códigos de erro desta API:
 
 - `{event-name}`, `{contest-name}` e `{site-name}` são nomes de recursos, sempre não-vazios.
 - A API pública **nunca** expõe `salt` nem chaves derivadas.
-- Antes do início (`time_seconds < 0`), nenhuma informação do contest é servida: os endpoints do contest respondem `403` com o código `not_started`. Ficam disponíveis apenas a lista de eventos, o timer do evento e o relay de controle remoto.
+- Antes do início (`time_seconds < 0`), estado, configuração e runs do contest não são servidos: esses endpoints respondem `403` com o código `not_started`. As listas de eventos e contests, o timer do evento e o relay de controle remoto continuam disponíveis.
 
 ## Endpoints
 
@@ -50,12 +50,11 @@ Exemplo:
 ### Listar contests de um evento
 
 - `GET /api/events/{event-name}/contests`
-- Lista os nomes dos contests do evento, em ordem alfabética. Usada pela landing para linkar os contests. Como o restante do escopo de contest, indisponível antes do início.
+- Lista os nomes dos contests do evento, em ordem alfabética. Usada pela landing para linkar os contests. Disponível antes do início para permitir acesso à tela de countdown. Evento sem contests retorna uma lista vazia.
 
 Resposta:
 
 - `200 OK` — `data`: lista de strings com os nomes dos contests.
-- `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.
 
 Exemplo:
@@ -238,7 +237,7 @@ Handshake:
 
 - Todos os endpoints públicos ficam sob `/api`, espelhando a hierarquia interna.
 - Todos os tempos em segundos, com a unidade no nome (`*_seconds`); `time_seconds`/`current_time_seconds` podem ser negativos (countdown anterior ao início).
-- Antes do início (`time_seconds < 0`), os endpoints do contest respondem `403 not_started` — o cliente mostra a tela de countdown usando o timer do evento. A lista de eventos, o timer e o controle remoto continuam disponíveis.
+- Antes do início (`time_seconds < 0`), os endpoints de estado, configuração e runs do contest respondem `403 not_started` — o cliente mostra a tela de countdown usando o timer do evento. As listas de eventos e contests, o timer e o controle remoto continuam disponíveis.
 - Sem autenticação, exceto `runs_secret` (chave do site via `Authorization: Bearer`).
 - Nada sensível no escopo público: sem `salt`, sem chaves derivadas.
 - Fotos e sons vêm do config do contest (`GET .../config`), não do estado nem do `config.json`.

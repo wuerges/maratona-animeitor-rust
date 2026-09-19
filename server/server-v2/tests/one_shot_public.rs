@@ -233,7 +233,28 @@ async fn list_events_ok() {
 }
 
 #[tokio::test]
-async fn contests_pre_start_forbidden() {
+async fn contests_pre_start_are_sorted_names_only() {
+    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let mut config = store.get_contest("ensaio", "brasil").await.unwrap();
+    config.name = "argentina".into();
+    store
+        .create_contest("ensaio", "argentina", config)
+        .await
+        .unwrap();
+    let app = app_for(store);
+    let (status, json) = send(
+        &app,
+        empty_request(Method::GET, "/api/events/ensaio/contests"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(json, serde_json::json!({"data": ["argentina", "brasil"]}));
+}
+
+#[tokio::test]
+async fn contests_pre_start_can_be_empty() {
     let store = EventStore::with_revelation_salt("test-server-salt".into());
     seed_event(&store).await;
     let app = app_for(store);
@@ -242,8 +263,8 @@ async fn contests_pre_start_forbidden() {
         empty_request(Method::GET, "/api/events/ensaio/contests"),
     )
     .await;
-    assert_eq!(status, StatusCode::FORBIDDEN);
-    assert_eq!(error_code(&json), "not_started");
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(json, serde_json::json!({"data": []}));
 }
 
 #[tokio::test]

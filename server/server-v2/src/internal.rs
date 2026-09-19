@@ -4,6 +4,8 @@
 //! configured in the server configuration. Responses use the
 //! `{ data, errors, warnings }` envelope.
 
+mod incremental;
+
 use axum::Json;
 use axum::Router;
 use axum::extract::FromRequestParts;
@@ -80,7 +82,9 @@ fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Res
 
 fn store_error(err: StoreError) -> Response {
     match err {
-        StoreError::AlreadyExists(message) => error_json(StatusCode::CONFLICT, "conflict", message),
+        StoreError::Conflict(message) | StoreError::AlreadyExists(message) => {
+            error_json(StatusCode::CONFLICT, "conflict", message)
+        }
         StoreError::NotFound(message) => error_json(StatusCode::NOT_FOUND, "not_found", message),
         StoreError::InvalidValue(message) => {
             error_json(StatusCode::BAD_REQUEST, "invalid_value", message)
@@ -120,6 +124,7 @@ pub fn router() -> Router<AppState> {
             get(get_event)
                 .post(create_event)
                 .put(put_event)
+                .patch(incremental::patch_event)
                 .delete(delete_event),
         )
         .route("/events/{event_name}/contests", get(list_contests))
@@ -135,7 +140,11 @@ pub fn router() -> Router<AppState> {
         .route("/events/{event_name}/salt", post(post_event_salt))
         .route(
             "/contests/{event_name}/{contest_name}",
-            post(create_contest).put(put_contest).delete(delete_contest),
+            get(incremental::get_contest)
+                .post(create_contest)
+                .put(put_contest)
+                .patch(incremental::patch_contest)
+                .delete(delete_contest),
         )
         .route(
             "/contests/{event_name}/{contest_name}/salt",
@@ -143,11 +152,38 @@ pub fn router() -> Router<AppState> {
         )
         .route(
             "/sites/{event_name}/{contest_name}/{site_name}",
-            post(create_site).put(put_site).delete(delete_site),
+            get(incremental::get_site)
+                .post(create_site)
+                .put(put_site)
+                .patch(incremental::patch_site)
+                .delete(delete_site),
         )
         .route(
             "/sites/{event_name}/{contest_name}/{site_name}/salt",
             post(post_site_salt),
+        )
+        .route("/events/{event_name}/teams", post(incremental::add_team))
+        .route(
+            "/events/{event_name}/teams/{login}",
+            get(incremental::get_team)
+                .patch(incremental::patch_team)
+                .delete(incremental::remove_team),
+        )
+        .route(
+            "/events/{event_name}/problems",
+            post(incremental::add_problem),
+        )
+        .route(
+            "/events/{event_name}/problems/{problem}",
+            axum::routing::delete(incremental::remove_problem),
+        )
+        .route(
+            "/contests/{event_name}/{contest_name}/codes",
+            patch(incremental::patch_contest_codes),
+        )
+        .route(
+            "/sites/{event_name}/{contest_name}/{site_name}/codes",
+            patch(incremental::patch_site_codes),
         )
         .route("/metrics", get(get_metrics))
 }

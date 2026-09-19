@@ -11,7 +11,7 @@ Obtain the internal **HTTPS base URL**, a configured **username and its token**,
 - A **site** selects a local team group and has a derived private revelation key. Set site filters to a subset of contest teams: secret-run filtering uses site regexes against the event's runs, and the server does not enforce the subset.
 - Names identify resources, not separate display labels. Use nonempty URL-safe identifiers and percent-encode path segments. Event and contest body names must match their path identifiers. Use the matching site name too; the server accepts an empty site body name but normalizes it in storage.
 - `codes` are Rust regular expressions, combined with OR. Matching is unanchored unless you add `^`/`$`. `[".*"]` matches every team; `[]` matches none. Team `login` values connect runs, filters, and media. `nome` is the displayed team name; `escola` is its institution.
-- All timing fields use **seconds since event start**, not timestamps or minutes. `time_seconds < 0` keeps public contest data closed. The server stores the last supplied time and **does not advance it automatically**. A controller or feeder must send updates.
+- All timing fields use **seconds since event start**, not timestamps or minutes. `time_seconds < 0` keeps public contest details and runs closed; event and contest names remain discoverable. The server stores the last supplied time and **does not advance it automatically**. A controller or feeder must send updates.
 - JSON requests are bare objects with `Content-Type: application/json`. Successful JSON responses have `data` and optionally `warnings`; errors have only `errors`, a list of `{code,message}`. Optional envelope fields are omitted, not null. Resource fields such as `salt`, `style`, and media templates may be null. `204` has no body. Metrics and WebSocket messages do not use the envelope. Error messages may be Portuguese; branch on HTTP status and `code`.
 - Event state is **in memory**. Restarting the server loses API-created configuration and runs. Retain the source inputs to recreate them. Coordinate with any existing feeder so it does not overwrite manual changes.
 
@@ -31,7 +31,7 @@ export ANIMEITOR_TOKEN='replace-with-configured-token'
 curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" "$ANIMEITOR_URL/internal/events"
 ```
 
-A new server returns `200 {"data":[]}`. If `regional-2026` already exists, inspect it with `GET /internal/events/regional-2026`, its contests with `GET /internal/events/regional-2026/contests`, and each contest's sites with `GET /internal/events/regional-2026/contests/brasil/sites`. Internal contest/site lists contain full configurations, including salts, in unspecified order. There are no individual contest/site GET routes.
+A new server returns `200 {"data":[]}`. If `regional-2026` already exists, inspect it with `GET /internal/events/regional-2026`, its contests with `GET /internal/events/regional-2026/contests`, and each contest's sites with `GET /internal/events/regional-2026/contests/brasil/sites`. Internal contest/site lists contain full configurations, including salts, in unspecified order. Individual reads are also available at `GET /internal/contests/{event}/{contest}` and `GET /internal/sites/{event}/{contest}/{site}`.
 
 Creation returns `409 conflict` for existing resources. Do not delete or replace an existing event just to retry setup: read it and decide whether it is the intended event. `PUT` is full replacement, not a merge or upsert; omitted optional fields reset to defaults.
 
@@ -124,7 +124,7 @@ curl --fail-with-body "$ANIMEITOR_URL/api/events/regional-2026/contests/brasil/c
 curl --fail-with-body "$ANIMEITOR_URL/api/events/regional-2026/contests/brasil/config"
 ```
 
-Expect `200` with `["brasil"]`, the selected team roster and timing, and presentation settings with site `fiemg`, respectively. If the public API uses a different origin, use that deployment URL. Before start these endpoints return `403 not_started`; that is expected, not a setup failure.
+Expect `200` with `["brasil"]`, the selected team roster and timing, and presentation settings with site `fiemg`, respectively. If the public API uses a different origin, use that deployment URL. Before start the contest-name list still returns `200`, allowing landing-page links to countdowns; the state and configuration endpoints return `403 not_started`, which is expected.
 
 Connect a WebSocket client to `/api/events/regional-2026/timer` (using `wss://` for HTTPS) for the immediate current timer and subsequent changes. Connect to `/api/events/regional-2026/contests/brasil/runs_ws` for replay and live submissions, one bare run object per text message. Runs at or after 14400 seconds are masked as `?` in this example. Repeated IDs replace earlier results. Reconnect and rebuild state after changing filters/freeze. Clearing stored runs does not clear stream replay history.
 
@@ -144,3 +144,28 @@ Expect `200 {"data":{"runs":[...]}}` containing the site's actual answers. Befor
 - Salts are optional derivation inputs, not the revelation keys. The private deployment secret also participates; it is never returned by this API. Changing it changes all deployment keys.
 - `DELETE` event removes all its children and runs; deleting a contest removes its sites but retains event runs. Deleting a site retains runs. `DELETE .../runs` clears stored submissions but retains WebSocket replay history and sends no reset message. Reconnecting may replay previously cleared submissions; recreate the event and its configuration when a clean stream history is required. Successful deletions return `204` without JSON.
 - Handle `400` using the structured code (`invalid_json`, `missing_field`, `invalid_value`, `invalid_regex`), `401` by checking credentials, `404` by checking identifiers and parent creation, and `409` by inspecting the existing resource. Do not retry invalid payloads unchanged.
+
+## Atomic incremental management
+
+Use PATCH on `/internal/events/{event}`, `/internal/contests/{event}/{contest}`, or `/internal/sites/{event}/{contest}/{site}` to change selected fields. For example, `PATCH /internal/contests/regional-2026/brasil` with `{"ouro":4,"style":null}` changes only the gold threshold and clears the style. Omitted fields remain unchanged; explicit arrays replace whole lists. Null clears nullable fields (salt, style, media templates), but is rejected for required fields. Names cannot change; an unchanged name is accepted. Unknown fields and empty patches are rejected. Each operation reads, validates, and commits under a single store lock; invalid regexes or other validation failures leave all fields unchanged. Responses return the complete updated resource under `data`.
+
+Item endpoints support incremental collections:
+
+| Endpoint | Request and behavior |
+| --- | --- |
+| `POST /internal/events/{event}/teams` | `{login,escola,nome}` appends one team; `201` with the team |
+| `GET /internal/events/{event}/teams/{login}` | `200` with one team |
+| `PATCH /internal/events/{event}/teams/{login}` | Change `escola` and/or `nome`; login is immutable; `200` with the team |
+| `DELETE /internal/events/{event}/teams/{login}` | Remove one team; `204` |
+| `POST /internal/events/{event}/problems` | `{"problem":"C"}` appends a problem; `201` with the ordered list |
+| `DELETE /internal/events/{event}/problems/{problem}` | Remove one unreferenced problem; `204` |
+| `PATCH /internal/contests/{event}/{contest}/codes` | `{"add":["^teambr002$"],"remove":["^teambr001$"]}`; `200` with updated contest |
+| `PATCH /internal/sites/{event}/{contest}/{site}/codes` | Same filter delta, returning the updated site |
+
+Resource/item identifiers must be encoded as individual URL path segments. Team logins and problem identifiers must be nonempty for item creation. Duplicate creation returns `409 conflict`; missing resources return `404 not_found`. Legacy duplicate team logins or problem identifiers make item-level operations ambiguous and return `409`; repair the relevant array using full replacement. PATCH replacement arrays reject duplicate identifiers.
+
+Removing a team or problem with stored runs returns `409 conflict`. To remove a team while intentionally retaining its submissions, use `DELETE .../teams/{login}?keep_runs=true`. Event PATCH replacing `teams` accepts the same query option. Retained runs and WebSocket history are unchanged and may still match regex streams. Recreating the login associates them with the team again; new ingestion while the team is absent is skipped with `unknown_team` warnings. **There is no override for removing a referenced problem.** Reordering problems is possible with a complete `problems` array in event PATCH. Existing full PUT behavior is unchanged and does not apply these new reference checks.
+
+Filter deltas compare exact regex strings, preserve retained order, and append additions in request order. Adding an existing pattern or removing an absent pattern is a no-op; removal deletes all exact duplicates. A pattern cannot appear in both arrays. At least one addition or removal is required. The final regex set must compile before any changes are installed.
+
+Atomic PATCH prevents lost updates to unrelated fields among incremental callers. It does not stop the existing feeder or another full PUT caller from subsequently replacing fields. Coordinate manual changes with source configuration. Reconnect run streams after changing contest filters or freeze time; these changes do not add a stream reset protocol.

@@ -1,4 +1,6 @@
 //! OpenAPI contracts. Documentation-only handlers below mirror the real routers.
+mod incremental;
+
 use crate::internal::{RunsBody, SaltBody, TimeBody};
 use data::event::*;
 use serde::Serialize;
@@ -81,6 +83,7 @@ struct InternalMetadata;
 struct PublicMetadata;
 impl utoipa::Modify for InternalMetadata {
     fn modify(&self, doc: &mut utoipa::openapi::OpenApi) {
+        doc.merge(incremental::IncrementalApiDoc::openapi());
         doc.info.description = Some(include_str!("../../../doc/internal-api-setup.md").into());
         // An absent salt body is valid, but a JSON null body is not a SaltBody.
         // Mark the request optional without making its schema nullable.
@@ -191,7 +194,7 @@ pub async fn delete_internal_event() {}
 
 /// List complete contest configurations
 ///
-/// Returns configuration objects, including salts, in unspecified order. Available before start. There is no individual contest GET route.
+/// Returns configuration objects, including salts, in unspecified order. Available before start. Individual configurations are also available from GET /internal/contests/{event_name}/{contest_name}.
 #[utoipa::path(
     get, path = "/internal/events/{event_name}/contests", operation_id = "list_internal_contests", tag = "Contests",
     params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment.")),
@@ -206,7 +209,7 @@ pub async fn list_internal_contests() {}
 
 /// List complete site configurations
 ///
-/// Returns configuration objects, including salts, in unspecified order. Available before start. There is no individual site GET route.
+/// Returns configuration objects, including salts, in unspecified order. Available before start. Individual configurations are also available from GET /internal/sites/{event_name}/{contest_name}/{site_name}.
 #[utoipa::path(
     get, path = "/internal/events/{event_name}/contests/{contest_name}/sites", operation_id = "list_internal_sites", tag = "Sites",
     params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("contest_name" = String, Path, description = "Nonempty contest identifier within the event. URL-encode as a path segment.")),
@@ -461,13 +464,12 @@ pub async fn list_public_events() {}
 
 /// List contest identifiers
 ///
-/// Alphabetically sorted contest names. Unlike the internal list this returns strings, not configurations. Unavailable before event start.
+/// Alphabetically sorted contest names, available before and after event start so the landing page can link to upcoming countdowns. Unlike the internal list this returns strings, not configurations. An event with no contests returns an empty list. Contest state, configuration, and runs remain unavailable before start.
 #[utoipa::path(
     get, path = "/api/events/{event_name}/contests", operation_id = "list_public_contests", tag = "Public discovery",
     params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment.")),
     responses(
         (status = 200, description = "Successful result in data", body = Success<Vec<String>>, example = json!({"data": ["brasil"]})),
-        (status = 403, description = "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid.", body = Failure, example = json!({"errors": [{"code": "not_started", "message": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."}]})),
         (status = 404, description = "Required event, contest, or site does not exist.", body = Failure, example = json!({"errors": [{"code": "not_found", "message": "Required event, contest, or site does not exist."}]}))
     )
 )]
