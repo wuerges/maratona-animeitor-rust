@@ -351,3 +351,84 @@ async fn legacy_duplicates_and_authentication() {
         .unwrap();
     assert_eq!(response.status(), 401);
 }
+
+#[tokio::test]
+async fn admin_command_sequence_uses_real_routes() {
+    use clap::Parser;
+    use cli::admin::{args::AdminArgs, plan, request_url};
+    let (app, _) = setup().await;
+    async fn command(app: &Router, words: &[&str]) -> (StatusCode, Value) {
+        let args = AdminArgs::try_parse_from(std::iter::once("admin").chain(words.iter().copied()))
+            .unwrap();
+        let request = plan(args.command).unwrap();
+        let url = request_url("https://example.com", &request).unwrap();
+        let path = format!(
+            "{}{}",
+            url.path(),
+            url.query().map(|q| format!("?{q}")).unwrap_or_default()
+        );
+        send(
+            app,
+            request.method.as_str(),
+            &path,
+            request.body.unwrap_or(Value::Null),
+        )
+        .await
+    }
+    let steps = [
+        (
+            vec!["contests", "create", "e", "regional", "--code", "^t"],
+            201,
+        ),
+        (
+            vec!["sites", "create", "e", "regional", "campus", "--code", "^t"],
+            201,
+        ),
+        (
+            vec![
+                "teams", "add", "e", "--login", "t2", "--escola", "School", "--nome", "Two",
+            ],
+            201,
+        ),
+        (vec!["problems", "add", "e", "C"], 201),
+        (
+            vec!["contests", "update", "e", "regional", "--gold", "4"],
+            200,
+        ),
+        (
+            vec![
+                "sites", "codes", "e", "regional", "campus", "--add", "^other$",
+            ],
+            200,
+        ),
+        (
+            vec![
+                "runs",
+                "add",
+                "e",
+                "--id",
+                "1",
+                "--team-login",
+                "t2",
+                "--problem",
+                "C",
+                "--time-seconds",
+                "56",
+                "--answer",
+                "Y",
+            ],
+            200,
+        ),
+        (vec!["teams", "delete", "e", "t2"], 409),
+        (vec!["teams", "delete", "e", "t2", "--keep-runs"], 204),
+        (vec!["timer", "set", "e", "--seconds", "-120"], 200),
+        (vec!["revelation-urls", "e"], 200),
+        (vec!["runs", "clear", "e"], 204),
+        (vec!["problems", "delete", "e", "C"], 204),
+        (vec!["sites", "delete", "e", "regional", "campus"], 204),
+        (vec!["contests", "delete", "e", "regional"], 204),
+    ];
+    for (words, status) in steps {
+        assert_eq!(command(&app, &words).await.0.as_u16(), status, "{words:?}");
+    }
+}

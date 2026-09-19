@@ -42,3 +42,5 @@ configured `public_url` origin. Each private URL contains the site's `secret`
 Bearer key and `sede` selection; no separate key endpoint is needed. Retrieve new
 URLs after salt rotation. Unlike offline `printurls`, this endpoint uses the
 server's current in-memory event configuration.
+
+The [animeitor-admin CLI](../doc/admin-cli.md) reads `server.toml` and exposes the internal management operations as commands, including atomic PATCH updates and item-level team/problem/filter changes.

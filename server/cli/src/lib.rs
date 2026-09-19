@@ -19,3 +19,5 @@ impl From<PairArg> for Volume {
 pub mod http_client;
 
 pub mod configuration;
+
+pub mod admin;

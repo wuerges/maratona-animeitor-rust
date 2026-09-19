@@ -155,6 +155,7 @@ The application has three programs and a browser client:
 | --- | --- | --- |
 | `animeitor-server` | Stores event state in memory, serves the scoreboard and APIs, streams updates over WebSockets | Server only |
 | `animeitor-feeder` | Reads a BOCA webcast URL or ZIP file and publishes teams, problems, runs, and contest/site definitions | Event, event secrets, server |
+| `animeitor-admin` | Manages events, contests, sites, teams, runs, timer, filters, and revelation URLs via HTTPS | Server |
 | `printurls` | Prints public scoreboard and private revelation links offline | Event and server |
 | Browser client | Renders the animated scoreboard and Reveleitor | Public server API and the selected URL |
 
@@ -325,3 +326,16 @@ make printurls EVENT_CONFIG=config/jones/event.toml
 internal URL and the release client directory for assets; the Docker example uses
 animeitor and /dist. Both use ports 8000 and 8443. To develop the client interactively,
 run `make run-debug-client` alongside the server and open http://localhost:8080/.
+
+### Manage a running event
+
+Use `animeitor-admin` with `server.toml` for CRUD and atomic incremental changes:
+
+```sh
+cargo run -p cli --bin animeitor-admin -- events list
+cargo run -p cli --bin animeitor-admin -- timer set regional-2026 --seconds -60
+cargo run -p cli --bin animeitor-admin -- revelation-urls regional-2026 --json
+```
+
+See the [management CLI guide](doc/admin-cli.md) for setup, JSON/stdin input,
+team/problem operations, filter changes, and Docker usage.
