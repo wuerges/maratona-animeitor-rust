@@ -32,7 +32,9 @@ versions fail clearly; storage never silently falls back to memory.
 SQLite preserves event configuration, ordered teams/problems, contests, sites,
 salts, runs (including corrections), event creation order, and the last explicitly
 set timer value. The clock does not advance itself while the server is stopped.
-Keep the same `revelation_salt` to preserve revelation URLs. Remote-control
+Keep the same `revelation_salt` to preserve revelation URLs. Restarting the
+feeder explicitly deletes and rebuilds its event from configuration and source
+data, even with SQLite; restarting only the server preserves stored data. Remote-control
 commands are transient and are not replayed after restart.
 
 Use a local filesystem and run only one Animeitor server against a database.

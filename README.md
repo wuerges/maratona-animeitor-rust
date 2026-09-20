@@ -169,6 +169,13 @@ The checked-in [docker-compose.yaml](docker-compose.yaml) starts one server, one
 Jones feeder, and the one-shot `printurls` program. It is not generated. Multiple
 feeders can publish different events to the same server.
 
+Each feeder startup deletes its configured event and rebuilds it from the event
+configuration and webcast, including contests, sites, teams, runs, salts, and timer.
+This applies to both memory and SQLite: manually added data and entries absent
+from the source are removed. The reset waits for the first successful source
+load and is performed only once; subsequent polls update the rebuilt event.
+Run only one feeder per event.
+
 ### APIs and monitoring
 
 - Public landing: http://localhost:8000/

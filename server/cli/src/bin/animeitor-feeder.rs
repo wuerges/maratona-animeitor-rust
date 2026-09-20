@@ -13,7 +13,7 @@ use url::Url;
 #[derive(Parser)]
 #[command(
     version,
-    about = "Publish one configured event and its webcast to the internal HTTPS API"
+    about = "Reset one event on startup, then publish its configuration and webcast to the internal HTTPS API"
 )]
 struct Args {
     #[arg(long)]
@@ -82,6 +82,8 @@ async fn main() -> color_eyre::eyre::Result<()> {
 /// changed — event PUTs on static changes, time PATCHes, new/corrected
 /// runs, and contests/sites only until the server confirms them.
 struct Feeder {
+    /// Completed once per feeder process, before publishing the first valid source snapshot.
+    reset_complete: bool,
     event_secret: String,
     client: reqwest::Client,
     internal_token: String,
@@ -112,6 +114,7 @@ impl Feeder {
         score_freeze_time_seconds: Option<i64>,
     ) -> Self {
         Feeder {
+            reset_complete: false,
             event_secret: String::new(),
             client,
             internal_token: internal_token.to_string(),
@@ -140,6 +143,53 @@ impl Feeder {
             .json(body)
             .send()
             .await
+    }
+
+    /// Retry a failed startup reset without publishing into the old event.
+    /// Once deletion succeeds (or the event is absent), never repeat it during
+    /// this process, even if later setup requests fail.
+    async fn reset_event(&mut self) -> bool {
+        if self.reset_complete {
+            return true;
+        }
+        match self
+            .client
+            .delete(&self.event_url)
+            .basic_auth(&self.internal_user, Some(&self.internal_token))
+            .send()
+            .await
+        {
+            Ok(response)
+                if response.status().is_success()
+                    || response.status() == reqwest::StatusCode::NOT_FOUND =>
+            {
+                self.known_event = None;
+                self.confirmed.clear();
+                self.reset_complete = true;
+                info!(event = %self.event, "startup reset complete; rebuilding event");
+                true
+            }
+            Ok(response) => {
+                error!(event = %self.event, status = %response.status(), "startup reset failed; will retry before publishing");
+                false
+            }
+            Err(error) => {
+                error!(event = %self.event, %error, "startup reset request failed; will retry before publishing");
+                false
+            }
+        }
+    }
+
+    async fn publish_snapshot(&mut self, state: EventState, runs: Vec<Run>) {
+        if !self.reset_event().await {
+            return;
+        }
+        self.update_event(state).await;
+        if self.known_event.is_none() {
+            return;
+        }
+        self.update_contests().await;
+        self.update_runs(runs).await;
     }
 
     async fn get_event(&self) -> Option<EventState> {
@@ -193,7 +243,7 @@ impl Feeder {
     async fn update_event(&mut self, state: EventState) {
         match &self.known_event {
             None => {
-                // First poll: create, or adopt the existing event.
+                // Create after reset; a conflict can follow a successful POST whose response was lost.
                 let body = serde_json::to_value(&state).unwrap();
                 match self
                     .send(reqwest::Method::POST, &self.event_url, &body)
@@ -383,14 +433,177 @@ impl Feeder {
                         state.score_freeze_time_seconds = freeze;
                     }
                     state.salt = Some(self.event_secret.clone());
-                    self.update_event(state).await;
-                    self.update_contests().await;
-                    self.update_runs(runs).await;
+                    // Load the source successfully before deleting existing data.
+                    self.publish_snapshot(state, runs).await;
                 }
                 Err(_) => error!(
                     "failed loading webcast; check the private source configuration; will retry"
                 ),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod startup_tests {
+    use super::*;
+    use axum::{
+        Router,
+        extract::{Request, State},
+        http::StatusCode,
+        response::IntoResponse,
+    };
+    use std::{collections::VecDeque, sync::Arc};
+    use tokio::sync::Mutex;
+
+    type Calls = Arc<Mutex<Vec<(String, String)>>>;
+    #[derive(Clone)]
+    struct Mock {
+        calls: Calls,
+        deletes: Arc<Mutex<VecDeque<StatusCode>>>,
+        creates: Arc<Mutex<VecDeque<StatusCode>>>,
+    }
+    async fn handler(State(mock): State<Mock>, request: Request) -> axum::response::Response {
+        let method = request.method().to_string();
+        let path = request.uri().path().to_string();
+        assert_eq!(request.headers()["authorization"], "Basic dXNlcjp0b2tlbg==");
+        mock.calls.lock().await.push((method.clone(), path.clone()));
+        if method == "DELETE" {
+            return mock
+                .deletes
+                .lock()
+                .await
+                .pop_front()
+                .unwrap_or(StatusCode::NO_CONTENT)
+                .into_response();
+        }
+        if method == "GET" {
+            return axum::Json(serde_json::json!({"data":[]})).into_response();
+        }
+        if method == "POST" && path == "/internal/events/e" {
+            return mock
+                .creates
+                .lock()
+                .await
+                .pop_front()
+                .unwrap_or(StatusCode::CREATED)
+                .into_response();
+        }
+        StatusCode::OK.into_response()
+    }
+    async fn setup(
+        deletes: Vec<StatusCode>,
+        creates: Vec<StatusCode>,
+    ) -> (Feeder, Calls, tokio::task::JoinHandle<()>) {
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let mock = Mock {
+            calls: calls.clone(),
+            deletes: Arc::new(Mutex::new(deletes.into())),
+            creates: Arc::new(Mutex::new(creates.into())),
+        };
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let base = format!("http://{}", listener.local_addr().unwrap());
+        let task = tokio::spawn(async move {
+            axum::serve(listener, Router::new().fallback(handler).with_state(mock))
+                .await
+                .unwrap();
+        });
+        let contests = vec![ConfiguredContest {
+            config: serde_json::from_value(serde_json::json!({"name":"c","codes":["team"]}))
+                .unwrap(),
+            sites: vec![
+                serde_json::from_value(serde_json::json!({"name":"s","codes":["team"]})).unwrap(),
+            ],
+        }];
+        (
+            Feeder::new(
+                reqwest::Client::new(),
+                "token",
+                "user",
+                &base,
+                "e",
+                contests,
+                None,
+            ),
+            calls,
+            task,
+        )
+    }
+    fn state() -> EventState {
+        serde_json::from_value(serde_json::json!({"name":"e","teams":[],"problems":["A"],"score_freeze_time_seconds":100,"penalty_seconds":1200,"time_seconds":-60})).unwrap()
+    }
+    fn runs() -> Vec<Run> {
+        vec![serde_json::from_value(serde_json::json!({"id":1,"team_login":"team1","prob":"A","time_seconds":10,"answer":"Y"})).unwrap()]
+    }
+
+    #[tokio::test]
+    async fn startup_deletes_before_rebuilding_and_never_resets_on_later_polls() {
+        let (mut feeder, calls, server) = setup(vec![StatusCode::NO_CONTENT], vec![]).await;
+        feeder.publish_snapshot(state(), runs()).await;
+        let first = calls.lock().await.clone();
+        assert_eq!(
+            first,
+            vec![
+                ("DELETE".into(), "/internal/events/e".into()),
+                ("POST".into(), "/internal/events/e".into()),
+                ("GET".into(), "/internal/events/e/contests".into()),
+                ("POST".into(), "/internal/contests/e/c".into()),
+                ("GET".into(), "/internal/events/e/contests/c/sites".into()),
+                ("POST".into(), "/internal/sites/e/c/s".into()),
+                ("POST".into(), "/internal/events/e/runs".into()),
+            ]
+        );
+        let mut next = state();
+        next.time_seconds = 12;
+        feeder.publish_snapshot(next, runs()).await;
+        let calls = calls.lock().await;
+        assert_eq!(calls.iter().filter(|(m, _)| m == "DELETE").count(), 1);
+        assert!(calls.contains(&("PATCH".into(), "/internal/events/e/time".into())));
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn failed_reset_blocks_publication_and_retries_until_absent() {
+        let (mut feeder, calls, server) = setup(
+            vec![StatusCode::SERVICE_UNAVAILABLE, StatusCode::NOT_FOUND],
+            vec![],
+        )
+        .await;
+        feeder.publish_snapshot(state(), runs()).await;
+        assert!(!feeder.reset_complete);
+        assert_eq!(calls.lock().await.len(), 1);
+        feeder.publish_snapshot(state(), runs()).await;
+        assert!(feeder.reset_complete);
+        assert!(feeder.known_event.is_some());
+        assert_eq!(
+            calls.lock().await[1],
+            ("DELETE".into(), "/internal/events/e".into())
+        );
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn failed_creation_retries_without_deleting_again_or_sending_children() {
+        let (mut feeder, calls, server) = setup(
+            vec![StatusCode::NO_CONTENT],
+            vec![StatusCode::SERVICE_UNAVAILABLE, StatusCode::CREATED],
+        )
+        .await;
+        feeder.publish_snapshot(state(), runs()).await;
+        assert_eq!(calls.lock().await.len(), 2);
+        assert!(feeder.reset_complete);
+        assert!(feeder.known_event.is_none());
+        feeder.publish_snapshot(state(), runs()).await;
+        assert_eq!(
+            calls
+                .lock()
+                .await
+                .iter()
+                .filter(|(m, _)| m == "DELETE")
+                .count(),
+            1
+        );
+        assert!(feeder.known_event.is_some());
+        server.abort();
     }
 }
