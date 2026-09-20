@@ -104,7 +104,7 @@ fn rejects_unknown_fields_and_duplicate_names() {
 
 #[tokio::test]
 async fn jones_fixture_populates_the_public_scoreboard() {
-    use service::event_store::{EventStore, from_legacy_contest_state};
+    use service::event_store::from_legacy_contest_state;
     let config = EventConfig::load(&root().join("config/jones/event.toml")).unwrap();
     let source = EventSecrets::source(
         &root().join("event-secrets.toml.example"),
@@ -116,7 +116,7 @@ async fn jones_fixture_populates_the_public_scoreboard() {
         .unwrap();
     let (mut event, runs) = from_legacy_contest_state(&legacy, &config.event.name);
     event.salt = Some(config.event.secret.clone());
-    let store = EventStore::new();
+    let store = test_store(None);
     store.create_event("jones", event).await.unwrap();
     for contest in config.configured() {
         store
@@ -131,11 +131,16 @@ async fn jones_fixture_populates_the_public_scoreboard() {
         }
     }
     store.add_runs("jones", runs).await.unwrap();
-    let public = store.public_state("jones", "Jones").await.unwrap();
+    let public = store.public_state("jones", "Jones").await.unwrap().unwrap();
     assert_eq!(public.teams.len(), 20);
     assert_eq!(public.problems.unwrap().len(), 8);
     assert_eq!(
-        store.contest_runs("jones", "Jones").await.unwrap().len(),
+        store
+            .contest_runs("jones", "Jones")
+            .await
+            .unwrap()
+            .unwrap()
+            .len(),
         134
     );
     assert_eq!(
@@ -143,7 +148,15 @@ async fn jones_fixture_populates_the_public_scoreboard() {
             .site_runs("jones", "Jones", "Geral")
             .await
             .unwrap()
+            .unwrap()
             .len(),
         134
     );
+}
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
 }

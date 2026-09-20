@@ -1,5 +1,5 @@
 [workspace]
-members = ["server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model"]
+members = ["server/database-memory", "server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model"]
 resolver = "2"
 
 [workspace.package]
@@ -51,6 +51,7 @@ utoipa = { version = "5", features = ["macros"] }
 data = { path = "server/data" }
 cli = { path = "server/cli" }
 service = { path = "server/service" }
+database-memory = { path = "server/database-memory" }
 server-v2 = { path = "server/server-v2" }
 client-sdk = { path = "client-sdk" }
 client-model = { path = "client-model" }

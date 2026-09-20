@@ -73,7 +73,10 @@ fn bearer_key(headers: &HeaderMap) -> Option<String> {
 
 #[autometrics]
 async fn list_events(State(store): State<EventStore>) -> Response {
-    data_json(store.list_events().await, StatusCode::OK)
+    data_json(
+        crate::store_call!(store.list_events().await),
+        StatusCode::OK,
+    )
 }
 
 /// Lists contest names before and after start so the landing page can link
@@ -83,7 +86,7 @@ async fn list_contests(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    match store.list_contests(&event_name).await {
+    match crate::store_call!(store.list_contests(&event_name).await) {
         Some(contests) => {
             let mut names: Vec<String> = contests.into_iter().map(|config| config.name).collect();
             names.sort();
@@ -98,7 +101,11 @@ async fn list_contests(
 /// page and countdown.
 #[autometrics]
 async fn contest_gate(store: &EventStore, event_name: &str) -> Result<(), Response> {
-    match store.is_started(event_name).await {
+    match store
+        .is_started(event_name)
+        .await
+        .map_err(crate::internal::store_error)?
+    {
         None => Err(not_found("evento ou contest não existe")),
         Some(false) => Err(not_started("o evento ainda não começou")),
         Some(true) => Ok(()),
@@ -113,7 +120,7 @@ async fn get_contest_state(
     if let Err(response) = contest_gate(&store, &event_name).await {
         return response;
     }
-    match store.public_state(&event_name, &contest_name).await {
+    match crate::store_call!(store.public_state(&event_name, &contest_name).await) {
         Some(state) => data_json(state, StatusCode::OK),
         None => not_found("evento ou contest não existe"),
     }
@@ -127,7 +134,7 @@ async fn get_config(
     if let Err(response) = contest_gate(&store, &event_name).await {
         return response;
     }
-    match store.public_config(&event_name, &contest_name).await {
+    match crate::store_call!(store.public_config(&event_name, &contest_name).await) {
         Some(config) => data_json(config, StatusCode::OK),
         None => not_found("evento ou contest não existe"),
     }
@@ -141,7 +148,7 @@ async fn runs_ws(
 ) -> Response {
     // Handshake errors carry no body: 404 for missing resources, bare 403
     // while the event has not started.
-    match store.is_started(&event_name).await {
+    match crate::store_call!(store.is_started(&event_name).await) {
         None => return StatusCode::NOT_FOUND.into_response(),
         Some(false) => return StatusCode::FORBIDDEN.into_response(),
         Some(true) => {}
@@ -151,15 +158,14 @@ async fn runs_ws(
     // here by the contest codes. Runs at or after the score freeze time are
     // served as `?`: only the reveal (`runs_secret`) receives the real
     // answers.
-    let Some(codes) = store.contest_codes(&event_name, &contest_name).await else {
+    let Some(codes) = crate::store_call!(store.contest_codes(&event_name, &contest_name).await)
+    else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let Some(mut runs_rx) = store.subscribe_runs(&event_name).await else {
+    let Some(mut runs_rx) = crate::store_call!(store.subscribe_runs(&event_name).await) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let freeze = store
-        .get_event(&event_name)
-        .await
+    let freeze = crate::store_call!(store.get_event(&event_name).await)
         .map(|event| event.score_freeze_time_seconds)
         .unwrap_or(0);
 
@@ -218,12 +224,13 @@ async fn get_runs_secret(
         return invalid_key("chave do site ausente");
     };
 
-    match store.site_by_key(&event_name, &contest_name, &key).await {
+    match crate::store_call!(store.site_by_key(&event_name, &contest_name, &key).await) {
         None => invalid_key("chave não casa com nenhum site do contest"),
-        Some((site_name, _)) => match store
-            .site_runs(&event_name, &contest_name, &site_name)
-            .await
-        {
+        Some((site_name, _)) => match crate::store_call!(
+            store
+                .site_runs(&event_name, &contest_name, &site_name)
+                .await
+        ) {
             Some(runs) => data_json(serde_json::json!({ "runs": runs }), StatusCode::OK),
             None => not_found("evento, contest ou site não existe"),
         },
@@ -236,10 +243,10 @@ async fn timer_ws(
     Path(event_name): Path<String>,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some(current) = store.current_timer(&event_name).await else {
+    let Some(current) = crate::store_call!(store.current_timer(&event_name).await) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let Some(mut time_rx) = store.subscribe_timer(&event_name).await else {
+    let Some(mut time_rx) = crate::store_call!(store.subscribe_timer(&event_name).await) else {
         return StatusCode::NOT_FOUND.into_response();
     };
 
@@ -293,10 +300,11 @@ async fn remote_control_ws(
     Path((event_name, contest_name, key)): Path<(String, String, String)>,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some(sender) = store
-        .remote_control_sender(&event_name, &contest_name, &key)
-        .await
-    else {
+    let Some(sender) = crate::store_call!(
+        store
+            .remote_control_sender(&event_name, &contest_name, &key)
+            .await
+    ) else {
         return StatusCode::NOT_FOUND.into_response();
     };
     relay_remote_control(sender, ws).await

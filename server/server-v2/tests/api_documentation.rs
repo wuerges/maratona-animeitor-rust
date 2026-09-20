@@ -11,14 +11,13 @@ use server_v2::{
     AppState, app,
     openapi::{InternalApiDoc, PublicApiDoc},
 };
-use service::event_store::EventStore;
 use tower::ServiceExt;
 use utoipa::OpenApi;
 
 fn application() -> Router {
     app(AppState {
         public_url: "https://public.example:8443/ignored/base/".parse().unwrap(),
-        store: EventStore::with_revelation_salt("private-test-secret".into()),
+        store: test_store(Some("private-test-secret".into())),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "operator".into(),
             "test-token".into(),
@@ -476,4 +475,11 @@ fn success_examples_include_actual_serialized_defaults() {
     roundtrip::<data::event::RunsData>(&response(
         "/api/events/{event_name}/contests/{contest_name}/runs_secret",
     ));
+}
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
 }

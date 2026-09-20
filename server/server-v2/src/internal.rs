@@ -80,8 +80,29 @@ fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Res
     crate::envelope::error_json(status, code, message)
 }
 
-fn store_error(err: StoreError) -> Response {
+pub(crate) fn store_error(err: StoreError) -> Response {
     match err {
+        StoreError::Storage(error) => {
+            tracing::error!(%error, "database operation failed");
+            match error {
+                service::database::DatabaseError::Unavailable(_) => error_json(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "storage_unavailable",
+                    "database is unavailable",
+                ),
+                service::database::DatabaseError::Corrupt(_) => error_json(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "storage_error",
+                    "stored data could not be read",
+                ),
+                service::database::DatabaseError::AlreadyExists => {
+                    error_json(StatusCode::CONFLICT, "conflict", "event already exists")
+                }
+                service::database::DatabaseError::NotFound => {
+                    error_json(StatusCode::NOT_FOUND, "not_found", "event does not exist")
+                }
+            }
+        }
         StoreError::Conflict(message) | StoreError::AlreadyExists(message) => {
             error_json(StatusCode::CONFLICT, "conflict", message)
         }
@@ -240,7 +261,7 @@ async fn get_event(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    match store.get_event(&event_name).await {
+    match crate::store_call!(store.get_event(&event_name).await) {
         Some(state) => data_json(state, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
     }
@@ -249,7 +270,10 @@ async fn get_event(
 /// Lists the names of all events, in creation order.
 #[autometrics]
 async fn list_events(_auth: InternalAuth, State(store): State<EventStore>) -> Response {
-    data_json(store.list_events().await, StatusCode::OK)
+    data_json(
+        crate::store_call!(store.list_events().await),
+        StatusCode::OK,
+    )
 }
 
 /// Lists the contests of an event, with their salts (internal scope).
@@ -259,7 +283,7 @@ async fn list_contests(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    match store.list_contests(&event_name).await {
+    match crate::store_call!(store.list_contests(&event_name).await) {
         Some(contests) => data_json(contests, StatusCode::OK),
         None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
     }
@@ -272,7 +296,7 @@ async fn list_sites(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
 ) -> Response {
-    match store.list_sites(&event_name, &contest_name).await {
+    match crate::store_call!(store.list_sites(&event_name, &contest_name).await) {
         Some(sites) => data_json(sites, StatusCode::OK),
         None => error_json(
             StatusCode::NOT_FOUND,
@@ -305,7 +329,7 @@ async fn delete_event(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    if store.delete_event(&event_name).await {
+    if crate::store_call!(store.delete_event(&event_name).await) {
         StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe")
@@ -330,7 +354,7 @@ async fn patch_time(
         Err(err) => return map_json_rejection(err),
     };
     // Negative values are allowed: the contest starts with a countdown.
-    match store.patch_time(&event_name, body.time_seconds).await {
+    match crate::store_call!(store.patch_time(&event_name, body.time_seconds).await) {
         Some(seconds) => data_json(
             serde_json::json!({ "time_seconds": seconds }),
             StatusCode::OK,
@@ -394,7 +418,7 @@ async fn delete_runs(
     State(store): State<EventStore>,
     Path(event_name): Path<String>,
 ) -> Response {
-    if store.clear_runs(&event_name).await {
+    if crate::store_call!(store.clear_runs(&event_name).await) {
         StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe")
@@ -473,7 +497,7 @@ async fn delete_contest(
     State(store): State<EventStore>,
     Path((event_name, contest_name)): Path<(String, String)>,
 ) -> Response {
-    if store.delete_contest(&event_name, &contest_name).await {
+    if crate::store_call!(store.delete_contest(&event_name, &contest_name).await) {
         StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(
@@ -559,10 +583,11 @@ async fn delete_site(
     State(store): State<EventStore>,
     Path((event_name, contest_name, site_name)): Path<(String, String, String)>,
 ) -> Response {
-    if store
-        .delete_site(&event_name, &contest_name, &site_name)
-        .await
-    {
+    if crate::store_call!(
+        store
+            .delete_site(&event_name, &contest_name, &site_name)
+            .await
+    ) {
         StatusCode::NO_CONTENT.into_response()
     } else {
         error_json(
@@ -607,8 +632,9 @@ async fn list_revelation_urls(
             .revelation_urls(&event_name, &state.public_url)
             .await
         {
-            Some(urls) => data_json(urls, StatusCode::OK),
-            None => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
+            Ok(Some(urls)) => data_json(urls, StatusCode::OK),
+            Err(err) => store_error(err),
+            Ok(None) => error_json(StatusCode::NOT_FOUND, "not_found", "evento não existe"),
         },
     };
     response.headers_mut().insert(

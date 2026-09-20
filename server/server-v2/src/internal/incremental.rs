@@ -166,7 +166,7 @@ pub(super) async fn get_contest(
     State(store): State<EventStore>,
     Path((event, contest)): Path<(String, String)>,
 ) -> Response {
-    match store.get_contest(&event, &contest).await {
+    match crate::store_call!(store.get_contest(&event, &contest).await) {
         Some(value) => data_json(value, StatusCode::OK),
         None => error_json(
             StatusCode::NOT_FOUND,
@@ -181,7 +181,7 @@ pub(super) async fn get_site(
     State(store): State<EventStore>,
     Path((event, contest, site)): Path<(String, String, String)>,
 ) -> Response {
-    match store.get_site(&event, &contest, &site).await {
+    match crate::store_call!(store.get_site(&event, &contest, &site).await) {
         Some(value) => data_json(value, StatusCode::OK),
         None => error_json(
             StatusCode::NOT_FOUND,

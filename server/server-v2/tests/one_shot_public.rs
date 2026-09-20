@@ -151,7 +151,7 @@ async fn seed_run(store: &EventStore) {
 }
 
 async fn seed_started(store: &EventStore) {
-    store.patch_time("ensaio", 0).await;
+    store.patch_time("ensaio", 0).await.unwrap();
 }
 
 async fn seed_all(store: &EventStore) {
@@ -225,7 +225,7 @@ async fn next_text(ws: &mut WsStream) -> String {
 
 #[tokio::test]
 async fn list_events_ok() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let (status, json) = send(&app, empty_request(Method::GET, "/api/events")).await;
@@ -235,10 +235,14 @@ async fn list_events_ok() {
 
 #[tokio::test]
 async fn contests_pre_start_are_sorted_names_only() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     seed_contest(&store).await;
-    let mut config = store.get_contest("ensaio", "brasil").await.unwrap();
+    let mut config = store
+        .get_contest("ensaio", "brasil")
+        .await
+        .unwrap()
+        .unwrap();
     config.name = "argentina".into();
     store
         .create_contest("ensaio", "argentina", config)
@@ -256,7 +260,7 @@ async fn contests_pre_start_are_sorted_names_only() {
 
 #[tokio::test]
 async fn contests_pre_start_can_be_empty() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -270,7 +274,7 @@ async fn contests_pre_start_can_be_empty() {
 
 #[tokio::test]
 async fn contests_after_start() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     seed_contest(&store).await;
     seed_started(&store).await;
@@ -288,7 +292,7 @@ async fn contests_after_start() {
 
 #[tokio::test]
 async fn contest_state_pre_start_forbidden() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -302,7 +306,7 @@ async fn contest_state_pre_start_forbidden() {
 
 #[tokio::test]
 async fn contest_state_after_start() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -317,7 +321,7 @@ async fn contest_state_after_start() {
 
 #[tokio::test]
 async fn config_pre_start_forbidden() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -331,7 +335,7 @@ async fn config_pre_start_forbidden() {
 
 #[tokio::test]
 async fn config_after_start_no_salts() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let app = app_for(store);
     let (status, bytes, _) = send_raw(
@@ -350,7 +354,7 @@ async fn config_after_start_no_salts() {
 
 #[tokio::test]
 async fn runs_secret_missing_key() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -364,7 +368,7 @@ async fn runs_secret_missing_key() {
 
 #[tokio::test]
 async fn runs_secret_wrong_key() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let app = app_for(store);
     let (status, json) = send(
@@ -381,7 +385,7 @@ async fn runs_secret_wrong_key() {
 
 #[tokio::test]
 async fn runs_secret_valid_key() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     seed_run(&store).await;
     let app = app_for(store);
@@ -407,7 +411,7 @@ async fn runs_secret_valid_key() {
 #[tokio::test]
 async fn runs_secret_site_without_salt() {
     // A site without a salt derives no key: nothing may unlock it.
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     seed_event_salt(&store).await;
     seed_contest(&store).await;
@@ -430,7 +434,7 @@ async fn runs_secret_site_without_salt() {
 
 #[tokio::test]
 async fn runs_ws_happy() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     seed_run(&store).await;
     let app = app_for(store);
@@ -450,7 +454,7 @@ async fn runs_ws_happy() {
 async fn runs_ws_freezes_runs_after_the_freeze_time() {
     // Runs at or after the score freeze time are served as `?`; the real
     // answers stay behind the reveal (runs_secret).
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let run: Run = serde_json::from_value(serde_json::json!({
         "id": 2, "team_login": "teambr001", "prob": "A", "time_seconds": 2040, "answer": "Y"
@@ -470,7 +474,7 @@ async fn runs_ws_freezes_runs_after_the_freeze_time() {
 
 #[tokio::test]
 async fn runs_ws_404() {
-    let app = app_for(EventStore::with_revelation_salt("test-server-salt".into()));
+    let app = app_for(test_store(Some("test-server-salt".into())));
     let base = spawn_server(app).await;
     let status = connect_error(&base, "/api/events/ensaio/contests/brasil/runs_ws").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -478,7 +482,7 @@ async fn runs_ws_404() {
 
 #[tokio::test]
 async fn runs_ws_403_pre_start() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let base = spawn_server(app).await;
@@ -488,7 +492,7 @@ async fn runs_ws_403_pre_start() {
 
 #[tokio::test]
 async fn timer_ws_happy() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = app_for(store);
     let base = spawn_server(app).await;
@@ -504,7 +508,7 @@ async fn timer_ws_happy() {
 
 #[tokio::test]
 async fn timer_ws_404() {
-    let app = app_for(EventStore::with_revelation_salt("test-server-salt".into()));
+    let app = app_for(test_store(Some("test-server-salt".into())));
     let base = spawn_server(app).await;
     let status = connect_error(&base, "/api/events/ensaio/timer").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
@@ -517,7 +521,7 @@ async fn timer_ws_survives_production_layers() {
     // never speaks websocket, which the browser reports as 1006).
     use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = make_app(AppState {
         public_url: "https://example.com".parse().unwrap(),
@@ -550,7 +554,7 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
     use tokio_tungstenite::tungstenite::client::IntoClientRequest;
     use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     let app = make_app(AppState {
         public_url: "https://example.com".parse().unwrap(),
@@ -599,7 +603,7 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
     // Abruptly drop half of them (no close frame), like the browser's 1006.
     sockets.truncate(5);
     // The survivors still receive publishes.
-    store.patch_time("ensaio", 1).await;
+    store.patch_time("ensaio", 1).await.unwrap();
     let frame = next_text(sockets.first_mut().unwrap()).await;
     assert_eq!(
         frame,
@@ -610,7 +614,7 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
 
 #[tokio::test]
 async fn remote_control_relay() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -642,7 +646,7 @@ async fn remote_control_relay() {
 
 #[tokio::test]
 async fn remote_control_404() {
-    let app = app_for(EventStore::with_revelation_salt("test-server-salt".into()));
+    let app = app_for(test_store(Some("test-server-salt".into())));
     let base = spawn_server(app).await;
     let status = connect_error(
         &base,
@@ -655,7 +659,7 @@ async fn remote_control_404() {
 #[tokio::test]
 async fn public_docs() {
     let (status, body, headers) = send_raw(
-        &app_for(EventStore::new()),
+        &app_for(test_store(None)),
         empty_request(Method::GET, "/api/docs"),
     )
     .await;
@@ -676,7 +680,7 @@ async fn public_docs() {
 #[tokio::test]
 async fn public_spec() {
     let (status, json) = send(
-        &app_for(EventStore::new()),
+        &app_for(test_store(None)),
         empty_request(Method::GET, "/api/openapi.json"),
     )
     .await;
@@ -687,7 +691,7 @@ async fn public_spec() {
 
 #[tokio::test]
 async fn remote_control_handshake_before_start() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let base = spawn_server(app_for(store)).await;
@@ -697,4 +701,11 @@ async fn remote_control_handshake_before_start() {
     )
     .await;
     ws.close(None).await.unwrap();
+}
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
 }

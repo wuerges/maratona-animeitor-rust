@@ -119,7 +119,10 @@ pub async fn serve_config(
 ) -> ServiceResult<()> {
     let state = AppState {
         public_url,
-        store: service::event_store::EventStore::with_revelation_salt(revelation_salt),
+        store: service::event_store::EventStore::new(
+            Arc::new(database_memory::MemoryDatabase::new()),
+            revelation_salt,
+        ),
         internal_tokens: Arc::new(internal_tokens),
     };
 
@@ -179,4 +182,15 @@ pub async fn serve_config(
     }
 
     Ok(())
+}
+
+/// Propagate storage errors through the same envelope as domain errors.
+#[macro_export]
+macro_rules! store_call {
+    ($operation:expr) => {
+        match $operation {
+            Ok(value) => value,
+            Err(error) => return $crate::internal::store_error(error),
+        }
+    };
 }

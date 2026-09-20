@@ -39,7 +39,7 @@ async fn send(app: &Router, method: &str, path: &str, body: Value) -> (StatusCod
     )
 }
 async fn setup() -> (Router, EventStore) {
-    let store = EventStore::with_revelation_salt("server-secret".into());
+    let store = test_store(Some("server-secret".into()));
     let app = app(AppState {
         store: store.clone(),
         public_url: "https://example.com".parse().unwrap(),
@@ -82,7 +82,7 @@ async fn patches_preserve_fields_and_validate_before_mutation() {
         assert_eq!(value["data"]["salt"], Value::Null);
         assert_eq!(send(&app, "GET", path, Value::Null).await.1, value);
     }
-    let event = store.get_event("e").await.unwrap();
+    let event = store.get_event("e").await.unwrap().unwrap();
     assert_eq!(event.time_seconds, -60);
     assert_eq!(event.teams.len(), 1);
     for body in [
@@ -92,9 +92,9 @@ async fn patches_preserve_fields_and_validate_before_mutation() {
         json!({"typo":1}),
     ] {
         assert_eq!(send(&app, "PATCH", "/internal/events/e", body).await.0, 400);
-        assert_eq!(store.get_event("e").await.unwrap(), event);
+        assert_eq!(store.get_event("e").await.unwrap().unwrap(), event);
     }
-    let contest = store.get_contest("e", "c").await.unwrap();
+    let contest = store.get_contest("e", "c").await.unwrap().unwrap();
     assert_eq!(
         send(
             &app,
@@ -106,8 +106,15 @@ async fn patches_preserve_fields_and_validate_before_mutation() {
         .0,
         400
     );
-    assert_eq!(store.get_contest("e", "c").await.unwrap(), contest);
-    assert!(store.contest_codes("e", "c").await.unwrap().is_match("t1"));
+    assert_eq!(store.get_contest("e", "c").await.unwrap().unwrap(), contest);
+    assert!(
+        store
+            .contest_codes("e", "c")
+            .await
+            .unwrap()
+            .unwrap()
+            .is_match("t1")
+    );
     for path in [
         "/internal/events/missing",
         "/internal/contests/e/missing",
@@ -132,7 +139,7 @@ async fn referenced_removals_are_atomic_and_keep_runs_is_explicit() {
     ] {
         assert_eq!(send(&app, "DELETE", path, Value::Null).await.0, 409);
     }
-    let before = store.get_event("e").await.unwrap();
+    let before = store.get_event("e").await.unwrap().unwrap();
     assert_eq!(
         send(
             &app,
@@ -155,7 +162,7 @@ async fn referenced_removals_are_atomic_and_keep_runs_is_explicit() {
         .0,
         409
     );
-    assert_eq!(store.get_event("e").await.unwrap(), before);
+    assert_eq!(store.get_event("e").await.unwrap().unwrap(), before);
     assert_eq!(
         send(
             &app,
@@ -167,7 +174,10 @@ async fn referenced_removals_are_atomic_and_keep_runs_is_explicit() {
         .0,
         204
     );
-    assert_eq!(store.site_runs("e", "c", "s").await.unwrap().len(), 1);
+    assert_eq!(
+        store.site_runs("e", "c", "s").await.unwrap().unwrap().len(),
+        1
+    );
     assert_eq!(
         send(&app, "POST", "/internal/events/e/runs", run).await.1["warnings"][0]["code"],
         "unknown_team"
@@ -177,7 +187,10 @@ async fn referenced_removals_are_atomic_and_keep_runs_is_explicit() {
         send(&app, "POST", "/internal/events/e/teams", body).await.0,
         201
     );
-    assert_eq!(store.site_runs("e", "c", "s").await.unwrap().len(), 1);
+    assert_eq!(
+        store.site_runs("e", "c", "s").await.unwrap().unwrap().len(),
+        1
+    );
     assert_eq!(
         send(
             &app,
@@ -189,7 +202,10 @@ async fn referenced_removals_are_atomic_and_keep_runs_is_explicit() {
         .0,
         200
     );
-    assert_eq!(store.site_runs("e", "c", "s").await.unwrap().len(), 1);
+    assert_eq!(
+        store.site_runs("e", "c", "s").await.unwrap().unwrap().len(),
+        1
+    );
 }
 #[tokio::test]
 async fn collection_operations_preserve_order_and_filter_compilation() {
@@ -290,14 +306,14 @@ async fn collection_operations_preserve_order_and_filter_compilation() {
             assert_eq!(send(&app, "PATCH", path, bad).await.0, 400);
         }
     }
-    let codes = store.contest_codes("e", "c").await.unwrap();
+    let codes = store.contest_codes("e", "c").await.unwrap().unwrap();
     assert!(codes.is_match("t2"));
     assert!(!codes.is_match("t1"));
 }
 #[tokio::test]
 async fn concurrent_patches_merge_under_the_store_lock() {
     let (app, store) = setup().await;
-    let mut timer = store.subscribe_timer("e").await.unwrap();
+    let mut timer = store.subscribe_timer("e").await.unwrap().unwrap();
     let (a, b, c) = tokio::join!(
         send(
             &app,
@@ -319,7 +335,7 @@ async fn concurrent_patches_merge_under_the_store_lock() {
         )
     );
     assert_eq!((a.0.as_u16(), b.0.as_u16(), c.0.as_u16()), (200, 200, 201));
-    let event = store.get_event("e").await.unwrap();
+    let event = store.get_event("e").await.unwrap().unwrap();
     assert_eq!(event.time_seconds, 25);
     assert_eq!(event.penalty_seconds, 600);
     assert_eq!(event.teams.len(), 2);
@@ -328,7 +344,7 @@ async fn concurrent_patches_merge_under_the_store_lock() {
 #[tokio::test]
 async fn legacy_duplicates_and_authentication() {
     let (app, store) = setup().await;
-    let mut event = store.get_event("e").await.unwrap();
+    let mut event = store.get_event("e").await.unwrap().unwrap();
     event.teams.push(event.teams[0].clone());
     event.problems.push("A".into());
     store.put_event("e", event).await.unwrap();
@@ -431,4 +447,11 @@ async fn admin_command_sequence_uses_real_routes() {
     for (words, status) in steps {
         assert_eq!(command(&app, &words).await.0.as_u16(), status, "{words:?}");
     }
+}
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
 }

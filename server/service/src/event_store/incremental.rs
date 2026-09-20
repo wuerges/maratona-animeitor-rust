@@ -36,7 +36,7 @@ fn problem_ids(event: &Event) -> Result<(), StoreError> {
     }
     Ok(())
 }
-fn state(event: &Event) -> EventState {
+pub(super) fn state(event: &Event) -> EventState {
     EventState {
         name: event.name.clone(),
         problems: event.problems.clone(),
@@ -76,7 +76,7 @@ fn change_codes(
     Ok((result, compiled))
 }
 
-impl EventStore {
+impl Engine {
     pub async fn patch_event(
         &self,
         name: &str,

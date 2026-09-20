@@ -1,0 +1,12 @@
+[package]
+name = "database-memory"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+service.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+url.workspace = true

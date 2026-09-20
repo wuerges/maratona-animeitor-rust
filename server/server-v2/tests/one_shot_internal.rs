@@ -164,7 +164,7 @@ async fn seed_all(store: &EventStore) {
 
 #[tokio::test]
 async fn rejects_missing_credentials() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let (status, json) = send(&app, empty_request(Method::GET, "/internal/events", None)).await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
     assert_eq!(error_code(&json), "unauthorized");
@@ -174,7 +174,7 @@ async fn rejects_missing_credentials() {
 
 #[tokio::test]
 async fn list_events_empty() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -191,7 +191,7 @@ async fn list_events_empty() {
 
 #[tokio::test]
 async fn list_events() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -210,7 +210,7 @@ async fn list_events() {
 
 #[tokio::test]
 async fn get_event() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -230,7 +230,7 @@ async fn get_event() {
 
 #[tokio::test]
 async fn get_event_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -249,7 +249,7 @@ async fn get_event_404() {
 
 #[tokio::test]
 async fn create_event() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -267,7 +267,7 @@ async fn create_event() {
 
 #[tokio::test]
 async fn create_event_conflict() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -287,7 +287,7 @@ async fn create_event_conflict() {
 
 #[tokio::test]
 async fn create_event_bad_json() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -305,7 +305,7 @@ async fn create_event_bad_json() {
 
 #[tokio::test]
 async fn put_event() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -327,7 +327,7 @@ async fn put_event() {
 
 #[tokio::test]
 async fn put_event_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -345,7 +345,7 @@ async fn put_event_404() {
 
 #[tokio::test]
 async fn delete_event() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -363,7 +363,7 @@ async fn delete_event() {
 
 #[tokio::test]
 async fn delete_event_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -382,7 +382,7 @@ async fn delete_event_404() {
 
 #[tokio::test]
 async fn list_contests() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -403,7 +403,7 @@ async fn list_contests() {
 
 #[tokio::test]
 async fn list_contests_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -420,7 +420,7 @@ async fn list_contests_404() {
 
 #[tokio::test]
 async fn list_sites() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     seed_site(&store).await;
@@ -442,7 +442,7 @@ async fn list_sites() {
 
 #[tokio::test]
 async fn list_sites_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -463,7 +463,7 @@ async fn list_sites_404() {
 
 #[tokio::test]
 async fn patch_time() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -483,7 +483,7 @@ async fn patch_time() {
 
 #[tokio::test]
 async fn patch_time_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -501,7 +501,7 @@ async fn patch_time_404() {
 
 #[tokio::test]
 async fn post_runs() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -530,7 +530,7 @@ async fn post_runs() {
 async fn post_runs_warns_on_unknown_teams() {
     // Runs from teams not in the event (e.g. judge users of the MOJ feed)
     // are skipped and reported in the warnings array; the batch succeeds.
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -557,7 +557,7 @@ async fn post_runs_warns_on_unknown_teams() {
 
 #[tokio::test]
 async fn post_runs_invalid_prob() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -582,7 +582,7 @@ async fn post_runs_invalid_prob() {
 
 #[tokio::test]
 async fn post_runs_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let body = serde_json::json!({
         "runs": [
@@ -605,7 +605,7 @@ async fn post_runs_404() {
 
 #[tokio::test]
 async fn delete_runs() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -623,7 +623,7 @@ async fn delete_runs() {
 
 #[tokio::test]
 async fn delete_runs_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -642,7 +642,7 @@ async fn delete_runs_404() {
 
 #[tokio::test]
 async fn event_salt_explicit() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -662,7 +662,7 @@ async fn event_salt_explicit() {
 
 #[tokio::test]
 async fn event_salt_generated() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -683,7 +683,7 @@ async fn event_salt_generated() {
 
 #[tokio::test]
 async fn event_salt_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -703,7 +703,7 @@ async fn event_salt_404() {
 
 #[tokio::test]
 async fn create_contest() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -723,7 +723,7 @@ async fn create_contest() {
 
 #[tokio::test]
 async fn create_contest_conflict() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -744,7 +744,7 @@ async fn create_contest_conflict() {
 
 #[tokio::test]
 async fn create_contest_404() {
-    let app = app_for(EventStore::new());
+    let app = app_for(test_store(None));
     let auth = auth_header();
     let (status, json) = send(
         &app,
@@ -762,7 +762,7 @@ async fn create_contest_404() {
 
 #[tokio::test]
 async fn create_contest_invalid_regex() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -783,7 +783,7 @@ async fn create_contest_invalid_regex() {
 
 #[tokio::test]
 async fn put_contest() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -805,7 +805,7 @@ async fn put_contest() {
 
 #[tokio::test]
 async fn put_contest_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -825,7 +825,7 @@ async fn put_contest_404() {
 
 #[tokio::test]
 async fn delete_contest() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -844,7 +844,7 @@ async fn delete_contest() {
 
 #[tokio::test]
 async fn delete_contest_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -863,7 +863,7 @@ async fn delete_contest_404() {
 
 #[tokio::test]
 async fn contest_salt_explicit() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -884,7 +884,7 @@ async fn contest_salt_explicit() {
 
 #[tokio::test]
 async fn contest_salt_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -906,7 +906,7 @@ async fn contest_salt_404() {
 
 #[tokio::test]
 async fn create_site() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -927,7 +927,7 @@ async fn create_site() {
 
 #[tokio::test]
 async fn create_site_conflict() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -947,7 +947,7 @@ async fn create_site_conflict() {
 
 #[tokio::test]
 async fn create_site_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -967,7 +967,7 @@ async fn create_site_404() {
 
 #[tokio::test]
 async fn put_site() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -991,7 +991,7 @@ async fn put_site() {
 
 #[tokio::test]
 async fn put_site_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -1012,7 +1012,7 @@ async fn put_site_404() {
 
 #[tokio::test]
 async fn delete_site() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -1030,7 +1030,7 @@ async fn delete_site() {
 
 #[tokio::test]
 async fn delete_site_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -1050,7 +1050,7 @@ async fn delete_site_404() {
 
 #[tokio::test]
 async fn site_salt_explicit() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -1070,7 +1070,7 @@ async fn site_salt_explicit() {
 
 #[tokio::test]
 async fn site_salt_404() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
     let app = app_for(store);
@@ -1095,7 +1095,7 @@ async fn metrics_ok() {
     // (samples recorded with no recorder are dropped); this is the only
     // test touching the global exporter, so the init cannot double-fire.
     server_v2::metrics::setup();
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
@@ -1122,7 +1122,7 @@ async fn metrics_ok() {
 
 #[tokio::test]
 async fn get_contest() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1142,7 +1142,7 @@ async fn get_contest() {
 
 #[tokio::test]
 async fn get_contest_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1162,7 +1162,7 @@ async fn get_contest_missing() {
 
 #[tokio::test]
 async fn get_contest_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1181,7 +1181,7 @@ async fn get_contest_unauthorized() {
 
 #[tokio::test]
 async fn get_site() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1201,7 +1201,7 @@ async fn get_site() {
 
 #[tokio::test]
 async fn get_site_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1221,7 +1221,7 @@ async fn get_site_missing() {
 
 #[tokio::test]
 async fn get_site_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1240,7 +1240,7 @@ async fn get_site_unauthorized() {
 
 #[tokio::test]
 async fn patch_event() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1257,7 +1257,12 @@ async fn patch_event() {
     assert_eq!(status.as_u16(), 200, "{json}");
     assert_eq!(json["data"]["penalty_seconds"], 600);
     assert_eq!(
-        store.get_event("ensaio").await.unwrap().penalty_seconds,
+        store
+            .get_event("ensaio")
+            .await
+            .unwrap()
+            .unwrap()
+            .penalty_seconds,
         600
     );
     assert_eq!(json["data"]["problems"], serde_json::json!(["A", "B"]));
@@ -1265,7 +1270,7 @@ async fn patch_event() {
 
 #[tokio::test]
 async fn patch_event_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1285,7 +1290,7 @@ async fn patch_event_missing() {
 
 #[tokio::test]
 async fn patch_event_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1304,7 +1309,7 @@ async fn patch_event_unauthorized() {
 
 #[tokio::test]
 async fn patch_contest() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1325,15 +1330,22 @@ async fn patch_contest() {
             .get_contest("ensaio", "brasil")
             .await
             .unwrap()
+            .unwrap()
             .salt
             .is_none()
     );
-    assert!(store.get_site("ensaio", "brasil", "fiemg").await.is_some());
+    assert!(
+        store
+            .get_site("ensaio", "brasil", "fiemg")
+            .await
+            .unwrap()
+            .is_some()
+    );
 }
 
 #[tokio::test]
 async fn patch_contest_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1353,7 +1365,7 @@ async fn patch_contest_missing() {
 
 #[tokio::test]
 async fn patch_contest_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1372,7 +1384,7 @@ async fn patch_contest_unauthorized() {
 
 #[tokio::test]
 async fn patch_site() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1393,6 +1405,7 @@ async fn patch_site() {
             .get_site("ensaio", "brasil", "fiemg")
             .await
             .unwrap()
+            .unwrap()
             .salt
             .is_none()
     );
@@ -1401,7 +1414,7 @@ async fn patch_site() {
 
 #[tokio::test]
 async fn patch_site_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1421,7 +1434,7 @@ async fn patch_site_missing() {
 
 #[tokio::test]
 async fn patch_site_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1440,7 +1453,7 @@ async fn patch_site_unauthorized() {
 
 #[tokio::test]
 async fn add_team() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1456,12 +1469,21 @@ async fn add_team() {
     .await;
     assert_eq!(status.as_u16(), 201, "{json}");
     assert_eq!(json["data"]["login"], "new");
-    assert_eq!(store.get_event("ensaio").await.unwrap().teams.len(), 2);
+    assert_eq!(
+        store
+            .get_event("ensaio")
+            .await
+            .unwrap()
+            .unwrap()
+            .teams
+            .len(),
+        2
+    );
 }
 
 #[tokio::test]
 async fn add_team_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1481,7 +1503,7 @@ async fn add_team_missing() {
 
 #[tokio::test]
 async fn add_team_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1500,7 +1522,7 @@ async fn add_team_unauthorized() {
 
 #[tokio::test]
 async fn get_team() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1520,7 +1542,7 @@ async fn get_team() {
 
 #[tokio::test]
 async fn get_team_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1540,7 +1562,7 @@ async fn get_team_missing() {
 
 #[tokio::test]
 async fn get_team_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1559,7 +1581,7 @@ async fn get_team_unauthorized() {
 
 #[tokio::test]
 async fn patch_team() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1577,14 +1599,14 @@ async fn patch_team() {
     assert_eq!(json["data"]["nome"], "Renamed");
     assert_eq!(json["data"]["escola"], "FACOM - UFMS");
     assert_eq!(
-        store.get_event("ensaio").await.unwrap().teams[0].nome,
+        store.get_event("ensaio").await.unwrap().unwrap().teams[0].nome,
         "Renamed"
     );
 }
 
 #[tokio::test]
 async fn patch_team_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1604,7 +1626,7 @@ async fn patch_team_missing() {
 
 #[tokio::test]
 async fn patch_team_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1623,7 +1645,7 @@ async fn patch_team_unauthorized() {
 
 #[tokio::test]
 async fn remove_team() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1639,12 +1661,20 @@ async fn remove_team() {
     .await;
     assert_eq!(status.as_u16(), 204, "{json}");
     assert!(json.is_null());
-    assert!(store.get_event("ensaio").await.unwrap().teams.is_empty());
+    assert!(
+        store
+            .get_event("ensaio")
+            .await
+            .unwrap()
+            .unwrap()
+            .teams
+            .is_empty()
+    );
 }
 
 #[tokio::test]
 async fn remove_team_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1664,7 +1694,7 @@ async fn remove_team_missing() {
 
 #[tokio::test]
 async fn remove_team_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1683,7 +1713,7 @@ async fn remove_team_unauthorized() {
 
 #[tokio::test]
 async fn add_problem() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1700,14 +1730,14 @@ async fn add_problem() {
     assert_eq!(status.as_u16(), 201, "{json}");
     assert_eq!(json["data"], serde_json::json!(["A", "B", "C"]));
     assert_eq!(
-        store.get_event("ensaio").await.unwrap().problems,
+        store.get_event("ensaio").await.unwrap().unwrap().problems,
         ["A", "B", "C"]
     );
 }
 
 #[tokio::test]
 async fn add_problem_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1727,7 +1757,7 @@ async fn add_problem_missing() {
 
 #[tokio::test]
 async fn add_problem_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1746,7 +1776,7 @@ async fn add_problem_unauthorized() {
 
 #[tokio::test]
 async fn remove_problem() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1762,12 +1792,15 @@ async fn remove_problem() {
     .await;
     assert_eq!(status.as_u16(), 204, "{json}");
     assert!(json.is_null());
-    assert_eq!(store.get_event("ensaio").await.unwrap().problems, ["A"]);
+    assert_eq!(
+        store.get_event("ensaio").await.unwrap().unwrap().problems,
+        ["A"]
+    );
 }
 
 #[tokio::test]
 async fn remove_problem_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1787,7 +1820,7 @@ async fn remove_problem_missing() {
 
 #[tokio::test]
 async fn remove_problem_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1806,7 +1839,7 @@ async fn remove_problem_unauthorized() {
 
 #[tokio::test]
 async fn patch_contest_codes() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1823,14 +1856,19 @@ async fn patch_contest_codes() {
     assert_eq!(status.as_u16(), 200, "{json}");
     assert_eq!(json["data"]["codes"], serde_json::json!(["new"]));
     assert_eq!(
-        store.get_contest("ensaio", "brasil").await.unwrap().codes,
+        store
+            .get_contest("ensaio", "brasil")
+            .await
+            .unwrap()
+            .unwrap()
+            .codes,
         ["new"]
     );
 }
 
 #[tokio::test]
 async fn patch_contest_codes_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1850,7 +1888,7 @@ async fn patch_contest_codes_missing() {
 
 #[tokio::test]
 async fn patch_contest_codes_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1869,7 +1907,7 @@ async fn patch_contest_codes_unauthorized() {
 
 #[tokio::test]
 async fn patch_site_codes() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1890,6 +1928,7 @@ async fn patch_site_codes() {
             .get_site("ensaio", "brasil", "fiemg")
             .await
             .unwrap()
+            .unwrap()
             .codes,
         ["new"]
     );
@@ -1897,7 +1936,7 @@ async fn patch_site_codes() {
 
 #[tokio::test]
 async fn patch_site_codes_missing() {
-    let store = EventStore::new();
+    let store = test_store(None);
 
     let app = app_for(store.clone());
     let auth = auth_header();
@@ -1917,7 +1956,7 @@ async fn patch_site_codes_missing() {
 
 #[tokio::test]
 async fn patch_site_codes_unauthorized() {
-    let store = EventStore::new();
+    let store = test_store(None);
     seed_all(&store).await;
     let app = app_for(store.clone());
     let (status, json) = send(
@@ -1936,7 +1975,7 @@ async fn patch_site_codes_unauthorized() {
 
 #[tokio::test]
 async fn revelation_urls_before_start() {
-    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    let store = test_store(Some("test-server-salt".into()));
     seed_all(&store).await;
     let auth = auth_header();
     let response = app_for(store)
@@ -1978,7 +2017,7 @@ macro_rules! internal_documentation_case {
         #[tokio::test]
         async fn $name() {
             let auth = auth_header();
-            let response = app_for(EventStore::new())
+            let response = app_for(test_store(None))
                 .oneshot(empty_request(
                     Method::GET,
                     $path,
@@ -2045,9 +2084,10 @@ macro_rules! rejected_incremental_update {
     ($name:ident, $method:ident, $path:literal, $body:tt, $status:expr, $code:literal) => {
         #[tokio::test]
         async fn $name() {
-            let store = EventStore::new();
+            let store = test_store(None);
             seed_all(&store).await;
-            let before = serde_json::to_value(store.get_event("ensaio").await.unwrap()).unwrap();
+            let before =
+                serde_json::to_value(store.get_event("ensaio").await.unwrap().unwrap()).unwrap();
             let auth = auth_header();
             let (status, json) = send(
                 &app_for(store.clone()),
@@ -2062,7 +2102,7 @@ macro_rules! rejected_incremental_update {
             assert_eq!(status.as_u16(), $status, "{json}");
             assert_eq!(error_code(&json), $code);
             assert_eq!(
-                serde_json::to_value(store.get_event("ensaio").await.unwrap()).unwrap(),
+                serde_json::to_value(store.get_event("ensaio").await.unwrap().unwrap()).unwrap(),
                 before
             );
         }
@@ -2092,3 +2132,10 @@ rejected_incremental_update!(
 rejected_incremental_update!(add_problem_duplicate, POST, "/internal/events/ensaio/problems", {"problem":"A"}, 409, "conflict");
 rejected_incremental_update!(patch_contest_codes_overlap, PATCH, "/internal/contests/ensaio/brasil/codes", {"add":["new"],"remove":["new"]}, 400, "invalid_value");
 rejected_incremental_update!(patch_site_codes_invalid_regex, PATCH, "/internal/sites/ensaio/brasil/fiemg/codes", {"add":["["]}, 400, "invalid_regex");
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
+}

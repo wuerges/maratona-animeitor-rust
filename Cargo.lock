@@ -760,6 +760,7 @@ dependencies = [
  "client-model",
  "color-eyre",
  "data",
+ "database-memory",
  "rand 0.10.2",
  "regex",
  "reqwest",
@@ -1174,6 +1175,16 @@ name = "data-encoding"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
+
+[[package]]
+name = "database-memory"
+version = "2.1.0"
+dependencies = [
+ "serde_json",
+ "service",
+ "tokio",
+ "url",
+]
 
 [[package]]
 name = "debugid"
@@ -4089,6 +4100,7 @@ dependencies = [
  "cli",
  "color-eyre",
  "data",
+ "database-memory",
  "flate2",
  "futures",
  "http-body-util",

@@ -11,6 +11,7 @@ name = "animeitor-server"
 path = "src/main.rs"
 
 [dependencies]
+database-memory.workspace = true
 axum.workspace = true
 axum-server.workspace = true
 tower.workspace = true

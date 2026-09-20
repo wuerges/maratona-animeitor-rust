@@ -7,7 +7,7 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use http_body_util::BodyExt;
 use server_v2::{AppState, app as make_app};
-use service::event_store::{EventStore, deployment_site_key};
+use service::event_store::deployment_site_key;
 use tower::ServiceExt;
 
 const TOKEN: &str = "token-de-teste";
@@ -33,7 +33,7 @@ fn event_body() -> serde_json::Value {
 fn app() -> Router {
     make_app(AppState {
         public_url: "https://example.com".parse().unwrap(),
-        store: EventStore::with_revelation_salt("test-server-salt".into()),
+        store: test_store(Some("test-server-salt".into())),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
             TOKEN.to_string(),
@@ -341,4 +341,11 @@ async fn unknown_resources_are_not_found() {
         assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
         assert_eq!(body["errors"][0]["code"], "not_found", "{uri}");
     }
+}
+
+fn test_store(salt: Option<String>) -> service::event_store::EventStore {
+    service::event_store::EventStore::new(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        salt.unwrap_or_else(|| "test-server-salt".into()),
+    )
 }
