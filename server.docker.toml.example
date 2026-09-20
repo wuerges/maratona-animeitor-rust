@@ -27,3 +27,8 @@ path = "photos"
 [[assets]]
 directory = "/sounds"
 path = "sounds"
+
+# Optional persistent storage (default: memory). See doc/databases.md.
+# [database]
+# type = "sqlite"
+# path = "/data/animeitor.sqlite3"

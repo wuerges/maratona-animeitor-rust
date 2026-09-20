@@ -41,6 +41,9 @@ It returns `data: [{contest, site, url}]`, sorted by contest and site, using the
 configured `public_url` origin. Each private URL contains the site's `secret`
 Bearer key and `sede` selection; no separate key endpoint is needed. Retrieve new
 URLs after salt rotation. Unlike offline `printurls`, this endpoint uses the
-server's current in-memory event configuration.
+server's current event configuration.
 
 The [animeitor-admin CLI](../doc/admin-cli.md) reads `server.toml` and exposes the internal management operations as commands, including atomic PATCH updates and item-level team/problem/filter changes.
+
+Storage defaults to memory. For SQLite persistence and backend tests, see
+[database configuration](../doc/databases.md).

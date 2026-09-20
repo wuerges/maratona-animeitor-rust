@@ -110,6 +110,7 @@ fn volume_router(
 
 pub async fn serve_config(
     AppConfig {
+        database,
         public_url,
         server_config: HttpConfig { port, tls },
         volumes,
@@ -117,12 +118,21 @@ pub async fn serve_config(
         revelation_salt,
     }: AppConfig,
 ) -> ServiceResult<()> {
+    let database: Arc<dyn service::database::Database> = match database {
+        service::database::DatabaseConfig::Memory {} => {
+            Arc::new(database_memory::MemoryDatabase::new())
+        }
+        service::database::DatabaseConfig::Sqlite { path } => {
+            Arc::new(database_sqlite::SqliteDatabase::open(path)?)
+        }
+    };
+    // Fail startup on unavailable or unreadable storage, rather than serving an empty database.
+    for name in database.list().await? {
+        database.read(&name).await?;
+    }
     let state = AppState {
         public_url,
-        store: service::event_store::EventStore::new(
-            Arc::new(database_memory::MemoryDatabase::new()),
-            revelation_salt,
-        ),
+        store: service::event_store::EventStore::new(database, revelation_salt),
         internal_tokens: Arc::new(internal_tokens),
     };
 

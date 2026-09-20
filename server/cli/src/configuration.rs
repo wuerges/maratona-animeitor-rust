@@ -200,6 +200,8 @@ impl EventSecrets {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServerConfig {
+    #[serde(default)]
+    pub database: service::database::DatabaseConfig,
     pub revelation_salt: String,
     pub public_port: u16,
     pub tls_port: u16,
@@ -236,6 +238,12 @@ impl ServerConfig {
         value
             .validate()
             .wrap_err_with(|| format!("validating {}", path.display()))?;
+        if let service::database::DatabaseConfig::Sqlite {
+            path: database_path,
+        } = &mut value.database
+        {
+            *database_path = relative(path, database_path)?;
+        }
         value.tls_cert = relative(path, &value.tls_cert)?;
         value.tls_key = relative(path, &value.tls_key)?;
         value.tls_ca_cert = relative(path, &value.tls_ca_cert)?;
@@ -245,6 +253,16 @@ impl ServerConfig {
         Ok(value)
     }
     pub fn validate(&self) -> Result<()> {
+        if let service::database::DatabaseConfig::Sqlite { path } = &self.database {
+            ensure!(
+                !path.as_os_str().is_empty(),
+                "database.path must not be empty"
+            );
+            ensure!(
+                path != Path::new(":memory:"),
+                "use database.type = memory for an ephemeral database"
+            );
+        }
         nonempty(&self.revelation_salt, "revelation_salt")?;
         ensure!(
             self.public_port > 0 && self.tls_port > 0 && self.public_port != self.tls_port,

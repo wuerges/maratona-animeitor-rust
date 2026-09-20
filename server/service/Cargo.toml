@@ -24,4 +24,3 @@ rustls.workspace = true
 rustls-pemfile.workspace = true
 
 data.workspace = true
-

@@ -95,6 +95,20 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
         for (path, item) in spec["paths"].as_object().unwrap() {
             for (method, operation) in item.as_object().unwrap() {
                 assert!(ids.insert(operation["operationId"].as_str().unwrap().to_owned()));
+                if !path.ends_with("/metrics") {
+                    assert!(
+                        operation["responses"]["503"]["description"]
+                            .as_str()
+                            .unwrap()
+                            .contains("storage_unavailable")
+                    );
+                    assert!(
+                        operation["responses"]["500"]["description"]
+                            .as_str()
+                            .unwrap()
+                            .contains("storage_error")
+                    );
+                }
                 assert!(!operation["summary"].as_str().unwrap().is_empty());
                 assert!(operation["description"].as_str().unwrap().len() > 40);
                 if matches!(method.as_str(), "post" | "put" | "patch") {
@@ -477,9 +491,5 @@ fn success_examples_include_actual_serialized_defaults() {
     ));
 }
 
-fn test_store(salt: Option<String>) -> service::event_store::EventStore {
-    service::event_store::EventStore::new(
-        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
-        salt.unwrap_or_else(|| "test-server-salt".into()),
-    )
-}
+mod common;
+use common::test_store;

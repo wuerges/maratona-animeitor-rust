@@ -35,7 +35,7 @@ impl EventStore {
     }
 
     async fn refresh(&self, name: &str) -> Result<(), StoreError> {
-        match self.database.read(name).await {
+        match crate::database::observe("read", self.database.read(name)).await {
             Ok(snapshot) => self
                 .live
                 .install(name, snapshot)
@@ -67,16 +67,33 @@ impl EventStore {
         // Detaching the caller must not cancel persistence between commit and publish.
         tokio::spawn(async move {
             let _guard = this.gate.lock().await;
-            let before = this.database.read(&name).await?;
-            let stage = engine::Engine::with_revelation_salt((*this.salt).clone());
-            stage.install(&name, before.clone()).await?;
+            let before = crate::database::observe("read", this.database.read(&name)).await?;
+            let stage = engine::Engine::staging((*this.salt).clone());
+            stage
+                .install(&name, before.clone())
+                .await
+                .map_err(|error| {
+                    StoreError::Storage(DatabaseError::Corrupt(format!(
+                        "invalid stored event: {error}"
+                    )))
+                })?;
             let result = operation(stage.clone()).await?;
             let after = stage.snapshot(&name).await;
             if before != after {
                 let persisted = match (&before, &after) {
-                    (None, Some(event)) => this.database.create(event.clone()).await,
-                    (Some(_), Some(event)) => this.database.replace(event.clone()).await,
-                    (Some(_), None) => this.database.delete(&name).await.map(|_| ()),
+                    (None, Some(event)) => {
+                        crate::database::observe("create", this.database.create(event.clone()))
+                            .await
+                    }
+                    (Some(_), Some(event)) => {
+                        crate::database::observe("replace", this.database.replace(event.clone()))
+                            .await
+                    }
+                    (Some(_), None) => {
+                        crate::database::observe("delete", this.database.delete(&name))
+                            .await
+                            .map(|_| ())
+                    }
                     (None, None) => Ok(()),
                 };
                 if let Err(err) = persisted {
@@ -126,7 +143,7 @@ impl EventStore {
         .await
     }
     pub async fn list_events(&self) -> Result<Vec<String>, StoreError> {
-        Ok(self.database.list().await?)
+        Ok(crate::database::observe("list", self.database.list()).await?)
     }
     pub async fn is_started(&self, event_name: &str) -> Result<Option<bool>, StoreError> {
         let _guard = self.gate.lock().await;
@@ -430,6 +447,23 @@ impl EventStore {
         self.refresh(event_name).await?;
         Ok(self.live.subscribe_timer(event_name).await)
     }
+    pub async fn timer_subscription(
+        &self,
+        name: &str,
+    ) -> Result<Option<(PublicTimer, broadcast::Receiver<PublicTimer>)>, StoreError> {
+        let _guard = self.gate.lock().await;
+        self.refresh(name).await?;
+        let Some(timer) = self.live.current_timer(name).await else {
+            return Ok(None);
+        };
+        let receiver = self
+            .live
+            .subscribe_timer(name)
+            .await
+            .expect("event is locked during subscription");
+        Ok(Some((timer, receiver)))
+    }
+
     pub async fn current_timer(&self, event_name: &str) -> Result<Option<PublicTimer>, StoreError> {
         let _guard = self.gate.lock().await;
         self.refresh(event_name).await?;

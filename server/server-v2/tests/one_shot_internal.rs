@@ -2133,9 +2133,5 @@ rejected_incremental_update!(add_problem_duplicate, POST, "/internal/events/ensa
 rejected_incremental_update!(patch_contest_codes_overlap, PATCH, "/internal/contests/ensaio/brasil/codes", {"add":["new"],"remove":["new"]}, 400, "invalid_value");
 rejected_incremental_update!(patch_site_codes_invalid_regex, PATCH, "/internal/sites/ensaio/brasil/fiemg/codes", {"add":["["]}, 400, "invalid_regex");
 
-fn test_store(salt: Option<String>) -> service::event_store::EventStore {
-    service::event_store::EventStore::new(
-        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
-        salt.unwrap_or_else(|| "test-server-salt".into()),
-    )
-}
+mod common;
+use common::test_store;

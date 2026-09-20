@@ -227,11 +227,17 @@ struct Inner {
 /// The shared store of all events of the server.
 #[derive(Clone)]
 pub(super) struct Engine {
+    channel_capacity: usize,
     revelation_salt: Arc<String>,
     inner: Arc<RwLock<Inner>>,
 }
 
 impl Engine {
+    pub(super) fn staging(salt: String) -> Self {
+        let mut engine = Self::with_revelation_salt(salt);
+        engine.channel_capacity = 1;
+        engine
+    }
     pub fn new() -> Self {
         Self::with_revelation_salt(generate_salt())
     }
@@ -239,6 +245,7 @@ impl Engine {
     pub fn with_revelation_salt(salt: String) -> Self {
         assert!(!salt.is_empty(), "revelation salt must not be empty");
         Self {
+            channel_capacity: 1_000_000,
             revelation_salt: Arc::new(salt),
             inner: Arc::new(RwLock::new(Inner {
                 order: Vec::new(),
@@ -262,8 +269,8 @@ impl Engine {
                 "name do evento não confere com o caminho".into(),
             ));
         }
-        let (runs_tx, _) = membroadcast::channel(1_000_000);
-        let (timer_tx, _) = broadcast::channel(1_000_000);
+        let (runs_tx, _) = membroadcast::channel(self.channel_capacity);
+        let (timer_tx, _) = broadcast::channel(self.channel_capacity);
         inner.events.insert(
             event_name.to_string(),
             Event {
@@ -1434,8 +1441,22 @@ impl Engine {
                 },
             );
         }
-        let (runs_tx, _) = membroadcast::channel(1_000_000);
-        let (timer_tx, _) = broadcast::channel(1_000_000);
+        let (runs_tx, timer_tx) = if let Some(old) = inner.events.get(name) {
+            let next_ids: std::collections::HashSet<_> =
+                snapshot.runs.iter().map(|r| r.id).collect();
+            let removed = old.runs.iter().any(|r| !next_ids.contains(&r.id));
+            let runs_tx = if removed {
+                membroadcast::channel(self.channel_capacity).0
+            } else {
+                old.runs_tx.clone()
+            };
+            (runs_tx, old.timer_tx.clone())
+        } else {
+            (
+                membroadcast::channel(self.channel_capacity).0,
+                broadcast::channel(self.channel_capacity).0,
+            )
+        };
         let state = snapshot.state;
         let mut runs = snapshot.runs;
         runs.sort_by_key(|r| (r.time_seconds, r.id));
@@ -1491,6 +1512,7 @@ impl Engine {
                 next.runs_tx.send_memo(run.clone());
             }
         }
+        next.runs_tx.replace_memo(next.runs.clone());
         inner.events.insert(name.to_string(), next);
         Ok(())
     }

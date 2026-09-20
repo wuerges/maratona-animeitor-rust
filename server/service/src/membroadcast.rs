@@ -48,6 +48,10 @@ impl<T: Clone> Sender<T> {
         self.tx.send(value).unwrap_or(0)
     }
 
+    pub(crate) fn replace_memo(&self, messages: Vec<T>) {
+        *self.messages.write() = messages;
+    }
+
     pub(crate) fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
         Receiver::new(rx, &self.messages.read())

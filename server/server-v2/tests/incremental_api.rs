@@ -449,9 +449,5 @@ async fn admin_command_sequence_uses_real_routes() {
     }
 }
 
-fn test_store(salt: Option<String>) -> service::event_store::EventStore {
-    service::event_store::EventStore::new(
-        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
-        salt.unwrap_or_else(|| "test-server-salt".into()),
-    )
-}
+mod common;
+use common::test_store;

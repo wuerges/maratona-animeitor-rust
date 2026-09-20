@@ -160,3 +160,35 @@ fn test_store(salt: Option<String>) -> service::event_store::EventStore {
         salt.unwrap_or_else(|| "test-server-salt".into()),
     )
 }
+
+#[test]
+fn database_defaults_and_sqlite_paths_are_relative_to_server_config() {
+    use service::database::DatabaseConfig;
+    let temp = Temp::new();
+    let base = std::fs::read_to_string(root().join("server.toml.example")).unwrap();
+    let path = temp.write("server.toml", &base);
+    assert!(matches!(
+        ServerConfig::load(&path).unwrap().database,
+        DatabaseConfig::Memory {}
+    ));
+    let path = temp.write(
+        "server.toml",
+        &format!("{base}\n[database]\ntype='sqlite'\npath='var/contest.sqlite3'\n"),
+    );
+    let DatabaseConfig::Sqlite { path } = ServerConfig::load(&path).unwrap().database else {
+        panic!("expected SQLite")
+    };
+    assert_eq!(path, temp.0.join("var/contest.sqlite3"));
+    // Parsing administrative configuration does not create or open a database.
+    assert!(!path.exists());
+    for section in [
+        "type='unknown'",
+        "type='sqlite'",
+        "type='sqlite'\npath=''",
+        "type='memory'\npath='unexpected'",
+        "type='sqlite'\npath=':memory:'",
+    ] {
+        let path = temp.write("server.toml", &format!("{base}\n[database]\n{section}\n"));
+        assert!(ServerConfig::load(&path).is_err(), "{section}");
+    }
+}

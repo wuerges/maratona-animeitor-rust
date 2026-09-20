@@ -34,23 +34,25 @@ impl Database for MemoryDatabase {
                 .cloned())
         })
     }
-    fn create(&self, event: StoredEvent) -> DatabaseFuture<'_, ()> {
+    fn create(&self, mut event: StoredEvent) -> DatabaseFuture<'_, ()> {
         Box::pin(async move {
             let mut events = self.events.write().await;
             if events.iter().any(|e| e.state.name == event.state.name) {
                 return Err(DatabaseError::AlreadyExists);
             }
+            event.normalize()?;
             events.push(event);
             Ok(())
         })
     }
-    fn replace(&self, event: StoredEvent) -> DatabaseFuture<'_, ()> {
+    fn replace(&self, mut event: StoredEvent) -> DatabaseFuture<'_, ()> {
         Box::pin(async move {
             let mut events = self.events.write().await;
             let entry = events
                 .iter_mut()
                 .find(|e| e.state.name == event.state.name)
                 .ok_or(DatabaseError::NotFound)?;
+            event.normalize()?;
             *entry = event;
             Ok(())
         })

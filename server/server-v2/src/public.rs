@@ -154,7 +154,7 @@ async fn runs_ws(
         Some(true) => {}
     }
 
-    // The replay carries every run since event creation; filtering happens
+    // The replay carries the current version of every stored run; filtering happens
     // here by the contest codes. Runs at or after the score freeze time are
     // served as `?`: only the reveal (`runs_secret`) receives the real
     // answers.
@@ -243,10 +243,9 @@ async fn timer_ws(
     Path(event_name): Path<String>,
     ws: WebSocketUpgrade,
 ) -> Response {
-    let Some(current) = crate::store_call!(store.current_timer(&event_name).await) else {
-        return StatusCode::NOT_FOUND.into_response();
-    };
-    let Some(mut time_rx) = crate::store_call!(store.subscribe_timer(&event_name).await) else {
+    let Some((current, mut time_rx)) =
+        crate::store_call!(store.timer_subscription(&event_name).await)
+    else {
         return StatusCode::NOT_FOUND.into_response();
     };
 

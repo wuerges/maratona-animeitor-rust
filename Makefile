@@ -58,3 +58,8 @@ rebuild-docker-image:
 	docker build -t ${IMAGE} .
 republish-docker-image: rebuild-docker-image
 	docker push ${IMAGE}
+
+.PHONY: test-databases
+test-databases:
+	cargo test -p service -p cli -p database-memory -p database-sqlite -p server-v2
+	cargo test -p server-v2 --features sqlite-tests

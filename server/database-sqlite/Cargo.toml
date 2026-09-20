@@ -1,0 +1,13 @@
+[package]
+name = "database-sqlite"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+service.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+rusqlite = { version = "0.38", features = ["bundled"] }
+
+[dev-dependencies]
+tempfile = "3"

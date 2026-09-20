@@ -13,7 +13,7 @@ Obtain the internal **HTTPS base URL**, a configured **username and its token**,
 - `codes` are Rust regular expressions, combined with OR. Matching is unanchored unless you add `^`/`$`. `[".*"]` matches every team; `[]` matches none. Team `login` values connect runs, filters, and media. `nome` is the displayed team name; `escola` is its institution.
 - All timing fields use **seconds since event start**, not timestamps or minutes. `time_seconds < 0` keeps public contest details and runs closed; event and contest names remain discoverable. The server stores the last supplied time and **does not advance it automatically**. A controller or feeder must send updates.
 - JSON requests are bare objects with `Content-Type: application/json`. Successful JSON responses have `data` and optionally `warnings`; errors have only `errors`, a list of `{code,message}`. Optional envelope fields are omitted, not null. Resource fields such as `salt`, `style`, and media templates may be null. `204` has no body. Metrics and WebSocket messages do not use the envelope. Error messages may be Portuguese; branch on HTTP status and `code`.
-- Event state is **in memory**. Restarting the server loses API-created configuration and runs. Retain the source inputs to recreate them. Coordinate with any existing feeder so it does not overwrite manual changes.
+- Storage is selected by `server.toml`: **memory** (default) loses event data on restart; **SQLite** preserves configuration, salts, runs, and the last explicitly set timer value. Coordinate with any existing feeder so it does not overwrite manual changes.
 
 ## Worked setup: regional-2026 / brasil / fiemg
 
@@ -169,3 +169,5 @@ Removing a team or problem with stored runs returns `409 conflict`. To remove a 
 Filter deltas compare exact regex strings, preserve retained order, and append additions in request order. Adding an existing pattern or removing an absent pattern is a no-op; removal deletes all exact duplicates. A pattern cannot appear in both arrays. At least one addition or removal is required. The final regex set must compile before any changes are installed.
 
 Atomic PATCH prevents lost updates to unrelated fields among incremental callers. It does not stop the existing feeder or another full PUT caller from subsequently replacing fields. Coordinate manual changes with source configuration. Reconnect run streams after changing contest filters or freeze time; these changes do not add a stream reset protocol.
+
+Storage failures use the normal error envelope: `503 storage_unavailable` for unavailable or busy storage and `500 storage_error` for corrupt or unsupported data. A failed write can have an ambiguous outcome; read the resource before retrying.

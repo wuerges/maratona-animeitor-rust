@@ -74,7 +74,7 @@ O estado do evento é um objeto JSON com os seguintes campos:
 - `time_seconds`: tempo decorrido, em segundos; pode ser negativo (countdown anterior ao início).
 - `salt`: string usada para derivar as chaves dos sites (ver seção Salts); opcional.
 
-Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times. Antes do início (`time_seconds < 0`), os endpoints públicos do contest respondem `403 not_started`; a API interna devolve sempre o estado completo. O servidor não avança o relógio automaticamente: o controlador/feeder deve atualizar `time_seconds`. O estado fica em memória e é perdido no reinício.
+Não há campo de duração, tempo corrente declarado ou contagem de times: a contagem é derivada da lista de times. Antes do início (`time_seconds < 0`), os endpoints públicos do contest respondem `403 not_started`; a API interna devolve sempre o estado completo. O servidor não avança o relógio automaticamente: o controlador/feeder deve atualizar `time_seconds`. O backend padrão (`memory`) perde o estado no reinício. Com `database.type = "sqlite"`, configurações, salts, submissões e o último tempo informado são persistidos. Veja [databases.md](databases.md).
 
 ### Exemplo
 

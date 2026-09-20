@@ -703,9 +703,5 @@ async fn remote_control_handshake_before_start() {
     ws.close(None).await.unwrap();
 }
 
-fn test_store(salt: Option<String>) -> service::event_store::EventStore {
-    service::event_store::EventStore::new(
-        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
-        salt.unwrap_or_else(|| "test-server-salt".into()),
-    )
-}
+mod common;
+use common::test_store;

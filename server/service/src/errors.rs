@@ -8,6 +8,8 @@ pub type ServiceResult<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
+    Database(#[from] crate::database::DatabaseError),
+    #[error(transparent)]
     Fetch(#[from] FetchErr),
 
     #[error(transparent)]

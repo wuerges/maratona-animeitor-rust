@@ -677,9 +677,5 @@ async fn invalid_regex_is_rejected() {
     assert_eq!(body["errors"][0]["code"], "invalid_regex");
 }
 
-fn test_store(salt: Option<String>) -> service::event_store::EventStore {
-    service::event_store::EventStore::new(
-        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
-        salt.unwrap_or_else(|| "test-server-salt".into()),
-    )
-}
+mod common;
+use common::test_store;

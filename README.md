@@ -153,7 +153,7 @@ The application has three programs and a browser client:
 
 | Component | Responsibility | Configuration it reads |
 | --- | --- | --- |
-| `animeitor-server` | Stores event state in memory, serves the scoreboard and APIs, streams updates over WebSockets | Server only |
+| `animeitor-server` | Stores event state in memory or SQLite, serves the scoreboard and APIs, streams updates over WebSockets | Server only |
 | `animeitor-feeder` | Reads a BOCA webcast URL or ZIP file and publishes teams, problems, runs, and contest/site definitions | Event, event secrets, server |
 | `animeitor-admin` | Manages events, contests, sites, teams, runs, timer, filters, and revelation URLs via HTTPS | Server |
 | `printurls` | Prints public scoreboard and private revelation links offline | Event and server |
@@ -162,8 +162,8 @@ The application has three programs and a browser client:
 The feeder sends updates to the server over authenticated HTTPS. The server has
 no knowledge of event configuration files or webcast credentials; it learns events
 through the internal API. The browser reads the public API over HTTP and receives
-live updates over WebSockets. Restarting the server clears its in-memory state;
-the feeder repopulates it from the webcast.
+live updates over WebSockets. Memory storage resets on restart; SQLite preserves
+event data. See [database configuration and backups](doc/databases.md).
 
 The checked-in [docker-compose.yaml](docker-compose.yaml) starts one server, one
 Jones feeder, and the one-shot `printurls` program. It is not generated. Multiple

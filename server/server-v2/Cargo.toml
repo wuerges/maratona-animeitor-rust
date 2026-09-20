@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 database-memory.workspace = true
+database-sqlite.workspace = true
 axum.workspace = true
 axum-server.workspace = true
 tower.workspace = true
@@ -40,6 +41,11 @@ service.workspace = true
 data.workspace = true
 cli.workspace = true
 
+[features]
+# Run the same endpoint tests using temporary SQLite files.
+sqlite-tests = []
+
 [dev-dependencies]
+tempfile = "3"
 http-body-util.workspace = true
 tokio-tungstenite.workspace = true

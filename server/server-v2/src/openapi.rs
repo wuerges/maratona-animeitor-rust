@@ -79,11 +79,54 @@ pub struct PublicApiDoc;
 )]
 pub struct InternalApiDoc;
 
+fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
+    use utoipa::openapi::{Content, Ref, ResponseBuilder};
+    for (path, item) in &mut doc.paths.paths {
+        if path.ends_with("/metrics") {
+            continue;
+        }
+        for operation in [
+            &mut item.get,
+            &mut item.post,
+            &mut item.put,
+            &mut item.patch,
+            &mut item.delete,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            for (status, description) in [
+                (
+                    "503",
+                    "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying.",
+                ),
+                (
+                    "500",
+                    "Stored data is corrupt or uses an unsupported schema (storage_error).",
+                ),
+            ] {
+                operation.responses.responses.insert(
+                    status.into(),
+                    ResponseBuilder::new()
+                        .description(description)
+                        .content(
+                            "application/json",
+                            Content::new(Some(Ref::from_schema_name("Failure"))),
+                        )
+                        .build()
+                        .into(),
+                );
+            }
+        }
+    }
+}
+
 struct InternalMetadata;
 struct PublicMetadata;
 impl utoipa::Modify for InternalMetadata {
     fn modify(&self, doc: &mut utoipa::openapi::OpenApi) {
         doc.merge(incremental::IncrementalApiDoc::openapi());
+        add_storage_responses(doc);
         doc.info.description = Some(include_str!("../../../doc/internal-api-setup.md").into());
         // An absent salt body is valid, but a JSON null body is not a SaltBody.
         // Mark the request optional without making its schema nullable.
@@ -105,6 +148,7 @@ impl utoipa::Modify for InternalMetadata {
 }
 impl utoipa::Modify for PublicMetadata {
     fn modify(&self, doc: &mut utoipa::openapi::OpenApi) {
+        add_storage_responses(doc);
         doc.info.description = Some(include_str!("../../../doc/public-api-overview.md").into());
         doc.components.as_mut().unwrap().add_security_scheme(
             "bearerAuth",
@@ -117,7 +161,7 @@ impl utoipa::Modify for PublicMetadata {
 
 /// List configured events
 ///
-/// Returns event identifiers in creation order, including events before start. State is in memory and is lost when the server restarts.
+/// Returns event identifiers in creation order, including events before start. Persistence depends on server.toml: memory is transient; SQLite preserves state across restarts.
 #[utoipa::path(
     get, path = "/internal/events", operation_id = "list_internal_events", tag = "Events",
     responses(
