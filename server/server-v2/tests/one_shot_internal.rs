@@ -1099,16 +1099,10 @@ async fn metrics_ok() {
     seed_event(&store).await;
     let app = app_for(store);
     let auth = auth_header();
-    // One instrumented request first, so the registry has samples.
-    let _ = send(
-        &app,
-        empty_request(
-            Method::GET,
-            "/internal/events",
-            Some((&auth.0, auth.1.clone())),
-        ),
-    )
-    .await;
+    // Record a sample without making an extra HTTP request.
+    #[autometrics::autometrics]
+    fn sample() {}
+    sample();
     let (status, bytes) = send_bytes(
         &app,
         empty_request(
@@ -1125,3 +1119,976 @@ async fn metrics_ok() {
         "expected function metrics: {text}"
     );
 }
+
+#[tokio::test]
+async fn get_contest() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["salt"], "salt-do-contest");
+}
+
+#[tokio::test]
+async fn get_contest_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn get_contest_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/contests/ensaio/brasil",
+            None,
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn get_site() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["salt"], "salt-do-site");
+}
+
+#[tokio::test]
+async fn get_site_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn get_site_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/sites/ensaio/brasil/fiemg",
+            None,
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_event() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"penalty_seconds":600}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["penalty_seconds"], 600);
+    assert_eq!(
+        store.get_event("ensaio").await.unwrap().penalty_seconds,
+        600
+    );
+    assert_eq!(json["data"]["problems"], serde_json::json!(["A", "B"]));
+}
+
+#[tokio::test]
+async fn patch_event_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"penalty_seconds":600}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_event_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio",
+            None,
+            &serde_json::json!({"penalty_seconds":600}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_contest() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert!(json["data"]["salt"].is_null());
+    assert!(
+        store
+            .get_contest("ensaio", "brasil")
+            .await
+            .unwrap()
+            .salt
+            .is_none()
+    );
+    assert!(store.get_site("ensaio", "brasil", "fiemg").await.is_some());
+}
+
+#[tokio::test]
+async fn patch_contest_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_contest_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil",
+            None,
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_site() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert!(json["data"]["salt"].is_null());
+    assert!(
+        store
+            .get_site("ensaio", "brasil", "fiemg")
+            .await
+            .unwrap()
+            .salt
+            .is_none()
+    );
+    assert_eq!(json["data"]["codes"], serde_json::json!(["teambr"]));
+}
+
+#[tokio::test]
+async fn patch_site_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_site_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg",
+            None,
+            &serde_json::json!({"salt":null}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn add_team() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/teams",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"login":"new","nome":"New team","escola":"School"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 201, "{json}");
+    assert_eq!(json["data"]["login"], "new");
+    assert_eq!(store.get_event("ensaio").await.unwrap().teams.len(), 2);
+}
+
+#[tokio::test]
+async fn add_team_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/teams",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"login":"new","nome":"New team","escola":"School"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn add_team_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/teams",
+            None,
+            &serde_json::json!({"login":"new","nome":"New team","escola":"School"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn get_team() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"], event_body()["teams"][0]);
+}
+
+#[tokio::test]
+async fn get_team_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn get_team_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::GET,
+            "/internal/events/ensaio/teams/teambr001",
+            None,
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_team() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"nome":"Renamed"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["nome"], "Renamed");
+    assert_eq!(json["data"]["escola"], "FACOM - UFMS");
+    assert_eq!(
+        store.get_event("ensaio").await.unwrap().teams[0].nome,
+        "Renamed"
+    );
+}
+
+#[tokio::test]
+async fn patch_team_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"nome":"Renamed"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_team_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/events/ensaio/teams/teambr001",
+            None,
+            &serde_json::json!({"nome":"Renamed"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn remove_team() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 204, "{json}");
+    assert!(json.is_null());
+    assert!(store.get_event("ensaio").await.unwrap().teams.is_empty());
+}
+
+#[tokio::test]
+async fn remove_team_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/teams/teambr001",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn remove_team_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/teams/teambr001",
+            None,
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn add_problem() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/problems",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"problem":"C"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 201, "{json}");
+    assert_eq!(json["data"], serde_json::json!(["A", "B", "C"]));
+    assert_eq!(
+        store.get_event("ensaio").await.unwrap().problems,
+        ["A", "B", "C"]
+    );
+}
+
+#[tokio::test]
+async fn add_problem_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/problems",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"problem":"C"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn add_problem_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::POST,
+            "/internal/events/ensaio/problems",
+            None,
+            &serde_json::json!({"problem":"C"}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn remove_problem() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/problems/B",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 204, "{json}");
+    assert!(json.is_null());
+    assert_eq!(store.get_event("ensaio").await.unwrap().problems, ["A"]);
+}
+
+#[tokio::test]
+async fn remove_problem_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/problems/B",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn remove_problem_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::DELETE,
+            "/internal/events/ensaio/problems/B",
+            None,
+            &serde_json::json!({}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_contest_codes() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil/codes",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["codes"], serde_json::json!(["new"]));
+    assert_eq!(
+        store.get_contest("ensaio", "brasil").await.unwrap().codes,
+        ["new"]
+    );
+}
+
+#[tokio::test]
+async fn patch_contest_codes_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil/codes",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_contest_codes_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/contests/ensaio/brasil/codes",
+            None,
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn patch_site_codes() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg/codes",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 200, "{json}");
+    assert_eq!(json["data"]["codes"], serde_json::json!(["new"]));
+    assert_eq!(
+        store
+            .get_site("ensaio", "brasil", "fiemg")
+            .await
+            .unwrap()
+            .codes,
+        ["new"]
+    );
+}
+
+#[tokio::test]
+async fn patch_site_codes_missing() {
+    let store = EventStore::new();
+
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg/codes",
+            Some((&auth.0, auth.1.clone())),
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 404, "{json}");
+    assert_eq!(error_code(&json), "not_found");
+}
+
+#[tokio::test]
+async fn patch_site_codes_unauthorized() {
+    let store = EventStore::new();
+    seed_all(&store).await;
+    let app = app_for(store.clone());
+    let (status, json) = send(
+        &app,
+        json_request(
+            Method::PATCH,
+            "/internal/sites/ensaio/brasil/fiemg/codes",
+            None,
+            &serde_json::json!({"add":["new"],"remove":["teambr"]}),
+        ),
+    )
+    .await;
+    assert_eq!(status.as_u16(), 401, "{json}");
+    assert!(json["errors"].is_array());
+}
+
+#[tokio::test]
+async fn revelation_urls_before_start() {
+    let store = EventStore::with_revelation_salt("test-server-salt".into());
+    seed_all(&store).await;
+    let auth = auth_header();
+    let response = app_for(store)
+        .oneshot(empty_request(
+            Method::GET,
+            "/internal/events/ensaio/revelation_urls",
+            Some((&auth.0, auth.1)),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
+    let bytes = response.into_body().collect().await.unwrap().to_bytes();
+    let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(json["data"].as_array().unwrap().len(), 1);
+    assert_eq!(json["data"][0]["contest"], "brasil");
+    assert_eq!(json["data"][0]["site"], "fiemg");
+    let url: url::Url = json["data"][0]["url"].as_str().unwrap().parse().unwrap();
+    assert_eq!(url.origin().ascii_serialization(), "https://example.com");
+    assert_eq!(url.path(), "/animeitor/ensaio/brasil/");
+    let params: std::collections::HashMap<_, _> = url.query_pairs().into_owned().collect();
+    assert_eq!(params["sede"], "fiemg");
+    assert_eq!(
+        params["secret"],
+        service::event_store::deployment_site_key(
+            "test-server-salt",
+            "ensaio",
+            "brasil",
+            "fiemg",
+            "salt-do-evento",
+            "salt-do-contest",
+            "salt-do-site"
+        )
+    );
+}
+
+macro_rules! internal_documentation_case {
+    ($name:ident, $path:literal, $authorized:expr, $status:expr, $needle:literal) => {
+        #[tokio::test]
+        async fn $name() {
+            let auth = auth_header();
+            let response = app_for(EventStore::new())
+                .oneshot(empty_request(
+                    Method::GET,
+                    $path,
+                    if $authorized {
+                        Some((&auth.0, auth.1))
+                    } else {
+                        None
+                    },
+                ))
+                .await
+                .unwrap();
+            assert_eq!(response.status().as_u16(), $status);
+            let bytes = response.into_body().collect().await.unwrap().to_bytes();
+            assert!(std::str::from_utf8(&bytes).unwrap().contains($needle));
+        }
+    };
+}
+internal_documentation_case!(
+    internal_docs,
+    "/internal/docs",
+    true,
+    200,
+    "/internal/openapi.json"
+);
+internal_documentation_case!(
+    internal_spec,
+    "/internal/openapi.json",
+    true,
+    200,
+    "\"openapi\""
+);
+internal_documentation_case!(
+    internal_docs_unauthorized,
+    "/internal/docs",
+    false,
+    401,
+    "errors"
+);
+internal_documentation_case!(
+    internal_spec_unauthorized,
+    "/internal/openapi.json",
+    false,
+    401,
+    "errors"
+);
+internal_documentation_case!(
+    revelation_urls_missing,
+    "/internal/events/missing/revelation_urls",
+    true,
+    404,
+    "not_found"
+);
+internal_documentation_case!(
+    revelation_urls_unauthorized,
+    "/internal/events/ensaio/revelation_urls",
+    false,
+    401,
+    "errors"
+);
+
+// Rejected mutations must preserve the entire configuration, not merely
+// return the expected status. Each generated case sends one HTTP request.
+macro_rules! rejected_incremental_update {
+    ($name:ident, $method:ident, $path:literal, $body:tt, $status:expr, $code:literal) => {
+        #[tokio::test]
+        async fn $name() {
+            let store = EventStore::new();
+            seed_all(&store).await;
+            let before = serde_json::to_value(store.get_event("ensaio").await.unwrap()).unwrap();
+            let auth = auth_header();
+            let (status, json) = send(
+                &app_for(store.clone()),
+                json_request(
+                    Method::$method,
+                    $path,
+                    Some((&auth.0, auth.1)),
+                    &serde_json::json!($body),
+                ),
+            )
+            .await;
+            assert_eq!(status.as_u16(), $status, "{json}");
+            assert_eq!(error_code(&json), $code);
+            assert_eq!(
+                serde_json::to_value(store.get_event("ensaio").await.unwrap()).unwrap(),
+                before
+            );
+        }
+    };
+}
+rejected_incremental_update!(
+    patch_event_empty,
+    PATCH,
+    "/internal/events/ensaio",
+    {},
+    400,
+    "invalid_value"
+);
+rejected_incremental_update!(patch_event_unknown_field, PATCH, "/internal/events/ensaio", {"typo":1}, 400, "invalid_json");
+rejected_incremental_update!(patch_contest_invalid_regex, PATCH, "/internal/contests/ensaio/brasil", {"codes":["["]}, 400, "invalid_regex");
+rejected_incremental_update!(patch_site_invalid_regex, PATCH, "/internal/sites/ensaio/brasil/fiemg", {"codes":["["]}, 400, "invalid_regex");
+rejected_incremental_update!(add_team_duplicate, POST, "/internal/events/ensaio/teams", {"login":"teambr001","nome":"Duplicate","escola":"School"}, 409, "conflict");
+rejected_incremental_update!(patch_team_cannot_rename_login, PATCH, "/internal/events/ensaio/teams/teambr001", {"login":"changed"}, 400, "invalid_json");
+rejected_incremental_update!(
+    remove_team_invalid_query,
+    DELETE,
+    "/internal/events/ensaio/teams/teambr001?keep_runs=maybe",
+    {},
+    400,
+    "invalid_value"
+);
+rejected_incremental_update!(add_problem_duplicate, POST, "/internal/events/ensaio/problems", {"problem":"A"}, 409, "conflict");
+rejected_incremental_update!(patch_contest_codes_overlap, PATCH, "/internal/contests/ensaio/brasil/codes", {"add":["new"],"remove":["new"]}, 400, "invalid_value");
+rejected_incremental_update!(patch_site_codes_invalid_regex, PATCH, "/internal/sites/ensaio/brasil/fiemg/codes", {"add":["["]}, 400, "invalid_regex");

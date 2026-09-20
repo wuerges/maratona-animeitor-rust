@@ -1,9 +1,10 @@
 //! One-shot tests for the public API (`doc/public-api.md`).
 //!
-//! Each test seeds the store directly (no HTTP) and performs exactly one
+//! Endpoint cases seed the store directly (no HTTP) and perform exactly one
 //! request against the endpoint under test — including the websockets, which
 //! run over a real listener because axum's upgrade extractor cannot be
-//! driven through `oneshot`.
+//! driven through `oneshot`. Supplemental relay and connection-storm tests
+//! exercise multiple connections.
 
 use std::time::Duration;
 
@@ -128,7 +129,7 @@ async fn seed_site(store: &EventStore) {
         .unwrap();
 }
 
-/// A site without a salt: no key can ever match it.
+/// A site without an explicit salt still uses the deployment-derived key.
 async fn seed_site_without_salt(store: &EventStore) {
     let config: SiteConfig = serde_json::from_value(serde_json::json!({
         "name": "sem-salt",
@@ -649,4 +650,51 @@ async fn remote_control_404() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn public_docs() {
+    let (status, body, headers) = send_raw(
+        &app_for(EventStore::new()),
+        empty_request(Method::GET, "/api/docs"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        headers[header::CONTENT_TYPE]
+            .to_str()
+            .unwrap()
+            .starts_with("text/html")
+    );
+    assert!(
+        std::str::from_utf8(&body)
+            .unwrap()
+            .contains("/api/openapi.json")
+    );
+}
+
+#[tokio::test]
+async fn public_spec() {
+    let (status, json) = send(
+        &app_for(EventStore::new()),
+        empty_request(Method::GET, "/api/openapi.json"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(json["openapi"].as_str().unwrap().starts_with("3."));
+    assert!(json["paths"]["/api/events"].is_object());
+}
+
+#[tokio::test]
+async fn remote_control_handshake_before_start() {
+    let store = EventStore::new();
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let base = spawn_server(app_for(store)).await;
+    let mut ws = connect(
+        &base,
+        "/api/events/ensaio/contests/brasil/remote_control/channel",
+    )
+    .await;
+    ws.close(None).await.unwrap();
 }
