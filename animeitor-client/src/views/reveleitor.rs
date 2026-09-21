@@ -227,8 +227,10 @@ pub fn Reveleitor(
     secret: String,
     contest: Arc<ContestFile>,
     event_contest: crate::api::EventContest,
+    export_generation: u64,
 ) -> impl IntoView {
     log!("reveleitor");
+    let export = expect_context::<crate::offline::OfflineExportContext>();
     let all_runs = LocalResource::new(move || {
         log!("fetching secret runs");
         let secret = secret.clone();
@@ -239,7 +241,17 @@ pub fn Reveleitor(
     let contest = ContestFile::clone(&contest);
     Suspend::new(async move {
         let runs_file = all_runs.await;
+        export.publish(
+            export_generation,
+            crate::offline::OfflineExportInputs {
+                contest: contest.clone(),
+                runs: runs_file.clone(),
+                sede: sede.entry.clone(),
+            },
+        );
 
-        view! { <Revelation sede=sede.clone() runs_file contest /> }
+        view! {
+            <Revelation sede=sede.clone() runs_file contest />
+        }
     })
 }

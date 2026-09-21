@@ -1,4 +1,5 @@
 mod api;
+pub mod offline;
 
 pub mod views;
 

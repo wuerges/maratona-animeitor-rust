@@ -1,5 +1,5 @@
 [workspace]
-members = ["server/database-sqlite", "server/database-memory", "server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model"]
+members = ["server/database-sqlite", "server/database-memory", "server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model", "tools/offline-packager"]
 resolver = "2"
 
 [workspace.package]

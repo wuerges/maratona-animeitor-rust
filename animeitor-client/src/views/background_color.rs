@@ -6,13 +6,18 @@ use crate::views::global_settings::use_global_settings;
 
 #[component]
 pub fn BackgroundColor() -> impl IntoView {
-    let settings = use_global_settings();
-
     let query = use_query_map();
     let query_bg = Signal::derive(move || query.with(|ps| ps.get("background-color")));
 
+    view! { <BackgroundColorValue override_color=query_bg /> }
+}
+
+#[component]
+pub fn BackgroundColorValue(override_color: Signal<Option<String>>) -> impl IntoView {
+    let settings = use_global_settings();
+
     Effect::new(move |_| {
-        let color = query_bg
+        let color = override_color
             .get()
             .or_else(|| settings.global.with(|g| g.background_color.clone()));
         let document = use_document();

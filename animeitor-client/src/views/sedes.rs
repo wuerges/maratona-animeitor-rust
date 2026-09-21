@@ -19,12 +19,9 @@ use client_model::{
 use crate::{
     api::{create_timer, provide_contest, EventContest},
     views::{
-        background_color::BackgroundColor,
-        contest::Contest,
-        control_scrolling::RemoteControl,
-        global_settings::{use_global_settings, SettingsPanel},
-        landing::Landing,
-        navigation::Navigation,
+        background_color::BackgroundColor, contest::Contest, control_scrolling::RemoteControl,
+        global_settings::use_global_settings, landing::Landing, navigation::Navigation,
+        settings_accordion::SettingsAccordion,
     },
 };
 
@@ -128,6 +125,7 @@ fn ConfiguredReveleitor(
     secret: String,
     sede_param: Option<String>,
     event_contest: EventContest,
+    export_generation: u64,
 ) -> impl IntoView {
     let secret = secret.clone();
     let sede_param = sede_param.clone();
@@ -138,7 +136,7 @@ fn ConfiguredReveleitor(
         let sede = use_configured_sede(provider.config_contest.clone(), titulo, sede_param);
 
         {
-            view! { <Reveleitor sede secret contest=provider.starting_contest.clone() event_contest /> }
+            view! { <Reveleitor sede secret contest=provider.starting_contest.clone() event_contest export_generation /> }
         }
     })
 }
@@ -188,6 +186,9 @@ fn ContestScreen() -> impl IntoView {
 
             if board_visible.get() {
                 let query_params = use_static_query();
+                let sede_param = Memo::new(move |_| query_params.with(|p| p.sede.clone()));
+                let export = crate::offline::OfflineExportContext::new();
+                provide_context(export);
 
                 let secret = Signal::derive(move || {
                     query_params
@@ -196,12 +197,24 @@ fn ContestScreen() -> impl IntoView {
                 });
                 let secret = Memo::new(move |_| secret.get());
 
-                let settings_panel = move || {
-                    query_params
-                        .with(|q| q.is_settings_enabled())
-                        .then_some(view! {
-                            <SettingsPanel />
-                        })
+                let show_settings = Memo::new(move |_| {
+                    secret.get().is_some() || query_params.with(|q| q.is_settings_enabled())
+                });
+                let settings_panel = view! {
+                    <Show when=move || show_settings.get()>
+                        <SettingsAccordion>
+                            <Show when=move || secret.get().is_some()>
+                                {move || match export.inputs() {
+                                    Some(inputs) => view! {
+                                        <crate::offline::SaveOffline contest=inputs.contest.clone() runs=inputs.runs.clone() sede=inputs.sede.clone() />
+                                    }.into_any(),
+                                    None => view! {
+                                        <p class="offline-save-loading" role="status">"Loading revelation data…"</p>
+                                    }.into_any(),
+                                }}
+                            </Show>
+                        </SettingsAccordion>
+                    </Show>
                 };
                 let animeitor = {
                     let animeitor_ec = ec.clone();
@@ -214,11 +227,15 @@ fn ContestScreen() -> impl IntoView {
                         match secret.get() {
                             Some(secret) => {
                                 let ec = animeitor_ec.clone();
-                                (move || view! {
-                                    <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=query_params.with(|p| p.sede.clone()) event_contest=ec.clone() />
+                                (move || {
+                                    let generation = export.begin();
+                                    view! {
+                                    <ConfiguredReveleitor contest_provider=contest_provider secret=secret.clone() sede_param=sede_param.get() event_contest=ec.clone() export_generation=generation />
+                                    }
                                 }).into_any()
                             },
                             None => {
+                                export.begin();
                                 let suspend = Suspend::new(async move {
                                     let provider = contest_provider.await;
 

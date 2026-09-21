@@ -346,3 +346,83 @@ cargo run -p cli --bin animeitor-admin -- revelation-urls regional-2026 --json
 
 See the [management CLI guide](doc/admin-cli.md) for setup, JSON/stdin input,
 team/problem operations, filter changes, and Docker usage.
+
+### Offline reveleitor
+
+Open the online reveleitor for the desired contest and sede, dismiss the welcome
+dialog, then open **Settings** in the top-right corner and click **Save offline HTML**.
+Keep the page open while
+the app downloads its runtime, styling, team photos, and songs. The downloaded
+`.html` is self-contained: double-click it from any folder to reveal submissions
+without an internet connection or a webserver. No installation or import step is
+needed on the presentation computer.
+
+Each file captures the runs already loaded by that reveleitor and the selected
+sede. Reopen the online reveleitor before saving if you need newly updated results.
+The saved copy always starts at the frozen scoreboard, even if you save midway
+through a revelation. It preserves the existing reveal buttons and keyboard
+controls, presentation preferences, custom CSS, and available media. Missing
+assets are listed after saving and under **Settings → Unavailable offline assets** in the
+saved copy; available fallback photos and applause are included. Cross-origin
+assets must permit browser downloads to be embedded. Songs follow the browser's
+normal user-interaction playback rules. Revelation keys are excluded from the
+file; the file does contain the hidden submission results needed for revealing.
+
+Settings starts collapsed and is always available in the reveleitor. You can close
+it while saving without interrupting the download. The offline copy includes
+presentation and audio settings; revelation keys and export controls are omitted.
+Saving captures the current global settings and each included team's autoplay
+override and volume. Set them before clicking **Save offline HTML**; reopening
+that file restores the saved choices. Changes made afterward require a new export.
+On the regular scoreboard, Settings is available only with `?settings=true`.
+
+Audio, including fallback applause, plays only once the displayed team's pending
+submissions have all been revealed. This applies both online and offline.
+Enable **Settings → Autoplay** and leave **Mute** unchecked. Autoplay defaults to
+off; pressing **M** or changing the autoplay checkbox beside a team's photo
+overrides it for that team only. Saved files preserve these overrides, including
+teams explicitly disabled. Use the team's autoplay checkbox to check or change
+its setting. Check **Unavailable offline assets** for audio that could not be
+downloaded.
+
+The Trunk post-build hook runs the Rust `offline-packager` workspace utility using
+the existing Cargo toolchain. It emits `offline-manifest.json` alongside the matching
+JavaScript/WASM assets; deploy the complete Trunk output together. To verify:
+
+```sh
+cargo test -p animeitor-client --lib
+cargo test -p offline-packager
+```
+
+The exporter and its tests are written in Rust. The saved HTML includes the
+generated wasm-bindgen runtime and a small WASM startup script. Browser API tests
+use `wasm-bindgen-test`; install `wasm-bindgen-cli` at the version in `Cargo.lock`
+and a matching ChromeDriver or GeckoDriver, then run:
+
+```sh
+cd animeitor-client
+CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER=wasm-bindgen-test-runner \
+  CHROMEDRIVER=/path/to/chromedriver \
+  cargo test --lib --target wasm32-unknown-unknown
+```
+
+Use `GECKODRIVER` instead of `CHROMEDRIVER` for Firefox. Custom browser paths and
+options can be supplied with `WASM_BINDGEN_TEST_WEBDRIVER_JSON` as described in the
+[wasm-bindgen browser test guide](https://wasm-bindgen.github.io/wasm-bindgen/wasm-bindgen-test/browsers.html).
+
+The end-to-end download and `file://` test also runs from Rust, using WebDriver
+directly. Build the client with Trunk first, then run from the repository root:
+
+```sh
+OFFLINE_CLIENT_DIST=/absolute/path/to/trunk/output \
+  OFFLINE_BROWSER=chrome OFFLINE_BROWSER_BINARY=/path/to/chrome \
+  CHROMEDRIVER=/path/to/chromedriver \
+  cargo test -p offline-packager --test browser -- --ignored --nocapture
+```
+
+For Firefox, set `OFFLINE_BROWSER=firefox`, its binary path, and `GECKODRIVER`.
+The test uses a local fixture server, downloads the HTML, then opens it in a fresh
+browser session with network access blocked. It checks reveal controls, media,
+styles, restart behavior, malformed files, and retrying failed exports. Test
+artifacts (including a screenshot and driver log) are kept in a printed temporary
+directory. Node and Playwright are not required.

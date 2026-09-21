@@ -1,4 +1,85 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@300&family=Lato&display=swap'); */
+
+.settings-accordion {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 1000001;
+  max-width: calc(100vw - 16px);
+  color: #e5e9eb;
+  font: 13px/1.4 sans-serif;
+}
+.settings-accordion > summary {
+  width: max-content;
+  margin-left: auto;
+  padding: 5px 9px;
+  border: 1px solid #59656c;
+  border-radius: 4px;
+  background: #263238e6;
+  cursor: pointer;
+  user-select: none;
+}
+.settings-accordion > summary:focus-visible {
+  outline: 2px solid #c5d6e0;
+  outline-offset: 2px;
+}
+.settings-accordion-content {
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 56px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  margin-top: 5px;
+  padding: 12px;
+  border: 1px solid #59656c;
+  border-radius: 4px;
+  background: #263238;
+}
+.settings_panel .control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+  margin-bottom: 10px;
+}
+.settings_panel .control:last-child { margin-bottom: 0; }
+.settings_panel input[type="text"], .settings_panel input[type="password"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid #69777e;
+  border-radius: 3px;
+  color: inherit;
+  background: #182328;
+}
+.offline-save, .offline-report, .offline-save-loading {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #59656c;
+  overflow-wrap: anywhere;
+}
+.offline-save span {
+  display: block;
+  margin-top: 6px;
+  max-height: 8rem;
+  overflow: auto;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.offline-save button {
+  padding: 5px 8px;
+  border: 1px solid #69777e;
+  border-radius: 3px;
+  color: inherit;
+  background: #394b55;
+  cursor: pointer;
+}
+.offline-save button:disabled { opacity: .6; cursor: wait; }
+.offline-report p { margin: 0; }
+.offline-report ul { padding-left: 18px; }
 /* FIXME re-enable this once trunk supports local css imports */
 /* @import url("balloons.css"); */
 

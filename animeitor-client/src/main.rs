@@ -11,6 +11,9 @@ pub fn main() {
     let _ = any_spawner::Executor::init_wasm_bindgen();
 
     leptos::task::spawn_local(async move {
+        if animeitor_client::offline::mount_if_present() {
+            return;
+        }
         let config = client_sdk::SdkConfig::load().await;
         animeitor_client::init_config(config);
 

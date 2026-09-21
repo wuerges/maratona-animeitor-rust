@@ -104,6 +104,15 @@ pub fn provide_global_settings() {
     })
 }
 
+pub fn provide_offline_settings(settings: GlobalSettings) {
+    let (get, set) = signal(settings);
+    provide_global_photo_state();
+    provide_context(GlobalSettingsSignal {
+        global: get.into(),
+        set_global: set,
+    });
+}
+
 fn maybe_text(text: String) -> Option<String> {
     if text.is_empty() {
         None
@@ -117,72 +126,83 @@ pub fn use_global_settings() -> GlobalSettingsSignal {
 }
 
 #[component]
-pub fn SettingsPanel() -> impl IntoView {
+pub fn SettingsPanel(#[prop(default = true)] show_secret: bool) -> impl IntoView {
     let global = use_context::<GlobalSettingsSignal>().unwrap();
 
     view! {
         <div class="settings_panel">
             <div class="control">
-            <label>mute</label>
+            <label for="settings-mute">"Mute"</label>
                 <input
+                    id="settings-mute"
                     type="checkbox"
                     prop:checked=move || global.global.with(|g| g.mute)
                     on:input=move |ev| global.set_global.update(|g| g.mute = event_target_checked(&ev))
                 />
             </div>
             <div class="control">
-            <label>autoplay</label>
+            <label for="settings-autoplay">"Autoplay"</label>
                 <input
+                    id="settings-autoplay"
                     type="checkbox"
                     prop:checked=move || global.global.with(|g| g.autoplay)
                     on:input=move |ev| global.set_global.update(|g| g.autoplay = event_target_checked(&ev))
                 />
             </div>
             <div class="control">
-            <label>show audio controls</label>
+            <label for="settings-audio-controls">"Show audio controls"</label>
                 <input
+                    id="settings-audio-controls"
                     type="checkbox"
                     prop:checked=move || global.global.with(|g| g.show_audio_controls)
                     on:input=move |ev| global.set_global.update(|g| g.show_audio_controls = event_target_checked(&ev))
                 />
             </div>
             <div class="control">
-                <label>background_color</label>
+                <label for="settings-background">"Background"</label>
                 <input
+                    id="settings-background"
                     type="text"
                     prop:value=move || global.global.with(|g| g.background_color.clone().unwrap_or_default())
                     on:input=move |ev| global.set_global.update(|g| g.background_color = maybe_text(event_target_value(&ev)))
                 />
             </div>
             <div class="control">
-                <label>team_background_color</label>
+                <label for="settings-team-background">"Team background"</label>
                 <input
+                    id="settings-team-background"
                     type="text"
                     prop:value=move || global.global.with(|g| g.team_background_color.clone().unwrap_or_default())
                     on:input=move |ev| global.set_global.update(|g| g.team_background_color = maybe_text(event_target_value(&ev)))
                 />
             </div>
             <div class="control">
-                <label>team_details</label>
+                <label for="settings-team-details">"Show team details"</label>
                 <input
+                    id="settings-team-details"
                     type="checkbox"
                     prop:checked=move || global.global.with(|g| g.team_details)
                     on:input=move |ev| global.set_global.update(|g| g.team_details = event_target_checked(&ev))
                 />
             </div>
+            <Show when=move || show_secret>
             <div class="control">
-            <label>secret</label>
+            <label for="settings-secret-enabled">"Use revelation key"</label>
             <input
+                    id="settings-secret-enabled"
                     type="checkbox"
                     prop:checked=move || global.global.with(|g| g.secret_enabled)
                     on:input=move |ev| global.set_global.update(|g| g.secret_enabled = event_target_checked(&ev))
                 />
             <input
+                id="settings-secret"
+                aria-label="Revelation key"
                 type="password"
                 prop:value=move || global.global.with(|g| g.secret.clone().unwrap_or_default())
                 on:input=move |ev| global.set_global.update(|g| g.secret = maybe_text(event_target_value(&ev)))
             />
         </div>
+            </Show>
         </div>
     }
 }

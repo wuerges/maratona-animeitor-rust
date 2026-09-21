@@ -14,3 +14,8 @@ backend = "http://localhost:8000/photos"
 [[proxy]]
 rewrite = "/sounds"
 backend = "http://localhost:8000/sounds"
+
+[[hooks]]
+stage = "post_build"
+command = "cargo"
+command_arguments = ["run", "--quiet", "--locked", "--manifest-path", "../tools/offline-packager/Cargo.toml"]

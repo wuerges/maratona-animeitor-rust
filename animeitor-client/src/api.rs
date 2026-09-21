@@ -45,6 +45,9 @@ fn media_formats() -> Option<PublicConfig> {
 }
 
 pub fn team_photo_location(team_login: &str) -> String {
+    if let Some(location) = crate::offline::media_location(team_login, false) {
+        return location;
+    }
     match media_formats() {
         Some(public) => client_sdk::team_photo_location_with(
             config(),
@@ -56,6 +59,9 @@ pub fn team_photo_location(team_login: &str) -> String {
 }
 
 pub fn team_sound_location(team_login: &str) -> String {
+    if let Some(location) = crate::offline::media_location(team_login, true) {
+        return location;
+    }
     match media_formats() {
         Some(public) => client_sdk::team_sound_location_with(
             config(),
