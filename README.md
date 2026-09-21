@@ -372,8 +372,14 @@ Settings starts collapsed and is always available in the reveleitor. You can clo
 it while saving without interrupting the download. The offline copy includes
 presentation and audio settings; revelation keys and export controls are omitted.
 Saving captures the current global settings and each included team's autoplay
-override and volume. Set them before clicking **Save offline HTML**; reopening
-that file restores the saved choices. Changes made afterward require a new export.
+override and volume. Set them before clicking **Save offline HTML**. The offline
+page uses settings from browser local storage first, including per-team autoplay
+and volume; the file's settings are the defaults when no valid local settings exist.
+Changes made offline persist in local storage and take precedence on reopening.
+They do not modify the HTML file. Browser storage for a local file is separate
+from the online site's storage, so online preferences travel through the export.
+If local storage is unavailable, the page uses the file's defaults and changes
+last only for the session.
 On the regular scoreboard, Settings is available only with `?settings=true`.
 
 Audio, including fallback applause, plays only once the displayed team's pending

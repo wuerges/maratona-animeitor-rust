@@ -648,8 +648,7 @@ async fn run(driver: &mut Driver, fixture: &Fixture) -> Result<()> {
     )?;
     driver.click("css selector", "#settings-mute").await?;
     let save_id = driver.find("css selector", ".offline-save button").await?;
-    // Save explicit per-team preferences, including a volume edit that updates
-    // settings without notifying reactive subscribers.
+    // Save explicit per-team preferences, including the latest volume edit.
     driver
         .command(
             reqwest::Method::POST,
@@ -1029,12 +1028,74 @@ async fn run(driver: &mut Driver, fixture: &Fixture) -> Result<()> {
         driver.downloads.join("offline.png"),
         STANDARD.decode(screenshot.as_str().unwrap())?,
     )?;
+    // Local edits must override the embedded defaults on the next opening.
+    driver
+        .command(
+            reqwest::Method::POST,
+            "/window/rect",
+            json!({"width":1200,"height":1000}),
+        )
+        .await?;
+    driver.settings().await?;
+    driver.set_text("#settings-background", "#654321").await?;
+    driver.settings().await?;
+    driver.click("css selector", "#a1").await?;
+    driver
+        .click("css selector", ".volume_controls input[type=checkbox]")
+        .await?;
+    driver
+        .click("css selector", ".volume_controls input[type=range]")
+        .await?;
+    driver.key("\u{e010}").await?; // End sets volume to 100; this is the last settings edit.
+    ensure(
+        driver
+            .property(".volume_controls input[type=range]", "property/value")
+            .await?
+            == "100",
+        "Volume edit did not apply",
+    )?;
     driver.goto(&url).await?;
     driver.button("OK").await?;
     ensure(
         driver.board().await? == frozen,
         "Reopening must restart frozen",
     )?;
+    driver.settings().await?;
+    ensure(
+        driver
+            .property("#settings-autoplay", "property/checked")
+            .await?
+            == true,
+        "Stored global autoplay must override the file",
+    )?;
+    ensure(
+        driver
+            .property("#settings-background", "property/value")
+            .await?
+            == "#654321",
+        "Stored background must override the file",
+    )?;
+    driver.settings().await?;
+    for (team, autoplay) in [("a1", false), ("a2", true)] {
+        driver.click("css selector", &format!("#{team}")).await?;
+        ensure(
+            driver
+                .property(".volume_controls input[type=checkbox]", "property/checked")
+                .await?
+                == autoplay,
+            "Stored team autoplay must override the file",
+        )?;
+        if team == "a1" {
+            ensure(
+                driver
+                    .property(".volume_controls input[type=range]", "property/value")
+                    .await?
+                    == "100",
+                "The last volume edit was not persisted",
+            )?;
+        }
+        driver.click("css selector", ".foto_img").await?;
+    }
     for (name, data, expected) in [
         (
             "unsupported",

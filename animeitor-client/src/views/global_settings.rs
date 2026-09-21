@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use codee::string::JsonSerdeCodec;
 use leptos::prelude::*;
-use leptos_use::storage::use_local_storage;
+use leptos_use::storage::{use_local_storage, use_local_storage_with_options, UseStorageOptions};
 use serde::{Deserialize, Serialize};
 
 use super::team_media::provide_global_photo_state;
@@ -66,15 +66,6 @@ impl GlobalSettingsSignal {
         self.set_global
             .update(|u| u.update_team_settings(team_login, team_settings));
     }
-
-    pub fn update_team_settings_untracked(
-        &self,
-        team_login: &str,
-        team_settings: impl Fn(&mut TeamSettings),
-    ) {
-        self.set_global
-            .update_untracked(|u| u.update_team_settings(team_login, team_settings));
-    }
 }
 
 impl GlobalSettings {
@@ -105,10 +96,14 @@ pub fn provide_global_settings() {
 }
 
 pub fn provide_offline_settings(settings: GlobalSettings) {
-    let (get, set) = signal(settings);
+    // Existing local preferences win; the file supplies first-use defaults.
+    let (get, set, _) = use_local_storage_with_options::<GlobalSettings, JsonSerdeCodec>(
+        "global.settings",
+        UseStorageOptions::default().initial_value(settings),
+    );
     provide_global_photo_state();
     provide_context(GlobalSettingsSignal {
-        global: get.into(),
+        global: get,
         set_global: set,
     });
 }

@@ -149,7 +149,7 @@ fn TeamAudio(
                             prop:value=move || volume_settings.with(|v| v.volume)
                             on:input=move |ev| {
                                 let new_volume = event_target_value(&ev).parse().unwrap_or_default();
-                                control_volume_settings.update_team_settings_untracked(&control_volume_team_login,
+                                control_volume_settings.update_team_settings(&control_volume_team_login,
                                     |s| s.volume = new_volume);
                                 set_node_volume.set(Some(new_volume))
                             }
