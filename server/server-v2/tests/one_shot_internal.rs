@@ -2135,3 +2135,86 @@ rejected_incremental_update!(patch_site_codes_invalid_regex, PATCH, "/internal/s
 
 mod common;
 use common::test_store;
+
+#[tokio::test]
+async fn delete_single_run_preserves_others_and_resets_replay() {
+    use service::event_store::Run;
+    let store = test_store(None);
+    seed_event(&store).await;
+    let runs: Vec<Run> = serde_json::from_value(serde_json::json!([
+        {"id": 1, "team_login": "teambr001", "prob": "A", "time_seconds": 10, "answer": "Y"},
+        {"id": 2, "team_login": "teambr001", "prob": "B", "time_seconds": 20, "answer": "N"},
+        {"id": 3, "team_login": "teambr001", "prob": "A", "time_seconds": 30, "answer": "?"}
+    ]))
+    .unwrap();
+    store.add_runs("ensaio", runs.clone()).await.unwrap();
+    let mut old = store.subscribe_runs("ensaio").await.unwrap().unwrap();
+    for run in &runs {
+        assert_eq!(old.recv().await.unwrap(), *run);
+    }
+    let app = app_for(store.clone());
+    let auth = auth_header();
+    let (status, body) = send(
+        &app,
+        empty_request(
+            Method::DELETE,
+            "/internal/events/ensaio/runs/2",
+            Some((&auth.0, auth.1.clone())),
+        ),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    assert!(body.is_null());
+    assert!(
+        tokio::time::timeout(std::time::Duration::from_secs(1), old.recv())
+            .await
+            .unwrap()
+            .is_err()
+    );
+    let mut replay = store.subscribe_runs("ensaio").await.unwrap().unwrap();
+    assert_eq!(replay.recv().await.unwrap(), runs[0]);
+    assert_eq!(replay.recv().await.unwrap(), runs[2]);
+    let mut correction = runs[2].clone();
+    correction.answer = runs[0].answer.clone();
+    assert_eq!(
+        store
+            .add_runs("ensaio", vec![correction.clone()])
+            .await
+            .unwrap()
+            .1,
+        1
+    );
+    assert_eq!(replay.recv().await.unwrap(), correction);
+    for path in [
+        "/internal/events/ensaio/runs/2",
+        "/internal/events/missing/runs/1",
+    ] {
+        let (status, body) = send(
+            &app,
+            empty_request(Method::DELETE, path, Some((&auth.0, auth.1.clone()))),
+        )
+        .await;
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        assert_eq!(error_code(&body), "not_found");
+    }
+    assert_eq!(
+        store
+            .add_runs("ensaio", vec![runs[1].clone()])
+            .await
+            .unwrap()
+            .0,
+        1
+    );
+}
+
+#[tokio::test]
+async fn delete_single_run_requires_authentication() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    let (status, _) = send(
+        &app_for(store),
+        empty_request(Method::DELETE, "/internal/events/ensaio/runs/1", None),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+}

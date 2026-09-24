@@ -455,6 +455,24 @@ impl Engine {
         Ok((added, updated, ignored))
     }
 
+    pub async fn delete_run(&self, event_name: &str, run_id: i64) -> bool {
+        let mut inner = self.inner.write().await;
+        let Some(event) = inner.events.get_mut(event_name) else {
+            return false;
+        };
+        let Some(index) = event.runs_index.remove(&run_id) else {
+            return false;
+        };
+        event.runs.remove(index);
+        event.runs_index = event
+            .runs
+            .iter()
+            .enumerate()
+            .map(|(i, run)| (run.id, i))
+            .collect();
+        true
+    }
+
     pub async fn clear_runs(&self, event_name: &str) -> bool {
         let mut inner = self.inner.write().await;
         let Some(event) = inner.events.get_mut(event_name) else {

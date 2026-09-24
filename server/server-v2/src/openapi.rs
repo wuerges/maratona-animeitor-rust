@@ -68,6 +68,7 @@ pub struct PublicApiDoc;
         update_event_time,
         ingest_runs,
         clear_runs,
+        delete_run,
         rotate_event_salt,
         rotate_contest_salt,
         rotate_site_salt,
@@ -414,6 +415,21 @@ pub async fn ingest_runs() {}
     )
 )]
 pub async fn clear_runs() {}
+
+/// Remove one event submission
+///
+/// Deletes the submission with the given ID while preserving other runs and configuration. Existing run streams close; reconnecting replays only the remaining submissions. A later POST with the same ID can add the submission again.
+#[utoipa::path(
+    delete, path = "/internal/events/{event_name}/runs/{run_id}", operation_id = "delete_run", tag = "Timing and runs",
+    params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("run_id" = i64, Path, description = "Submission ID.")),
+    responses(
+        (status = 204, description = "Deleted; no response body."),
+        (status = 404, description = "Event or submission does not exist.", body = Failure, example = json!({"errors": [{"code": "not_found", "message": "Event or submission does not exist."}]})),
+        (status = 401, description = "Missing or invalid configured username/token. WWW-Authenticate: Basic.", body = Failure, example = json!({"errors": [{"code": "unauthorized", "message": "Missing or invalid configured username/token. WWW-Authenticate: Basic."}]})),
+        (status = 426, description = "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint", body = String, content_type = "text/plain", example = "the internal API requires HTTPS")
+    )
+)]
+pub async fn delete_run() {}
 
 /// Change event salt
 ///

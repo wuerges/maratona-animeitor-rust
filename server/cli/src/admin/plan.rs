@@ -432,6 +432,14 @@ pub fn plan(command: Command) -> Result<RequestPlan> {
             Some(json!({"time_seconds":seconds})),
         ),
         Command::Runs(command) => match command {
+            RunCommand::Delete { event: name, id } => request(
+                Method::DELETE,
+                append(
+                    append(event(EventId { event: name }), "runs"),
+                    &id.to_string(),
+                ),
+                None,
+            ),
             RunCommand::Clear(id) => request(Method::DELETE, append(event(id), "runs"), None),
             RunCommand::Add {
                 event: name,

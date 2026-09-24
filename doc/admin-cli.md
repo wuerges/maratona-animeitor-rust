@@ -89,6 +89,7 @@ Event deletion removes its contests, sites, and runs. Contest deletion removes i
 
 ```sh
 animeitor-admin runs add regional-2026 --id 1 --team-login teambr001 --problem A --time-seconds 56 --answer Y
+animeitor-admin runs delete regional-2026 1
 animeitor-admin runs import regional-2026 --file runs.json
 animeitor-admin timer set regional-2026 --seconds -120
 animeitor-admin timer set regional-2026 --seconds 0
@@ -97,6 +98,8 @@ animeitor-admin contests salt regional-2026 brasil --salt new-value
 animeitor-admin events salt regional-2026
 animeitor-admin metrics
 ```
+
+`runs delete EVENT ID` removes one submission (204), or returns 404 if the event or ID does not exist. Existing run streams close and reconnect with the remaining submissions. A later import can recreate the deleted ID.
 
 Run answers are `Y`, `N`, `?`, or `X`. Import accepts `{"runs":[...]}` via file/stdin. Existing IDs are corrected; identical resends are no-ops. Unknown teams produce warnings rather than rejecting a batch. `runs clear EVENT` clears stored submissions, **but existing WebSocket replay history remains**; recreate the event and its configuration for a clean stream history.
 

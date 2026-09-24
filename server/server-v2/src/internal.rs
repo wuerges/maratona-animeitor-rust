@@ -158,6 +158,10 @@ pub fn router() -> Router<AppState> {
             "/events/{event_name}/runs",
             post(post_runs).delete(delete_runs),
         )
+        .route(
+            "/events/{event_name}/runs/{run_id}",
+            axum::routing::delete(delete_run),
+        )
         .route("/events/{event_name}/salt", post(post_event_salt))
         .route(
             "/contests/{event_name}/{contest_name}",
@@ -409,6 +413,23 @@ async fn post_runs(
             }
         }
         Err(err) => store_error(err),
+    }
+}
+
+#[autometrics]
+async fn delete_run(
+    _auth: InternalAuth,
+    State(store): State<EventStore>,
+    Path((event_name, run_id)): Path<(String, i64)>,
+) -> Response {
+    if crate::store_call!(store.delete_run(&event_name, run_id).await) {
+        StatusCode::NO_CONTENT.into_response()
+    } else {
+        error_json(
+            StatusCode::NOT_FOUND,
+            "not_found",
+            "evento ou submissão não existe",
+        )
     }
 }
 

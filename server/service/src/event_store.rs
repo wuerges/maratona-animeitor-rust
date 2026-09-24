@@ -183,6 +183,14 @@ impl EventStore {
         })
         .await
     }
+    pub async fn delete_run(&self, event_name: &str, run_id: i64) -> Result<bool, StoreError> {
+        let event_name = event_name.to_owned();
+        self.mutate(event_name.clone(), move |stage| {
+            Box::pin(async move { Ok(stage.delete_run(&event_name, run_id).await) })
+        })
+        .await
+    }
+
     pub async fn clear_runs(&self, event_name: &str) -> Result<bool, StoreError> {
         let event_name = event_name.to_owned();
         self.mutate(event_name.clone(), move |stage| {

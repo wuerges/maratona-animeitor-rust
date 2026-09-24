@@ -405,6 +405,12 @@ pub enum RunCommand {
         #[command(flatten)]
         input: FileInput,
     },
+    /// Delete a single stored submission by ID.
+    Delete {
+        event: String,
+        #[arg(allow_negative_numbers = true)]
+        id: i64,
+    },
     /// Delete stored runs. WebSocket replay history is retained; recreate the event for a clean history.
     Clear(EventId),
 }

@@ -106,6 +106,12 @@ fn cli_paths_and_payloads() {
             json!({"salt":null}),
         ),
         (
+            vec!["runs", "delete", "e", "-12"],
+            "DELETE",
+            "/internal/events/e/runs/-12",
+            Value::Null,
+        ),
+        (
             vec!["runs", "clear", "e"],
             "DELETE",
             "/internal/events/e/runs",

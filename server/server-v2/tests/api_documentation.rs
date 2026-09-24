@@ -140,7 +140,7 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
             }
         }
     }
-    assert_eq!(ids.len(), 42);
+    assert_eq!(ids.len(), 43);
     let methods: Vec<_> = internal["paths"]["/internal/contests/{event_name}/{contest_name}"]
         .as_object()
         .unwrap()

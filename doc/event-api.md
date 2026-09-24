@@ -379,6 +379,15 @@ Respostas:
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 
+### Remover uma run
+
+- `DELETE /internal/events/{event-name}/runs/{run-id}`
+- Remove apenas a submissão identificada pelo ID e preserva as demais runs e configurações.
+- `204 No Content` — removida; sem corpo.
+- `404 Not Found` — evento ou submissão inexistente.
+- Os streams de runs existentes são encerrados; a reconexão recebe apenas as runs restantes.
+- Um POST posterior com o mesmo ID pode recriar a submissão, inclusive se ela continuar sendo enviada pelo feeder.
+
 ### Remover todas as runs
 
 - `DELETE /internal/events/{event-name}/runs`
