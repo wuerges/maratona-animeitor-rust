@@ -45,6 +45,8 @@ pub(super) fn state(event: &Event) -> EventState {
         penalty_seconds: event.penalty_seconds,
         time_seconds: event.time_seconds,
         salt: event.salt.clone(),
+        photo_url_format: event.photo_url_format.clone(),
+        sound_url_format: event.sound_url_format.clone(),
     }
 }
 fn same_name(a: &str, b: &str) -> Result<(), StoreError> {
@@ -123,6 +125,8 @@ impl Engine {
         event.problems = next.problems.clone();
         event.teams = next.teams.clone();
         event.salt = next.salt.clone();
+        event.photo_url_format = next.photo_url_format.clone();
+        event.sound_url_format = next.sound_url_format.clone();
         event.penalty_seconds = next.penalty_seconds;
         event.time_seconds = next.time_seconds;
         event.score_freeze_time_seconds = next.score_freeze_time_seconds;

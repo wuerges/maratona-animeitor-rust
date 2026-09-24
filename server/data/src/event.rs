@@ -46,10 +46,17 @@ pub struct EventState {
     /// Optional public input to site-key derivation. Omitted or null means empty input; changing it changes all event revelation keys.
     #[serde(default)]
     pub salt: Option<String>,
+    /// Optional team photo URL template with {team_login}. Default: photos/{team_login}.webp relative to the API origin.
+    #[serde(default)]
+    pub photo_url_format: Option<String>,
+    /// Optional team audio URL template with {team_login}. Default: sounds/{team_login}.mp3 relative to the API origin.
+    #[serde(default)]
+    pub sound_url_format: Option<String>,
 }
 
 /// A contest of an event, as accepted and returned by `/internal`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, ToSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ContestConfig {
     /// Nonempty contest identifier; must equal contest_name in the path.
     pub name: String,
@@ -73,12 +80,6 @@ pub struct ContestConfig {
     #[serde(default = "three")]
     #[schema(default = 3)]
     pub bronze: usize,
-    /// Optional team photo URL template with {team_login}. Default: photos/{team_login}.webp relative to the API origin.
-    #[serde(default)]
-    pub photo_url_format: Option<String>,
-    /// Optional team audio URL template with {team_login}. Default: sounds/{team_login}.mp3 relative to the API origin.
-    #[serde(default)]
-    pub sound_url_format: Option<String>,
 }
 
 /// A site of a contest, as accepted and returned by `/internal`.

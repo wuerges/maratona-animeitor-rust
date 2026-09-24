@@ -241,12 +241,20 @@ pub fn render(output: &Output, request: &RequestPlan, json_mode: bool) -> Result
 
 pub async fn run(args: args::AdminArgs) -> Result<()> {
     let request = plan(args.command)?;
-    let server = ServerConfig::load(&args.server_config)?;
+    let mut server = ServerConfig::load(&args.server_config)?;
+    if let Some(server_url) = args.server_url {
+        server.server_url = server_url;
+        server.validate()?;
+    }
     ensure!(
         server.server_url.starts_with("https://"),
         "server_url must use HTTPS"
     );
-    let result = AdminClient::from_config(&server)?.execute(&request).await?;
+    let mut client = AdminClient::from_config(&server)?;
+    if let Some(token) = args.token {
+        client.token = token;
+    }
+    let result = client.execute(&request).await?;
     let (stdout, stderr) = render(&result, &request, args.json)?;
     print!("{stdout}");
     eprint!("{stderr}");

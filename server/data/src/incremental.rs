@@ -61,6 +61,14 @@ pub struct EventPatch {
     #[serde(default, skip_serializing_if = "Field::is_missing")]
     #[schema(value_type = Option<String>, required = false)]
     pub salt: Field<Option<String>>,
+    /// Photo template; null restores frontend default.
+    #[serde(default, skip_serializing_if = "Field::is_missing")]
+    #[schema(value_type = Option<String>, required = false)]
+    pub photo_url_format: Field<Option<String>>,
+    /// Audio template; null restores frontend default.
+    #[serde(default, skip_serializing_if = "Field::is_missing")]
+    #[schema(value_type = Option<String>, required = false)]
+    pub sound_url_format: Field<Option<String>>,
 }
 impl EventPatch {
     pub fn is_empty(&self) -> bool {
@@ -71,6 +79,8 @@ impl EventPatch {
             && self.penalty_seconds.is_missing()
             && self.time_seconds.is_missing()
             && self.salt.is_missing()
+            && self.photo_url_format.is_missing()
+            && self.sound_url_format.is_missing()
     }
     pub fn apply(&self, current: &EventState) -> EventState {
         let mut next = current.clone();
@@ -94,6 +104,12 @@ impl EventPatch {
         }
         if let Field::Value(value) = &self.salt {
             next.salt = value.clone();
+        }
+        if let Field::Value(value) = &self.photo_url_format {
+            next.photo_url_format = value.clone();
+        }
+        if let Field::Value(value) = &self.sound_url_format {
+            next.sound_url_format = value.clone();
         }
         next
     }
@@ -131,14 +147,6 @@ pub struct ContestPatch {
     #[serde(default, skip_serializing_if = "Field::is_missing")]
     #[schema(value_type = usize, required = false)]
     pub bronze: Field<usize>,
-    /// Photo template; null restores frontend default.
-    #[serde(default, skip_serializing_if = "Field::is_missing")]
-    #[schema(value_type = Option<String>, required = false)]
-    pub photo_url_format: Field<Option<String>>,
-    /// Audio template; null restores frontend default.
-    #[serde(default, skip_serializing_if = "Field::is_missing")]
-    #[schema(value_type = Option<String>, required = false)]
-    pub sound_url_format: Field<Option<String>>,
 }
 impl ContestPatch {
     pub fn is_empty(&self) -> bool {
@@ -149,8 +157,6 @@ impl ContestPatch {
             && self.ouro.is_missing()
             && self.prata.is_missing()
             && self.bronze.is_missing()
-            && self.photo_url_format.is_missing()
-            && self.sound_url_format.is_missing()
     }
     pub fn apply(&self, current: &ContestConfig) -> ContestConfig {
         let mut next = current.clone();
@@ -174,12 +180,6 @@ impl ContestPatch {
         }
         if let Field::Value(value) = &self.bronze {
             next.bronze = value.clone();
-        }
-        if let Field::Value(value) = &self.photo_url_format {
-            next.photo_url_format = value.clone();
-        }
-        if let Field::Value(value) = &self.sound_url_format {
-            next.sound_url_format = value.clone();
         }
         next
     }

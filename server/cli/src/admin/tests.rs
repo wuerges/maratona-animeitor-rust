@@ -426,3 +426,99 @@ async fn transport_sends_one_authenticated_request_and_handles_failures() {
     );
     task.abort();
 }
+
+#[test]
+fn server_url_override_is_global_and_optional() {
+    for words in [
+        vec![
+            "animeitor-admin",
+            "--server-url",
+            "https://example.com/prefix",
+            "events",
+            "list",
+        ],
+        vec![
+            "animeitor-admin",
+            "events",
+            "list",
+            "--server-url",
+            "https://example.com/prefix",
+        ],
+    ] {
+        let args = args::AdminArgs::try_parse_from(words).unwrap();
+        assert_eq!(
+            args.server_url.as_deref(),
+            Some("https://example.com/prefix")
+        );
+        let request = plan(args.command).unwrap();
+        assert_eq!(
+            request_url(args.server_url.as_deref().unwrap(), &request)
+                .unwrap()
+                .as_str(),
+            "https://example.com/prefix/internal/events"
+        );
+    }
+    let args = args::AdminArgs::try_parse_from(["animeitor-admin", "events", "list"]).unwrap();
+    assert!(args.server_url.is_none());
+}
+
+#[test]
+fn token_override_is_global_optional_and_nonempty() {
+    for words in [
+        vec![
+            "animeitor-admin",
+            "--token",
+            "override-token",
+            "events",
+            "list",
+        ],
+        vec![
+            "animeitor-admin",
+            "events",
+            "list",
+            "--token",
+            "override-token",
+        ],
+    ] {
+        let args = args::AdminArgs::try_parse_from(words).unwrap();
+        assert_eq!(args.token.as_deref(), Some("override-token"));
+    }
+    let args = args::AdminArgs::try_parse_from(["animeitor-admin", "events", "list"]).unwrap();
+    assert!(args.token.is_none());
+    assert!(
+        args::AdminArgs::try_parse_from(["animeitor-admin", "--token", "", "events", "list"])
+            .is_err()
+    );
+}
+
+#[test]
+fn media_flags_update_the_event() {
+    let request = parse(&[
+        "events",
+        "update",
+        "e",
+        "--photo-url-format",
+        "https://example.com/{team_login}",
+        "--unset",
+        "sound_url_format",
+    ]);
+    assert_eq!(request.segments, ["internal", "events", "e"]);
+    assert_eq!(
+        request.body,
+        Some(json!({
+            "photo_url_format":"https://example.com/{team_login}", "sound_url_format":null
+        }))
+    );
+    assert!(
+        args::AdminArgs::try_parse_from([
+            "animeitor-admin",
+            "contests",
+            "update",
+            "e",
+            "c",
+            "--photo-url-format",
+            "https://example.com/{team_login}"
+        ])
+        .is_err()
+    );
+}

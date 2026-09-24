@@ -10,7 +10,19 @@ target/debug/animeitor-admin --help
 target/debug/animeitor-admin events update --help
 ```
 
-All examples below assume `animeitor-admin` is on PATH (otherwise use `target/debug/animeitor-admin`). Global `--server-config` and `--json` work before or after subcommands.
+All examples below assume `animeitor-admin` is on PATH (otherwise use `target/debug/animeitor-admin`). Global `--server-config`, `--server-url`, `--token`, and `--json` work before or after subcommands.
+
+Override the API address for one invocation with `--server-url`. Credentials and TLS CA settings still come from the configuration file. The URL must use HTTPS and cannot contain credentials, a query, or a fragment.
+
+```sh
+animeitor-admin --server-url https://animeitor.naquadah.com.br events list
+```
+
+Override the authentication token for one invocation with `--token`. The username selected by `client_token` and the TLS CA still come from the configuration file; the file is not modified.
+
+```sh
+animeitor-admin --server-url https://animeitor.naquadah.com.br --token "$ADMIN_TOKEN" events list
+```
 
 ## Create and prepare an event
 
@@ -43,9 +55,9 @@ The event name comes from the positional identifier. All times use seconds. Omit
 | Teams | `teams list EVENT`; `teams add EVENT`; `teams get/update/delete EVENT LOGIN` |
 | Problems | `problems list EVENT`; `problems add/delete EVENT PROBLEM` |
 
-Event flags: repeatable `--problem`, `--teams-file` (JSON array or `-` for stdin), `--score-freeze-time-seconds`, `--penalty-seconds`, `--time-seconds`, and `--salt`.
+Event flags: repeatable `--problem`, `--teams-file` (JSON array or `-` for stdin), `--score-freeze-time-seconds`, `--penalty-seconds`, `--time-seconds`, `--photo-url-format`, `--sound-url-format`, and `--salt`.
 
-Contest flags: repeatable `--code`, `--gold`, `--silver`, `--bronze`, `--style`, `--photo-url-format`, `--sound-url-format`, and `--salt`. Medal flags map to the API's `ouro`, `prata`, and `bronze` fields. Site flags: repeatable `--code` and `--salt`. Regexes use Rust syntax; quote them to prevent shell expansion.
+Contest flags: repeatable `--code`, `--gold`, `--silver`, `--bronze`, `--style`, and `--salt`. Medal flags map to the API's `ouro`, `prata`, and `bronze` fields. Site flags: repeatable `--code` and `--salt`. Regexes use Rust syntax; quote them to prevent shell expansion.
 
 Create and update accept either field flags or `--file PATH` (`-` for stdin). JSON is a bare resource object, never a `data` envelope. Missing `name` is filled from positional identifiers for creation/replacement; a conflicting name is rejected. Event creation requires a problem list, team list, freeze time, and penalty. Contest/site creation requires codes; JSON permits explicitly empty arrays. Unspecified optional creation values use the server defaults.
 
@@ -53,9 +65,9 @@ Create and update accept either field flags or `--file PATH` (`-` for stdin). JS
 
 ```sh
 animeitor-admin contests update regional-2026 brasil --gold 4 --silver 8 --bronze 12
-animeitor-admin contests update regional-2026 brasil --unset style --unset photo_url_format
+animeitor-admin events update regional-2026 --unset photo_url_format
 printf '%s\n' '{"salt":null,"sound_url_format":null}' | \
-  animeitor-admin contests update regional-2026 brasil --file -
+  animeitor-admin events update regional-2026 --file -
 animeitor-admin events get regional-2026 --json
 ```
 
@@ -121,3 +133,15 @@ docker compose exec animeitor /animeitor-admin --server-config /workspace/server
 ```
 
 For host usage, `server_url` must resolve from the host (typically `https://localhost:8443`); the Docker-only `animeitor` hostname is intended for containers on the Compose network. Use an image rebuilt from this revision to obtain the new binary.
+
+Media URL formats belong to the event and apply to every contest. For example:
+
+```sh
+animeitor-admin events update regional-2026 \
+  --photo-url-format 'https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-photo?contest=icpc-latam-br-fp-2026&user={team_login}' \
+  --sound-url-format 'https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}'
+```
+
+The equivalent API operation is `PATCH /internal/events/regional-2026` with
+`photo_url_format` and `sound_url_format`. Omitted fields are preserved; null
+restores the default. Reload the scoreboard after updating its media settings.

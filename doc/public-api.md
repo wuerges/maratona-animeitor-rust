@@ -117,8 +117,8 @@ Resposta:
   - `style`: nome do estilo visual do contest; opcional.
   - `ouro`, `prata`, `bronze`: posições de medalha (1-based); opcionais, padrões `1`, `2`, `3`.
   - `sites`: lista de sites do contest, cada um com `name` e `codes`; opcional.
-  - `photo_url_format`: formato de URL das fotos do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `photos/{team_login}.webp`, resolvido contra a mesma origem da API.
-  - `sound_url_format`: formato de URL dos sons do contest, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `sounds/{team_login}.mp3`, resolvido contra a mesma origem da API.
+  - `photo_url_format`: formato de URL das fotos do evento, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `photos/{team_login}.webp`, resolvido contra a mesma origem da API.
+  - `sound_url_format`: formato de URL dos sons do evento, com o placeholder `{team_login}`; opcional. Sem formato definido, vale o padrão relativo `sounds/{team_login}.mp3`, resolvido contra a mesma origem da API.
 
 - `403 Forbidden` — `errors`: `[{ "code": "not_started", ... }]` (o evento ainda não começou).
 - `404 Not Found` — `errors`: `[{ "code": "not_found", ... }]`.

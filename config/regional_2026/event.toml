@@ -2,6 +2,8 @@
 [event]
 name = "regional-2026"
 secret = "development-event-value"
+photo_url_format = "https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-photo?contest=icpc-latam-br-fp-2026&user={team_login}"
+sound_url_format = "https://icpc-latam-br-fp-2026.moj.naquadah.com.br/api/v1/contest/team-music?contest=icpc-latam-br-fp-2026&user={team_login}"
 
 [[contests]]
 name = "Brasil"

@@ -94,6 +94,8 @@ Não há campo de duração, tempo corrente declarado ou contagem de times: a co
 
 ## Endpoints do evento
 
+Os campos opcionais `photo_url_format` e `sound_url_format` definem as mídias de todos os contests do evento. PATCH preserva campos omitidos; `null` restaura o padrão. Esses campos não são aceitos em contests.
+
 ### Criar o evento
 
 - `POST /internal/events/{event-name}`
@@ -119,7 +121,7 @@ Respostas:
 ### Atualizar todos os valores do evento
 
 - `PUT /internal/events/{event-name}`
-- Corpo: estado completo do evento. Preserva contests, sites e runs; campos opcionais omitidos voltam ao padrão (`time_seconds: 0`, `salt: null`).
+- Corpo: estado completo do evento. Preserva contests, sites e runs; campos opcionais omitidos voltam ao padrão (`time_seconds: 0`, `salt: null`, formatos de mídia: `null`).
 
 Respostas:
 
@@ -164,12 +166,10 @@ Um contest é um agrupamento de times do evento, identificado por um nome não-v
 - `ouro`: posição até a qual vale medalha de ouro (1-based); opcional, padrão `1`.
 - `prata`: idem para prata; opcional, padrão `2`.
 - `bronze`: idem para bronze; opcional, padrão `3`.
-- `photo_url_format`: formato de URL das fotos do contest (ver seção Mídia); opcional.
-- `sound_url_format`: formato de URL dos sons do contest (ver seção Mídia); opcional.
 
 `codes` combina regexes Rust por OR, sem ancoragem automática; `[]` não seleciona times e `[".*"]` seleciona todos.
 
-Chaves não listadas aqui são ignoradas.
+Chaves não listadas aqui são rejeitadas.
 
 ### Exemplo
 
@@ -181,9 +181,7 @@ Chaves não listadas aqui são ignoradas.
     "style": "brasil",
     "ouro": 4,
     "prata": 8,
-    "bronze": 12,
-    "photo_url_format": "https://static.example.com/photos/{team_login}.webp",
-    "sound_url_format": "https://static.example.com/sounds/{team_login}.mp3"
+    "bronze": 12
 }
 ```
 
@@ -337,7 +335,7 @@ Respostas:
 
 ## Mídia
 
-Fotos e sons não são montados como volumes; cada contest aceita formatos de URL:
+Fotos e sons pertencem ao evento. Configure os formatos em POST, PUT ou PATCH de `/internal/events/{event-name}`; todos os contests usam os mesmos valores:
 
 - `photo_url_format`: string com o placeholder `{team_login}`; opcional.
 - `sound_url_format`: string com o placeholder `{team_login}`; opcional.

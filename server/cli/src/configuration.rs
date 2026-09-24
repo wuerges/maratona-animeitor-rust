@@ -86,8 +86,6 @@ pub struct Contest {
     pub prata: usize,
     #[serde(default = "three")]
     pub bronze: usize,
-    pub photo_url_format: Option<String>,
-    pub sound_url_format: Option<String>,
     #[serde(default)]
     pub sites: Vec<Site>,
 }
@@ -148,14 +146,6 @@ impl EventConfig {
                     ouro: c.ouro,
                     prata: c.prata,
                     bronze: c.bronze,
-                    photo_url_format: c
-                        .photo_url_format
-                        .clone()
-                        .or(self.event.photo_url_format.clone()),
-                    sound_url_format: c
-                        .sound_url_format
-                        .clone()
-                        .or(self.event.sound_url_format.clone()),
                 },
                 sites: c
                     .sites

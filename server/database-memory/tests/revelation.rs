@@ -21,6 +21,8 @@ mod tests {
                     penalty_seconds: 1200,
                     time_seconds: -60,
                     salt: Some("event-salt".into()),
+                    photo_url_format: None,
+                    sound_url_format: None,
                 },
             )
             .await
@@ -38,8 +40,6 @@ mod tests {
                         ouro: 1,
                         prata: 2,
                         bronze: 3,
-                        photo_url_format: None,
-                        sound_url_format: None,
                     },
                 )
                 .await

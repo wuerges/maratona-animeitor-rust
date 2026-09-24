@@ -23,7 +23,7 @@ pub(super) struct IncrementalApiDoc;
 
 /// Patch event
 ///
-/// Change selected event fields atomically. Omitted fields remain unchanged, arrays replace whole lists, and null clears salt. Removing teams with stored runs requires keep_runs=true; removing referenced problems is always a conflict. Event name cannot change. Validation failure changes nothing. Unlike legacy PUT, this endpoint checks references.
+/// Change selected event fields atomically, including photo and sound URL templates shared by all contests. Omitted fields remain unchanged, arrays replace whole lists, and null clears salt. Removing teams with stored runs requires keep_runs=true; removing referenced problems is always a conflict. Event name cannot change. Validation failure changes nothing. Unlike legacy PUT, this endpoint checks references.
 #[utoipa::path(patch, path = "/internal/events/{event_name}", operation_id = "incremental_patch_event", tag = "Incremental management",
     params(("event_name" = String, Path, description = "Exact resource identifier; URL-encode as one path segment"), ("keep_runs" = Option<bool>, Query, description = "Default false. Explicitly retain runs when removing teams; never overrides problem reference checks")),
     request_body(content = EventPatch, example = json!({"penalty_seconds": 600})),
@@ -54,7 +54,7 @@ async fn get_contest() {}
 
 /// Patch contest
 ///
-/// Change selected contest fields atomically. Omitted fields remain unchanged; arrays replace whole lists. Null clears salt, style, or media templates. Name cannot change; sites are preserved. Invalid regexes leave both configuration and compiled filters unchanged.
+/// Change selected contest fields atomically. Omitted fields remain unchanged; arrays replace whole lists. Null clears salt or style. Media templates belong to the event. Name cannot change; sites are preserved. Invalid regexes leave both configuration and compiled filters unchanged.
 #[utoipa::path(patch, path = "/internal/contests/{event_name}/{contest_name}", operation_id = "incremental_patch_contest", tag = "Incremental management",
     params(("event_name" = String, Path, description = "Exact resource identifier; URL-encode as one path segment"), ("contest_name" = String, Path, description = "Exact resource identifier; URL-encode as one path segment")),
     request_body(content = ContestPatch, example = json!({"ouro": 4, "style": null})),

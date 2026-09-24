@@ -186,8 +186,8 @@ pub fn team_sound_location(config: &SdkConfig, team_login: &str) -> String {
     }
 }
 
-/// Builds a photo URL from a contest's own format, falling back to the SDK
-/// defaults (the migrated behavior: media comes from the contest config).
+/// Builds a photo URL from a event's format, falling back to the SDK
+/// defaults (the migrated behavior: media comes from the event config).
 pub fn team_photo_location_with(
     config: &SdkConfig,
     format: Option<&str>,
@@ -199,8 +199,8 @@ pub fn team_photo_location_with(
     }
 }
 
-/// Builds a sound URL from a contest's own format, falling back to the SDK
-/// defaults (the migrated behavior: media comes from the contest config).
+/// Builds a sound URL from a event's format, falling back to the SDK
+/// defaults (the migrated behavior: media comes from the event config).
 pub fn team_sound_location_with(
     config: &SdkConfig,
     format: Option<&str>,

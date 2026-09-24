@@ -117,7 +117,7 @@ Compatibilidade: durante as fases 2–3, `?contest=` continua funcionando nos en
 
 ## Fora de escopo / em aberto
 
-- Fotos e sons: os formatos de URL passam a vir do config do contest; o hosting dos arquivos continua em volumes globais (`/photos`, `/sounds`).
+- Fotos e sons: os formatos de URL pertencem ao evento e são incluídos na configuração pública de todos os contests; o hosting dos arquivos continua em volumes globais (`/photos`, `/sounds`).
 - Fluxo de publicação S3 (`serve-as-bucket/`): o indexamento de qualquer caminho já funciona (IndexDocument), mas a landing e o `config.json` precisam de conferência nesse modo.
 - TLS (`--tls-cert`/`--tls-key`) não muda.
 - Builds de cliente por evento não são previstos: um build único.

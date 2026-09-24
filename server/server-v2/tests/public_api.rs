@@ -19,6 +19,7 @@ fn auth_header() -> (HeaderName, String) {
 
 fn event_body() -> serde_json::Value {
     serde_json::json!({
+        "photo_url_format": "https://static.example.com/photos/{team_login}.webp",
         "name": "ensaio",
         "problems": ["A", "B"],
         "teams": [
@@ -90,8 +91,7 @@ async fn seed(app: &Router) {
         "codes": ["teambr"],
         "style": "brasil",
         "ouro": 4,
-        "salt": "salt-do-contest",
-        "photo_url_format": "https://static.example.com/photos/{team_login}.webp"
+        "salt": "salt-do-contest"
     });
     let req = json_request(
         Method::POST,

@@ -197,6 +197,8 @@ struct Event {
     penalty_seconds: i64,
     time_seconds: i64,
     salt: Option<String>,
+    photo_url_format: Option<String>,
+    sound_url_format: Option<String>,
     contests: HashMap<String, ContestEntry>,
     /// Runs in arrival order, indexed by id for corrections.
     runs: Vec<Run>,
@@ -281,6 +283,8 @@ impl Engine {
                 penalty_seconds: state.penalty_seconds,
                 time_seconds: state.time_seconds,
                 salt: state.salt,
+                photo_url_format: state.photo_url_format,
+                sound_url_format: state.sound_url_format,
                 contests: HashMap::new(),
                 runs: Vec::new(),
                 runs_index: HashMap::new(),
@@ -314,6 +318,8 @@ impl Engine {
         event.penalty_seconds = state.penalty_seconds;
         event.time_seconds = state.time_seconds;
         event.salt = state.salt;
+        event.photo_url_format = state.photo_url_format;
+        event.sound_url_format = state.sound_url_format;
         event.publish_timer();
         Ok(())
     }
@@ -328,6 +334,8 @@ impl Engine {
             penalty_seconds: event.penalty_seconds,
             time_seconds: event.time_seconds,
             salt: event.salt.clone(),
+            photo_url_format: event.photo_url_format.clone(),
+            sound_url_format: event.sound_url_format.clone(),
         })
     }
 
@@ -819,7 +827,8 @@ impl Engine {
         contest_name: &str,
     ) -> Option<PublicConfig> {
         let inner = self.inner.read().await;
-        let contest = inner.events.get(event_name)?.contests.get(contest_name)?;
+        let event = inner.events.get(event_name)?;
+        let contest = event.contests.get(contest_name)?;
         Some(PublicConfig {
             name: contest.config.name.clone(),
             codes: contest.config.codes.clone(),
@@ -835,8 +844,8 @@ impl Engine {
                     codes: entry.config.codes.clone(),
                 })
                 .collect(),
-            photo_url_format: contest.config.photo_url_format.clone(),
-            sound_url_format: contest.config.sound_url_format.clone(),
+            photo_url_format: event.photo_url_format.clone(),
+            sound_url_format: event.sound_url_format.clone(),
         })
     }
 
@@ -977,6 +986,8 @@ pub fn from_legacy_contest_state(
         penalty_seconds: state.contest.penalty_per_wrong_answer,
         time_seconds: state.time,
         salt: None,
+        photo_url_format: None,
+        sound_url_format: None,
     };
     let runs = state
         .runs
@@ -1087,6 +1098,8 @@ mod tests {
             penalty_seconds: 1200,
             time_seconds: -60,
             salt: None,
+            photo_url_format: None,
+            sound_url_format: None,
         }
     }
 
@@ -1195,8 +1208,6 @@ mod tests {
             ouro: 4,
             prata: 8,
             bronze: 12,
-            photo_url_format: None,
-            sound_url_format: None,
         };
         store
             .create_contest("ensaio", "brasil", contest)
@@ -1213,8 +1224,6 @@ mod tests {
             ouro: 1,
             prata: 2,
             bronze: 3,
-            photo_url_format: None,
-            sound_url_format: None,
         };
         assert!(matches!(
             store.create_contest("ensaio", "vazio", empty).await,
@@ -1333,8 +1342,6 @@ mod tests {
             ouro: 1,
             prata: 2,
             bronze: 3,
-            photo_url_format: None,
-            sound_url_format: None,
         };
         store
             .create_contest("ensaio", "brasil", contest)
@@ -1492,6 +1499,8 @@ impl Engine {
             penalty_seconds: state.penalty_seconds,
             time_seconds: state.time_seconds,
             salt: state.salt,
+            photo_url_format: state.photo_url_format,
+            sound_url_format: state.sound_url_format,
             contests,
             runs,
             runs_index,

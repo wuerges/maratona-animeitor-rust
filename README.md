@@ -123,7 +123,7 @@ make rebuild-docker-image
 docker compose up -d --force-recreate
 ```
 
-Team photos and songs can also be configured through event/contest media URL
+Team photos and songs can also be configured through event media URL
 formats and server asset mounts, described below.
 
 ## Reveleitor hotkeys
@@ -214,13 +214,13 @@ The complete minimal example is shown in the customization section. See
 | Table | Fields |
 | --- | --- |
 | `[event]` | Required `name` and `secret`; optional `score_freeze_time_seconds`, `photo_url_format`, `sound_url_format` |
-| `[[contests]]` | Required unique `name` and `codes`; optional `secret`, `style`, `ouro`, `prata`, `bronze`, and media URL formats |
+| `[[contests]]` | Required unique `name` and `codes`; optional `secret`, `style`, `ouro`, `prata`, `bronze` |
 | `[[contests.sites]]` | Required `name` unique within its contest and `codes`; optional `secret` |
 
 Each site belongs to the most recent `[[contests]]` block. Contest/site secrets
 default to empty strings. Medal settings default to `ouro = 1`, `prata = 2`,
 and `bronze = 3`. Without a freeze override, the webcast supplies the freeze time.
-Contest media formats override event defaults. The contest `style` field names
+Event media formats apply to every contest. The contest `style` field names
 a CSS class for its heading; define that class in `user-styles.css`.
 
 Despite their name, event/contest/site `secret` fields are public key-derivation

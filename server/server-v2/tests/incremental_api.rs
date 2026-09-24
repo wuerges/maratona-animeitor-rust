@@ -451,3 +451,117 @@ async fn admin_command_sequence_uses_real_routes() {
 
 mod common;
 use common::test_store;
+
+#[tokio::test]
+async fn event_media_is_shared_and_can_be_cleared() {
+    let (app, store) = setup().await;
+    assert_eq!(
+        send(
+            &app,
+            "POST",
+            "/internal/contests/e/other",
+            json!({"name":"other","codes":[".*"]})
+        )
+        .await
+        .0,
+        201
+    );
+    let media = json!({
+        "photo_url_format":"https://media.example/photos/{team_login}",
+        "sound_url_format":"https://media.example/music/{team_login}"
+    });
+    let before = store.get_event("e").await.unwrap().unwrap();
+    let (status, body) = send(&app, "PATCH", "/internal/events/e", media.clone()).await;
+    assert_eq!(status, 200);
+    assert_eq!(body["data"]["photo_url_format"], media["photo_url_format"]);
+    let after = store.get_event("e").await.unwrap().unwrap();
+    assert_eq!(after.teams, before.teams);
+    assert_eq!(after.time_seconds, before.time_seconds);
+    assert_eq!(
+        send(
+            &app,
+            "PATCH",
+            "/internal/events/e",
+            json!({"time_seconds":0})
+        )
+        .await
+        .0,
+        200
+    );
+    for contest in ["c", "other"] {
+        let (status, public) = send(
+            &app,
+            "GET",
+            &format!("/api/events/e/contests/{contest}/config"),
+            Value::Null,
+        )
+        .await;
+        assert_eq!(status, 200);
+        assert_eq!(
+            public["data"]["photo_url_format"],
+            media["photo_url_format"]
+        );
+        assert_eq!(
+            public["data"]["sound_url_format"],
+            media["sound_url_format"]
+        );
+        let (_, internal) = send(
+            &app,
+            "GET",
+            &format!("/internal/contests/e/{contest}"),
+            Value::Null,
+        )
+        .await;
+        assert!(internal["data"].get("photo_url_format").is_none());
+        for method in ["PATCH", "PUT"] {
+            let mut body = media.clone();
+            body["name"] = json!(contest);
+            body["codes"] = json!([".*"]);
+            assert_eq!(
+                send(
+                    &app,
+                    method,
+                    &format!("/internal/contests/e/{contest}"),
+                    body
+                )
+                .await
+                .0,
+                400
+            );
+        }
+    }
+    assert_eq!(
+        send(
+            &app,
+            "PATCH",
+            "/internal/events/e",
+            json!({"photo_url_format":null})
+        )
+        .await
+        .0,
+        200
+    );
+    for contest in ["c", "other"] {
+        let public = store.public_config("e", contest).await.unwrap().unwrap();
+        assert!(public.photo_url_format.is_none());
+        assert_eq!(
+            public.sound_url_format.as_deref(),
+            media["sound_url_format"].as_str()
+        );
+    }
+    let mut replacement = serde_json::to_value(after).unwrap();
+    replacement
+        .as_object_mut()
+        .unwrap()
+        .remove("photo_url_format");
+    replacement
+        .as_object_mut()
+        .unwrap()
+        .remove("sound_url_format");
+    assert_eq!(
+        send(&app, "PUT", "/internal/events/e", replacement).await.0,
+        200
+    );
+    let event = store.get_event("e").await.unwrap().unwrap();
+    assert!(event.photo_url_format.is_none() && event.sound_url_format.is_none());
+}

@@ -24,11 +24,70 @@ pub struct StoredContest {
     pub sites: BTreeMap<String, SiteConfig>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct StoredEvent {
     pub state: EventState,
     pub contests: BTreeMap<String, StoredContest>,
     pub runs: Vec<Run>,
+}
+
+impl<'de> Deserialize<'de> for StoredEvent {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        // Before media became event-scoped, templates lived in each contest.
+        // Explicit event values (including null) always win over legacy values.
+        let mut value = serde_json::Value::deserialize(deserializer)?;
+        for field in ["photo_url_format", "sound_url_format"] {
+            let mut legacy = None;
+            let mut conflicting = false;
+            if let Some(contests) = value
+                .get_mut("contests")
+                .and_then(serde_json::Value::as_object_mut)
+            {
+                for contest in contests.values_mut() {
+                    if let Some(old) = contest
+                        .get_mut("config")
+                        .and_then(serde_json::Value::as_object_mut)
+                        .and_then(|c| c.remove(field))
+                    {
+                        if !old.is_null() {
+                            match &legacy {
+                                Some(previous) if previous != &old => {
+                                    conflicting = true;
+                                }
+                                None => legacy = Some(old),
+                                _ => {}
+                            }
+                        }
+                    }
+                }
+            }
+            if value["state"].get(field).is_none() {
+                if conflicting {
+                    return Err(serde::de::Error::custom(format!(
+                        "conflicting legacy {field} values; configure one event-level value"
+                    )));
+                }
+                if let Some(old) = legacy {
+                    value["state"]
+                        .as_object_mut()
+                        .ok_or_else(|| serde::de::Error::custom("invalid event state"))?
+                        .insert(field.into(), old);
+                }
+            }
+        }
+        #[derive(Deserialize)]
+        struct Wire {
+            state: EventState,
+            contests: BTreeMap<String, StoredContest>,
+            runs: Vec<Run>,
+        }
+        let wire: Wire = serde_json::from_value(value).map_err(serde::de::Error::custom)?;
+        Ok(Self {
+            state: wire.state,
+            contests: wire.contests,
+            runs: wire.runs,
+        })
+    }
 }
 
 impl StoredEvent {
@@ -89,4 +148,39 @@ pub(crate) async fn observe<T>(
         metrics::counter!("database_errors_total", "operation" => operation).increment(1);
     }
     result
+}
+
+#[cfg(test)]
+mod media_migration_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn legacy_templates_migrate_and_explicit_event_values_win() {
+        let mut value = json!({
+            "state":{"name":"e","problems":[],"teams":[],"score_freeze_time_seconds":100,"penalty_seconds":1200},
+            "contests":{
+                "a":{"config":{"name":"a","codes":[],"photo_url_format":"https://media/{team_login}"},"sites":{}},
+                "b":{"config":{"name":"b","codes":[],"photo_url_format":"https://media/{team_login}"},"sites":{}}
+            },
+            "runs":[]
+        });
+        let event: StoredEvent = serde_json::from_value(value.clone()).unwrap();
+        assert_eq!(
+            event.state.photo_url_format.as_deref(),
+            Some("https://media/{team_login}")
+        );
+        let roundtrip = serde_json::to_value(event).unwrap();
+        assert!(
+            roundtrip["contests"]["a"]["config"]
+                .get("photo_url_format")
+                .is_none()
+        );
+        value["contests"]["b"]["config"]["photo_url_format"] =
+            json!("https://different/{team_login}");
+        assert!(serde_json::from_value::<StoredEvent>(value.clone()).is_err());
+        value["state"]["photo_url_format"] = serde_json::Value::Null;
+        let event: StoredEvent = serde_json::from_value(value).unwrap();
+        assert!(event.state.photo_url_format.is_none());
+    }
 }

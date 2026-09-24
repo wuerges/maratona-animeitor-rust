@@ -24,8 +24,8 @@ fn config() -> &'static client_sdk::SdkConfig {
     CONFIG.get().expect("sdk config not initialized")
 }
 
-/// The public config of the contest being shown; its photo/sound formats
-/// override the deploy-level defaults (media comes from the contest config).
+/// The public config of the contest being shown; its event photo/sound formats
+/// override the deploy-level defaults (media comes from the event config).
 static MEDIA: RwLock<Option<PublicConfig>> = RwLock::new(None);
 
 pub async fn create_events() -> Vec<String> {

@@ -46,7 +46,9 @@ curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" \
     "teams":[{"login":"teambr001","escola":"Example University","nome":"Example Team"}],
     "score_freeze_time_seconds":14400,
     "penalty_seconds":1200,
-    "time_seconds":-60
+    "time_seconds":-60,
+    "photo_url_format":"https://media.example.com/photos/{team_login}.webp",
+    "sound_url_format":"https://media.example.com/sounds/{team_login}.mp3"
   }'
 ```
 
@@ -59,9 +61,8 @@ curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" \
   -H 'Content-Type: application/json' -X POST \
   "$ANIMEITOR_URL/internal/contests/regional-2026/brasil" -d '{
     "name":"brasil","codes":["^teambr"],
-    "ouro":1,"prata":2,"bronze":3,
-    "photo_url_format":"https://media.example.com/photos/{team_login}.webp",
-    "sound_url_format":"https://media.example.com/sounds/{team_login}.mp3"
+    "ouro":1,"prata":2,"bronze":3
+
   }'
 
 curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" \
@@ -71,7 +72,7 @@ curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" \
   }'
 ```
 
-Each returns `201` with its configuration under `data`. Parents must already exist (`404` otherwise). `ouro`, `prata`, and `bronze` are inclusive 1-based medal thresholds, defaulting to 1, 2, and 3. `style` is an optional frontend style name. Media templates substitute `{team_login}`; absent templates default to `photos/{team_login}.webp` and `sounds/{team_login}.mp3` at the API origin. The example media domain is illustrative; replace it or omit those fields.
+Each returns `201` with its configuration under `data`. Parents must already exist (`404` otherwise). `ouro`, `prata`, and `bronze` are inclusive 1-based medal thresholds, defaulting to 1, 2, and 3. `style` is an optional frontend style name. Event media templates substitute `{team_login}`; absent templates default to `photos/{team_login}.webp` and `sounds/{team_login}.mp3` at the API origin. The example media domain is illustrative; replace it or omit those fields.
 
 ### 4. Verify configuration and obtain ready-to-use revelation URLs
 

@@ -73,6 +73,8 @@ async fn main() -> color_eyre::eyre::Result<()> {
         event.configured(),
         event.event.score_freeze_time_seconds,
     );
+    feeder.photo_url_format = event.event.photo_url_format;
+    feeder.sound_url_format = event.event.sound_url_format;
     feeder.event_secret = event.event.secret;
     feeder.db_update_loop(&source).await;
     Ok(())
@@ -85,6 +87,8 @@ struct Feeder {
     /// Completed once per feeder process, before publishing the first valid source snapshot.
     reset_complete: bool,
     event_secret: String,
+    photo_url_format: Option<String>,
+    sound_url_format: Option<String>,
     client: reqwest::Client,
     internal_token: String,
     internal_user: String,
@@ -116,6 +120,8 @@ impl Feeder {
         Feeder {
             reset_complete: false,
             event_secret: String::new(),
+            photo_url_format: None,
+            sound_url_format: None,
             client,
             internal_token: internal_token.to_string(),
             internal_user: internal_user.to_string(),
@@ -228,7 +234,9 @@ impl Feeder {
 
     /// Whether two event states differ only in the time (and the salt).
     fn same_static(a: &EventState, b: &EventState) -> bool {
-        a.salt == b.salt
+        a.photo_url_format == b.photo_url_format
+            && a.sound_url_format == b.sound_url_format
+            && a.salt == b.salt
             && a.name == b.name
             && a.problems == b.problems
             && a.teams == b.teams
@@ -433,6 +441,8 @@ impl Feeder {
                         state.score_freeze_time_seconds = freeze;
                     }
                     state.salt = Some(self.event_secret.clone());
+                    state.photo_url_format = self.photo_url_format.clone();
+                    state.sound_url_format = self.sound_url_format.clone();
                     // Load the source successfully before deleting existing data.
                     self.publish_snapshot(state, runs).await;
                 }

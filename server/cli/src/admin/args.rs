@@ -13,6 +13,12 @@ pub struct AdminArgs {
     /// Server configuration; relative paths inside it are resolved from this file.
     #[arg(long, global = true, default_value = "server.toml")]
     pub server_config: PathBuf,
+    /// Override server_url from the configuration for this invocation (HTTPS).
+    #[arg(long, global = true)]
+    pub server_url: Option<String>,
+    /// Override the authentication token for this invocation; keep the configured username.
+    #[arg(long, global = true, value_parser = clap::builder::NonEmptyStringValueParser::new())]
+    pub token: Option<String>,
     /// Emit API JSON envelopes for automation (errors go to stderr).
     #[arg(long, global = true)]
     pub json: bool,
@@ -120,6 +126,14 @@ pub struct EventFields {
     #[arg(long)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub salt: Option<String>,
+    #[arg(long)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Photo URL template containing {team_login}.
+    pub photo_url_format: Option<String>,
+    #[arg(long)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Audio URL template containing {team_login}.
+    pub sound_url_format: Option<String>,
 }
 
 #[derive(Debug, Args, Serialize, Default)]
@@ -146,14 +160,6 @@ pub struct ContestFields {
     #[serde(skip_serializing_if = "Option::is_none", rename = "bronze")]
     /// Inclusive bronze placement threshold (API bronze).
     pub bronze: Option<usize>,
-    #[arg(long)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    /// Photo URL template containing {team_login}.
-    pub photo_url_format: Option<String>,
-    #[arg(long)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    /// Audio URL template containing {team_login}.
-    pub sound_url_format: Option<String>,
 }
 
 #[derive(Debug, Args, Serialize, Default)]
