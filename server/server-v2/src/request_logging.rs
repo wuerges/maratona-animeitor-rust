@@ -20,6 +20,8 @@ pub(crate) fn layer(router: Router) -> Router {
 }
 
 async fn log_request(mut request: Request<Body>, next: Next) -> Response {
+    let internal =
+        request.uri().path() == "/internal" || request.uri().path().starts_with("/internal/");
     let header = request
         .headers()
         .get("x-request-id")
@@ -47,14 +49,26 @@ async fn log_request(mut request: Request<Body>, next: Next) -> Response {
     request.extensions_mut().insert(RequestHub(hub.clone()));
     async move {
         let start = Instant::now();
-        tracing::info!("request started");
+        if internal {
+            tracing::info!("request started");
+        }
         let mut response = next.run(request).await;
         response.headers_mut().insert("x-request-id", header);
-        tracing::info!(
-            status = response.status().as_u16(),
-            duration_ms = start.elapsed().as_secs_f64() * 1000.0,
-            "request completed"
-        );
+        if internal {
+            tracing::info!(
+                status = response.status().as_u16(),
+                duration_ms = start.elapsed().as_secs_f64() * 1000.0,
+                "request completed"
+            );
+        } else if response.status().is_server_error() {
+            // The originating error is reported separately. Keep this access-log
+            // summary as a breadcrumb rather than creating a duplicate Sentry issue.
+            tracing::warn!(
+                status = response.status().as_u16(),
+                duration_ms = start.elapsed().as_secs_f64() * 1000.0,
+                "request failed"
+            );
+        }
         response
     }
     .instrument(span)
@@ -104,6 +118,7 @@ mod tests {
         });
         let credentials = base64::engine::general_purpose::STANDARD.encode("admin:secret-token");
         let mut ids = Vec::new();
+        let mut silent_ids = Vec::new();
         for (path, auth, status) in [
             (
                 "/internal/events?secret=query-secret",
@@ -129,7 +144,59 @@ mod tests {
                 .to_owned();
             assert_eq!(id.len(), 21);
             assert!(!ids.contains(&id));
-            ids.push(id);
+            if path.starts_with("/internal/") {
+                ids.push(id);
+            } else {
+                silent_ids.push(id);
+            }
+        }
+        let public = layer(
+            Router::new()
+                .route(
+                    "/api/ok",
+                    axum::routing::get(|| async { axum::http::StatusCode::OK }),
+                )
+                .route(
+                    "/api/redirect",
+                    axum::routing::get(|| async { axum::http::StatusCode::TEMPORARY_REDIRECT }),
+                )
+                .route(
+                    "/api/forbidden",
+                    axum::routing::get(|| async { axum::http::StatusCode::FORBIDDEN }),
+                )
+                .route(
+                    "/api/failure",
+                    axum::routing::get(|| async { axum::http::StatusCode::INTERNAL_SERVER_ERROR }),
+                )
+                .route(
+                    "/asset-failure",
+                    axum::routing::get(|| async { axum::http::StatusCode::SERVICE_UNAVAILABLE }),
+                ),
+        );
+        for (path, logged) in [
+            ("/api/ok", false),
+            ("/api/redirect", false),
+            ("/api/forbidden", false),
+            ("/internalized", false),
+            ("/internal", true),
+            ("/internal/missing", true),
+            ("/api/failure", true),
+            ("/asset-failure", true),
+        ] {
+            let response = public
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            let id = response.headers()["x-request-id"]
+                .to_str()
+                .unwrap()
+                .to_owned();
+            if logged {
+                ids.push(id);
+            } else {
+                silent_ids.push(id);
+            }
         }
         let logs = String::from_utf8(output.0.lock().unwrap().clone()).unwrap();
         for id in ids {
@@ -137,7 +204,13 @@ mod tests {
         }
         assert!(logs.contains("username=\"admin\""));
         assert!(logs.contains("status=401"));
-        assert!(logs.contains("status=404"));
+        // Internal 404s are logged; ordinary public responses produce no access logs.
+        for id in silent_ids {
+            assert!(!logs.contains(&id));
+        }
+        assert!(logs.contains("status=500"));
+        assert!(logs.contains("status=503"));
+        assert!(logs.contains("request failed"));
         for secret in ["secret-token", "query-secret", &credentials] {
             assert!(!logs.contains(secret));
         }

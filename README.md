@@ -435,10 +435,14 @@ directory. Node and Playwright are not required.
 
 ## Request logs
 
-The server logs each HTTP request at INFO, including public and internal API
-requests, assets, preflights, and rejected requests. A caller-supplied
+The server logs starts and completions for `/internal` and `/internal/...`
+requests at INFO, including rejected requests. Public routes and assets log only
+5xx response summaries at WARN; successful requests, redirects, and expected 4xx
+responses produce no access logs. Application errors continue to be logged and
+reported to Sentry separately, without duplicate issues for response summaries.
+A caller-supplied
 `x-request-id` is preserved; when absent, the server generates a fresh 21-character
-Nano ID. The same ID is logged, attached to the request, returned in the response,
+Nano ID. The same ID is included when logging, attached to the request, returned in the response,
 and exposed to browser clients.
 
 Request spans include `request_id`, `method`, and `path`. After successful internal
