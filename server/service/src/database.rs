@@ -184,3 +184,16 @@ mod media_migration_tests {
         assert!(event.state.photo_url_format.is_none());
     }
 }
+
+/// Report infrastructure failures; ordinary missing/duplicate resources are not incidents.
+pub fn report_error(error: &DatabaseError) {
+    if matches!(
+        error,
+        DatabaseError::Unavailable(_) | DatabaseError::Corrupt(_)
+    ) {
+        tracing::error!(
+            error = error as &dyn std::error::Error,
+            "database operation failed"
+        );
+    }
+}

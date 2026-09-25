@@ -447,5 +447,29 @@ Completion logs include `status` and `duration_ms` (time until the response is
 ready, not the lifetime of a streaming body or WebSocket). Credentials, request
 bodies, and query strings are not included in these access logs.
 
-Logging defaults to INFO. Set `RUST_LOG` to override the filter; request logging
+Console logging defaults to INFO. Set `RUST_LOG` to override its filter; request logging
 uses the `server_v2::request_logging` target.
+
+## Sentry error reporting
+
+Set `SENTRY_DSN` in the server or feeder process environment to enable reporting.
+Set `SENTRY_ENVIRONMENT` to distinguish deployments. Startup prints a warning when
+Sentry is disabled because the DSN is absent or invalid; it never prints the DSN.
+
+Rust panics, fatal returned startup/server errors, and database infrastructure
+failures are reported with stack traces. Missing or duplicate resources are not
+reported as incidents. Detached database mutations report failures even after
+the requesting client disconnects, without reporting them again in the handler.
+
+`RUST_LOG` controls console output only; it cannot disable Sentry error reporting.
+Request events include a `request_id` tag and, after successful internal
+authentication, Sentry's user `username`. Request context is isolated between
+requests and carried into detached mutation tasks. Credentials and query strings
+are not added to Sentry request context.
+
+Run the local capture checks with `cargo test -p cli --lib sentry::tests` and
+`cargo test -p server-v2 --test sentry_reporting --test database_service`.
+These use an in-memory transport and send nothing to Sentry. To verify deployment
+connectivity, run a separate server process with the intended Sentry environment
+and a deliberately nonexistent `--server-config` path, then confirm its
+`application failed` event arrives. Do not replace the running server for this check.

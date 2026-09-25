@@ -49,6 +49,22 @@ impl FromRequestParts<AppState> for InternalAuth {
                 {
                     span.0.record("username", name.as_str());
                 }
+                // sentry-tracing forks a temporary hub on each span entry. Update
+                // both the request hub (future polls) and current hub (this poll).
+                if let Some(hub) = parts.extensions.get::<crate::request_logging::RequestHub>() {
+                    hub.0.configure_scope(|scope| {
+                        scope.set_user(Some(sentry::User {
+                            username: Some(name.clone()),
+                            ..Default::default()
+                        }))
+                    });
+                }
+                sentry::configure_scope(|scope| {
+                    scope.set_user(Some(sentry::User {
+                        username: Some(name),
+                        ..Default::default()
+                    }));
+                });
                 return Ok(InternalAuth);
             }
         }
@@ -85,28 +101,28 @@ fn error_json(status: StatusCode, code: &str, message: impl Into<String>) -> Res
 }
 
 pub(crate) fn store_error(err: StoreError) -> Response {
+    if let StoreError::Storage(ref error) = err {
+        service::database::report_error(error);
+    }
     match err {
-        StoreError::Storage(error) => {
-            tracing::error!(%error, "database operation failed");
-            match error {
-                service::database::DatabaseError::Unavailable(_) => error_json(
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    "storage_unavailable",
-                    "database is unavailable",
-                ),
-                service::database::DatabaseError::Corrupt(_) => error_json(
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "storage_error",
-                    "stored data could not be read",
-                ),
-                service::database::DatabaseError::AlreadyExists => {
-                    error_json(StatusCode::CONFLICT, "conflict", "event already exists")
-                }
-                service::database::DatabaseError::NotFound => {
-                    error_json(StatusCode::NOT_FOUND, "not_found", "event does not exist")
-                }
+        StoreError::Storage(error) | StoreError::ReportedStorage(error) => match error {
+            service::database::DatabaseError::Unavailable(_) => error_json(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "storage_unavailable",
+                "database is unavailable",
+            ),
+            service::database::DatabaseError::Corrupt(_) => error_json(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "storage_error",
+                "stored data could not be read",
+            ),
+            service::database::DatabaseError::AlreadyExists => {
+                error_json(StatusCode::CONFLICT, "conflict", "event already exists")
             }
-        }
+            service::database::DatabaseError::NotFound => {
+                error_json(StatusCode::NOT_FOUND, "not_found", "event does not exist")
+            }
+        },
         StoreError::Conflict(message) | StoreError::AlreadyExists(message) => {
             error_json(StatusCode::CONFLICT, "conflict", message)
         }

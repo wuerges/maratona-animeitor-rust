@@ -34,6 +34,9 @@ pub use data::event::{
 pub enum StoreError {
     #[error(transparent)]
     Storage(#[from] crate::database::DatabaseError),
+    /// A detached mutation already reported this failure; HTTP mapping must not report it twice.
+    #[error(transparent)]
+    ReportedStorage(crate::database::DatabaseError),
     #[error("{0}")]
     Conflict(String),
     #[error("{0} já existe")]

@@ -5,11 +5,15 @@ use axum::{
     middleware::{self, Next},
     response::Response,
 };
+use sentry::SentryFutureExt;
 use std::time::Instant;
 use tracing::Instrument;
 
 #[derive(Clone)]
 pub(crate) struct RequestSpan(pub tracing::Span);
+
+#[derive(Clone)]
+pub(crate) struct RequestHub(pub std::sync::Arc<sentry::Hub>);
 
 pub(crate) fn layer(router: Router) -> Router {
     router.layer(middleware::from_fn(log_request))
@@ -24,14 +28,23 @@ async fn log_request(mut request: Request<Body>, next: Next) -> Response {
             HeaderValue::from_str(&nanoid::nanoid!()).expect("Nano ID is a valid header")
         });
     request.headers_mut().insert("x-request-id", header.clone());
-    let span = tracing::info_span!(
-        "http_request",
-        request_id = ?header,
-        method = %request.method(),
-        path = %request.uri().path(),
-        username = tracing::field::Empty,
-    );
+    let hub = std::sync::Arc::new(sentry::Hub::new_from_top(sentry::Hub::current()));
+    hub.configure_scope(|scope| {
+        scope.set_tag("request_id", header.to_str().unwrap_or("<non-UTF8>"));
+        scope.set_extra("method", request.method().to_string().into());
+        scope.set_extra("path", request.uri().path().to_owned().into());
+    });
+    let span = sentry::Hub::run(hub.clone(), || {
+        tracing::info_span!(
+            "http_request",
+            request_id = ?header,
+            method = %request.method(),
+            path = %request.uri().path(),
+            username = tracing::field::Empty,
+        )
+    });
     request.extensions_mut().insert(RequestSpan(span.clone()));
+    request.extensions_mut().insert(RequestHub(hub.clone()));
     async move {
         let start = Instant::now();
         tracing::info!("request started");
@@ -45,6 +58,7 @@ async fn log_request(mut request: Request<Body>, next: Next) -> Response {
         response
     }
     .instrument(span)
+    .bind_hub(hub)
     .await
 }
 

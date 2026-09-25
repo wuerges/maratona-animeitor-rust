@@ -123,7 +123,7 @@ async fn failed_write_does_not_publish_candidate_or_change_data() {
     db.fail_write.store(true, Ordering::SeqCst);
     assert!(matches!(
         store.patch_time("e", 42).await,
-        Err(StoreError::Storage(_))
+        Err(StoreError::ReportedStorage(_))
     ));
     assert_eq!(
         store
@@ -289,4 +289,57 @@ async fn sqlite_service_restart_restores_all_resources_and_revelation_urls() {
     );
     let mut runs = store.subscribe_runs("e").await.unwrap().unwrap();
     assert_eq!(runs.recv().await.unwrap().id, 1);
+}
+
+#[test]
+fn sentry_reports_detached_failure_once_with_request_context() {
+    use sentry::SentryFutureExt;
+    use tracing::Instrument;
+    use tracing_subscriber::prelude::*;
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    tracing_subscriber::registry()
+        .with(sentry_tracing::layer())
+        .init();
+    let events = sentry::test::with_captured_events(|| {
+        runtime.block_on(async {
+            let (db, store) = setup().await;
+            sentry::configure_scope(|scope| {
+                scope.set_tag("request_id", "cancelled-request");
+                scope.set_user(Some(sentry::User {
+                    username: Some("admin".into()),
+                    ..Default::default()
+                }));
+            });
+            db.pause_write.store(true, Ordering::SeqCst);
+            db.fail_write.store(true, Ordering::SeqCst);
+            let barrier = store.clone();
+            let request = tokio::spawn(
+                async move { store.patch_time("e", 42).await }
+                    .instrument(tracing::info_span!(
+                        "request",
+                        request_id = "cancelled-request"
+                    ))
+                    .bind_hub(sentry::Hub::current()),
+            );
+            db.entered.notified().await;
+            request.abort();
+            let _ = request.await;
+            db.release.notify_one();
+            barrier.current_timer("e").await.unwrap();
+        })
+    });
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].tags["request_id"], "cancelled-request");
+    assert_eq!(
+        events[0].user.as_ref().unwrap().username.as_deref(),
+        Some("admin")
+    );
+    assert!(events[0].exception.iter().any(|e| {
+        e.value
+            .as_deref()
+            .is_some_and(|s| s.contains("injected write failure"))
+    }));
 }

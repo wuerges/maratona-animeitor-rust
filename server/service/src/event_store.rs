@@ -9,8 +9,10 @@ pub use engine::{
     deployment_site_key, from_legacy_contest_state,
 };
 use regex::RegexSet;
+use sentry::SentryFutureExt;
 use std::{future::Future, pin::Pin, sync::Arc};
 use tokio::sync::{Mutex, broadcast};
+use tracing::Instrument;
 
 #[derive(Clone)]
 pub struct EventStore {
@@ -65,48 +67,70 @@ impl EventStore {
     ) -> Result<T, StoreError> {
         let this = self.clone();
         // Detaching the caller must not cancel persistence between commit and publish.
-        tokio::spawn(async move {
-            let _guard = this.gate.lock().await;
-            let before = crate::database::observe("read", this.database.read(&name)).await?;
-            let stage = engine::Engine::staging((*this.salt).clone());
-            stage
-                .install(&name, before.clone())
-                .await
-                .map_err(|error| {
-                    StoreError::Storage(DatabaseError::Corrupt(format!(
-                        "invalid stored event: {error}"
-                    )))
-                })?;
-            let result = operation(stage.clone()).await?;
-            let after = stage.snapshot(&name).await;
-            if before != after {
-                let persisted = match (&before, &after) {
-                    (None, Some(event)) => {
-                        crate::database::observe("create", this.database.create(event.clone()))
-                            .await
+        let hub = Arc::new(sentry::Hub::new_from_top(sentry::Hub::current()));
+        tokio::spawn(
+            async move {
+                let result = async {
+                    let _guard = this.gate.lock().await;
+                    let before =
+                        crate::database::observe("read", this.database.read(&name)).await?;
+                    let stage = engine::Engine::staging((*this.salt).clone());
+                    stage
+                        .install(&name, before.clone())
+                        .await
+                        .map_err(|error| {
+                            StoreError::Storage(DatabaseError::Corrupt(format!(
+                                "invalid stored event: {error}"
+                            )))
+                        })?;
+                    let result = operation(stage.clone()).await?;
+                    let after = stage.snapshot(&name).await;
+                    if before != after {
+                        let persisted = match (&before, &after) {
+                            (None, Some(event)) => {
+                                crate::database::observe(
+                                    "create",
+                                    this.database.create(event.clone()),
+                                )
+                                .await
+                            }
+                            (Some(_), Some(event)) => {
+                                crate::database::observe(
+                                    "replace",
+                                    this.database.replace(event.clone()),
+                                )
+                                .await
+                            }
+                            (Some(_), None) => {
+                                crate::database::observe("delete", this.database.delete(&name))
+                                    .await
+                                    .map(|_| ())
+                            }
+                            (None, None) => Ok(()),
+                        };
+                        if let Err(err) = persisted {
+                            // A commit may have succeeded despite a reported I/O failure.
+                            // Close old streams and recover from the authoritative database.
+                            this.live.install(&name, None).await?;
+                            let _ = this.refresh(&name).await;
+                            return Err(err.into());
+                        }
                     }
-                    (Some(_), Some(event)) => {
-                        crate::database::observe("replace", this.database.replace(event.clone()))
-                            .await
-                    }
-                    (Some(_), None) => {
-                        crate::database::observe("delete", this.database.delete(&name))
-                            .await
-                            .map(|_| ())
-                    }
-                    (None, None) => Ok(()),
-                };
-                if let Err(err) = persisted {
-                    // A commit may have succeeded despite a reported I/O failure.
-                    // Close old streams and recover from the authoritative database.
-                    this.live.install(&name, None).await?;
-                    let _ = this.refresh(&name).await;
-                    return Err(err.into());
+                    this.live.install(&name, after).await?;
+                    Ok(result)
                 }
+                .await;
+                result.map_err(|error| match error {
+                    StoreError::Storage(error) => {
+                        crate::database::report_error(&error);
+                        StoreError::ReportedStorage(error)
+                    }
+                    error => error,
+                })
             }
-            this.live.install(&name, after).await?;
-            Ok(result)
-        })
+            .in_current_span()
+            .bind_hub(hub),
+        )
         .await
         .map_err(|_| {
             StoreError::Storage(DatabaseError::Unavailable("database task stopped".into()))

@@ -17,7 +17,14 @@ struct Args {
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
     let _guard = sentry::setup();
-    let args = Args::parse();
+    let result = run(Args::parse()).await;
+    if let Err(error) = &result {
+        sentry::report_failure(error.as_ref());
+    }
+    result
+}
+
+async fn run(args: Args) -> color_eyre::eyre::Result<()> {
     let config = ServerConfig::load(&args.server_config)?;
     let tokens = config
         .tokens

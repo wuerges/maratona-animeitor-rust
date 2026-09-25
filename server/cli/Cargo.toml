@@ -25,6 +25,7 @@ sentry.workspace = true
 sentry-tracing.workspace = true
 
 [dev-dependencies]
+sentry = { workspace = true, features = ["test"] }
 database-memory.workspace = true
 axum.workspace = true
 rstest.workspace = true

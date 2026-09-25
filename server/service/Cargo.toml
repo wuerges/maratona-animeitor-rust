@@ -5,6 +5,7 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
+sentry.workspace = true
 tokio.workspace = true
 zip.workspace = true
 html-escape.workspace = true

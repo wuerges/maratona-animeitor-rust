@@ -59,7 +59,14 @@ mod tests {
 #[tokio::main]
 async fn main() -> color_eyre::eyre::Result<()> {
     let _guard = sentry::setup();
-    let args = Args::parse();
+    let result = run(Args::parse()).await;
+    if let Err(error) = &result {
+        sentry::report_failure(error.as_ref());
+    }
+    result
+}
+
+async fn run(args: Args) -> color_eyre::eyre::Result<()> {
     let event = EventConfig::load(&args.event_config)?;
     let server = ServerConfig::load(&args.server_config)?;
     let source = EventSecrets::source(&args.event_secrets, &event.event.name)?;

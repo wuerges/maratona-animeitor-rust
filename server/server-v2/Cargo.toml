@@ -11,6 +11,7 @@ name = "animeitor-server"
 path = "src/main.rs"
 
 [dependencies]
+sentry.workspace = true
 database-memory.workspace = true
 database-sqlite.workspace = true
 axum.workspace = true
@@ -47,6 +48,8 @@ cli.workspace = true
 sqlite-tests = []
 
 [dev-dependencies]
+sentry-tracing.workspace = true
+sentry = { workspace = true, features = ["test"] }
 tempfile = "3"
 http-body-util.workspace = true
 tokio-tungstenite.workspace = true
