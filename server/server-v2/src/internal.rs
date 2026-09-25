@@ -37,18 +37,22 @@ impl FromRequestParts<AppState> for InternalAuth {
         parts: &mut Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let authorized = basic_credentials(parts).is_some_and(|(name, password)| {
-            state
+        if let Some((name, password)) = basic_credentials(parts) {
+            if state
                 .internal_tokens
                 .get(&name)
                 .is_some_and(|expected| expected == &password)
-        });
-
-        if authorized {
-            Ok(InternalAuth)
-        } else {
-            Err(unauthorized_response())
+            {
+                if let Some(span) = parts
+                    .extensions
+                    .get::<crate::request_logging::RequestSpan>()
+                {
+                    span.0.record("username", name.as_str());
+                }
+                return Ok(InternalAuth);
+            }
         }
+        Err(unauthorized_response())
     }
 }
 

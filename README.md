@@ -432,3 +432,20 @@ browser session with network access blocked. It checks reveal controls, media,
 styles, restart behavior, malformed files, and retrying failed exports. Test
 artifacts (including a screenshot and driver log) are kept in a printed temporary
 directory. Node and Playwright are not required.
+
+## Request logs
+
+The server logs each HTTP request at INFO, including public and internal API
+requests, assets, preflights, and rejected requests. A caller-supplied
+`x-request-id` is preserved; when absent, the server generates a fresh 21-character
+Nano ID. The same ID is logged, attached to the request, returned in the response,
+and exposed to browser clients.
+
+Request spans include `request_id`, `method`, and `path`. After successful internal
+Basic authentication, `username` contains the configured token's username.
+Completion logs include `status` and `duration_ms` (time until the response is
+ready, not the lifetime of a streaming body or WebSocket). Credentials, request
+bodies, and query strings are not included in these access logs.
+
+Logging defaults to INFO. Set `RUST_LOG` to override the filter; request logging
+uses the `server_v2::request_logging` target.

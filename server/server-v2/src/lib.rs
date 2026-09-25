@@ -5,6 +5,7 @@ pub mod metrics;
 pub mod openapi;
 pub mod public;
 mod remote_control;
+mod request_logging;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -18,7 +19,6 @@ use axum::response::{IntoResponse, Response};
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
-use tower_http::trace::TraceLayer;
 
 use service::event_store::EventStore;
 use service::http::load_rustls_config;
@@ -46,6 +46,10 @@ impl FromRef<AppState> for EventStore {
 /// Builds the router with the `/api` and `/internal` scopes. The state is
 /// provided here: the result is a `Router<()>` ready to serve.
 pub fn app(state: AppState) -> Router {
+    request_logging::layer(api_router(state))
+}
+
+fn api_router(state: AppState) -> Router {
     Router::new()
         .nest("/api", public::router())
         .nest("/internal", internal::router())
@@ -136,14 +140,15 @@ pub async fn serve_config(
         internal_tokens: Arc::new(internal_tokens),
     };
 
-    let mut app = app(state);
+    let mut app = api_router(state);
     let mut loaded_assets = HashMap::new();
     for volume in volumes {
         app = app.merge(volume_router(volume, &mut loaded_assets));
     }
-    let app = app
-        .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::permissive());
+    let app = app.layer(
+        CorsLayer::permissive()
+            .expose_headers([axum::http::HeaderName::from_static("x-request-id")]),
+    );
 
     match tls {
         Some(HttpTlsConfig {
@@ -164,9 +169,10 @@ pub async fn serve_config(
             });
 
             let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            let http_app = app
-                .clone()
-                .layer(middleware::from_fn(reject_internal_over_http));
+            let http_app = request_logging::layer(
+                app.clone()
+                    .layer(middleware::from_fn(reject_internal_over_http)),
+            );
             let http = axum::serve(listener, http_app).with_graceful_shutdown(async {
                 let _ = tokio::signal::ctrl_c().await;
             });
@@ -176,13 +182,14 @@ pub async fn serve_config(
                 axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(tls_config)),
             )
             .handle(handle)
-            .serve(app.into_make_service());
+            .serve(request_logging::layer(app).into_make_service());
 
             tokio::try_join!(http, https)?;
         }
         None => {
             let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            let http_app = app.layer(middleware::from_fn(reject_internal_over_http));
+            let http_app =
+                request_logging::layer(app.layer(middleware::from_fn(reject_internal_over_http)));
             axum::serve(listener, http_app)
                 .with_graceful_shutdown(async {
                     let _ = tokio::signal::ctrl_c().await;
