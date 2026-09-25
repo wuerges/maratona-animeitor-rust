@@ -107,11 +107,11 @@ struct MemoryMount {
 /// mount); `spa_fallback` serves `index.html` for unmatched paths, which is
 /// how the client SPA handles `/animeitor/{event}/{contest}` routes.
 pub fn router(assets: Arc<MemoryFiles>, mount: &str, spa_fallback: bool) -> Router {
-    Router::new().fallback(serve).with_state(MemoryMount {
+    Router::new().fallback_service(axum::routing::get(serve).with_state(MemoryMount {
         assets,
         mount: mount.to_string(),
         spa_fallback,
-    })
+    }))
 }
 
 async fn serve(State(mount): State<MemoryMount>, uri: OriginalUri, headers: HeaderMap) -> Response {

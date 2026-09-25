@@ -152,3 +152,55 @@ async fn test_spa_mount_falls_back_to_index() {
 
     std::fs::remove_dir_all(&dir).unwrap();
 }
+
+#[tokio::test]
+async fn assets_reject_unsupported_methods_including_connect() {
+    let dir = fixture();
+    for spa in [false, true] {
+        let app = memory_files::router(assets(&dir), "", spa);
+        for uri in ["/", "/styles-48e01c3f2adb8d51.css", "/unknown"] {
+            for method in [
+                Method::CONNECT,
+                Method::POST,
+                Method::PUT,
+                Method::PATCH,
+                Method::DELETE,
+                Method::OPTIONS,
+                Method::TRACE,
+            ] {
+                let response = app
+                    .clone()
+                    .oneshot(
+                        Request::builder()
+                            .method(method.clone())
+                            .uri(uri)
+                            .body(Body::empty())
+                            .unwrap(),
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(
+                    response.status(),
+                    StatusCode::METHOD_NOT_ALLOWED,
+                    "{method} {uri} spa={spa}"
+                );
+                assert_eq!(response.headers()[header::ALLOW], "GET,HEAD");
+                assert!(body_bytes(response).await.is_empty());
+            }
+        }
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::HEAD)
+                    .uri("/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert!(response.headers().contains_key(header::ETAG));
+        assert!(body_bytes(response).await.is_empty());
+    }
+    std::fs::remove_dir_all(dir).unwrap();
+}
