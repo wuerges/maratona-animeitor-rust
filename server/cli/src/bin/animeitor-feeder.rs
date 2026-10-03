@@ -454,8 +454,10 @@ impl Feeder {
                     // Load the source successfully before deleting existing data.
                     self.publish_snapshot(state, runs).await;
                 }
-                Err(_) => error!(
-                    "failed loading webcast; check the private source configuration; will retry"
+                Err(err) => error!(
+                    event = %self.event,
+                    reason = %webcast::failure_summary(&err),
+                    "failed loading webcast; will retry"
                 ),
             }
         }
