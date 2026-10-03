@@ -611,7 +611,7 @@ pub async fn public_secret_runs() {}
 
 /// Stream public submissions
 ///
-/// WebSocket upgrade (use ws:// or wss://). Replays submission messages from the event history, then sends updates. One bare Run JSON object per text frame; there is no envelope. Filtered by contest team regexes. Answers at or after score_freeze_time_seconds are replaced with ?. Repeated IDs replace previous values. Reconnect and rebuild state from replay after changing filters or freeze. Clearing stored runs does not clear stream replay history; a connection captures its filters and freeze boundary at handshake. Handshake failures for missing resources or pre-start events have no body.
+/// WebSocket upgrade (use ws:// or wss://). Replays submission messages from the event history, then sends updates. One bare Run JSON object per text frame; there is no envelope. Filtered by contest team regexes. Answers at or after score_freeze_time_seconds are replaced with ?. Repeated IDs replace previous values. Reconnect and rebuild state from replay after changing filters. Freeze boundary changes automatically replay submissions with current server-side masking. Clearing stored runs does not clear stream replay history; a connection captures its filters at handshake. Handshake failures for missing resources or pre-start events have no body.
 #[utoipa::path(
     get, path = "/api/events/{event_name}/contests/{contest_name}/runs_ws", operation_id = "public_runs_stream", tag = "WebSockets",
     params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("contest_name" = String, Path, description = "Nonempty contest identifier within the event. URL-encode as a path segment.")),

@@ -155,7 +155,7 @@ curl --fail-with-body "$ANIMEITOR_URL/api/events/regional-2026/contests/brasil/c
 
 Expect `200` with `["brasil"]`, the selected team roster and timing, and presentation settings with site `fiemg`, respectively. If the public API uses a different origin, use that deployment URL. Before start the contest-name list still returns `200`, allowing landing-page links to countdowns; the state and configuration endpoints return `403 not_started`, which is expected.
 
-Connect a WebSocket client to `/api/events/regional-2026/timer` (using `wss://` for HTTPS) for the immediate current timer and subsequent changes. Connect to `/api/events/regional-2026/contests/brasil/runs_ws` for replay and live submissions, one bare run object per text message. Runs at or after 14400 seconds are masked as `?` in this example. Repeated IDs replace earlier results. Reconnect and rebuild state after changing filters/freeze. Clearing stored runs does not clear stream replay history.
+Connect a WebSocket client to `/api/events/regional-2026/timer` (using `wss://` for HTTPS) for the immediate current timer and subsequent changes. Connect to `/api/events/regional-2026/contests/brasil/runs_ws` for replay and live submissions, one bare run object per text message. Runs at or after 14400 seconds are masked as `?` in this example. Repeated IDs replace earlier results. Reconnect and rebuild state after changing filters. Freeze changes automatically replay submissions with updated masking. Clearing stored runs does not clear stream replay history.
 
 To verify private access, extract `secret` from the returned revelation URL, assign it to `ANIMEITOR_SITE_KEY`, and request:
 
@@ -197,6 +197,6 @@ Removing a team or problem with stored runs returns `409 conflict`. To remove a 
 
 Filter deltas compare exact regex strings, preserve retained order, and append additions in request order. Adding an existing pattern or removing an absent pattern is a no-op; removal deletes all exact duplicates. A pattern cannot appear in both arrays. At least one addition or removal is required. The final regex set must compile before any changes are installed.
 
-Atomic PATCH prevents lost updates to unrelated fields among incremental callers. It does not stop the existing feeder or another full PUT caller from subsequently replacing fields. Coordinate manual changes with source configuration. Reconnect run streams after changing contest filters or freeze time; these changes do not add a stream reset protocol.
+Atomic PATCH prevents lost updates to unrelated fields among incremental callers. It does not stop the existing feeder or another full PUT caller from subsequently replacing fields. Coordinate manual changes with source configuration. Reconnect run streams after changing contest filters; freeze time changes automatically replay submissions with updated masking, and these changes do not add a stream reset protocol.
 
 Storage failures use the normal error envelope: `503 storage_unavailable` for unavailable or busy storage and `500 storage_error` for corrupt or unsupported data. A failed write can have an ambiguous outcome; read the resource before retrying.

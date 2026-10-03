@@ -479,6 +479,44 @@ async fn runs_ws_freezes_runs_after_the_freeze_time() {
 }
 
 #[tokio::test]
+async fn runs_ws_updates_freeze_on_an_open_connection() {
+    let store = test_store(Some("test-server-salt".into()));
+    seed_all(&store).await;
+    let run: Run = serde_json::from_value(serde_json::json!({
+        "id": 2, "team_login": "teambr001", "prob": "A", "time_seconds": 100, "answer": "Y"
+    }))
+    .unwrap();
+    store.add_runs("ensaio", vec![run.clone()]).await.unwrap();
+    let base = spawn_server(app_for(store.clone())).await;
+    let mut ws = connect(&base, "/api/events/ensaio/contests/brasil/runs_ws").await;
+    let first: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+    assert_eq!(first["answer"], "Y");
+
+    // Changing the boundary must correct previously delivered results without
+    // requiring a page reload or another submission to wake the stream.
+    let mut state = store.get_event("ensaio").await.unwrap().unwrap();
+    state.score_freeze_time_seconds = 100;
+    store.put_event("ensaio", state.clone()).await.unwrap();
+    let masked: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+    assert_eq!(masked["id"], 2);
+    assert_eq!(masked["answer"], "?");
+
+    let mut correction = run.clone();
+    correction.answer = data::event::Answer::No;
+    store.add_runs("ensaio", vec![correction]).await.unwrap();
+    let live: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+    assert_eq!(live["answer"], "?");
+
+    // Masking only affects public frames, and moving the boundary later also
+    // updates the same connection using the stored actual answer.
+    state.score_freeze_time_seconds = 101;
+    store.put_event("ensaio", state).await.unwrap();
+    let unmasked: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+    assert_eq!(unmasked["id"], 2);
+    assert_eq!(unmasked["answer"], "N");
+}
+
+#[tokio::test]
 async fn runs_ws_404() {
     let app = app_for(test_store(Some("test-server-salt".into())));
     let base = spawn_server(app).await;

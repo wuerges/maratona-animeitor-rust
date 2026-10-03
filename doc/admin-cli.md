@@ -117,7 +117,7 @@ Run answers are `Y`, `N`, `?`, or `X`. Import accepts `{"runs":[...]}` via file/
 
 Salt commands without `--salt` generate a random value. Rotation invalidates links for the affected scope; fetch `revelation-urls` again. Clear a salt with an update using `--unset salt` instead.
 
-The timer command sets a value once. A feeder/controller must send further updates. The feeder's existing source-driven behavior is unchanged and can overwrite manual edits. Coordinate changes with the source configuration. Existing run streams capture filters and freeze boundaries; reconnect after modifying those settings.
+The timer command sets a value once. A feeder/controller must send further updates. The feeder's existing source-driven behavior is unchanged and can overwrite manual edits. Coordinate changes with the source configuration. Existing run streams capture filters; reconnect after modifying filters. Freeze boundary changes automatically replay submissions with updated server-side masking.
 
 ## Output, errors, and Docker
 
