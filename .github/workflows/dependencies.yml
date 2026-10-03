@@ -1,0 +1,19 @@
+name: Dependency policy
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --version 0.19.9 --locked
+      - name: Check dependency policy
+        run: make cargo-deny

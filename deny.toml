@@ -1,0 +1,13 @@
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+yanked = "deny"
+
+[bans]
+# The server and browser client currently use different dependency generations.
+multiple-versions = "warn"
+# Local workspace path dependencies do not specify version requirements.
+wildcards = "warn"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

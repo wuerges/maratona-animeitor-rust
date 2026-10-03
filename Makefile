@@ -20,6 +20,7 @@ help:
 	@echo 'make run-config              Run server and feeder without Docker'
 	@echo 'make run-server / run-feeder  Run one program without Docker'
 	@echo 'make printurls               Print URLs offline without Docker'
+	@echo 'make cargo-deny              Check dependency security and policy'
 	@echo 'Host selectors: EVENT_CONFIG, EVENT_SECRETS, SERVER_CONFIG'
 
 run-server:
@@ -68,6 +69,10 @@ republish-docker-image: rebuild-docker-image
 test-databases:
 	cargo test -p service -p cli -p database-memory -p database-sqlite -p server-v2
 	cargo test -p server-v2 --features sqlite-tests
+
+.PHONY: cargo-deny
+cargo-deny:
+	cargo deny --locked --all-features check advisories bans sources
 
 # API_BASE may be a commit SHA or branch ref; CI passes the PR base commit.
 API_BASE ?= HEAD
