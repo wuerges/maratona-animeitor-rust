@@ -20,6 +20,12 @@ fn parse(words: &[&str]) -> RequestPlan {
 fn cli_paths_and_payloads() {
     let cases = [
         (
+            vec!["capabilities"],
+            "GET",
+            "/internal/capabilities",
+            Value::Null,
+        ),
+        (
             vec!["events", "list"],
             "GET",
             "/internal/events",
@@ -338,6 +344,12 @@ async fn capture(State(received): State<Received>, req: Request) -> axum::respon
     if path.ends_with("metrics") {
         return "metric 1\n".into_response();
     }
+    if path.ends_with("capabilities") {
+        return axum::Json(
+            json!({"data":{"name":"user","role":"read-only","events":["contest-.*"]}}),
+        )
+        .into_response();
+    }
     axum::Json(json!({"data":{"teams":[],"problems":["A"]}})).into_response()
 }
 #[tokio::test]
@@ -372,6 +384,30 @@ async fn transport_sends_one_authenticated_request_and_handles_failures() {
     client.execute(&request).await.unwrap();
     assert_eq!(received.lock().unwrap()[1].2, json!({"time_seconds":-60}));
     assert_eq!(received.lock().unwrap().len(), 2); // PATCH never fetches or PUTs first.
+    let request = parse(&["capabilities", "--json"]);
+    let output = client.execute(&request).await.unwrap();
+    assert_eq!(
+        received.lock().unwrap()[2],
+        (
+            "GET".into(),
+            "/internal/capabilities".into(),
+            Value::Null,
+            "Basic dXNlcjp0b2tlbg==".into()
+        )
+    );
+    let data = json!({"name":"user","role":"read-only","events":["contest-.*"]});
+    for json_mode in [false, true] {
+        let (stdout, stderr) = render(&output, &request, json_mode).unwrap();
+        assert!(stderr.is_empty());
+        assert_eq!(
+            serde_json::from_str::<Value>(&stdout).unwrap(),
+            if json_mode {
+                json!({"data":data})
+            } else {
+                data.clone()
+            }
+        );
+    }
     for (name, status, code) in [
         ("conflict", 409, "conflict"),
         ("unauthorized", 401, "unauthorized"),

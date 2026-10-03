@@ -50,6 +50,8 @@ pub enum Command {
     Timer(TimerCommand),
     /// List private frontend links for every site of an event.
     RevelationUrls(EventId),
+    /// Inspect the authenticated credential's name, role, and event patterns.
+    Capabilities,
     /// Read process-wide Prometheus metrics.
     Metrics,
 }

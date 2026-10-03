@@ -14,6 +14,15 @@ All examples below assume `animeitor-admin` is on PATH (otherwise use `target/de
 
 Override the API address for one invocation with `--server-url`. Credentials and TLS CA settings still come from the configuration file. The URL must use HTTPS and cannot contain credentials, a query, or a fragment.
 
+Inspect the selected credential's name, role, and allowed event regex patterns
+with `capabilities`. It calls `GET /internal/capabilities` and prints the returned
+data as formatted JSON; `--json` preserves the API response envelope.
+
+```sh
+animeitor-admin capabilities
+animeitor-admin capabilities --json
+```
+
 ```sh
 animeitor-admin --server-url https://animeitor.naquadah.com.br events list
 ```

@@ -467,6 +467,11 @@ pub fn plan(command: Command) -> Result<RequestPlan> {
         Command::RevelationUrls(id) => {
             request(Method::GET, append(event(id), "revelation_urls"), None)
         }
+        Command::Capabilities => request(
+            Method::GET,
+            vec!["internal".into(), "capabilities".into()],
+            None,
+        ),
         Command::Metrics => {
             let mut r = request(Method::GET, vec!["internal".into(), "metrics".into()], None);
             r.metrics = true;
