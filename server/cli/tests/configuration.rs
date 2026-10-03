@@ -34,6 +34,7 @@ fn active_manifests_are_self_contained_and_preserve_counts() {
     for (name, count) in [
         ("basic", 1),
         ("jones", 1),
+        ("colombia", 2),
         ("nacional_2026", 9),
         ("regional_2026", 10),
         ("latam_2026_2027", 2),
@@ -75,6 +76,16 @@ fn private_sources_select_one_event_and_resolve_relative_to_file() {
     assert!(error.contains("feeder container"));
     assert!(!error.contains("key=private"));
 }
+#[test]
+fn missing_webcasts_table_has_setup_instructions() {
+    let t = Temp::new();
+    let path = t.write("event-secrets.toml", "# Not configured yet\n");
+    let error = EventSecrets::source(&path, "colombia").unwrap_err();
+    assert!(error.is::<cli::configuration::MissingWebcast>());
+    assert!(error.to_string().contains("[webcasts]"));
+    assert!(error.to_string().contains("\"colombia\" ="));
+}
+
 #[test]
 fn feeder_prints_missing_webcast_once() {
     let t = Temp::new();
