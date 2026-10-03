@@ -162,7 +162,9 @@ impl utoipa::Modify for InternalMetadata {
         // Mark the request optional without making its schema nullable.
         for (path, item) in &mut doc.paths.paths {
             if path.ends_with("/salt") {
-                if let Some(body) = item.post.as_mut().and_then(|op| op.request_body.as_mut()) {
+                if let Some(utoipa::openapi::RefOr::T(body)) =
+                    item.post.as_mut().and_then(|op| op.request_body.as_mut())
+                {
                     body.required = Some(utoipa::openapi::Required::False);
                 }
             }

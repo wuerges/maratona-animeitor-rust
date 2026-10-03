@@ -6,33 +6,33 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-leptos = { version = "0.8", features = ["csr"] }
-leptos_router = { version = "0.8" }
-gloo-timers = { version = "0", features = ["futures"] }
-futures = "0.3"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-wasm-bindgen = "0.2"
+leptos = { version = "0.8.21", features = ["csr"] }
+leptos_router = { version = "0.8.16" }
+gloo-timers = { version = "0.4.0", features = ["futures"] }
+futures = "0.3.34"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+wasm-bindgen = "0.2.129"
 wasm-bindgen-futures.workspace = true
-js-sys = "0.3"
+js-sys = "0.3.106"
 base64.workspace = true
 url.workspace = true
 regex.workspace = true
 html-escape.workspace = true
 data.workspace = true
-itertools = "0"
-leptos-use = { version = "0.19" }
-codee = "0.3.0"
+itertools = "0.15.0"
+leptos-use = { version = "0.19.2" }
+codee = "0.3.5"
 client-sdk.workspace = true
 client-model.workspace = true
 log.workspace = true
 console_log.workspace = true
 console_error_panic_hook.workspace = true
-any_spawner = { version = "0.3", features = ["wasm-bindgen"] }
+any_spawner = { version = "0.3.0", features = ["wasm-bindgen"] }
 
 [dependencies.web-sys]
 features = ["Window", "ScrollToOptions", "ScrollBehavior", "HtmlDialogElement", "HtmlDetailsElement", "Document", "Element", "RequestInit", "Response", "Headers", "AbortSignal", "HtmlLinkElement", "HtmlStyleElement", "NodeList", "HtmlAnchorElement", "Blob", "BlobPropertyBag", "Url", "HtmlHeadElement"]
-version = "0"
+version = "0.3.106"
 
 [target.'cfg(target_family = "wasm")'.dev-dependencies]
-wasm-bindgen-test = "=0.3.77"
+wasm-bindgen-test = "=0.3.79"
