@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "bash scripts/vercel-build.sh",
+  "outputDirectory": "animeitor-client/dist",
+  "headers": [
+    {
+      "source": "/config.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/animeitor/:path*/config.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ],
+  "rewrites": [
+    { "source": "/animeitor/:path*/config.json", "destination": "/config.json" },
+    { "source": "/animeitor/:path*", "destination": "/index.html" }
+  ]
+}

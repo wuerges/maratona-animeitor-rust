@@ -349,6 +349,33 @@ run `make run-debug-client` alongside the server and open http://localhost:8080/
 The client targets browser WebAssembly; `cargo run --bin animeitor-client` cannot
 launch it as a native desktop application.
 
+### Deploy the frontend to Vercel
+
+Use the repository root as the Vercel project's Root Directory. The committed
+`vercel.json` builds the WebAssembly frontend and publishes `animeitor-client/dist`.
+The first build installs Rust, Trunk, and the matching wasm-bindgen CLI.
+
+Set `ANIMEITOR_SERVER_URL` in Vercel's environment variables to the public HTTPS
+server base URL, for example `https://animeitor.example.com` (without `/api`).
+Set it for Production and for Preview if preview deployments should use that
+server. Builds fail if it is missing or invalid. Optionally set
+`ANIMEITOR_PHOTO_PREFIX` and `ANIMEITOR_SOUND_PREFIX` to HTTPS media locations;
+otherwise they default to the server's `/photos` and `/sounds` paths. Event-level
+media URL formats still take precedence. These values are public browser config;
+do not put tokens or passwords in them.
+
+The build writes `config.json`, and Vercel rewrites nested scoreboard configuration
+requests to that file before applying the scoreboard SPA fallback. API and
+WebSocket connections go directly to the Animeitor server. That server must
+provide valid HTTPS, allow the frontend's origin, and support WebSocket upgrades
+through any reverse proxy. Redeploy after changing environment variables.
+
+After deployment, open `/animeitor/{event}/{contest}/` and check browser DevTools:
+`config.json` must return JSON with the configured server, API requests must reach
+that server, and timer/run WebSocket connections must use `wss://` and receive
+HTTP 101. A deployment build validates the URL format; it does not verify server
+availability.
+
 ### Manage a running event
 
 Use `animeitor-admin` with `server.toml` for CRUD and atomic incremental changes:
