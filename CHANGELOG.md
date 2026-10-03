@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-10-03
+
 ### Added
 
 - Agent-driven patch/minor release procedure and CI validation of release tags,
@@ -15,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Align the frontend package version with the workspace release version.
+- Improve Vercel frontend build and runtime configuration.
 - Refresh workspace dependencies to current stable releases, including major
   upgrades of base64, brotli, HMAC/SHA-256, itertools, nanoid, SQLite, test macros,
   WebSocket clients, tower-http, and OpenAPI tooling. Keep browser test and
@@ -25,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Include live freeze-boundary updates for open scoreboard connections and
+  incremental scoring corrections, previously documented under 2.2.1.
 - Update rustls to 0.23.45 to resolve RUSTSEC-2026-0285 and replace the yanked
   chacha20 0.10.1 release with 0.10.2.
 
