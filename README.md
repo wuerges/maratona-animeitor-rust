@@ -349,6 +349,24 @@ run `make run-debug-client` alongside the server and open http://localhost:8080/
 The client targets browser WebAssembly; `cargo run --bin animeitor-client` cannot
 launch it as a native desktop application.
 
+### Check dependency security and policy
+
+Install the same cargo-deny version used in CI and run the workspace checks:
+
+```bash
+cargo install cargo-deny --version 0.19.9 --locked
+make cargo-deny
+```
+
+The target checks all features against RustSec advisories, dependency bans, and
+allowed sources using `deny.toml`, without changing `Cargo.lock`. Vulnerabilities,
+yanked releases, and unknown Git or registry sources fail the check. Duplicate
+versions and wildcard requirements produce warnings, including the workspace's
+unversioned local path dependencies. License checking is not enabled because the
+workspace does not yet declare a project license or an approved license policy.
+The check needs network access to refresh the advisory database. CI runs the same
+target on pull requests, pushes, weekly, and on manual dispatch.
+
 ### Deploy the frontend to Vercel
 
 Use the repository root as the Vercel project's Root Directory. The committed
