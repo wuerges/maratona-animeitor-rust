@@ -114,7 +114,19 @@ mod tests {
                 Arc::new(database_memory::MemoryDatabase::new()),
                 "salt".into(),
             ),
-            internal_tokens: Arc::new([("admin".into(), "secret-token".into())].into()),
+            internal_tokens: Arc::new(
+                [(
+                    "admin".into(),
+                    service::internal_auth::InternalToken::new(
+                        "admin".into(),
+                        "secret-token".into(),
+                        data::internal_auth::InternalRole::ReadWrite,
+                        vec![".*".into()],
+                    )
+                    .unwrap(),
+                )]
+                .into(),
+            ),
         });
         let credentials = base64::engine::general_purpose::STANDARD.encode("admin:secret-token");
         let mut ids = Vec::new();

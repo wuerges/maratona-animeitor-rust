@@ -21,3 +21,7 @@ event-secrets.toml
 *.sqlite3-wal
 *.sqlite3-shm
 *.sqlite3-journal
+
+# Python API-checker caches.
+__pycache__/
+*.pyc

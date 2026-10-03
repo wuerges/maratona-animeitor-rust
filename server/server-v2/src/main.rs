@@ -31,7 +31,7 @@ async fn run(args: Args) -> color_eyre::eyre::Result<()> {
         .tokens
         .into_iter()
         .filter(|t| t.enabled)
-        .map(|t| (t.name, t.token))
+        .map(|t| (t.name.clone(), t))
         .collect();
     server_v2::metrics::setup();
     server_v2::serve_config(AppConfig {

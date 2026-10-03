@@ -15,6 +15,33 @@ Obtain the internal **HTTPS base URL**, a configured **username and its token**,
 - JSON requests are bare objects with `Content-Type: application/json`. Successful JSON responses have `data` and optionally `warnings`; errors have only `errors`, a list of `{code,message}`. Optional envelope fields are omitted, not null. Resource fields such as `salt`, `style`, and media templates may be null. `204` has no body. Metrics and WebSocket messages do not use the envelope. Error messages may be Portuguese; branch on HTTP status and `code`.
 - Storage is selected by `server.toml`: **memory** (default) loses event data on restart; **SQLite** preserves configuration, salts, runs, and the last explicitly set timer value. Every feeder startup deletes and rebuilds its configured event after successfully loading its source, including with SQLite. Subsequent polls synchronize updates. Coordinate with the feeder before making manual changes.
 
+
+### Credential permissions
+
+Credentials remain in `server.toml` under `[[tokens]]`. Every credential has a required
+`role` (`read-only` or `read-write`) and `events` list of Rust regular expressions
+matched against whole event names. For example, `contest-.*` includes future
+matching events; `contest-one` matches only that exact name. Patterns combine
+with OR. Empty lists grant no event access; overlapping credentials share access.
+
+Both roles can read matching events. Read-write also permits creating, updating,
+and deleting matching events and their nested resources. Valid credentials
+without the required role or ownership receive `403` with code `forbidden`,
+before body validation or storage access. The internal event list includes only
+matching events, in creation order. Public API access rules are unchanged.
+
+Use `GET /internal/capabilities` with Basic authentication to inspect your
+credential before configuring events:
+
+```json
+{"data":{"name":"publisher","role":"read-write","events":["contest-.*"]}}
+```
+
+The response includes configured patterns for both existing and future events,
+never the secret or other credentials. Success and authentication failures use
+`Cache-Control: no-store`. Both roles may access this endpoint, API documentation,
+and metrics, even with no assigned events. Configuration changes require a restart.
+
 ## Worked setup: regional-2026 / brasil / fiemg
 
 The following commands use a fictitious deployment. Replace the values with your server and credentials; use your deployment's trusted CA (`--cacert` if required).
@@ -28,6 +55,7 @@ export ANIMEITOR_TOKEN='replace-with-configured-token'
 ### 1. Inspect before creating
 
 ```sh
+curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" "$ANIMEITOR_URL/internal/capabilities"
 curl --fail-with-body -u "$ANIMEITOR_USER:$ANIMEITOR_TOKEN" "$ANIMEITOR_URL/internal/events"
 ```
 

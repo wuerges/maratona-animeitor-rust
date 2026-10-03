@@ -56,7 +56,13 @@ fn app_for(store: EventStore) -> Router {
         store,
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
-            TOKEN.to_string(),
+            service::internal_auth::InternalToken::new(
+                "usuario".into(),
+                TOKEN.into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     })
 }
@@ -528,7 +534,13 @@ async fn timer_ws_survives_production_layers() {
         store,
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
-            TOKEN.to_string(),
+            service::internal_auth::InternalToken::new(
+                "usuario".into(),
+                TOKEN.into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     })
     .layer(TraceLayer::new_for_http())
@@ -561,7 +573,13 @@ async fn timer_ws_survives_browser_handshake_and_storm() {
         store: store.clone(),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
-            TOKEN.to_string(),
+            service::internal_auth::InternalToken::new(
+                "usuario".into(),
+                TOKEN.into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     })
     .layer(TraceLayer::new_for_http())

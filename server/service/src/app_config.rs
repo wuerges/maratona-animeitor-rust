@@ -6,5 +6,5 @@ pub struct AppConfig {
     pub revelation_salt: String,
     pub server_config: HttpConfig,
     pub volumes: Vec<Volume>,
-    pub internal_tokens: std::collections::HashMap<String, String>,
+    pub internal_tokens: std::collections::HashMap<String, crate::internal_auth::InternalToken>,
 }

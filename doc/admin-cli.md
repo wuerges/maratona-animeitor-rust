@@ -1,6 +1,6 @@
 # Manage events with animeitor-admin
 
-`animeitor-admin` manages a running server through its internal HTTPS API. It reads `server.toml` by default; override with `--server-config PATH`. It uses `server_url`, the enabled token selected by `client_token`, and `tls_ca_cert`. Relative certificate paths resolve against the configuration file. It does not modify the configuration file, start a server, or run a live clock.
+`animeitor-admin` manages a running server through its internal HTTPS API. It reads `server.toml` by default; override with `--server-config PATH`. It uses `server_url`, the enabled token in `server.toml` selected by `client_token`, and `tls_ca_cert`. Relative certificate paths resolve against the configuration file. It does not modify the configuration file, start a server, or run a live clock.
 
 Build and inspect commands:
 

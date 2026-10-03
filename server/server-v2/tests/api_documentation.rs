@@ -20,7 +20,13 @@ fn application() -> Router {
         store: test_store(Some("private-test-secret".into())),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "operator".into(),
-            "test-token".into(),
+            service::internal_auth::InternalToken::new(
+                "operator".into(),
+                "test-token".into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     })
 }
@@ -91,11 +97,12 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
     let mut ids = std::collections::HashSet::new();
     for spec in [&internal, &public] {
         check_refs(spec, spec);
+        assert_eq!(spec["info"]["version"], env!("CARGO_PKG_VERSION"));
         assert!(spec["info"]["description"].as_str().unwrap().len() > 1000);
         for (path, item) in spec["paths"].as_object().unwrap() {
             for (method, operation) in item.as_object().unwrap() {
                 assert!(ids.insert(operation["operationId"].as_str().unwrap().to_owned()));
-                if !path.ends_with("/metrics") {
+                if !path.ends_with("/metrics") && !path.ends_with("/capabilities") {
                     assert!(
                         operation["responses"]["503"]["description"]
                             .as_str()
@@ -140,7 +147,7 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
             }
         }
     }
-    assert_eq!(ids.len(), 43);
+    assert_eq!(ids.len(), 44);
     let methods: Vec<_> = internal["paths"]["/internal/contests/{event_name}/{contest_name}"]
         .as_object()
         .unwrap()

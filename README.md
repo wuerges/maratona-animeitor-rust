@@ -203,7 +203,7 @@ examples directly, so you can try it without copying private files.
 | --- | --- | --- |
 | `config/<event>/event.toml` | Event and contest/site definitions, public derivation values | Commit it |
 | `event-secrets.toml` | Webcast URL or local path per event | Ignored; example provided |
-| `server.toml` | Ports, TLS files, API tokens, URLs, assets, private revelation salt | Ignored; examples provided |
+| `server.toml` | Ports, TLS files, API tokens and permissions, URLs, assets, private revelation salt | Ignored; examples provided |
 
 ### Event configuration
 
@@ -256,9 +256,22 @@ example to `server.toml` before configuring a real deployment.
 | `server_url` | HTTPS address used by the feeder; `https://animeitor:8443` inside Compose |
 | `public_url` | Browser-facing base address used by `printurls` and API revelation URLs |
 | `client_token` | Name of an enabled entry in `[[tokens]]` to use for API requests |
-| `[[tokens]]` | Named credentials with `name`, `token`, and optional `enabled` (defaults to true) |
+| `[[tokens]]` | Credentials with `name`, `token`, `role`, `events`, and optional `enabled` |
 | `revelation_salt` | Private deployment-wide salt used to derive revelation keys |
 | `[[assets]]` | Static file mappings, each with a filesystem `directory` and URL `path` |
+
+Each `[[tokens]]` entry in `server.toml` requires `name`, `token`, `role`,
+and `events`. Roles are `read-only` and `read-write`; `enabled` defaults to true.
+Event entries are Rust regular expressions matching whole event names. Multiple
+patterns combine with OR; `[]` permits no events and `[".*"]` permits every event.
+Patterns define ownership of existing and future events; overlapping credentials
+share access. Only read-write credentials can create, update, or delete matching
+events. Both roles can read matching events and internal metrics/docs. Inspect
+your permissions with `GET /internal/capabilities`. Changes require a restart.
+
+Add explicit `role` and `events` fields to existing `[[tokens]]` entries in
+`server.toml`. Missing roles, missing event lists, and invalid patterns are
+rejected; no implicit unrestricted access exists.
 
 Replace development tokens and the revelation salt for production, and configure
 your certificate, key, and CA. These private TOML files and certificate/key files
@@ -484,3 +497,26 @@ These use an in-memory transport and send nothing to Sentry. To verify deploymen
 connectivity, run a separate server process with the intended Sentry environment
 and a deliberately nonexistent `--server-config` path, then confirm its
 configuration-read exception arrives. Do not replace the running server for this check.
+
+## API compatibility checks
+
+Both OpenAPI documents use the workspace package version, currently 2.1.0.
+The [project rule](AGENTS.md) requires a major bump for breaking API changes,
+a minor bump for non-breaking contract changes, and a patch bump for API
+documentation-only changes. Unrelated project docs do not require a bump.
+
+The checker runs oasdiff through Docker using `tufin/oasdiff:v1.30.0`.
+Ensure Docker is running and accessible to your user. The image is downloaded
+on first use; optionally prefetch it with:
+
+```sh
+docker pull tufin/oasdiff:v1.30.0
+```
+
+After an API change, run `make api-snapshots` and `make api-check API_BASE=<base-commit>`.
+The check regenerates specifications temporarily, rejects stale committed
+snapshots, and compares both APIs against the base commit with oasdiff.
+JSON reports are saved in `target/api-reports`. Pull requests run the same check.
+The initial snapshots include the token-permissions changes at 2.1.0; later
+changes follow the bump policy. Review authorization and behavior changes
+manually too, since OpenAPI comparisons cannot capture every behavior change.

@@ -32,7 +32,11 @@ Makefile and checked-in Compose configuration for current deployments.
 The authenticated `/internal/docs` Swagger page and `/internal/openapi.json`
 contain the complete [event setup walkthrough](../doc/internal-api-setup.md),
 request examples, schemas, and error handling. Use the configured HTTPS endpoint
-with HTTP Basic authentication (enabled username and its token). Public API docs
+with HTTP Basic authentication (enabled username and its token from
+`server.toml`). Both roles can read assigned events; only read-write
+credentials can change them. Event ownership uses whole-name Rust regexes.
+`GET /internal/capabilities` returns your name, role, and event patterns; it never
+returns secrets. Metrics and documentation are accessible to both roles. Public API docs
 are at `/api/docs` and `/api/openapi.json`.
 
 To obtain current revelation links for an API-configured event, request

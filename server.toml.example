@@ -10,10 +10,19 @@ server_url = "https://localhost:8443"
 public_url = "http://localhost:8000"
 client_token = "feeder"
 
+# Patterns are Rust regular expressions matched against the whole event name.
 [[tokens]]
 name = "feeder"
 token = "development-token"
 enabled = true
+role = "read-write"
+events = ["jones", "basic-example", "colombia", "regional-.*", "nacional-.*", "latam-.*"]
+
+[[tokens]]
+name = "observer"
+token = "development-observer-token"
+role = "read-only"
+events = ["regional-.*"]
 
 [[assets]]
 directory = "animeitor-client/release"

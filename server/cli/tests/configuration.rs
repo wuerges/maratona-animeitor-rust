@@ -1,4 +1,4 @@
-use cli::configuration::{EventConfig, EventSecrets, ServerConfig, read};
+use cli::configuration::{EventConfig, EventSecrets, ServerConfig};
 use std::{
     path::{Path, PathBuf},
     sync::atomic::{AtomicUsize, Ordering},
@@ -150,9 +150,9 @@ fn rejects_unknown_fields_and_duplicate_names() {
         "server.toml",
         &std::fs::read_to_string(root().join("server.toml.example")).unwrap(),
     );
-    let mut s: ServerConfig = read(&p).unwrap();
+    let mut s = ServerConfig::load(&p).unwrap();
     s.tokens
-        .push(read::<ServerConfig>(&p).unwrap().tokens.remove(0));
+        .push(ServerConfig::load(&p).unwrap().tokens.remove(0));
     assert!(s.validate().is_err());
 }
 
@@ -245,4 +245,59 @@ fn database_defaults_and_sqlite_paths_are_relative_to_server_config() {
         let path = temp.write("server.toml", &format!("{base}\n[database]\n{section}\n"));
         assert!(ServerConfig::load(&path).is_err(), "{section}");
     }
+}
+
+#[test]
+fn inline_credentials_select_enabled_tokens_and_compile_permissions() {
+    let temp = Temp::new();
+    let server = std::fs::read_to_string(root().join("server.toml.example")).unwrap();
+    let path = temp.write("server.toml", &server);
+    let config = ServerConfig::load(&path).unwrap();
+    let credential = config.credential().unwrap();
+    assert_eq!(credential.name, "feeder");
+    assert!(credential.owns("regional-future"));
+    assert!(!credential.owns("old-regional-future"));
+    assert!(!temp.0.join("internal_tokens.toml").exists());
+    let path = temp.write(
+        "server.toml",
+        &server.replace("client_token = \"feeder\"", "client_token = \"observer\""),
+    );
+    let config = ServerConfig::load(&path).unwrap();
+    assert_eq!(
+        config.credential().unwrap().role,
+        data::internal_auth::InternalRole::ReadOnly
+    );
+    let path = temp.write(
+        "server.toml",
+        &server.replace("enabled = true", "enabled = false"),
+    );
+    assert!(ServerConfig::load(&path).is_err());
+}
+
+#[test]
+fn invalid_inline_permissions_are_rejected_without_exposing_secrets() {
+    let temp = Temp::new();
+    let server = std::fs::read_to_string(root().join("server.toml.example")).unwrap();
+    let start = server.find("[[tokens]]").unwrap();
+    let end = server.find("[[assets]]").unwrap();
+    let base = format!("{}{}", &server[..start], &server[end..]);
+    let valid = "[[tokens]]\nname='feeder'\ntoken='DO-NOT-PRINT-ME'\nrole='read-write'\nevents=['contest-.*']\n";
+    for invalid in [
+        valid.replace("role='read-write'\n", ""),
+        valid.replace("events=['contest-.*']\n", ""),
+        valid.replace("read-write", "admin"),
+        valid.replace("contest-.*", "["),
+        valid.replace("contest-.*", "   "),
+        valid.replace("['contest-.*']", "['contest-.*', 'contest-.*']"),
+        valid.replace("name='feeder'", "name='bad:name'"),
+        format!("{valid}\n{valid}"),
+        format!("{valid}unknown='DO-NOT-PRINT-ME'\n"),
+        valid.replace("role='read-write'", "enabled=false"),
+    ] {
+        let path = temp.write("server.toml", &format!("{base}\n{invalid}"));
+        let error = ServerConfig::load(&path).err().unwrap().to_string();
+        assert!(!error.contains("DO-NOT-PRINT-ME"));
+    }
+    let path = temp.write("server.toml", &format!("{base}\n{valid}"));
+    assert!(ServerConfig::load(&path).is_ok());
 }

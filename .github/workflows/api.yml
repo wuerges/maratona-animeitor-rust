@@ -1,0 +1,27 @@
+name: API compatibility
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Pull pinned oasdiff image
+        run: docker pull tufin/oasdiff:v1.30.0
+      - name: Test API policy checker
+        run: python3 -m unittest discover -s scripts/tests
+      - name: Verify API and package version
+        env:
+          API_BASE: ${{ github.event.pull_request.base.sha }}
+        run: make api-check API_BASE="$API_BASE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-diff-reports
+          path: target/api-reports
+          if-no-files-found: ignore
