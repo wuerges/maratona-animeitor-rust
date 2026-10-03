@@ -333,6 +333,8 @@ make printurls EVENT_CONFIG=config/jones/event.toml
 internal URL and the release client directory for assets; the Docker example uses
 animeitor and /dist. Both use ports 8000 and 8443. To develop the client interactively,
 run `make run-debug-client` alongside the server and open http://localhost:8080/.
+The client targets browser WebAssembly; `cargo run --bin animeitor-client` cannot
+launch it as a native desktop application.
 
 ### Manage a running event
 
