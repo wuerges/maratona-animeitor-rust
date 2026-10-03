@@ -165,9 +165,12 @@ async fn runs_ws(
     let Some(mut runs_rx) = crate::store_call!(store.subscribe_runs(&event_name).await) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    let freeze = crate::store_call!(store.get_event(&event_name).await)
-        .map(|event| event.score_freeze_time_seconds)
-        .unwrap_or(0);
+    let Some((timer, mut timer_rx)) =
+        crate::store_call!(store.timer_subscription(&event_name).await)
+    else {
+        return StatusCode::NOT_FOUND.into_response();
+    };
+    let mut freeze = timer.score_freeze_time_seconds;
 
     ws.on_upgrade(move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
@@ -176,6 +179,18 @@ async fn runs_ws(
                 recv = runs_rx.recv() => {
                     match recv {
                         Ok(mut run) => {
+                            // Read current policy even if a timer update is queued.
+                            let Ok(Some(timer)) = store.current_timer(&event_name).await else {
+                                break;
+                            };
+                            if timer.score_freeze_time_seconds != freeze {
+                                freeze = timer.score_freeze_time_seconds;
+                                let Ok(Some(replay)) = store.subscribe_runs(&event_name).await else {
+                                    break;
+                                };
+                                runs_rx = replay;
+                                continue;
+                            }
                             if codes.is_match(&run.team_login) {
                                 if run.time_seconds >= freeze {
                                     run.answer = data::event::Answer::Unknown;
@@ -190,6 +205,23 @@ async fn runs_ws(
                             tracing::warn!(?err, "recv failed");
                             break;
                         }
+                    }
+                }
+                update = timer_rx.recv() => {
+                    // Re-read current state rather than applying a stale queued timer.
+                    // A lagged timer receiver can still recover the latest policy.
+                    if matches!(update, Err(tokio::sync::broadcast::error::RecvError::Closed)) {
+                        break;
+                    }
+                    let Ok(Some(timer)) = store.current_timer(&event_name).await else {
+                        break;
+                    };
+                    if timer.score_freeze_time_seconds != freeze {
+                        freeze = timer.score_freeze_time_seconds;
+                        let Ok(Some(replay)) = store.subscribe_runs(&event_name).await else {
+                            break;
+                        };
+                        runs_rx = replay;
                     }
                 }
                 // The read half of the connection: while no runs arrive, this

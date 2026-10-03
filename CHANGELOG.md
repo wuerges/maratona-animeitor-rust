@@ -22,6 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update rustls to 0.23.45 to resolve RUSTSEC-2026-0285 and replace the yanked
   chacha20 0.10.1 release with 0.10.2.
 
+## [2.2.1]
+
+### Fixed
+
+- Public submission WebSockets now apply freeze boundary changes to existing
+  connections and replay submissions with updated server-side answer masking.
+  Previously the boundary was captured at handshake, allowing an open live
+  scoreboard to keep showing judged answers until reload. Revelation answers
+  remain available through the authenticated secret endpoint. Live client scoring
+  scores new submissions incrementally and rebuilds only when an existing
+  submission changes, so corrections undo prior solves and penalties.
+
 ## [2.2.0]
 
 ### Fixed
