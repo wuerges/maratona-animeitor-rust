@@ -1,6 +1,14 @@
 [advisories]
 db-urls = ["https://github.com/RustSec/advisory-db"]
 yanked = "deny"
+# Accepted maintenance notices, not security vulnerability exceptions.
+# Versions, dependency paths, and review guidance: doc/dependency-advisories.md.
+ignore = [
+    { id = "RUSTSEC-2024-0388", reason = "derivative has no maintained release; retaining the existing data model derives" },
+    { id = "RUSTSEC-2024-0436", reason = "current Leptos and reactive dependencies still require paste" },
+    { id = "RUSTSEC-2026-0173", reason = "rstml still requires syn_derive, which depends on proc-macro-error2" },
+    { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile has no maintained release; retaining the existing TLS PEM loader" },
+]
 
 [bans]
 # The server and browser client currently use different dependency generations.
