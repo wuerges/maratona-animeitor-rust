@@ -29,3 +29,22 @@ Review behavioral and authorization changes manually: oasdiff can only detect
 changes expressed in OpenAPI. Their version requirement applies even when the
 schema comparison reports no change. Keep API documentation and examples
 generic; do not include MOJ-specific mentions.
+
+## Releases requested through AI
+
+A request to make a patch or minor release authorizes preparing the release,
+committing its files, creating an annotated version tag, and pushing the commit
+and tag. It does not authorize production deployment. Follow [the release
+procedure](doc/releases.md), using `Cargo.toml` as the single version source.
+
+- Patch means increment patch; minor means increment minor and reset patch.
+- Review all changes since the previous stable release tag, including behavior
+  and authorization. If the API rules require a larger bump than requested,
+  explain the mismatch and ask which permitted version to release before publishing.
+- Do not include unrelated dirty work or overwrite an existing release tag.
+- Finalize a dated changelog, update the lockfile and API snapshots, and run the
+  documented checks before committing or tagging. Never replace the API baseline.
+- Push the release commit before the tag. CI owns Docker publishing and GitHub
+  release creation; do not run the manual Docker publishing target for this flow.
+- Watch the release workflow to completion and report the tag, image digest,
+  release URL, and any failures. Do not report success merely because a tag pushed.

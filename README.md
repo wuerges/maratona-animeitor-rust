@@ -548,7 +548,7 @@ configuration-read exception arrives. Do not replace the running server for this
 
 ## API compatibility checks
 
-Both OpenAPI documents use the workspace package version, currently 2.1.0.
+Both OpenAPI documents use the workspace package version from `Cargo.toml`.
 The [project rule](AGENTS.md) requires a major bump for breaking API changes,
 a minor bump for non-breaking contract changes, and a patch bump for API
 documentation-only changes. Unrelated project docs do not require a bump.
@@ -565,6 +565,12 @@ After an API change, run `make api-snapshots` and `make api-check API_BASE=<base
 The check regenerates specifications temporarily, rejects stale committed
 snapshots, and compares both APIs against the base commit with oasdiff.
 JSON reports are saved in `target/api-reports`. Pull requests run the same check.
-The initial snapshots include the token-permissions changes at 2.1.0; later
+The initial snapshots include the token-permissions changes at 2.2.0; later
 changes follow the bump policy. Review authorization and behavior changes
 manually too, since OpenAPI comparisons cannot capture every behavior change.
+
+### Releases
+
+For agent-driven patch or minor releases, follow [the release procedure](doc/releases.md).
+The tag-triggered Release workflow validates metadata, tests and publishes the Docker
+image, and creates the GitHub release. Production deployment is separate.
