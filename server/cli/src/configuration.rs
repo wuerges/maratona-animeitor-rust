@@ -165,6 +165,21 @@ impl EventConfig {
 pub struct EventSecrets {
     pub webcasts: BTreeMap<String, String>,
 }
+
+/// An expected setup error, rendered locally rather than reported as an incident.
+#[derive(Debug)]
+pub struct MissingWebcast {
+    pub(crate) message: String,
+}
+
+impl std::fmt::Display for MissingWebcast {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for MissingWebcast {}
+
 impl EventSecrets {
     pub fn source(path: &Path, event: &str) -> Result<String> {
         let config: Self = read(path)?;
@@ -172,10 +187,17 @@ impl EventSecrets {
             nonempty(name, "webcast event name")?;
             nonempty(source, "webcast source")?;
         }
-        let source = config
-            .webcasts
-            .get(event)
-            .ok_or_else(|| eyre!("{} has no webcast for selected event", path.display()))?;
+        let source = config.webcasts.get(event).ok_or_else(|| {
+            let key = toml::Value::String(event.to_owned());
+            eyre!(MissingWebcast { message: format!(
+                "{} has no webcast for selected event {key}.\n\
+                 Add an entry matching event.name from your event configuration to the [webcasts] table in this file (create the table if absent):\n\n\
+                 [webcasts]\n\
+                 {key} = \"https://example.com/private/webcast.zip\"\n\n\
+                 Replace the example URL with the event's actual BOCA webcast URL or a local webcast ZIP path. Relative paths are resolved from the directory containing this secrets file. For Docker Compose, the ZIP must also be mounted into the feeder container at the configured path.",
+                path.display()
+            ) })
+        })?;
         if source.starts_with("https://") || source.starts_with("http://") {
             url::Url::parse(source)
                 .map_err(|_| eyre!("invalid webcast URL in {}", path.display()))?;

@@ -63,8 +63,51 @@ fn private_sources_select_one_event_and_resolve_relative_to_file() {
         EventSecrets::source(&p, "second").unwrap(),
         "https://example.com/feed?key=private"
     );
-    assert!(EventSecrets::source(&p, "missing").is_err());
+    let error = EventSecrets::source(&p, "colombia")
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains(&p.display().to_string()));
+    assert!(error.contains("event.name"));
+    assert!(
+        error.contains("[webcasts]\n\"colombia\" = \"https://example.com/private/webcast.zip\"")
+    );
+    assert!(error.contains("Relative paths"));
+    assert!(error.contains("feeder container"));
+    assert!(!error.contains("key=private"));
 }
+#[test]
+fn feeder_prints_missing_webcast_once() {
+    let t = Temp::new();
+    let secrets = t.write("event-secrets.toml", "[webcasts]\n");
+    for (filter, expected_count) in [("info", 1), ("off", 1)] {
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_animeitor-feeder"))
+            .args(["--event-config"])
+            .arg(root().join("config/jones/event.toml"))
+            .arg("--server-config")
+            .arg(root().join("server.docker.toml.example"))
+            .arg("--event-secrets")
+            .arg(&secrets)
+            .env("RUST_LOG", filter)
+            .env_remove("SENTRY_DSN")
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        let console = format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            console.matches("has no webcast for selected event").count(),
+            expected_count,
+            "{console}"
+        );
+        assert_eq!(console.contains("[webcasts]"), expected_count == 1);
+        assert!(String::from_utf8_lossy(&output.stderr).contains("Error: "));
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("has no webcast"));
+    }
+}
+
 #[test]
 fn invalid_private_toml_never_quotes_credentials() {
     let t = Temp::new();

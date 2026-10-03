@@ -453,6 +453,11 @@ Completion logs include `status` and `duration_ms` (time until the response is
 ready, not the lifetime of a streaming body or WebSocket). Credentials, request
 bodies, and query strings are not included in these access logs.
 
+Console logs use single-line JSON, with embedded newlines escaped. Fatal CLI
+diagnostics are printed separately on stderr with readable formatting, even when
+`RUST_LOG=off`. Unexpected failures are reported directly to Sentry without a
+duplicate log entry; missing webcast mappings are local setup errors and are not
+sent to Sentry.
 Console logging defaults to INFO. Set `RUST_LOG` to override its filter; request logging
 uses the `server_v2::request_logging` target.
 
@@ -478,4 +483,4 @@ Run the local capture checks with `cargo test -p cli --lib sentry::tests` and
 These use an in-memory transport and send nothing to Sentry. To verify deployment
 connectivity, run a separate server process with the intended Sentry environment
 and a deliberately nonexistent `--server-config` path, then confirm its
-`application failed` event arrives. Do not replace the running server for this check.
+configuration-read exception arrives. Do not replace the running server for this check.
