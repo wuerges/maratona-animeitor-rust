@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0]
+
+### Fixed
+
+- `make republish-docker-image` now pushes both `latest` and the workspace
+  package version tag, read from `Cargo.toml`.
+- API compatibility checks generate historical specifications from the base
+  commit when committed snapshots are absent, instead of skipping comparison.
+
 ### Added
 
 - Internal credentials now declare read-only or read-write roles and whole-name
@@ -15,10 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GET /internal/capabilities` exposes the authenticated credential's name, role,
   and ownership patterns without secrets.
 - Deterministic public/internal OpenAPI snapshots, an oasdiff 1.30.0 Docker comparison
-  check, and a project API versioning rule. This implementation establishes the
-  baseline at workspace version 2.1.0; future breaking changes bump major,
+  check, and a project API versioning rule. Future breaking changes bump major,
   non-breaking contract changes bump minor, and API documentation edits bump patch.
 
+## [2.1.0]
+
+Changelog baseline: commit `7a309bdee523f906af2920e52429041c86086cb4`.
+The entries below describe changes accumulated through that commit.
 
 ### Changed
 

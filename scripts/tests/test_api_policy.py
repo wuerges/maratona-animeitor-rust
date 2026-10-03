@@ -146,6 +146,30 @@ class PolicyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "stale"):
                 policy.validate_snapshots(generated, tracked, "2.1.0")
 
+    def test_historical_export_uses_base_source(self):
+        original_run = policy.run
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            exporter = pathlib.Path("server/server-v2/src/bin/export-openapi.rs")
+            (root / exporter).parent.mkdir(parents=True)
+            (root / exporter).write_text("exporter")
+            (root / "Cargo.toml").write_text("baseline source")
+            original_run("git", "init", "-q", cwd=root)
+            original_run("git", "add", ".", cwd=root)
+            original_run("git", "-c", "user.name=API Test", "-c", "user.email=api@example.com", "commit", "-qm", "baseline", cwd=root)
+            base = original_run("git", "rev-parse", "HEAD", cwd=root).strip()
+            (root / "Cargo.toml").write_text("candidate source")
+
+            def command(*args, **kwargs):
+                if args[0] == "cargo":
+                    self.assertEqual((kwargs["cwd"] / "Cargo.toml").read_text(), "baseline source")
+                    self.assertIn("--locked", args)
+                    return ""
+                return original_run(*args, cwd=root)
+
+            with mock.patch.object(policy, "ROOT", root), mock.patch.object(policy, "run", command):
+                policy.export_base(base, root / "historical")
+
 
 if __name__ == "__main__":
     unittest.main()

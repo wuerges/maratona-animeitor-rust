@@ -3,8 +3,10 @@
 ## API versioning
 
 The workspace package version in `Cargo.toml` is the single version source for
-both public and internal OpenAPI documents. The token roles, regex ownership,
-and capabilities implementation establishes the initial baseline at **2.1.0**.
+both public and internal OpenAPI documents. Commit
+`7a309bdee523f906af2920e52429041c86086cb4` is the **2.1.0** changelog baseline.
+The token roles, regex ownership, and capabilities implementation is recorded
+in **2.2.0**.
 Do not reset the version to 0.1.0 or maintain an independent API version.
 
 For subsequent API changes:

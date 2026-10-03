@@ -7,6 +7,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import tarfile
 import tempfile
 import tomllib
 
@@ -90,6 +91,25 @@ def git_file(base, path):
     return run("git", "show", f"{base}:{path}")
 
 
+def export_base(base, directory):
+    """Recover historical specs from the base source, never from candidate snapshots."""
+    directory.mkdir(parents=True)
+    archive = directory / "base.tar"
+    run("git", "archive", "--format=tar", f"--output={archive}", base)
+    source = directory / "source"
+    source.mkdir()
+    with tarfile.open(archive) as contents:
+        contents.extractall(source, filter="data")
+    exporter = pathlib.Path("server/server-v2/src/bin/export-openapi.rs")
+    if not (source / exporter).exists():
+        (source / exporter).parent.mkdir(parents=True, exist_ok=True)
+        (source / exporter).write_text((ROOT / exporter).read_text())
+    output = directory / "specs"
+    run("cargo", "run", "--quiet", "--locked", "--target-dir", str(ROOT / "target"),
+        "-p", "server-v2", "--bin", "export-openapi", "--", str(output), cwd=source)
+    return output
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default="HEAD", help="PR base commit or local comparison ref (default: HEAD)")
@@ -107,19 +127,20 @@ def main():
         files = set(run("git", "ls-tree", "-r", "--name-only", args.base).splitlines())
         available = [f"doc/openapi/{name}" in files for name in SPECS]
         if not any(available):
-            # One-time initialization. Later PR bases contain snapshots and cannot use this path.
-            if current != (2, 1, 0):
-                raise ValueError("initial API baseline must be package version 2.1.0")
-            print("Validated initial 2.1.0 API baseline (base commit has no snapshots).")
-            return
-        if not all(available):
+            historical = export_base(args.base, generated / "historical")
+        elif not all(available):
             raise ValueError("base commit contains an incomplete OpenAPI baseline")
+        else:
+            historical = None
         base_raw = tomllib.loads(git_file(args.base, "Cargo.toml"))["workspace"]["package"]["version"]
         base_version = version(base_raw)
         level = 0
         for name in SPECS:
-            base_spec = json.loads(git_file(args.base, f"doc/openapi/{name}"))
-            if base_spec["info"]["version"] != base_raw:
+            base_spec = json.loads((historical / name).read_text() if historical else git_file(args.base, f"doc/openapi/{name}"))
+            if historical:
+                # Older served docs had an independent version; package version is authoritative.
+                base_spec["info"]["version"] = base_raw
+            elif base_spec["info"]["version"] != base_raw:
                 raise ValueError("base snapshot version differs from base workspace version")
             level = max(level, compare(base_spec, json.loads((generated / name).read_text()), args.reports, name[:-5]))
         changed = set(run("git", "diff", "--name-only", args.base, "--").splitlines())

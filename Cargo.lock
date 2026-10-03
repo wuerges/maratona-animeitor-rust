@@ -767,7 +767,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "cli"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "axum",
  "clap",
@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "client-model"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "data",
  "futures",
@@ -805,7 +805,7 @@ dependencies = [
 
 [[package]]
 name = "client-sdk"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "client-model",
  "data",
@@ -1175,7 +1175,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "derivative",
  "regex",
@@ -1192,7 +1192,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "database-memory"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "serde_json",
  "service",
@@ -1202,7 +1202,7 @@ dependencies = [
 
 [[package]]
 name = "database-sqlite"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "rusqlite",
  "serde_json",
@@ -3000,7 +3000,7 @@ dependencies = [
 
 [[package]]
 name = "offline-packager"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -4249,7 +4249,7 @@ dependencies = [
 
 [[package]]
 name = "server-v2"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "autometrics",
  "axum",
@@ -4347,7 +4347,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "data",
  "hmac 0.12.1",
