@@ -1,0 +1,43 @@
+name: animeitor-colombia
+
+x-runtime: &runtime
+  image: wuerges/animeitor:latest
+
+services:
+  animeitor:
+    <<: *runtime
+    entrypoint: /animeitor-server
+    command: [--server-config, /workspace/server.toml]
+    ports: ["8000:8000", "8443:8443"]
+    environment:
+      RUST_LOG: info
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    volumes:
+      - ../../server.docker.toml.example:/workspace/server.toml:ro
+      - ../dev-certs:/workspace/config/dev-certs:ro
+      - ../../server/photos:/photos:ro
+      - ../../server/sounds:/sounds:ro
+      - ../../animeitor-client/static/user-styles.css:/dist/user-styles.css:ro
+
+  feeder:
+    <<: *runtime
+    entrypoint: /animeitor-feeder
+    command: [--server-config, /workspace/server.toml, --event-config, /workspace/config/colombia/event.toml, --event-secrets, /workspace/event-secrets.toml]
+    depends_on: [animeitor]
+    environment:
+      RUST_LOG: info
+    volumes:
+      - ../../server.docker.toml.example:/workspace/server.toml:ro
+      - ../../event-secrets.toml:/workspace/event-secrets.toml:ro
+      - ./event.toml:/workspace/config/colombia/event.toml:ro
+      - ../dev-certs/localhost-cert.pem:/workspace/config/dev-certs/localhost-cert.pem:ro
+      - ./webcasts:/workspace/webcasts:ro
+
+  printurls:
+    <<: *runtime
+    entrypoint: /printurls
+    command: [--server-config, /workspace/server.toml, --event-config, /workspace/config/colombia/event.toml]
+    volumes:
+      - ../../server.docker.toml.example:/workspace/server.toml:ro
+      - ./event.toml:/workspace/config/colombia/event.toml:ro
