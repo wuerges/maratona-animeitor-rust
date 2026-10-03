@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Agent-driven patch/minor release procedure and CI validation of release tags,
+  dated changelogs, and workspace lockfile versions. Release CI tests and smoke-tests
+  a Docker image before publishing the same artifact and creating a GitHub release.
+
 ### Changed
 
 - Refresh workspace dependencies to current stable releases, including major

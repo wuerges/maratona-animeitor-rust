@@ -1,0 +1,135 @@
+name: Release
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.policy.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Validate release metadata
+        id: policy
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT_NAME" = push ]; then
+            base=$(python3 scripts/check_release.py --tag "$RELEASE_TAG" --notes release-notes.md)
+          else
+            base="$PR_BASE"
+            old_version=$(git show "$base:Cargo.toml" | python3 -c 'import sys,tomllib; print(tomllib.loads(sys.stdin.read())["workspace"]["package"]["version"])')
+            if [ "$version" != "$old_version" ]; then
+              python3 scripts/check_release.py --tag "v$version" --notes release-notes.md
+            fi
+          fi
+          echo "API_BASE=$base" >> "$GITHUB_ENV"
+      - name: Check policy scripts and API compatibility
+        run: |
+          docker pull tufin/oasdiff:v1.30.0
+          python3 -m unittest discover -s scripts/tests
+          make api-check API_BASE="$API_BASE"
+      - name: Test server, databases, and client model
+        run: |
+          make test-databases
+          cargo test --locked -p client-model -p offline-packager
+      - name: Check dependencies
+        run: |
+          cargo install cargo-deny --version 0.19.9 --locked
+          make cargo-deny
+      - name: Build release image including WebAssembly frontend
+        run: docker build --label "org.opencontainers.image.revision=$GITHUB_SHA" -t animeitor:release .
+      - name: Smoke-test release image
+        run: bash scripts/smoke_image.sh animeitor:release
+      - name: Save tested image
+        if: github.event_name == 'push'
+        run: docker save animeitor:release | gzip > release-image.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: release-image
+          path: |
+            release-image.tar.gz
+            release-notes.md
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-api-reports
+          path: target/api-reports
+          if-no-files-found: ignore
+  publish:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docker-release-publishing
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    env:
+      IMAGE: ${{ vars.DOCKER_IMAGE_REPOSITORY || 'wuerges/animeitor' }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject an older release before updating latest
+        run: |
+          git fetch --tags origin
+          python3 - <<'PY'
+          import os,re,subprocess
+          current=tuple(map(int,os.environ['VERSION'].split('.')))
+          tags=subprocess.check_output(['git','tag'],text=True).splitlines()
+          versions=[tuple(map(int,t[1:].split('.'))) for t in tags if re.fullmatch(r'v\d+\.\d+\.\d+',t)]
+          if current != max(versions):
+              raise SystemExit('A newer release tag exists; refusing to overwrite latest')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-image
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish tested image and verify registry digests
+        run: |
+          set -euo pipefail
+          gzip -dc release-image.tar.gz | docker load
+          if docker manifest inspect "$IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "Version tag already exists; refusing to overwrite it" >&2
+            exit 1
+          fi
+          tested_id=$(docker image inspect animeitor:release --format '{{.Id}}')
+          docker tag animeitor:release "$IMAGE:$VERSION"
+          docker tag animeitor:release "$IMAGE:latest"
+          docker push "$IMAGE:$VERSION"
+          docker push "$IMAGE:latest"
+          docker pull "$IMAGE:$VERSION"
+          version_id=$(docker image inspect "$IMAGE:$VERSION" --format '{{.Id}}')
+          docker pull "$IMAGE:latest"
+          latest_id=$(docker image inspect "$IMAGE:latest" --format '{{.Id}}')
+          test "$version_id" = "$tested_id"
+          test "$latest_id" = "$tested_id"
+          version_digest=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{.Manifest.Digest}}')
+          latest_digest=$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{.Manifest.Digest}}')
+          test "$version_digest" = "$latest_digest"
+          digest="$IMAGE@$version_digest"
+          printf '\nDocker image: `%s`\n' "$digest" >> release-notes.md
+          echo "$digest" >> "$GITHUB_STEP_SUMMARY"
+      - name: Create GitHub release
+        run: gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-file release-notes.md
