@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refresh workspace dependencies to current stable releases, including major
+  upgrades of base64, brotli, HMAC/SHA-256, itertools, nanoid, SQLite, test macros,
+  WebSocket clients, tower-http, and OpenAPI tooling. Keep browser test and
+  wasm-bindgen versions aligned, and import the updated HMAC initialization trait.
+- Record four accepted dependency maintenance notices in `deny.toml` and
+  `doc/dependency-advisories.md`; vulnerabilities, yanked releases, and unknown
+  dependency sources remain enforced.
+
+### Fixed
+
+- Update rustls to 0.23.45 to resolve RUSTSEC-2026-0285 and replace the yanked
+  chacha20 0.10.1 release with 0.10.2.
+
 ## [2.2.0]
 
 ### Fixed

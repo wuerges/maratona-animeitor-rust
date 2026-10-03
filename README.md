@@ -364,6 +364,9 @@ yanked releases, and unknown Git or registry sources fail the check. Duplicate
 versions and wildcard requirements produce warnings, including the workspace's
 unversioned local path dependencies. License checking is not enabled because the
 workspace does not yet declare a project license or an approved license policy.
+Specific accepted maintenance notices are documented in
+[dependency advisories](doc/dependency-advisories.md) and recorded by ID with
+reasons in `deny.toml`; other advisory findings remain failures.
 The check needs network access to refresh the advisory database. CI runs the same
 target on pull requests, pushes, weekly, and on manual dispatch.
 
