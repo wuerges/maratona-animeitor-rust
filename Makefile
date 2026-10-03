@@ -2,7 +2,10 @@
 EVENT_CONFIG ?= config/jones/event.toml
 EVENT_SECRETS ?= event-secrets.toml
 SERVER_CONFIG ?= server.toml
-IMAGE = wuerges/animeitor:latest
+IMAGE_REPOSITORY ?= wuerges/animeitor
+IMAGE = $(IMAGE_REPOSITORY):latest
+PACKAGE_VERSION = $(shell python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')
+VERSIONED_IMAGE = $(IMAGE_REPOSITORY):$(PACKAGE_VERSION)
 CONFIG_ARGS = --event-config "${EVENT_CONFIG}" --server-config "${SERVER_CONFIG}"
 FEEDER_ARGS = ${CONFIG_ARGS} --event-secrets "${EVENT_SECRETS}"
 
@@ -57,6 +60,8 @@ rebuild-server-for-release:
 rebuild-docker-image:
 	docker build -t ${IMAGE} .
 republish-docker-image: rebuild-docker-image
+	docker tag ${IMAGE} ${VERSIONED_IMAGE}
+	docker push ${VERSIONED_IMAGE}
 	docker push ${IMAGE}
 
 .PHONY: test-databases
