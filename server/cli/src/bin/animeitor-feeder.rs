@@ -57,13 +57,14 @@ mod tests {
 }
 
 #[tokio::main]
-async fn main() -> color_eyre::eyre::Result<()> {
+async fn main() -> std::process::ExitCode {
     let _guard = sentry::setup();
     let result = run(Args::parse()).await;
     if let Err(error) = &result {
-        sentry::report_failure(error.as_ref());
+        sentry::report_cli_failure(error);
+        return std::process::ExitCode::FAILURE;
     }
-    result
+    std::process::ExitCode::SUCCESS
 }
 
 async fn run(args: Args) -> color_eyre::eyre::Result<()> {

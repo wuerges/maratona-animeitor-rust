@@ -1,0 +1,23 @@
+# Example Colombian event. Public derivation values are safe to commit;
+# revelation keys also require the private server salt.
+[event]
+name = "colombia"
+secret = "development-event-value"
+
+# Match the complete login: team001, team002, etc.
+[[contests]]
+name = "Teams"
+codes = ["^team[0-9]+$"]
+
+[[contests.sites]]
+name = "General"
+codes = ["^team[0-9]+$"]
+
+# A separate scoreboard for ccl001, ccl002, etc.
+[[contests]]
+name = "CCLs"
+codes = ["^ccl[0-9]+$"]
+
+[[contests.sites]]
+name = "General"
+codes = ["^ccl[0-9]+$"]
