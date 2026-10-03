@@ -163,6 +163,7 @@ impl EventConfig {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EventSecrets {
+    #[serde(default)]
     pub webcasts: BTreeMap<String, String>,
 }
 
