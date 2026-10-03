@@ -4,20 +4,20 @@
 name = "colombia"
 secret = "development-event-value"
 
-# Match the complete login: team001, team002, etc.
+# Match any login containing "team".
 [[contests]]
 name = "Teams"
-codes = ["^team[0-9]+$"]
+codes = ["team"]
 
 [[contests.sites]]
 name = "General"
-codes = ["^team[0-9]+$"]
+codes = ["team"]
 
-# A separate scoreboard for ccl001, ccl002, etc.
+# A separate scoreboard for any login containing "ccl".
 [[contests]]
 name = "CCLs"
-codes = ["^ccl[0-9]+$"]
+codes = ["ccl"]
 
 [[contests.sites]]
 name = "General"
-codes = ["^ccl[0-9]+$"]
+codes = ["ccl"]

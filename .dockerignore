@@ -5,7 +5,10 @@ target
 config
 tests
 ccl
-doc
+# OpenAPI descriptions are embedded from doc/ at compile time.
+doc/*
+!doc/internal-api-setup.md
+!doc/public-api-overview.md
 serve-as-bucket
 secret_env
 internal_tokens.toml
