@@ -1,0 +1,1242 @@
+{
+  "components": {
+    "schemas": {
+      "Answer": {
+        "description": "Submission result: Y = accepted, N = incorrect, ? = pending/unknown, X = halted/unknown. The frontend displays X as unknown.",
+        "enum": [
+          "Y",
+          "N",
+          "?",
+          "X"
+        ],
+        "type": "string"
+      },
+      "ControlMessage": {
+        "description": "Untagged union: no outer WindowScroll, QueryString, or PhotoState wrapper.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WindowScroll"
+          },
+          {
+            "$ref": "#/components/schemas/QueryString"
+          },
+          {
+            "$ref": "#/components/schemas/PhotoState"
+          }
+        ]
+      },
+      "ErrorEntry": {
+        "description": "One entry of `errors`/`warnings` in the envelope.",
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable error or warning code; use this rather than matching message text.",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable detail; messages may be in Portuguese.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "Failure": {
+        "description": "Error response; data and warnings are absent.",
+        "properties": {
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "errors"
+        ],
+        "type": "object"
+      },
+      "PhotoState": {
+        "description": "Bare JSON \"Hidden\" or {\"Show\":\"team-login\"}.",
+        "oneOf": [
+          {
+            "enum": [
+              "Hidden"
+            ],
+            "type": "string"
+          },
+          {
+            "properties": {
+              "Show": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "Show"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "PublicConfig": {
+        "description": "The public config of a contest, served by `/api` (no salts).",
+        "properties": {
+          "bronze": {
+            "description": "Inclusive bronze placement threshold.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "codes": {
+            "description": "Contest team-login regex filters.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "description": "Contest identifier.",
+            "type": "string"
+          },
+          "ouro": {
+            "description": "Inclusive gold placement threshold.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "photo_url_format": {
+            "description": "Photo template with {team_login}; null uses photos/{team_login}.webp at the API origin.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "prata": {
+            "description": "Inclusive silver placement threshold.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sites": {
+            "description": "Site choices; omitted when empty. No salts or revelation keys are included.",
+            "items": {
+              "$ref": "#/components/schemas/PublicSiteView"
+            },
+            "type": "array"
+          },
+          "sound_url_format": {
+            "description": "Audio template with {team_login}; null uses sounds/{team_login}.mp3 at the API origin.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "style": {
+            "description": "Optional frontend style name; null when unset.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "codes",
+          "ouro",
+          "prata",
+          "bronze"
+        ],
+        "type": "object"
+      },
+      "PublicContestState": {
+        "description": "The public state of a contest, served by `/api`.",
+        "properties": {
+          "contest": {
+            "description": "Nonempty contest identifier.",
+            "type": "string"
+          },
+          "event": {
+            "description": "Event identifier.",
+            "type": "string"
+          },
+          "penalty_seconds": {
+            "description": "Penalty for an incorrect submission, in seconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "problems": {
+            "description": "Problem identifiers. Successful HTTP responses are only available after start, so this field contains the list.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "score_freeze_time_seconds": {
+            "description": "Inclusive public answer freeze boundary, in seconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "teams": {
+            "description": "Event teams matching at least one contest codes regex.",
+            "items": {
+              "$ref": "#/components/schemas/TeamInfo"
+            },
+            "type": "array"
+          },
+          "time_seconds": {
+            "description": "Last supplied event time in seconds.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event",
+          "contest",
+          "teams",
+          "time_seconds",
+          "score_freeze_time_seconds",
+          "penalty_seconds"
+        ],
+        "type": "object"
+      },
+      "PublicSiteView": {
+        "description": "A site as exposed by the public config endpoint (no salt).",
+        "properties": {
+          "codes": {
+            "description": "Team-login regex filters for this site.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "description": "Site identifier used by the frontend sede query parameter.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "codes"
+        ],
+        "type": "object"
+      },
+      "PublicTimer": {
+        "description": "The timer message sent over the public timer WebSocket.",
+        "properties": {
+          "current_time_seconds": {
+            "description": "Last supplied event time in seconds; negative values indicate countdown.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "score_freeze_time_seconds": {
+            "description": "Public answer freeze boundary in elapsed seconds, inclusive.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current_time_seconds",
+          "score_freeze_time_seconds"
+        ],
+        "type": "object"
+      },
+      "QueryString": {
+        "description": "Bare remote-control message: {\"query\":\"sede=fiemg\"}.",
+        "properties": {
+          "query": {
+            "description": "Frontend query string to synchronize.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "Run": {
+        "description": "A run, as described in `doc/event-api.md`.",
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/Answer",
+            "description": "Y = accepted; N = incorrect; ? = pending/unknown; X = halted/unknown (displayed as unknown by the client)."
+          },
+          "id": {
+            "description": "Submission ID, scoped to the event. Resending changed fields corrects this submission; identical resends are no-ops.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "prob": {
+            "description": "Problem identifier from the event problems list.",
+            "type": "string"
+          },
+          "team_login": {
+            "description": "Login from the event roster; unknown logins are skipped with unknown_team warnings.",
+            "type": "string"
+          },
+          "time_seconds": {
+            "description": "Submission time measured in seconds since event start.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "team_login",
+          "prob",
+          "time_seconds",
+          "answer"
+        ],
+        "type": "object"
+      },
+      "RunsData": {
+        "description": "The runs of a site, as returned by the public secret endpoint.",
+        "properties": {
+          "runs": {
+            "description": "Site submissions, including actual answers after the freeze boundary.",
+            "items": {
+              "$ref": "#/components/schemas/Run"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs"
+        ],
+        "type": "object"
+      },
+      "Success_PublicConfig": {
+        "description": "Successful JSON response. Requests do not use this envelope.",
+        "properties": {
+          "data": {
+            "description": "The public config of a contest, served by `/api` (no salts).",
+            "properties": {
+              "bronze": {
+                "description": "Inclusive bronze placement threshold.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "codes": {
+                "description": "Contest team-login regex filters.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "name": {
+                "description": "Contest identifier.",
+                "type": "string"
+              },
+              "ouro": {
+                "description": "Inclusive gold placement threshold.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "photo_url_format": {
+                "description": "Photo template with {team_login}; null uses photos/{team_login}.webp at the API origin.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "prata": {
+                "description": "Inclusive silver placement threshold.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "sites": {
+                "description": "Site choices; omitted when empty. No salts or revelation keys are included.",
+                "items": {
+                  "$ref": "#/components/schemas/PublicSiteView"
+                },
+                "type": "array"
+              },
+              "sound_url_format": {
+                "description": "Audio template with {team_login}; null uses sounds/{team_login}.mp3 at the API origin.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "style": {
+                "description": "Optional frontend style name; null when unset.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "codes",
+              "ouro",
+              "prata",
+              "bronze"
+            ],
+            "type": "object"
+          },
+          "warnings": {
+            "description": "Nonfatal issues, omitted when absent (currently unknown_team on run ingestion).",
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Success_PublicContestState": {
+        "description": "Successful JSON response. Requests do not use this envelope.",
+        "properties": {
+          "data": {
+            "description": "The public state of a contest, served by `/api`.",
+            "properties": {
+              "contest": {
+                "description": "Nonempty contest identifier.",
+                "type": "string"
+              },
+              "event": {
+                "description": "Event identifier.",
+                "type": "string"
+              },
+              "penalty_seconds": {
+                "description": "Penalty for an incorrect submission, in seconds.",
+                "format": "int64",
+                "type": "integer"
+              },
+              "problems": {
+                "description": "Problem identifiers. Successful HTTP responses are only available after start, so this field contains the list.",
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "score_freeze_time_seconds": {
+                "description": "Inclusive public answer freeze boundary, in seconds.",
+                "format": "int64",
+                "type": "integer"
+              },
+              "teams": {
+                "description": "Event teams matching at least one contest codes regex.",
+                "items": {
+                  "$ref": "#/components/schemas/TeamInfo"
+                },
+                "type": "array"
+              },
+              "time_seconds": {
+                "description": "Last supplied event time in seconds.",
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "event",
+              "contest",
+              "teams",
+              "time_seconds",
+              "score_freeze_time_seconds",
+              "penalty_seconds"
+            ],
+            "type": "object"
+          },
+          "warnings": {
+            "description": "Nonfatal issues, omitted when absent (currently unknown_team on run ingestion).",
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Success_RunsData": {
+        "description": "Successful JSON response. Requests do not use this envelope.",
+        "properties": {
+          "data": {
+            "description": "The runs of a site, as returned by the public secret endpoint.",
+            "properties": {
+              "runs": {
+                "description": "Site submissions, including actual answers after the freeze boundary.",
+                "items": {
+                  "$ref": "#/components/schemas/Run"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "runs"
+            ],
+            "type": "object"
+          },
+          "warnings": {
+            "description": "Nonfatal issues, omitted when absent (currently unknown_team on run ingestion).",
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Success_Vec_String": {
+        "description": "Successful JSON response. Requests do not use this envelope.",
+        "properties": {
+          "data": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "warnings": {
+            "description": "Nonfatal issues, omitted when absent (currently unknown_team on run ingestion).",
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "TeamInfo": {
+        "description": "A team of the event, as described in `doc/event-api.md`.",
+        "properties": {
+          "escola": {
+            "description": "School or institution displayed for the team (Portuguese field name).",
+            "type": "string"
+          },
+          "login": {
+            "description": "Unique team login used by runs and regex filters; for example teambr001.",
+            "type": "string"
+          },
+          "nome": {
+            "description": "Team display name (Portuguese field name).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "login",
+          "escola",
+          "nome"
+        ],
+        "type": "object"
+      },
+      "WindowScroll": {
+        "description": "Bare remote-control message: {\"y\":120}.",
+        "properties": {
+          "y": {
+            "description": "Vertical browser scroll position.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "y"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "wuerges@gmail.com",
+      "name": "Emilio Wuerges"
+    },
+    "description": "# Consume an Animeitor event\n\nThe public API reads event scoreboards; configuration is performed through the authenticated internal API at `/internal/openapi.json` (`/internal/docs`). The public specification is at `/api/openapi.json` (`/api/docs`).\n\nDiscover event identifiers with `GET /api/events`, then contest identifiers with `GET /api/events/{event_name}/contests`. Fetch the contest's `/contest` for selected teams, problems, and timing and `/config` for appearance and site choices. Identifiers are nonempty path segments; percent-encode them when constructing URLs. Public JSON responses contain `data` on success or `errors:[{code,message}]` on failure. Optional envelope fields are absent. There are no salts or derived keys in public configurations.\n\nAll time values are seconds since event start, not timestamps. Before the supplied event time reaches zero, contest state, config, and submissions return `403 not_started`. Event and contest discovery, the event timer, and remote control remain available. The landing page links upcoming contests to their countdown screens. The clock is supplied by a feeder or controller; the server does not advance it automatically.\n\nUse WebSocket upgrades (`ws://` or `wss://`) for `/timer`, `/runs_ws`, and `/remote_control/{key}`. Successful upgrades return `101`; subsequent text frames carry bare JSON without envelopes. Their schemas are PublicTimer, Run, and ControlMessage respectively. Resource/pre-start handshake errors have no JSON body. A malformed WebSocket upgrade can also be rejected by the HTTP framework.\n\nThe timer sends its current state immediately and then changes, suppressing consecutive duplicates. The run stream replays history then sends new submissions and corrections. Replace prior values when an ID repeats. Runs at or after the event's freeze boundary have answer `?`, regardless of the actual answer. Filters and freeze boundary are captured at connection time; reconnect and rebuild state after changing them. Clearing stored runs does not clear stream replay history.\n\n`runs_secret` is the only authenticated public endpoint. Obtain a private revelation URL from an authorized operator or `GET /internal/events/{event_name}/revelation_urls`. Parse its `secret` query parameter and send it as `Authorization: Bearer <site-key>`; do not put the key in the API request URL. The key selects the site. It cannot bypass the pre-start restriction. After start, missing/invalid keys return `403 invalid_key`. Site regexes filter the event's runs; operators should keep them within their contest's selected teams. Salt rotation invalidates affected keys; request fresh links from the internal API.\n\nExample public state response:\n\n```json\n{\"data\":{\"event\":\"regional-2026\",\"contest\":\"brasil\",\"problems\":[\"A\",\"B\"],\"teams\":[{\"login\":\"teambr001\",\"escola\":\"Example University\",\"nome\":\"Example Team\"}],\"time_seconds\":60,\"score_freeze_time_seconds\":14400,\"penalty_seconds\":1200}}\n```\n\nExample bare run message:\n\n```json\n{\"id\":1,\"team_login\":\"teambr001\",\"prob\":\"A\",\"time_seconds\":56,\"answer\":\"Y\"}\n```\n\nRemote-control channel keys are arbitrary shared identifiers, not site revelation keys. Valid messages are `{\"y\":120}`, `{\"query\":\"sede=fiemg\"}`, `\"Hidden\"`, and `{\"Show\":\"teambr001\"}`. The server forwards them to other connections on the same event/contest/channel; it does not echo them to the sender.\n",
+    "license": {
+      "name": ""
+    },
+    "title": "Animeitor public API",
+    "version": "2.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/events": {
+      "get": {
+        "description": "Event identifiers in creation order, including pre-start events. No authentication.",
+        "operationId": "list_public_events",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    "regional-2026"
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Success_Vec_String"
+                }
+              }
+            },
+            "description": "Successful result in data"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "List event identifiers",
+        "tags": [
+          "Public discovery"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests": {
+      "get": {
+        "description": "Alphabetically sorted contest names, available before and after event start so the landing page can link to upcoming countdowns. Unlike the internal list this returns strings, not configurations. An event with no contests returns an empty list. Contest state, configuration, and runs remain unavailable before start.",
+        "operationId": "list_public_contests",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    "brasil"
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Success_Vec_String"
+                }
+              }
+            },
+            "description": "Successful result in data"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_found",
+                      "message": "Required event, contest, or site does not exist."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Required event, contest, or site does not exist."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "List contest identifiers",
+        "tags": [
+          "Public discovery"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests/{contest_name}/config": {
+      "get": {
+        "description": "Contest appearance, medal thresholds, media templates, and site choices. No salts or keys. The sites field is omitted when empty. Optional style and media values are null when unset. Unavailable before start.",
+        "operationId": "public_contest_config",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nonempty contest identifier within the event. URL-encode as a path segment.",
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "bronze": 3,
+                    "codes": [
+                      "^teambr"
+                    ],
+                    "name": "brasil",
+                    "ouro": 1,
+                    "photo_url_format": "https://media.example.com/photos/{team_login}.webp",
+                    "prata": 2,
+                    "sites": [
+                      {
+                        "codes": [
+                          "^teambr001$"
+                        ],
+                        "name": "fiemg"
+                      }
+                    ],
+                    "sound_url_format": "https://media.example.com/sounds/{team_login}.mp3",
+                    "style": null
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Success_PublicConfig"
+                }
+              }
+            },
+            "description": "Successful result in data"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_started",
+                      "message": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_found",
+                      "message": "Required event, contest, or site does not exist."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Required event, contest, or site does not exist."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Read public presentation configuration",
+        "tags": [
+          "Public contest"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests/{contest_name}/contest": {
+      "get": {
+        "description": "Returns teams matching any contest codes regex, problem identifiers, and event timing. No salts or site keys. Before start returns 403 not_started, not a partial state.",
+        "operationId": "public_contest_state",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nonempty contest identifier within the event. URL-encode as a path segment.",
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "contest": "brasil",
+                    "event": "regional-2026",
+                    "penalty_seconds": 1200,
+                    "problems": [
+                      "A",
+                      "B"
+                    ],
+                    "score_freeze_time_seconds": 14400,
+                    "teams": [
+                      {
+                        "escola": "Example University",
+                        "login": "teambr001",
+                        "nome": "Example Team"
+                      }
+                    ],
+                    "time_seconds": 60
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Success_PublicContestState"
+                }
+              }
+            },
+            "description": "Successful result in data"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_started",
+                      "message": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_found",
+                      "message": "Required event, contest, or site does not exist."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Required event, contest, or site does not exist."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Read public contest state",
+        "tags": [
+          "Public contest"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests/{contest_name}/remote_control/{key}": {
+      "get": {
+        "description": "WebSocket available before start. The key is an arbitrary shared relay-channel identifier, NOT a revelation key. Messages are relayed only to other connections with the same event, contest, and key. Text frames contain bare JSON matching ControlMessage: {\"y\":120}, {\"query\":\"sede=fiemg\"}, \"Hidden\", or {\"Show\":\"teambr001\"}. No outer WindowScroll, QueryString, or PhotoState wrapper. Missing resources return a bare 404 handshake response.",
+        "operationId": "public_remote_control",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nonempty contest identifier within the event. URL-encode as a path segment.",
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Arbitrary shared remote-control channel identifier; not a revelation key.",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "WebSocket upgrade; subsequent text frames follow the message schema described above."
+          },
+          "404": {
+            "description": "Resource not found; no body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Relay frontend controls",
+        "tags": [
+          "WebSockets"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests/{contest_name}/runs_secret": {
+      "get": {
+        "description": "Send `Authorization: Bearer <site-key>`,  extracting the secret query parameter from an authenticated internal revelation URL listing. The key selects the site; no site path parameter is needed. Returns that site regex filter’s event runs, including unfrozen answers, ordered by (time_seconds, id). Ensure site filters select a subset of contest teams. No key works before start. Missing or invalid keys (including an unknown contest under a started event) return 403 invalid_key; a missing event returns 404. Salt rotation invalidates affected keys immediately.",
+        "operationId": "public_secret_runs",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nonempty contest identifier within the event. URL-encode as a path segment.",
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "runs": [
+                      {
+                        "answer": "Y",
+                        "id": 1,
+                        "prob": "A",
+                        "team_login": "teambr001",
+                        "time_seconds": 56
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Success_RunsData"
+                }
+              }
+            },
+            "description": "Successful result in data"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_started",
+                      "message": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Before event start: not_started. For runs_secret also invalid_key when the key is missing or invalid."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    {
+                      "code": "not_found",
+                      "message": "Required event, contest, or site does not exist."
+                    }
+                  ]
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Required event, contest, or site does not exist."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Read actual submissions for a site",
+        "tags": [
+          "Public revelation"
+        ]
+      }
+    },
+    "/api/events/{event_name}/contests/{contest_name}/runs_ws": {
+      "get": {
+        "description": "WebSocket upgrade (use ws:// or wss://). Replays submission messages from the event history, then sends updates. One bare Run JSON object per text frame; there is no envelope. Filtered by contest team regexes. Answers at or after score_freeze_time_seconds are replaced with ?. Repeated IDs replace previous values. Reconnect and rebuild state from replay after changing filters or freeze. Clearing stored runs does not clear stream replay history; a connection captures its filters and freeze boundary at handshake. Handshake failures for missing resources or pre-start events have no body.",
+        "operationId": "public_runs_stream",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Nonempty contest identifier within the event. URL-encode as a path segment.",
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "WebSocket upgrade; subsequent text frames follow the message schema described above."
+          },
+          "403": {
+            "description": "Event has not started; no body."
+          },
+          "404": {
+            "description": "Resource not found; no body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Stream public submissions",
+        "tags": [
+          "WebSockets"
+        ]
+      }
+    },
+    "/api/events/{event_name}/timer": {
+      "get": {
+        "description": "WebSocket available before start. Sends a bare PublicTimer JSON object immediately, then changes with consecutive duplicates suppressed. Example: {\"current_time_seconds\":-60,\"score_freeze_time_seconds\":14400}. The stream reports caller-supplied time; the server does not advance it. Missing events return a bare 404 handshake response.",
+        "operationId": "public_timer_stream",
+        "parameters": [
+          {
+            "description": "Event identifier (not a display label). URL-encode as a path segment.",
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "WebSocket upgrade; subsequent text frames follow the message schema described above."
+          },
+          "404": {
+            "description": "Resource not found; no body."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Stream event time",
+        "tags": [
+          "WebSockets"
+        ]
+      }
+    }
+  }
+}

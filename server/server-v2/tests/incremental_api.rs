@@ -45,7 +45,13 @@ async fn setup() -> (Router, EventStore) {
         public_url: "https://example.com".parse().unwrap(),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "operator".into(),
-            "token".into(),
+            service::internal_auth::InternalToken::new(
+                "operator".into(),
+                "token".into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     });
     for (path, body) in [

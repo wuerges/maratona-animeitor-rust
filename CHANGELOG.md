@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Internal credentials now declare read-only or read-write roles and whole-name
+  event ownership regexes in the existing `server.toml` token entries. Internal
+  listings are scoped to ownership, and unauthorized operations return 403.
+- `GET /internal/capabilities` exposes the authenticated credential's name, role,
+  and ownership patterns without secrets.
+- Deterministic public/internal OpenAPI snapshots, an oasdiff 1.30.0 Docker comparison
+  check, and a project API versioning rule. This implementation establishes the
+  baseline at workspace version 2.1.0; future breaking changes bump major,
+  non-breaking contract changes bump minor, and API documentation edits bump patch.
+
+
 ### Changed
 
 - Runs from teams that are not part of the event (like the judge users of

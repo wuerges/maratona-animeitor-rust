@@ -16,6 +16,29 @@ Todos os endpoints são privados e exigem autenticação HTTP Basic com um token
 - Use HTTPS; o listener HTTP responde `426` em texto, sem envelope.
 - Sem credenciais válidas: `401 Unauthorized`.
 
+## Permissões e capacidades
+
+As credenciais são configuradas em `server.toml`, nas entradas `[[tokens]]`.
+Cada entrada exige `role` (`read-only`
+ou `read-write`) e `events`, uma lista de expressões regulares Rust que combinam
+com o nome inteiro do evento. Os padrões incluem eventos futuros; listas vazias
+não concedem eventos e padrões sobrepostos compartilham acesso.
+
+Ambos os papéis podem ler eventos correspondentes; somente `read-write` pode
+criá-los, alterá-los ou excluí-los, inclusive recursos subordinados. Falta de
+permissão retorna `403` com código `forbidden`. A listagem interna mostra somente
+eventos correspondentes, na ordem de criação.
+
+`GET /internal/capabilities` retorna, com autenticação Basic:
+
+```json
+{"data":{"name":"publisher","role":"read-write","events":["contest-.*"]}}
+```
+
+Não retorna segredos nem outras credenciais. Sucesso e falhas de autenticação
+usam `Cache-Control: no-store`. Ambos os papéis acessam capacidades, documentação
+e métricas mesmo sem eventos atribuídos. Alterações na configuração exigem reinício.
+
 ## Envelope de resposta
 
 Toda resposta com corpo JSON é um objeto com os campos `data`, `errors` e `warnings`. Os três campos são **opcionais** e ausentes quando vazios:
@@ -30,6 +53,7 @@ Salvo indicação contrária, respostas de erro trazem `errors` com o código ca
 
 | code | status | situação |
 | --- | --- | --- |
+| `forbidden` | 403 | credencial válida sem papel ou propriedade necessários |
 | `invalid_json` | 400 | JSON malformado |
 | `missing_field` | 400 | campo obrigatório ausente |
 | `invalid_regex` | 400 | regex inválida em `codes` |
@@ -373,7 +397,7 @@ Runs são enviadas separadamente, depois da criação do evento, e adicionadas �
 Respostas:
 
 - `200 OK` — `data`: `{ "added": <quantidade>, "updated": <quantidade> }`, com a quantidade de submissões novas e de resultados corrigidos, respectivamente.
-- `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `prob` desconhecido. Runs de `team_login` que não está no evento (ex.: usuários juízes do feed do MOJ) são ignoradas e reportadas em `warnings` (`code: "unknown_team"`), sem rejeitar o lote.
+- `400 Bad Request` — corpo inválido, `answer` fora de `"Y" | "N" | "?" | "X"`, ou `prob` desconhecido. Runs de `team_login` que não está no evento (ex.: usuários juízes do feed) são ignoradas e reportadas em `warnings` (`code: "unknown_team"`), sem rejeitar o lote.
 - `401 Unauthorized`.
 - `404 Not Found` — o evento não existe.
 

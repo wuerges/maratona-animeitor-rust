@@ -35,7 +35,13 @@ fn app() -> Router {
         store: test_store(None),
         internal_tokens: std::sync::Arc::new(std::collections::HashMap::from([(
             "usuario".to_string(),
-            TOKEN.to_string(),
+            service::internal_auth::InternalToken::new(
+                "usuario".into(),
+                TOKEN.into(),
+                data::internal_auth::InternalRole::ReadWrite,
+                vec![".*".into()],
+            )
+            .unwrap(),
         )])),
     })
 }

@@ -35,7 +35,7 @@ struct SaltData {
 
 #[derive(OpenApi)]
 #[openapi(
-    info(title = "Animeitor public API", version = "2.1.0"),
+    info(title = "Animeitor public API", version = env!("CARGO_PKG_VERSION")),
     paths(list_public_events,
         list_public_contests,
         public_contest_state,
@@ -51,7 +51,7 @@ pub struct PublicApiDoc;
 
 #[derive(OpenApi)]
 #[openapi(
-    info(title = "Animeitor internal API", version = "2.1.0"),
+    info(title = "Animeitor internal API", version = env!("CARGO_PKG_VERSION")),
     paths(list_internal_events,
         get_internal_event,
         post_internal_event,
@@ -73,8 +73,9 @@ pub struct PublicApiDoc;
         rotate_contest_salt,
         rotate_site_salt,
         list_revelation_urls,
-        internal_metrics),
-    components(schemas(TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody)),
+        internal_metrics,
+        token_capabilities),
+    components(schemas(data::internal_auth::InternalRole, data::internal_auth::TokenCapabilities, TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody)),
     modifiers(&InternalMetadata),
     security(("basicAuth" = []))
 )]
@@ -83,7 +84,7 @@ pub struct InternalApiDoc;
 fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
     use utoipa::openapi::{Content, Ref, ResponseBuilder};
     for (path, item) in &mut doc.paths.paths {
-        if path.ends_with("/metrics") {
+        if path.ends_with("/metrics") || path.ends_with("/capabilities") {
             continue;
         }
         for operation in [
@@ -128,6 +129,34 @@ impl utoipa::Modify for InternalMetadata {
     fn modify(&self, doc: &mut utoipa::openapi::OpenApi) {
         doc.merge(incremental::IncrementalApiDoc::openapi());
         add_storage_responses(doc);
+        doc.info.version = env!("CARGO_PKG_VERSION").into();
+        for (path, item) in &mut doc.paths.paths {
+            if !path.contains("{event_name}") {
+                continue;
+            }
+            for operation in [
+                &mut item.get,
+                &mut item.post,
+                &mut item.put,
+                &mut item.patch,
+                &mut item.delete,
+            ]
+            .into_iter()
+            .flatten()
+            {
+                let response = utoipa::openapi::ResponseBuilder::new()
+                    .description("Valid credential lacks event ownership or the read-write role (forbidden).")
+                    .content(
+                        "application/json",
+                        utoipa::openapi::Content::new(Some(utoipa::openapi::Ref::from_schema_name("Failure"))),
+                    )
+                    .build();
+                operation
+                    .responses
+                    .responses
+                    .insert("403".into(), response.into());
+            }
+        }
         doc.info.description = Some(include_str!("../../../doc/internal-api-setup.md").into());
         // An absent salt body is valid, but a JSON null body is not a SaltBody.
         // Mark the request optional without making its schema nullable.
@@ -162,7 +191,7 @@ impl utoipa::Modify for PublicMetadata {
 
 /// List configured events
 ///
-/// Returns event identifiers in creation order, including events before start. Persistence depends on server.toml: memory is transient; SQLite preserves state across restarts.
+/// Returns owned event identifiers in creation order, including matching events before start. Ownership is defined by the authenticated credential's whole-name regex patterns. Persistence depends on server.toml: memory is transient; SQLite preserves state across restarts.
 #[utoipa::path(
     get, path = "/internal/events", operation_id = "list_internal_events", tag = "Events",
     responses(
@@ -623,3 +652,19 @@ pub fn swagger_html(spec: &str) -> String {
         r##"<!doctype html><html><head><title>Animeitor API</title><link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css"></head><body><div id="swagger-ui"></div><script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script><script>SwaggerUIBundle({{url:"{spec}",dom_id:"#swagger-ui"}})</script></body></html>"##
     )
 }
+
+/// Inspect your credential's capabilities
+///
+/// Returns this authenticated credential's name, role, and event-name regex patterns.
+/// Patterns match whole names, including future events. Read-write permits creation,
+/// updates, and deletion; both roles can read matching events and global internal
+/// metrics/docs. Does not disclose secrets or other credentials. Responses are no-store.
+#[utoipa::path(
+    get, path = "/internal/capabilities", operation_id = "token_capabilities", tag = "Authentication",
+    responses(
+        (status = 200, description = "Configured capabilities; Cache-Control: no-store.", body = Success<data::internal_auth::TokenCapabilities>, example = json!({"data": {"name": "publisher", "role": "read-write", "events": ["contest-.*"]}})),
+        (status = 401, description = "Missing or invalid configured credentials; Cache-Control: no-store.", body = Failure)
+    )
+)]
+#[allow(dead_code)]
+async fn token_capabilities() {}

@@ -1,4 +1,4 @@
-//! The three user-maintained configuration files. Never log private structures.
+//! User-maintained configuration files. Never log private structures.
 use color_eyre::eyre::{Context, Result, ensure, eyre};
 use data::event::{ContestConfig, SiteConfig};
 use serde::{Deserialize, de::DeserializeOwned};
@@ -228,17 +228,8 @@ pub struct ServerConfig {
     #[serde(default)]
     pub assets: Vec<Asset>,
 }
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Token {
-    pub name: String,
-    pub token: String,
-    #[serde(default = "enabled")]
-    pub enabled: bool,
-}
-fn enabled() -> bool {
-    true
-}
+pub use service::internal_auth::InternalToken as Token;
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Asset {

@@ -1,5 +1,6 @@
 pub mod configdata;
 pub mod event;
+pub mod internal_auth;
 pub mod remote_control;
 
 use configdata::Sede;

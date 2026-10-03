@@ -63,3 +63,11 @@ republish-docker-image: rebuild-docker-image
 test-databases:
 	cargo test -p service -p cli -p database-memory -p database-sqlite -p server-v2
 	cargo test -p server-v2 --features sqlite-tests
+
+# API_BASE may be a commit SHA or branch ref; CI passes the PR base commit.
+API_BASE ?= HEAD
+.PHONY: api-snapshots api-check
+api-snapshots:
+	cargo run --quiet -p server-v2 --bin export-openapi -- doc/openapi
+api-check:
+	python3 scripts/check_api.py --base "$(API_BASE)"

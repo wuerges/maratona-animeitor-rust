@@ -5,6 +5,7 @@ mod dataio;
 pub mod errors;
 pub mod event_store;
 pub mod http;
+pub mod internal_auth;
 pub mod membroadcast;
 pub mod remote_control;
 pub mod volume;

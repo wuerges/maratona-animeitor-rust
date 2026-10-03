@@ -64,8 +64,26 @@ fn errors_and_panics_keep_isolated_request_identity_across_awaits() {
         store: service::event_store::EventStore::new(db.clone(), "salt".into()),
         internal_tokens: Arc::new(
             [
-                ("alice".into(), "token".into()),
-                ("bob".into(), "token".into()),
+                (
+                    "alice".into(),
+                    service::internal_auth::InternalToken::new(
+                        "alice".into(),
+                        "token".into(),
+                        data::internal_auth::InternalRole::ReadWrite,
+                        vec![".*".into()],
+                    )
+                    .unwrap(),
+                ),
+                (
+                    "bob".into(),
+                    service::internal_auth::InternalToken::new(
+                        "bob".into(),
+                        "token".into(),
+                        data::internal_auth::InternalRole::ReadWrite,
+                        vec![".*".into()],
+                    )
+                    .unwrap(),
+                ),
             ]
             .into(),
         ),

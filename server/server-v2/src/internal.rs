@@ -25,10 +25,10 @@ use autometrics::autometrics;
 use crate::AppState;
 use service::event_store::{ContestConfig, EventState, EventStore, Run, SiteConfig, StoreError};
 
-/// Extractor: rejects requests without valid Basic credentials.
+/// Authenticate Basic credentials and enforce event ownership and role before body extraction.
 ///
 /// Both the username and its configured token must match.
-pub struct InternalAuth;
+pub struct InternalAuth(pub service::internal_auth::InternalToken);
 
 impl FromRequestParts<AppState> for InternalAuth {
     type Rejection = Response;
@@ -38,10 +38,10 @@ impl FromRequestParts<AppState> for InternalAuth {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         if let Some((name, password)) = basic_credentials(parts) {
-            if state
+            if let Some(credential) = state
                 .internal_tokens
                 .get(&name)
-                .is_some_and(|expected| expected == &password)
+                .filter(|expected| expected.enabled && expected.token == password)
             {
                 if let Some(span) = parts
                     .extensions
@@ -61,11 +61,33 @@ impl FromRequestParts<AppState> for InternalAuth {
                 }
                 sentry::configure_scope(|scope| {
                     scope.set_user(Some(sentry::User {
-                        username: Some(name),
+                        username: Some(name.clone()),
                         ..Default::default()
                     }));
                 });
-                return Ok(InternalAuth);
+                let Path(params) =
+                    Path::<std::collections::HashMap<String, String>>::from_request_parts(
+                        parts, state,
+                    )
+                    .await
+                    .map_err(IntoResponse::into_response)?;
+                if let Some(event) = params.get("event_name") {
+                    let writing = !matches!(
+                        parts.method,
+                        axum::http::Method::GET | axum::http::Method::HEAD
+                    );
+                    if !credential.owns(event)
+                        || (writing
+                            && credential.role != data::internal_auth::InternalRole::ReadWrite)
+                    {
+                        return Err(error_json(
+                            StatusCode::FORBIDDEN,
+                            "forbidden",
+                            "credential does not permit this operation",
+                        ));
+                    }
+                }
+                return Ok(InternalAuth(credential.clone()));
             }
         }
         Err(unauthorized_response())
@@ -231,6 +253,19 @@ pub fn router() -> Router<AppState> {
             patch(incremental::patch_site_codes),
         )
         .route("/metrics", get(get_metrics))
+        .route("/capabilities", get(get_capabilities))
+}
+
+async fn get_capabilities(auth: Result<InternalAuth, Response>) -> Response {
+    let mut response = match auth {
+        Ok(auth) => data_json(auth.0.capabilities(), StatusCode::OK),
+        Err(response) => response,
+    };
+    response.headers_mut().insert(
+        header::CACHE_CONTROL,
+        header::HeaderValue::from_static("no-store"),
+    );
+    response
 }
 
 async fn internal_openapi_json(_auth: InternalAuth) -> Response {
@@ -291,11 +326,14 @@ async fn get_event(
     }
 }
 
-/// Lists the names of all events, in creation order.
+/// Lists owned event names in creation order.
 #[autometrics]
-async fn list_events(_auth: InternalAuth, State(store): State<EventStore>) -> Response {
+async fn list_events(auth: InternalAuth, State(store): State<EventStore>) -> Response {
     data_json(
-        crate::store_call!(store.list_events().await),
+        crate::store_call!(store.list_events().await)
+            .into_iter()
+            .filter(|name| auth.0.owns(name))
+            .collect::<Vec<_>>(),
         StatusCode::OK,
     )
 }

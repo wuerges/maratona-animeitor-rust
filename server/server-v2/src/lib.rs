@@ -34,7 +34,8 @@ use service::{
 pub struct AppState {
     pub public_url: url::Url,
     pub store: EventStore,
-    pub internal_tokens: std::sync::Arc<std::collections::HashMap<String, String>>,
+    pub internal_tokens:
+        std::sync::Arc<std::collections::HashMap<String, service::internal_auth::InternalToken>>,
 }
 
 impl FromRef<AppState> for EventStore {
