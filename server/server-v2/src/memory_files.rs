@@ -252,7 +252,10 @@ enum Encoding {
 impl Asset {
     fn load(path: &Path, name: &str) -> Option<Asset> {
         let raw = std::fs::read(path).ok()?;
-        let etag = format!("{:x}", Sha256::digest(&raw));
+        let etag = Sha256::digest(&raw)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
         let gz = gzip(&raw);
         let br = brotli(&raw);
         Some(Asset {
