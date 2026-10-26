@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-26
+
 ### Added
 
 - `animeitor-admin capabilities` displays the authenticated credential's name,
   role, and allowed event patterns, with `--json` support.
+
+### Fixed
+
+- Upgrade TLS, runtime, cryptographic utility, ZIP, and compression dependencies
+  to resolve dependency security and soundness advisories without new exceptions.
 
 ## [2.2.2] - 2026-10-03
 
