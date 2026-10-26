@@ -21,6 +21,7 @@ RUN test "$(wasm-bindgen --version)" = "wasm-bindgen $(awk -F'"' '/^name = "wasm
 # Fetch explicitly: Trunk captures cargo metadata output while it resolves all
 # workspace dependencies, which can otherwise look like a hung build.
 # note: /build/target must NOT be a cache mount — later stages COPY from it
+ARG ANIMEITOR_GIT_COMMIT
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo fetch --locked \
  && cargo build -p server-v2 -p cli --release --locked \

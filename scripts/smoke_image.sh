@@ -39,10 +39,16 @@ for attempt in {1..30}; do
   sleep 1
 done
 test -s "$work/index.html"
+curl -fsS "http://127.0.0.1:$port/api/about" > "$work/about.json"
 curl -fkSs -u ci:ci-only-token "https://127.0.0.1:$tls_port/internal/capabilities" > "$work/capabilities.json"
 python3 - "$work" <<'PY'
-import json,pathlib,sys
+import json,os,pathlib,re,sys,tomllib
 root=pathlib.Path(sys.argv[1])
+about=json.loads(root.joinpath('about.json').read_text())['data']
+assert about['version'] == tomllib.loads(pathlib.Path('Cargo.toml').read_text())['workspace']['package']['version']
+assert isinstance(about['commit'], str) and re.fullmatch(r'[0-9a-f]{12}', about['commit'])
+if os.environ.get('GITHUB_SHA'):
+    assert about['commit'] == os.environ['GITHUB_SHA'][:12]
 assert 'wasm' in root.joinpath('index.html').read_text(), 'missing WebAssembly frontend'
 assert 'read-write' in root.joinpath('capabilities.json').read_text(), 'internal authentication failed'
 json.loads(root.joinpath('capabilities.json').read_text())

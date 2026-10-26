@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Public `GET /api/about` reports the workspace server version and a 12-character
+  build commit hash (null if unavailable), with cache prevention for deployment checks.
+- Capture native build revisions and pass explicit revisions into Docker release builds.
+
 ## [2.3.1] - 2026-10-26
 
 ### Fixed

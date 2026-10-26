@@ -2,6 +2,15 @@
 
 The public API reads event scoreboards; configuration is performed through the authenticated internal API at `/internal/openapi.json` (`/internal/docs`). The public specification is at `/api/openapi.json` (`/api/docs`).
 
+`GET /api/about` returns the server build without authentication or event setup:
+`{"data":{"version":"2.4.0","commit":"0123456789ab"}}`.
+The version comes from the workspace `Cargo.toml`; `commit` contains the first
+12 hexadecimal characters of the build's commit hash, or `null` when unavailable.
+Responses use `Cache-Control: no-store` so a deployment check reads current metadata.
+Native builds detect Git at compile time. Source archives and Docker builds can
+set `ANIMEITOR_GIT_COMMIT` to a full Git hash (Docker: `--build-arg`). The Makefile
+and release workflow supply it automatically. No Git command runs per request.
+
 Discover event identifiers with `GET /api/events`, then contest identifiers with `GET /api/events/{event_name}/contests`. Fetch the contest's `/contest` for selected teams, problems, and timing and `/config` for appearance and site choices. Identifiers are nonempty path segments; percent-encode them when constructing URLs. Public JSON responses contain `data` on success or `errors:[{code,message}]` on failure. Optional envelope fields are absent. There are no salts or derived keys in public configurations.
 
 All time values are seconds since event start, not timestamps. Before the supplied event time reaches zero, contest state, config, and submissions return `403 not_started`. Event and contest discovery, the event timer, and remote control remain available. The landing page links upcoming contests to their countdown screens. The clock is supplied by a feeder or controller; the server does not advance it automatically.

@@ -59,7 +59,7 @@ rebuild-client-for-release:
 rebuild-server-for-release:
 	cargo build -p server-v2 -p cli --release
 rebuild-docker-image:
-	docker build -t ${IMAGE} .
+	docker build --build-arg ANIMEITOR_GIT_COMMIT=$$(git rev-parse HEAD) -t ${IMAGE} .
 republish-docker-image: rebuild-docker-image
 	docker tag ${IMAGE} ${VERSIONED_IMAGE}
 	docker push ${VERSIONED_IMAGE}

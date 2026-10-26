@@ -48,7 +48,7 @@ jobs:
           cargo install cargo-deny --version 0.19.9 --locked
           make cargo-deny
       - name: Build release image including WebAssembly frontend
-        run: docker build --label "org.opencontainers.image.revision=$GITHUB_SHA" -t animeitor:release .
+        run: docker build --build-arg "ANIMEITOR_GIT_COMMIT=$GITHUB_SHA" --label "org.opencontainers.image.revision=$GITHUB_SHA" -t animeitor:release .
       - name: Smoke-test release image
         run: bash scripts/smoke_image.sh animeitor:release
       - name: Save tested image

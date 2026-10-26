@@ -22,6 +22,7 @@ use crate::remote_control::relay_remote_control;
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route("/about", get(crate::about::get_about))
         .route("/openapi.json", get(openapi_json))
         .route("/docs", get(openapi_docs))
         .route("/events", get(list_events))

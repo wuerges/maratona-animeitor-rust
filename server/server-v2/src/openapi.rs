@@ -36,7 +36,7 @@ struct SaltData {
 #[derive(OpenApi)]
 #[openapi(
     info(title = "Animeitor public API", version = env!("CARGO_PKG_VERSION")),
-    paths(list_public_events,
+    paths(server_about, list_public_events,
         list_public_contests,
         public_contest_state,
         public_contest_config,
@@ -84,7 +84,7 @@ pub struct InternalApiDoc;
 fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
     use utoipa::openapi::{Content, Ref, ResponseBuilder};
     for (path, item) in &mut doc.paths.paths {
-        if path.ends_with("/metrics") || path.ends_with("/capabilities") {
+        if path.ends_with("/metrics") || path.ends_with("/capabilities") || path == "/api/about" {
             continue;
         }
         for operation in [
@@ -541,6 +541,15 @@ pub async fn list_revelation_urls() {}
     )
 )]
 pub async fn internal_metrics() {}
+
+/// Server build information
+///
+/// Public build metadata, independent of events and authentication. The commit is null when the build has no revision metadata.
+#[utoipa::path(
+    get, path = "/api/about", operation_id = "server_about", tag = "Public discovery",
+    responses((status = 200, description = "Server version and build revision; Cache-Control: no-store", body = Success<crate::about::About>))
+)]
+pub async fn server_about() {}
 
 /// List event identifiers
 ///

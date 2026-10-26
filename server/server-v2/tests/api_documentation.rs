@@ -33,6 +33,25 @@ fn application() -> Router {
 fn basic() -> String {
     format!("Basic {}", STANDARD.encode("operator:test-token"))
 }
+
+#[tokio::test]
+async fn about_is_public_without_event_setup_and_matches_build_metadata() {
+    let (status, headers, body) = request(&application(), "GET", "/api/about", None, None).await;
+    assert_eq!(status, 200);
+    assert_eq!(headers["cache-control"], "no-store");
+    assert_eq!(body["data"]["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        body["data"]["commit"],
+        serde_json::json!(option_env!("ANIMEITOR_BUILD_COMMIT"))
+    );
+    if let Some(commit) = body["data"]["commit"].as_str() {
+        assert_eq!(commit.len(), 12);
+        assert!(commit.bytes().all(|b| b.is_ascii_hexdigit()));
+    }
+    let spec = serde_json::to_value(PublicApiDoc::openapi()).unwrap();
+    let response = &spec["paths"]["/api/about"]["get"]["responses"]["200"];
+    assert!(response["content"]["application/json"]["schema"].is_object());
+}
 async fn request(
     app: &Router,
     method: &str,
@@ -102,7 +121,10 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
         for (path, item) in spec["paths"].as_object().unwrap() {
             for (method, operation) in item.as_object().unwrap() {
                 assert!(ids.insert(operation["operationId"].as_str().unwrap().to_owned()));
-                if !path.ends_with("/metrics") && !path.ends_with("/capabilities") {
+                if !path.ends_with("/metrics")
+                    && !path.ends_with("/capabilities")
+                    && path != "/api/about"
+                {
                     assert!(
                         operation["responses"]["503"]["description"]
                             .as_str()
@@ -147,7 +169,7 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
             }
         }
     }
-    assert_eq!(ids.len(), 44);
+    assert_eq!(ids.len(), 45);
     let methods: Vec<_> = internal["paths"]["/internal/contests/{event_name}/{contest_name}"]
         .as_object()
         .unwrap()
