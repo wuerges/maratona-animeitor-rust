@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-26
+
 ### Added
 
 - Public `GET /api/about` reports the workspace server version and a 12-character
