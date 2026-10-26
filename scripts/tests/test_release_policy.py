@@ -1,6 +1,9 @@
 import importlib.util
+import os
 import pathlib
+import subprocess
 import tempfile
+import textwrap
 import unittest
 from unittest import mock
 
@@ -10,6 +13,36 @@ spec.loader.exec_module(policy)
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_publish_guard_handles_annotated_remote_and_lightweight_local_tag(self):
+        workflow = (pathlib.Path(__file__).resolve().parents[2] / '.github/workflows/release.yml').read_text()
+        guard = textwrap.dedent(workflow.split("          import os,re,subprocess\n", 1)[1].split('          PY\n', 1)[0])
+        guard = 'import os,re,subprocess\n' + guard
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            remote, checkout = root / 'remote', root / 'checkout'
+            def git(*args, cwd=remote):
+                return subprocess.check_output(['git', *args], cwd=cwd, text=True, stderr=subprocess.DEVNULL).strip()
+            remote.mkdir()
+            git('init')
+            git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '--allow-empty', '-m', 'initial')
+            git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'tag', '-a', 'v2.3.1', '-m', 'release')
+            git('clone', str(remote), str(checkout))
+            # Reproduce the publishing checkout's peeled, lightweight local tag.
+            git('update-ref', 'refs/tags/v2.3.1', 'HEAD', cwd=checkout)
+            local_tag = git('rev-parse', 'refs/tags/v2.3.1', cwd=checkout)
+            self.assertNotEqual(local_tag, git('rev-parse', 'refs/tags/v2.3.1'))
+            def check():
+                return subprocess.run(['python3', '-c', guard], cwd=checkout,
+                                      env={**os.environ, 'VERSION': '2.3.1'}, capture_output=True, text=True)
+            self.assertEqual(check().returncode, 0)
+            self.assertEqual(git('rev-parse', 'refs/tags/v2.3.1', cwd=checkout), local_tag)
+            git('tag', 'v2.4.0-rc1')
+            self.assertEqual(check().returncode, 0)
+            git('tag', 'v2.4.0')
+            result = check()
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('A newer release tag exists', result.stderr)
+
     def test_dated_nonempty_notes(self):
         text = '## [Unreleased]\n\n## [2.3.0] - 2026-01-01\n\n### Added\n\n- Feature\n\n## [2.2.0]\n- Old\n'
         self.assertEqual(policy.release_notes(text, '2.3.0'), '### Added\n\n- Feature\n')

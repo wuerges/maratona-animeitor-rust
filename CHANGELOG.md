@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-26
+
+### Fixed
+
+- Check remote release tags without fetching over the publishing checkout's local
+  tag, allowing annotated release tags to publish successfully. Includes the
+  capabilities command and dependency fixes prepared for 2.3.0.
+
 ## [2.3.0] - 2026-10-26
 
 ### Added

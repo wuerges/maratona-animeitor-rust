@@ -89,11 +89,11 @@ jobs:
           fetch-depth: 0
       - name: Reject an older release before updating latest
         run: |
-          git fetch --tags origin
           python3 - <<'PY'
           import os,re,subprocess
           current=tuple(map(int,os.environ['VERSION'].split('.')))
-          tags=subprocess.check_output(['git','tag'],text=True).splitlines()
+          refs=subprocess.check_output(['git','ls-remote','--tags','--refs','origin'],text=True).splitlines()
+          tags=[line.split()[1].removeprefix('refs/tags/') for line in refs]
           versions=[tuple(map(int,t[1:].split('.'))) for t in tags if re.fullmatch(r'v\d+\.\d+\.\d+',t)]
           if current != max(versions):
               raise SystemExit('A newer release tag exists; refusing to overwrite latest')
