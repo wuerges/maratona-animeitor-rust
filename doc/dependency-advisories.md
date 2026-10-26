@@ -17,6 +17,13 @@ The update replaces vulnerable rustls 0.23.43 with 0.23.45, resolving
 [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html), and
 replaces yanked chacha20 0.10.1 with 0.10.2. Neither receives an exception.
 
+Reviewed again on 2026-10-26. The dependency refresh upgrades rustls to
+0.23.46, rustls-webpki to 0.103.16, webpki-root-certs to 1.0.11, Tokio to
+1.54.1, and ctutils to 0.4.6. ZIP is upgraded to 9.1.2, bringing zstd 0.14.3,
+zstd-safe 8.2.0, and zstd-sys 2.1.2. These updates resolve the newly reported
+security and soundness advisories without adding exceptions. The four accepted
+maintenance notices above remain unchanged.
+
 `make cargo-deny` continues checking vulnerabilities, yanked releases, dependency
 bans, and unknown registry/Git sources across all workspace features. It reports
 the accepted advisory IDs as notes. Existing duplicate-version and local path
