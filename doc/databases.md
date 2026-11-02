@@ -35,7 +35,12 @@ set timer value. The clock does not advance itself while the server is stopped.
 Keep the same `revelation_salt` to preserve revelation URLs. Restarting the
 feeder explicitly deletes and rebuilds its event from configuration and source
 data, even with SQLite; restarting only the server preserves stored data. Remote-control
-commands are transient and are not replayed after restart.
+commands and live connections are transient and are not replayed after restart.
+Remote-control credential hashes and expiration timestamps are persisted with
+contest configuration. They survive server restarts with SQLite; deleting and
+recreating an event or contest removes its credentials. Existing databases load
+without manual schema migration. Older binaries may discard this new metadata
+on write, so use a backup when rolling back to an older version.
 
 Use a local filesystem and run only one Animeitor server against a database.
 Direct external writes while the server runs are unsupported. SQLite's normal

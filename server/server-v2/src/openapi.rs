@@ -75,7 +75,7 @@ pub struct PublicApiDoc;
         list_revelation_urls,
         internal_metrics,
         token_capabilities, create_remote_session, revoke_remote_session),
-    components(schemas(data::internal_auth::InternalRole, data::internal_auth::TokenCapabilities, TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody, data::remote_control::RemoteSessionInfo)),
+    components(schemas(data::internal_auth::InternalRole, data::internal_auth::TokenCapabilities, TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody, data::remote_control::RemoteSessionInfo, data::remote_control::RemoteSessionRequest)),
     modifiers(&InternalMetadata),
     security(("basicAuth" = []))
 )]
@@ -167,10 +167,10 @@ impl utoipa::Modify for InternalMetadata {
             }
         }
         doc.info.description = Some(include_str!("../../../doc/internal-api-setup.md").into());
-        // An absent salt body is valid, but a JSON null body is not a SaltBody.
+        // Salt and credential issuance accept absent bodies, but not JSON null.
         // Mark the request optional without making its schema nullable.
         for (path, item) in &mut doc.paths.paths {
-            if path.ends_with("/salt") {
+            if path.ends_with("/salt") || path.ends_with("/remote_control") {
                 if let Some(utoipa::openapi::RefOr::T(body)) =
                     item.post.as_mut().and_then(|op| op.request_body.as_mut())
                 {
@@ -656,7 +656,7 @@ pub async fn public_timer_stream() {}
 
 /// Relay frontend controls
 ///
-/// WebSocket available before start. The key is a secret capability issued by the authenticated internal session endpoint. Sessions expire after one hour, are revoked on restart, and allow eight connections. Unissued, expired, or revoked keys allocate no channel and return 404. Messages are relayed only to other connections with the same event, contest, and key. Text frames contain bare JSON matching ControlMessage: {"y":120}, {"query":"sede=fiemg"}, "Hidden", or {"Show":"teambr001"}. No outer WindowScroll, QueryString, or PhotoState wrapper. Missing resources return a bare 404 handshake response.
+/// WebSocket available before start. The key is a secret capability issued by the authenticated internal session endpoint. Credentials default to seven days, accept lifetimes up to 30 days, survive restart with SQLite, and allow eight connections. Unissued, expired, or revoked keys allocate no channel and return 404. Messages are relayed only to other connections with the same event, contest, and key. Text frames contain bare JSON matching ControlMessage: {"y":120}, {"query":"sede=fiemg"}, "Hidden", or {"Show":"teambr001"}. No outer WindowScroll, QueryString, or PhotoState wrapper. Missing resources return a bare 404 handshake response.
 #[utoipa::path(
     get, path = "/api/events/{event_name}/contests/{contest_name}/remote_control/{key}", operation_id = "public_remote_control", tag = "WebSockets",
     params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("contest_name" = String, Path, description = "Nonempty contest identifier within the event. URL-encode as a path segment."), ("key" = String, Path, description = "Server-issued 32-character session capability; not a revelation key.")),
@@ -668,19 +668,26 @@ pub async fn public_timer_stream() {}
 )]
 pub async fn public_remote_control() {}
 
-/// Issue an ephemeral remote-control session
+/// Issue a durable remote-control credential
 ///
 /// Requires event ownership and the read-write role. Returns a secret random capability,
-/// scoped to this contest, valid for one hour. Sessions do not survive restart.
+/// scoped to this contest. Default validity is seven days; configurable up to 30 days.
+/// Credentials survive restart with SQLite; memory-backed servers remain transient.
+/// Only hashes and expirations are persisted. Empty bodies use the default lifetime.
 /// Limits: 16 sessions per contest, 256 per process, eight connections per session.
 #[utoipa::path(
     post, path = "/internal/events/{event_name}/contests/{contest_name}/remote_control",
     operation_id = "create_remote_session", tag = "Remote control",
+    request_body(content = data::remote_control::RemoteSessionRequest,
+        description = "Optional object; an empty body or {} defaults to seven days.",
+        example = json!({"expires_in_seconds":604800})),
     params(("event_name" = String, Path), ("contest_name" = String, Path)),
     responses((status = 201, description = "Issued session; Cache-Control: no-store.", body = Success<data::remote_control::RemoteSessionInfo>),
         (status = 401, description = "Credentials missing or invalid.", body = Failure),
         (status = 404, description = "Event or contest missing.", body = Failure),
-        (status = 429, description = "Session capacity exceeded.", body = Failure))
+        (status = 429, description = "Session capacity exceeded.", body = Failure),
+        (status = 400, description = "Invalid JSON or lifetime outside 1 through 2592000 seconds.", body = Failure),
+        (status = 413, description = "Request body exceeds 2 MiB.", body = Failure))
 )]
 pub async fn create_remote_session() {}
 

@@ -888,7 +888,9 @@ async fn remote_control_rejects_oversized_frame() {
     )
     .await;
     ws.send(tokio_tungstenite::tungstenite::Message::Text(
-        "x".repeat(4097).into(),
+        serde_json::json!({"y":120,"padding":"x".repeat(4097)})
+            .to_string()
+            .into(),
     ))
     .await
     .unwrap();
@@ -948,4 +950,65 @@ async fn public_timer_answers_ping_and_keeps_stream_open() {
     store.patch_time("ensaio", 99).await.unwrap();
     let value: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
     assert_eq!(value["current_time_seconds"], 99);
+}
+
+#[tokio::test]
+async fn remote_credential_expiry_closes_active_connection() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let key = store
+        .create_remote_session_with_ttl("ensaio", "brasil", 5)
+        .await
+        .unwrap()
+        .key;
+    let base = spawn_server(app_for(store)).await;
+    let path = format!("/api/events/ensaio/contests/brasil/remote_control/{key}");
+    let mut ws = connect(&base, &path).await;
+    let frame = tokio::time::timeout(Duration::from_secs(7), ws.next())
+        .await
+        .expect("expiry closes active relay");
+    assert!(!matches!(
+        frame,
+        Some(Ok(tokio_tungstenite::tungstenite::Message::Text(_)))
+    ));
+    assert_eq!(connect_error(&base, &path).await, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn remote_control_answers_ping_without_ending_session() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
+    let base = spawn_server(app_for(store.clone())).await;
+    let path = format!("/api/events/ensaio/contests/brasil/remote_control/{key}");
+    let mut ws = connect(&base, &path).await;
+    ws.send(tokio_tungstenite::tungstenite::Message::Ping(
+        b"controller".to_vec().into(),
+    ))
+    .await
+    .unwrap();
+    let frame = tokio::time::timeout(Duration::from_secs(2), ws.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        frame,
+        tokio_tungstenite::tungstenite::Message::Pong(b"controller".to_vec().into())
+    );
+    store
+        .revoke_remote_session("ensaio", "brasil", &key)
+        .await
+        .unwrap();
+    assert!(
+        tokio::time::timeout(Duration::from_secs(2), ws.next())
+            .await
+            .is_ok()
+    );
 }

@@ -319,3 +319,38 @@ async fn writer_can_issue_and_revoke_scoped_remote_sessions() {
             .is_none()
     );
 }
+
+#[tokio::test]
+async fn remote_control_lifetime_body_is_optional_and_bounded() {
+    let (app, store) = fixture().await;
+    store
+        .create_contest(
+            "contest-one",
+            "c",
+            serde_json::from_value(json!({"name":"c","codes":[]})).unwrap(),
+        )
+        .await
+        .unwrap();
+    let path = "/internal/events/contest-one/contests/c/remote_control";
+    for (body, ttl) in [
+        ("", 604800),
+        ("{}", 604800),
+        (r#"{"expires_in_seconds":1209600}"#, 1209600),
+    ] {
+        let before = service::remote_control::unix_seconds();
+        let (status, _, value) = request(&app, Some("writer"), "POST", path, body).await;
+        assert_eq!(status, StatusCode::CREATED);
+        assert!(value["data"]["expires_at"].as_u64().unwrap() >= before + ttl);
+    }
+    for body in [
+        r#"{"expires_in_seconds":0}"#,
+        r#"{"expires_in_seconds":2592001}"#,
+        "null",
+        r#"{"unknown":1}"#,
+    ] {
+        assert_eq!(
+            request(&app, Some("writer"), "POST", path, body).await.0,
+            StatusCode::BAD_REQUEST
+        );
+    }
+}

@@ -22,6 +22,9 @@ pub enum DatabaseError {
 pub struct StoredContest {
     pub config: ContestConfig,
     pub sites: BTreeMap<String, SiteConfig>,
+    /// Hash-indexed credential metadata; plaintext keys are never persisted.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub remote_control: BTreeMap<String, crate::remote_control::RemoteSessionRecord>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -194,6 +197,24 @@ pub fn report_error(error: &DatabaseError) {
         tracing::error!(
             error = error as &dyn std::error::Error,
             "database operation failed"
+        );
+    }
+}
+
+#[cfg(test)]
+mod remote_compatibility_tests {
+    #[test]
+    fn old_contests_without_remote_metadata_still_load() {
+        let contest: super::StoredContest = serde_json::from_value(serde_json::json!({
+            "config":{"name":"c","codes":[]},"sites":{}
+        }))
+        .unwrap();
+        assert!(contest.remote_control.is_empty());
+        assert!(
+            serde_json::to_value(contest)
+                .unwrap()
+                .get("remote_control")
+                .is_none()
         );
     }
 }

@@ -220,7 +220,7 @@ Exemplo de mensagem:
 ### Controle remoto
 
 - `WS /api/events/{event-name}/contests/{contest-name}/remote_control/{key}`
-- Relay de mensagens de controle entre as abas/browsers que usam a mesma chave, isolado por contest. Essa chave é uma capability secreta emitida pela API interna autenticada, não a chave de revelação. A sessão expira em uma hora, não sobrevive ao reinício e admite até oito conexões. Chaves desconhecidas, expiradas ou revogadas retornam 404 sem criar um canal. Cada mensagem recebida de um cliente é retransmitida a todos os outros clientes da mesma chave; o remetente não recebe a própria mensagem.
+- Relay de mensagens de controle entre as abas/browsers que usam a mesma chave, isolado por contest. Essa chave é uma capability secreta emitida pela API interna autenticada, não a chave de revelação. A credencial expira em sete dias por padrão (máximo configurável de 30 dias), sobrevive ao reinício com SQLite e admite até oito conexões. No backend em memória, o reinício continua apagando os dados. Chaves desconhecidas, expiradas ou revogadas retornam 404 sem criar um canal. Cada mensagem recebida de um cliente é retransmitida a todos os outros clientes da mesma chave; o remetente não recebe a própria mensagem.
 
 Mensagens: frames de texto com um dos objetos abaixo (JSON):
 

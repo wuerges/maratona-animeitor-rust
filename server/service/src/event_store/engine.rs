@@ -17,7 +17,9 @@ use sha2::Sha256;
 use tokio::sync::{RwLock, broadcast};
 
 use crate::membroadcast;
-use crate::remote_control::{RemoteConnection, RemoteSession, create_remote_session};
+use crate::remote_control::{
+    RemoteConnection, RemoteSession, create_remote_session, remote_key_hash, restore_remote_session,
+};
 
 const SALT_LEN: usize = 32;
 const KEY_LEN: usize = 12;
@@ -933,11 +935,11 @@ impl Engine {
         inner.events.get(event_name).map(Event::timer)
     }
 
-    pub async fn create_remote_session(
+    pub async fn check_remote_capacity(
         &self,
         event: &str,
         contest: &str,
-    ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
+    ) -> Result<(), StoreError> {
         let mut inner = self.inner.write().await;
         // Expired sessions are removed on issuance, so the registry remains bounded.
         for event in inner.events.values_mut() {
@@ -961,9 +963,27 @@ impl Engine {
         if total >= 256 || contest.remote_control.len() >= 16 {
             return Err(StoreError::LimitExceeded);
         }
+        Ok(())
+    }
+
+    pub async fn create_remote_session(
+        &self,
+        event: &str,
+        contest: &str,
+        ttl: u64,
+    ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
+        self.check_remote_capacity(event, contest).await?;
+        let mut inner = self.inner.write().await;
+        let contest = inner
+            .events
+            .get_mut(event)
+            .and_then(|e| e.contests.get_mut(contest))
+            .ok_or_else(|| StoreError::NotFound("event or contest".into()))?;
         let key = Alphanumeric.sample_string(&mut rand::rng(), 32);
-        let (session, info) = create_remote_session(key.clone());
-        contest.remote_control.insert(key, session);
+        let (session, info) = create_remote_session(key.clone(), ttl);
+        contest
+            .remote_control
+            .insert(remote_key_hash(&key), session);
         Ok(info)
     }
 
@@ -973,7 +993,7 @@ impl Engine {
             .events
             .get_mut(event)
             .and_then(|e| e.contests.get_mut(contest))
-            .and_then(|c| c.remote_control.remove(key))
+            .and_then(|c| c.remote_control.remove(&remote_key_hash(key)))
             .is_some()
     }
 
@@ -992,7 +1012,7 @@ impl Engine {
             .events
             .get(event)
             .and_then(|e| e.contests.get(contest))
-            .and_then(|c| c.remote_control.get(key))
+            .and_then(|c| c.remote_control.get(&remote_key_hash(key)))
         else {
             return Ok(None);
         };
@@ -1476,6 +1496,12 @@ impl Engine {
                         name.clone(),
                         crate::database::StoredContest {
                             config: c.config.clone(),
+                            remote_control: c
+                                .remote_control
+                                .iter()
+                                .filter(|(_, session)| !session.is_expired())
+                                .map(|(hash, session)| (hash.clone(), session.record.clone()))
+                                .collect(),
                             sites: c
                                 .sites
                                 .iter()
@@ -1514,6 +1540,37 @@ impl Engine {
                     crate::database::DatabaseError::Corrupt("resource identifier mismatch".into()),
                 ));
             }
+            if c.remote_control.len() > 16
+                || c.remote_control
+                    .keys()
+                    .any(|hash| hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()))
+            {
+                return Err(StoreError::Storage(
+                    crate::database::DatabaseError::Corrupt(
+                        "invalid remote-control credential metadata".into(),
+                    ),
+                ));
+            }
+            if c.remote_control.values().any(|record| {
+                tokio::time::Instant::now()
+                    .checked_add(std::time::Duration::from_secs(
+                        record
+                            .expires_at
+                            .saturating_sub(crate::remote_control::unix_seconds()),
+                    ))
+                    .is_none()
+            }) {
+                return Err(StoreError::Storage(
+                    crate::database::DatabaseError::Corrupt("invalid remote-control expiry".into()),
+                ));
+            }
+            let remote_control = c
+                .remote_control
+                .into_iter()
+                .filter_map(|(hash, record)| {
+                    restore_remote_session(record).map(|session| (hash, session))
+                })
+                .collect();
             let sites = c
                 .sites
                 .into_iter()
@@ -1533,9 +1590,29 @@ impl Engine {
                     codes: compile_codes(&c.config.codes)?,
                     config: c.config,
                     sites,
-                    remote_control: HashMap::new(),
+                    remote_control,
                 },
             );
+        }
+        let existing_count: usize = inner
+            .events
+            .iter()
+            .filter(|(event, _)| event.as_str() != name)
+            .flat_map(|(_, event)| event.contests.values())
+            .map(|c| {
+                c.remote_control
+                    .values()
+                    .filter(|session| !session.is_expired())
+                    .count()
+            })
+            .sum();
+        let next_count: usize = contests.values().map(|c| c.remote_control.len()).sum();
+        if existing_count + next_count > 256 {
+            return Err(StoreError::Storage(
+                crate::database::DatabaseError::Corrupt(
+                    "too many remote-control credentials".into(),
+                ),
+            ));
         }
         let (runs_tx, timer_tx) = if let Some(old) = inner.events.get(name) {
             let next_ids: std::collections::HashSet<_> =
@@ -1601,7 +1678,15 @@ impl Engine {
             }
             for (key, c) in &mut next.contests {
                 if let Some(previous) = old.contests.get_mut(key) {
-                    c.remote_control = std::mem::take(&mut previous.remote_control);
+                    for (hash, next_session) in &mut c.remote_control {
+                        if let Some(prior) = previous.remote_control.remove(hash) {
+                            if prior.record == next_session.record {
+                                *next_session = prior;
+                            }
+                        }
+                    }
+                    // Any removed credential drops here, revoking active relays.
+                    previous.remote_control.clear();
                 }
             }
         } else {

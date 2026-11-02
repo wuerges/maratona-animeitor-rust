@@ -740,8 +740,37 @@ async fn create_remote_session(
     _auth: InternalAuth,
     State(store): State<EventStore>,
     Path((event, contest)): Path<(String, String)>,
+    body: Result<axum::body::Bytes, axum::extract::rejection::BytesRejection>,
 ) -> Response {
-    let info = crate::store_call!(store.create_remote_session(&event, &contest).await);
+    let bytes = match body {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            return error_json(
+                StatusCode::PAYLOAD_TOO_LARGE,
+                "payload_too_large",
+                "request body exceeds limit",
+            );
+        }
+    };
+    let request = if bytes.is_empty() {
+        data::remote_control::RemoteSessionRequest::default()
+    } else {
+        match serde_json::from_slice::<data::remote_control::RemoteSessionRequest>(&bytes) {
+            Ok(request) => request,
+            Err(_) => {
+                return error_json(
+                    StatusCode::BAD_REQUEST,
+                    "invalid_json",
+                    "expected an object with optional expires_in_seconds",
+                );
+            }
+        }
+    };
+    let info = crate::store_call!(
+        store
+            .create_remote_session_with_ttl(&event, &contest, request.expires_in_seconds)
+            .await
+    );
     let mut response = data_json(info, StatusCode::CREATED);
     response.headers_mut().insert(
         header::CACHE_CONTROL,

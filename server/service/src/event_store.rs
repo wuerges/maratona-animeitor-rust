@@ -533,8 +533,35 @@ impl EventStore {
         event: &str,
         contest: &str,
     ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
+        self.create_remote_session_with_ttl(
+            event,
+            contest,
+            data::remote_control::DEFAULT_REMOTE_TTL_SECONDS,
+        )
+        .await
+    }
+    pub async fn create_remote_session_with_ttl(
+        &self,
+        event: &str,
+        contest: &str,
+        ttl: u64,
+    ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
+        if !(1..=data::remote_control::MAX_REMOTE_TTL_SECONDS).contains(&ttl) {
+            return Err(StoreError::InvalidValue(
+                "expires_in_seconds must be between 1 and 2592000".into(),
+            ));
+        }
         self.initialize().await?;
-        self.live.create_remote_session(event, contest).await
+        let event = event.to_owned();
+        let contest = contest.to_owned();
+        let live = self.live.clone();
+        self.mutate(event.clone(), move |stage| {
+            Box::pin(async move {
+                live.check_remote_capacity(&event, &contest).await?;
+                stage.create_remote_session(&event, &contest, ttl).await
+            })
+        })
+        .await
     }
     pub async fn revoke_remote_session(
         &self,
@@ -543,7 +570,13 @@ impl EventStore {
         key: &str,
     ) -> Result<bool, StoreError> {
         self.initialize().await?;
-        Ok(self.live.revoke_remote_session(event, contest, key).await)
+        let event = event.to_owned();
+        let contest = contest.to_owned();
+        let key = key.to_owned();
+        self.mutate(event.clone(), move |stage| {
+            Box::pin(async move { Ok(stage.revoke_remote_session(&event, &contest, &key).await) })
+        })
+        .await
     }
     pub async fn remote_control_sender(
         &self,

@@ -154,3 +154,30 @@ animeitor-admin events update regional-2026 \
 The equivalent API operation is `PATCH /internal/events/regional-2026` with
 `photo_url_format` and `sound_url_format`. Omitted fields are preserved; null
 restores the default. Reload the scoreboard after updating its media settings.
+
+
+## Remote-control credentials
+
+Use an event-owning read-write credential and the configured HTTPS server URL:
+
+```sh
+umask 077
+animeitor-admin --json remote-control create EVENT CONTEST > remote-session.json
+animeitor-admin --json remote-control create EVENT CONTEST --expires-in 2w > remote-session-two-weeks.json
+jq -r '.data.key' remote-session.json | animeitor-admin remote-control revoke EVENT CONTEST --key-file -
+```
+
+Creation defaults to **seven days**. `--expires-in` accepts seconds or `m`, `h`,
+`d`, `w` suffixes, from one second through **30 days**. The JSON response contains
+`data.key` and the Unix timestamp `data.expires_at`. Keep the returned key private;
+it is shown only at creation. Revocation accepts a raw-key file or stdin, keeping
+the secret out of process arguments, removes the stored credential, and closes
+its active relays.
+
+SQLite persists only hashes and expirations, so keys and revocations survive
+server restarts. Memory-backed servers remain transient. Expiry and explicit
+revocation close live relays. Deleting/recreating the parent event or contest
+removes its credentials; feeder startup rebuilds its event and therefore removes
+its credentials too. Remote relays use heartbeat liveness checks instead of an
+hourly forced reconnect. Issuing new keys does not change ordinary scoreboard
+endpoint authorization.

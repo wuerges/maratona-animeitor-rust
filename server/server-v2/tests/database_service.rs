@@ -374,3 +374,188 @@ async fn public_snapshots_do_not_reload_storage_and_observe_commits() {
     store.delete_event("e").await.unwrap();
     assert!(store.current_timer("e").await.unwrap().is_none());
 }
+
+#[tokio::test]
+async fn sqlite_remote_credentials_survive_restart_and_revocation() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("remote.sqlite3");
+    let key;
+    let expiry;
+    {
+        let database = Arc::new(database_sqlite::SqliteDatabase::open(&path).unwrap());
+        let store = EventStore::new(database.clone(), "salt".into());
+        store
+            .create_event("e", shared::event("e").state)
+            .await
+            .unwrap();
+        store
+            .create_contest(
+                "e",
+                "c",
+                serde_json::from_value(serde_json::json!({"name":"c","codes":[]})).unwrap(),
+            )
+            .await
+            .unwrap();
+        let before = service::remote_control::unix_seconds();
+        let info = store.create_remote_session("e", "c").await.unwrap();
+        assert!(info.expires_at >= before + 7 * 86400);
+        key = info.key;
+        expiry = info.expires_at;
+        let stored = database.read("e").await.unwrap().unwrap();
+        let records = &stored.contests["c"].remote_control;
+        assert_eq!(
+            records[&service::remote_control::remote_key_hash(&key)].expires_at,
+            expiry
+        );
+        assert!(
+            !serde_json::to_string(&stored).unwrap().contains(&key),
+            "plaintext key must not be persisted"
+        );
+        let connection = store
+            .remote_control_sender("e", "c", &key)
+            .await
+            .unwrap()
+            .unwrap();
+        store.patch_time("e", 42).await.unwrap();
+        assert!(
+            !connection.revoked.has_changed().unwrap(),
+            "unrelated writes must preserve live sessions"
+        );
+    }
+    {
+        let database = Arc::new(database_sqlite::SqliteDatabase::open(&path).unwrap());
+        let store = EventStore::new(database.clone(), "salt".into());
+        let connection = store
+            .remote_control_sender("e", "c", &key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(!connection.revoked.has_changed().unwrap());
+        let records = database
+            .read("e")
+            .await
+            .unwrap()
+            .unwrap()
+            .contests
+            .remove("c")
+            .unwrap()
+            .remote_control;
+        assert_eq!(
+            records[&service::remote_control::remote_key_hash(&key)].expires_at,
+            expiry
+        );
+        store.revoke_remote_session("e", "c", &key).await.unwrap();
+        assert!(*connection.revoked.borrow());
+        assert!(
+            store
+                .remote_control_sender("e", "c", &key)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+    {
+        let database = Arc::new(database_sqlite::SqliteDatabase::open(&path).unwrap());
+        let store = EventStore::new(database, "salt".into());
+        assert!(
+            store
+                .remote_control_sender("e", "c", &key)
+                .await
+                .unwrap()
+                .is_none(),
+            "revocation must survive restart"
+        );
+    }
+}
+
+#[tokio::test]
+async fn expired_sqlite_credentials_are_not_restored() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("expiry.sqlite3");
+    let key;
+    {
+        let database = Arc::new(database_sqlite::SqliteDatabase::open(&path).unwrap());
+        let store = EventStore::new(database.clone(), "salt".into());
+        store
+            .create_event("e", shared::event("e").state)
+            .await
+            .unwrap();
+        store
+            .create_contest(
+                "e",
+                "c",
+                serde_json::from_value(serde_json::json!({"name":"c","codes":[]})).unwrap(),
+            )
+            .await
+            .unwrap();
+        key = store.create_remote_session("e", "c").await.unwrap().key;
+        drop(store);
+        let mut event = database.read("e").await.unwrap().unwrap();
+        for record in event
+            .contests
+            .get_mut("c")
+            .unwrap()
+            .remote_control
+            .values_mut()
+        {
+            record.expires_at = service::remote_control::unix_seconds() - 1;
+        }
+        database.replace(event).await.unwrap();
+    }
+    let store = EventStore::new(
+        Arc::new(database_sqlite::SqliteDatabase::open(&path).unwrap()),
+        "salt".into(),
+    );
+    assert!(
+        store
+            .remote_control_sender("e", "c", &key)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    // Expired credentials do not consume registry slots.
+    for _ in 0..16 {
+        store.create_remote_session("e", "c").await.unwrap();
+    }
+}
+
+#[tokio::test]
+async fn durable_credentials_obey_global_limit_across_events() {
+    let store = EventStore::new(
+        Arc::new(database_memory::MemoryDatabase::new()),
+        "salt".into(),
+    );
+    let mut first = None;
+    for i in 0..17 {
+        let event = format!("event-{i}");
+        store
+            .create_event(&event, shared::event(&event).state)
+            .await
+            .unwrap();
+        store
+            .create_contest(
+                &event,
+                "c",
+                serde_json::from_value(serde_json::json!({"name":"c","codes":[]})).unwrap(),
+            )
+            .await
+            .unwrap();
+        if i < 16 {
+            for _ in 0..16 {
+                let key = store.create_remote_session(&event, "c").await.unwrap().key;
+                if first.is_none() {
+                    first = Some(key);
+                }
+            }
+        }
+    }
+    assert!(matches!(
+        store.create_remote_session("event-16", "c").await,
+        Err(StoreError::LimitExceeded)
+    ));
+    store
+        .revoke_remote_session("event-0", "c", &first.unwrap())
+        .await
+        .unwrap();
+    store.create_remote_session("event-16", "c").await.unwrap();
+}

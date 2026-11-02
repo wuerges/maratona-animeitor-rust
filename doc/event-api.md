@@ -457,11 +457,12 @@ PATCH em `.../contests/{evento}/{contest}/codes` ou `.../sites/{evento}/{contest
 Veja [o contrato completo e exemplos](internal-api-setup.md#atomic-incremental-management), também incluídos na especificação OpenAPI interna. O feeder mantém seu comportamento e pode sobrescrever mudanças manuais a partir da fonte.
 
 
-## Remote-control sessions (3.0.0)
+## Remote-control credentials
 
 A read-write credential owning the event can issue a session with
-`POST /internal/events/{event_name}/contests/{contest_name}/remote_control` (no
-request body). The 201 response is `{"data":{"key":"<random capability>",
+`POST /internal/events/{event_name}/contests/{contest_name}/remote_control`. An
+empty body or `{}` uses seven days; `{"expires_in_seconds":1209600}` requests two
+weeks. Lifetimes must be from one second through 30 days. The 201 response is `{"data":{"key":"<random capability>",
 "expires_at":<Unix seconds>}}`, with `Cache-Control: no-store`. Distribute the
 secret key to the controller and viewers using the existing `remote_control`
 client query parameter. Each key is scoped to its event and contest.
@@ -469,7 +470,18 @@ client query parameter. Each key is scoped to its event and contest.
 `DELETE /internal/events/{event_name}/contests/{contest_name}/remote_control/{key}`
 revokes the session, disconnects its clients, and returns 204; an unknown key
 returns 404. Both operations enforce event ownership and the read-write role.
-Sessions last one hour, are transient across restarts, and have fixed limits:
+Credentials default to seven days and survive restart with SQLite (memory-backed
+servers remain transient). They have fixed limits:
 16 per contest, 256 per server, eight connections per session. Capacity exhaustion
-returns 429. Issue a new session after expiration or restart; arbitrary room names
+returns 429. Issue a new credential after expiration or revocation; arbitrary room names
 are no longer accepted by the public WebSocket endpoint.
+
+
+Credentials are stored as SHA-256 hashes plus wall-clock expiration timestamps,
+never plaintext keys. Creation and revocation commit before success is returned.
+Revocation disconnects live relays and survives restart. Existing SQLite databases
+load without a manual migration; metadata is stored in contest configuration.
+Keys are shown only at creation. Preserve that response securely. Deleting an
+event or contest removes its credentials; a feeder startup that deletes/recreates
+its event also removes them. Use `animeitor-admin remote-control create` and
+`remote-control revoke` as documented in `doc/admin-cli.md`.
