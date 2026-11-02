@@ -922,3 +922,30 @@ async fn websocket_capacity_is_released_after_rejection() {
         StatusCode::NOT_FOUND
     );
 }
+
+#[tokio::test]
+async fn public_timer_answers_ping_and_keeps_stream_open() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    let base = spawn_server(app_for(store.clone())).await;
+    let mut ws = connect(&base, "/api/events/ensaio/timer").await;
+    let _ = next_text(&mut ws).await;
+    let challenge = b"browser-liveness".to_vec();
+    ws.send(tokio_tungstenite::tungstenite::Message::Ping(
+        challenge.clone().into(),
+    ))
+    .await
+    .unwrap();
+    let frame = tokio::time::timeout(Duration::from_secs(2), ws.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        frame,
+        tokio_tungstenite::tungstenite::Message::Pong(challenge.into())
+    );
+    store.patch_time("ensaio", 99).await.unwrap();
+    let value: serde_json::Value = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+    assert_eq!(value["current_time_seconds"], 99);
+}

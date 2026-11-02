@@ -176,6 +176,7 @@ async fn runs_ws(
 
     crate::resource_limits::upgrade(ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
+        let mut heartbeat = crate::websocket_liveness::Heartbeat::new();
         loop {
             tokio::select! {
                 recv = runs_rx.recv() => {
@@ -226,16 +227,12 @@ async fn runs_ws(
                         runs_rx = replay;
                     }
                 }
-                // The read half of the connection: while no runs arrive, this
-                // is what detects that the client went away and releases the
-                // socket instead of leaking the file descriptor.
+                _ = tokio::time::sleep_until(heartbeat.deadline()) => break,
+                _ = heartbeat.tick() => {
+                    if !heartbeat.send_ping(&mut sender).await { break; }
+                }
                 msg = receiver.next() => {
-                    if let Some(Err(err)) = msg {
-                        tracing::warn!(?err, "failed reading ws messages");
-                    } else {
-                        tracing::debug!("ws stream ended");
-                    }
-                    break;
+                    if !heartbeat.receive(msg, &mut sender).await { break; }
                 }
             }
         }
@@ -286,6 +283,7 @@ async fn timer_ws(
 
     crate::resource_limits::upgrade(ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
+        let mut heartbeat = crate::websocket_liveness::Heartbeat::new();
 
         // The current value is sent immediately; the stream keeps it fresh,
         // suppressing consecutive duplicates.
@@ -305,15 +303,14 @@ async fn timer_ws(
                         }
                     }
                 }
-                // The read half of the connection: detects dead clients even
-                // while the clock is frozen and nothing is being written.
+                _ = tokio::time::sleep_until(heartbeat.deadline()) => break,
+                _ = heartbeat.tick() => {
+                    if !heartbeat.send_ping(&mut sender).await { break; }
+                    continue;
+                }
                 msg = receiver.next() => {
-                    if let Some(Err(err)) = msg {
-                        tracing::warn!(?err, "failed reading ws messages");
-                    } else {
-                        tracing::debug!("ws stream ended");
-                    }
-                    break;
+                    if !heartbeat.receive(msg, &mut sender).await { break; }
+                    continue;
                 }
             };
             if last.is_some_and(|previous| previous == time) {

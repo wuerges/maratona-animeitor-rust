@@ -8,6 +8,7 @@ pub mod public;
 mod remote_control;
 mod request_logging;
 mod resource_limits;
+mod websocket_liveness;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

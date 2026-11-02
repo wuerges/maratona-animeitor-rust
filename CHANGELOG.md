@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-11-01
+
+### Fixed
+
+- Keep responsive public timer/runs WebSockets open for multi-hour contests.
+  Replace the one-hour lifetime with 30-second ping heartbeats and a 90-second
+  matching-pong deadline; preserve write, frame, message-rate, and connection limits.
+- Accept public WebSocket ping/pong control frames without ending the stream;
+  healthy frozen timers no longer hit the example proxy's idle timeout.
+
 ## [4.0.0] - 2026-11-01
 
 ### Breaking

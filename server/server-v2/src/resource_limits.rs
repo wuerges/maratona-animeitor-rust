@@ -54,7 +54,7 @@ where
 {
     websocket(ws).on_upgrade(move |socket| async move {
         let _permit = permit;
-        let _ = tokio::time::timeout(Duration::from_secs(3600), callback(socket)).await;
+        callback(socket).await;
     })
 }
 
