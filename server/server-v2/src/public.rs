@@ -204,10 +204,15 @@ async fn runs_ws(
                                 }
                             }
                         }
-                        Err(err) => {
-                            tracing::warn!(?err, "recv failed");
-                            break;
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                            // A single committed batch can exceed the live buffer. Recover
+                            // from the shared snapshot without forcing a network reconnect.
+                            let Ok(Some(replay)) = store.subscribe_runs(&event_name).await else {
+                                break;
+                            };
+                            runs_rx = replay;
                         }
+                        Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
                     }
                 }
                 update = timer_rx.recv() => {
@@ -297,10 +302,14 @@ async fn timer_ws(
                 recv = time_rx.recv() => {
                     match recv {
                         Ok(time) => time,
-                        Err(err) => {
-                            tracing::warn!(?err, "recv failed");
-                            break;
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                            let Ok(Some((current, receiver))) = store.timer_subscription(&event_name).await else {
+                                break;
+                            };
+                            time_rx = receiver;
+                            current
                         }
+                        Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
                     }
                 }
                 _ = tokio::time::sleep_until(heartbeat.deadline()) => break,

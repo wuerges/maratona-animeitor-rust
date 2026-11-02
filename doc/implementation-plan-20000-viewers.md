@@ -430,7 +430,10 @@ test files are committed. API specs, version, lockfile, and changelog travel tog
   declared now and will be enforced in package 6. WebSocket writes retain 10s.
   Checks: configuration/permit regressions, documented database suites, OpenAPI
   comparison against implementation base; no capacity claim yet.
-- [ ] 2. Batch/lag recovery preserves connections and freeze correctness.
+- [x] 2. Batch/lag recovery preserves connections and freeze correctness.
+  Runs recover through shared replay; timers atomically replace lagged receivers.
+  Regression: 2,000-run batch and later correction on the same socket. Existing
+  freeze tests retain masking coverage; no new wire message shape.
 - [ ] 3. Committed reads survive storage outages; recovery is scoped.
 - [ ] 4. Queued cancellation and unknown write outcomes tested through HTTP.
 - [ ] 5. Browser retry jitter, stable reset, and abandoned-stream cleanup.

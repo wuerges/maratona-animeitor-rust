@@ -47,9 +47,9 @@ The public and internal APIs have separate request concurrency budgets (128 and
 reached. Detached commit/publish tasks have an independent cap of 32, retained
 until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
 configurable process budget (50,000 by default), no age limit while responsive, 4 KiB incoming frame/message
-limits, and a 10-second write deadline. Reconnect with backoff. A lagged stream
-is disconnected and must reconnect for a fresh replay; live buffers hold 1,024
-messages.
+limits, and a 10-second write deadline. Reconnect with backoff. A lagged runs stream recovers using a fresh shared replay on the same socket;
+lagged timers recover the latest value. Deleted events still close their streams.
+Live buffers hold 1,024 messages.
 
 Remote-control keys are secret server-issued capabilities, scoped to an event
 and contest. An owner with a read-write internal token issues a session with
