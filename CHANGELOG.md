@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-11-01
+
+### Breaking
+
+- Default remote-control credentials to seven days, configurable from one second
+  through 30 days. Persist hashes and wall-clock expirations with SQLite, so
+  restarting a persistent server no longer revokes credentials. Use explicit
+  revocation to invalidate keys. Memory-backed servers remain transient.
+
+### Added
+
+- `animeitor-admin remote-control create EVENT CONTEST [--expires-in 7d]` and
+  `remote-control revoke EVENT CONTEST --key-file FILE` (or stdin).
+- Optional `expires_in_seconds` body on internal credential issuance; empty bodies
+  and empty objects use seven days. Creation/revocation are persisted atomically.
+
+### Fixed
+
+- Keep active remote-control relays across unrelated committed event updates and
+  close them after durable revocation, credential expiration, or parent deletion.
+- Use ping/pong heartbeats on remote-control relays so healthy idle connections
+  last until credential expiry or revocation rather than a proxy idle timeout.
+
 ## [4.1.0] - 2026-11-01
 
 ### Fixed

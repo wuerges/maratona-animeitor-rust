@@ -558,3 +558,52 @@ fn media_flags_update_the_event() {
         .is_err()
     );
 }
+
+#[test]
+fn remote_control_creation_and_lifetime_validation() {
+    let plan = parse(&["remote-control", "create", "e", "c"]);
+    assert_eq!(plan.method, reqwest::Method::POST);
+    assert_eq!(
+        plan.segments.join("/"),
+        "internal/events/e/contests/c/remote_control"
+    );
+    assert_eq!(plan.body.unwrap()["expires_in_seconds"], 604800);
+    assert_eq!(
+        parse(&["remote-control", "create", "e", "c", "--expires-in", "2w"])
+            .body
+            .unwrap()["expires_in_seconds"],
+        1209600
+    );
+    for bad in ["0", "31d", "-1", "999999999999999999999d"] {
+        assert!(
+            args::AdminArgs::try_parse_from([
+                "animeitor-admin",
+                "remote-control",
+                "create",
+                "e",
+                "c",
+                "--expires-in",
+                bad
+            ])
+            .is_err()
+        );
+    }
+}
+
+#[test]
+fn remote_control_revocation_reads_secret_from_file() {
+    let directory = tempfile::tempdir().unwrap();
+    let file = directory.path().join("key");
+    std::fs::write(&file, "a".repeat(32) + "\n").unwrap();
+    let plan = parse(&[
+        "remote-control",
+        "revoke",
+        "e",
+        "c",
+        "--key-file",
+        file.to_str().unwrap(),
+    ]);
+    assert_eq!(plan.method, reqwest::Method::DELETE);
+    assert_eq!(plan.segments.last().unwrap(), &"a".repeat(32));
+    assert!(plan.body.is_none());
+}

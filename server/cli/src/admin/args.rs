@@ -52,6 +52,9 @@ pub enum Command {
     RevelationUrls(EventId),
     /// Inspect the authenticated credential's name, role, and event patterns.
     Capabilities,
+    /// Issue or revoke contest-scoped remote-control credentials.
+    #[command(subcommand)]
+    RemoteControl(RemoteControlCommand),
     /// Read process-wide Prometheus metrics.
     Metrics,
 }
@@ -421,4 +424,39 @@ pub enum RunCommand {
     },
     /// Delete stored runs. WebSocket replay history is retained; recreate the event for a clean history.
     Clear(EventId),
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RemoteControlCommand {
+    /// Issue a key; default validity is seven days (maximum 30 days).
+    Create {
+        #[command(flatten)]
+        id: ContestId,
+        /// Lifetime such as 7d, 1w, 12h, or a number of seconds.
+        #[arg(long, default_value = "7d", value_parser = parse_remote_lifetime)]
+        expires_in: u64,
+    },
+    /// Revoke a key and disconnect its clients.
+    Revoke {
+        #[command(flatten)]
+        id: ContestId,
+        /// Raw key file, or - for stdin (keeps the secret out of process arguments).
+        #[arg(long)]
+        key_file: PathBuf,
+    },
+}
+fn parse_remote_lifetime(value: &str) -> Result<u64, String> {
+    let (number, multiplier) = match value.as_bytes().last() {
+        Some(b'm') => (&value[..value.len() - 1], 60u64),
+        Some(b'h') => (&value[..value.len() - 1], 3600),
+        Some(b'd') => (&value[..value.len() - 1], 86400),
+        Some(b'w') => (&value[..value.len() - 1], 604800),
+        _ => (value, 1),
+    };
+    let seconds = number
+        .parse::<u64>()
+        .ok()
+        .and_then(|n| n.checked_mul(multiplier))
+        .filter(|n| (1..=data::remote_control::MAX_REMOTE_TTL_SECONDS).contains(n));
+    seconds.ok_or_else(|| "use 1 second through 30 days, e.g. 7d or 1w".into())
 }

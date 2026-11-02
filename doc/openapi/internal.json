@@ -338,10 +338,10 @@
         "type": "object"
       },
       "RemoteSessionInfo": {
-        "description": "Ephemeral capability issued by the authenticated internal API.",
+        "description": "Capability issued by the authenticated internal API.",
         "properties": {
           "expires_at": {
-            "description": "Unix timestamp in seconds. Sessions last one hour and do not survive restart.",
+            "description": "Unix timestamp in seconds. Credentials survive restart with SQLite; defaults to seven days.",
             "format": "int64",
             "minimum": 0,
             "type": "integer"
@@ -354,6 +354,20 @@
           "key",
           "expires_at"
         ],
+        "type": "object"
+      },
+      "RemoteSessionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_in_seconds": {
+            "default": 604800,
+            "description": "Credential lifetime, 1 second through 30 days; default seven days.",
+            "format": "int64",
+            "maximum": 2592000,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "RevelationUrl": {
@@ -692,10 +706,10 @@
         "description": "Successful JSON response. Requests do not use this envelope.",
         "properties": {
           "data": {
-            "description": "Ephemeral capability issued by the authenticated internal API.",
+            "description": "Capability issued by the authenticated internal API.",
             "properties": {
               "expires_at": {
-                "description": "Unix timestamp in seconds. Sessions last one hour and do not survive restart.",
+                "description": "Unix timestamp in seconds. Credentials survive restart with SQLite; defaults to seven days.",
                 "format": "int64",
                 "minimum": 0,
                 "type": "integer"
@@ -1248,7 +1262,7 @@
       "name": ""
     },
     "title": "Animeitor internal API",
-    "version": "4.1.0"
+    "version": "5.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -3489,7 +3503,7 @@
     },
     "/internal/events/{event_name}/contests/{contest_name}/remote_control": {
       "post": {
-        "description": "Requires event ownership and the read-write role. Returns a secret random capability,\nscoped to this contest, valid for one hour. Sessions do not survive restart.\nLimits: 16 sessions per contest, 256 per process, eight connections per session.",
+        "description": "Requires event ownership and the read-write role. Returns a secret random capability,\nscoped to this contest. Default validity is seven days; configurable up to 30 days.\nCredentials survive restart with SQLite; memory-backed servers remain transient.\nOnly hashes and expirations are persisted. Empty bodies use the default lifetime.\nLimits: 16 sessions per contest, 256 per process, eight connections per session.",
         "operationId": "create_remote_session",
         "parameters": [
           {
@@ -3509,6 +3523,20 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "expires_in_seconds": 604800
+              },
+              "schema": {
+                "$ref": "#/components/schemas/RemoteSessionRequest"
+              }
+            }
+          },
+          "description": "Optional object; an empty body or {} defaults to seven days.",
+          "required": false
+        },
         "responses": {
           "201": {
             "content": {
@@ -3519,6 +3547,16 @@
               }
             },
             "description": "Issued session; Cache-Control: no-store."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Invalid JSON or lifetime outside 1 through 2592000 seconds."
           },
           "401": {
             "content": {
@@ -3560,6 +3598,16 @@
             },
             "description": "Request processing exceeded the 15-second deadline."
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request body exceeds 2 MiB."
+          },
           "429": {
             "content": {
               "application/json": {
@@ -3591,7 +3639,7 @@
             "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
           }
         },
-        "summary": "Issue an ephemeral remote-control session",
+        "summary": "Issue a durable remote-control credential",
         "tags": [
           "Remote control"
         ]

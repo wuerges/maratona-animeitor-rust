@@ -30,10 +30,32 @@ pub enum ControlMessage {
     PhotoState(PhotoState),
 }
 
-/// Ephemeral capability issued by the authenticated internal API.
+/// Capability issued by the authenticated internal API.
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct RemoteSessionInfo {
     pub key: String,
-    /// Unix timestamp in seconds. Sessions last one hour and do not survive restart.
+    /// Unix timestamp in seconds. Credentials survive restart with SQLite; defaults to seven days.
     pub expires_at: u64,
+}
+
+pub const DEFAULT_REMOTE_TTL_SECONDS: u64 = 7 * 24 * 3600;
+pub const MAX_REMOTE_TTL_SECONDS: u64 = 30 * 24 * 3600;
+fn default_remote_ttl() -> u64 {
+    DEFAULT_REMOTE_TTL_SECONDS
+}
+
+#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RemoteSessionRequest {
+    /// Credential lifetime, 1 second through 30 days; default seven days.
+    #[serde(default = "default_remote_ttl")]
+    #[schema(default = 604800, minimum = 1, maximum = 2592000)]
+    pub expires_in_seconds: u64,
+}
+impl Default for RemoteSessionRequest {
+    fn default() -> Self {
+        Self {
+            expires_in_seconds: DEFAULT_REMOTE_TTL_SECONDS,
+        }
+    }
 }

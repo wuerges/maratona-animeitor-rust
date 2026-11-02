@@ -140,9 +140,7 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
                 }
                 assert!(!operation["summary"].as_str().unwrap().is_empty());
                 assert!(operation["description"].as_str().unwrap().len() > 40);
-                if matches!(method.as_str(), "post" | "put" | "patch")
-                    && !path.ends_with("/remote_control")
-                {
+                if matches!(method.as_str(), "post" | "put" | "patch") {
                     assert!(
                         operation["requestBody"]["content"]["application/json"]["schema"]
                             .is_object(),

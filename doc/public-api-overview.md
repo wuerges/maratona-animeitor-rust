@@ -37,7 +37,7 @@ Remote-control channel keys are arbitrary shared identifiers, not site revelatio
 
 
 
-Resource limits (4.0.0): public reads use the last committed in-memory snapshot.
+Resource limits: public reads use the last committed in-memory snapshot.
 The server validates and loads storage at startup; writes publish only after commit.
 A storage outage does not force public reads to reopen the database. One server
 process owns a database; external edits and multiple writers are unsupported.
@@ -54,9 +54,9 @@ messages.
 Remote-control keys are secret server-issued capabilities, scoped to an event
 and contest. An owner with a read-write internal token issues a session with
 `POST /internal/events/{event_name}/contests/{contest_name}/remote_control` and
-revokes it with `DELETE` at that path plus `/{key}`. Sessions expire after one
-hour and are lost on server restart. Unknown, expired, and revoked keys return
-404 without allocating a room. There are at most 16 sessions per contest, 256
+revokes it with `DELETE` at that path plus `/{key}`. Credentials expire after
+seven days by default (configurable from one second to 30 days). Credentials
+survive restart with SQLite; memory-backed servers remain transient. Unknown, expired, and revoked keys return 404 without allocating a room. There are at most 16 sessions per contest, 256
 per process, and eight connections per session. Revocation disconnects existing
 relays. Treat the key as a secret; do not put complete request URIs in proxy logs.
 Remote-control incoming frames/messages are limited to 4 KiB, and writes to 10
@@ -70,4 +70,7 @@ pong keeps the connection healthy; 90 seconds without a matching pong closes it.
 Browsers answer ping frames automatically, including when no contest data changes.
 Healthy public streams remain open across multi-hour contests without an hourly
 replay/reconnect. Control-frame floods are limited to 30 frames/second (burst 60).
-Remote-control session expiration is independent of public stream liveness.
+Remote-control credential expiration is independent of stream liveness. Remote
+relays also use ping/pong heartbeats, so an idle healthy controller can remain
+connected until its credential expires or is revoked. Deleting/recreating its
+event or contest removes the credential.

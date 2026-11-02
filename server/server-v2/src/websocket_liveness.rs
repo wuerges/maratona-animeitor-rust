@@ -57,12 +57,15 @@ impl Heartbeat {
         };
         send(sender, message).await
     }
+    pub fn allow_frame(&mut self) -> bool {
+        self.budget.allow()
+    }
     pub async fn receive(
         &mut self,
         incoming: Option<Result<Message, axum::Error>>,
         sender: &mut SplitSink<WebSocket, Message>,
     ) -> bool {
-        if !self.budget.allow() {
+        if !self.allow_frame() {
             return false;
         }
         match incoming {

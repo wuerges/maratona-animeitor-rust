@@ -467,6 +467,41 @@ pub fn plan(command: Command) -> Result<RequestPlan> {
         Command::RevelationUrls(id) => {
             request(Method::GET, append(event(id), "revelation_urls"), None)
         }
+        Command::RemoteControl(command) => {
+            let path = |id: ContestId| {
+                vec![
+                    "internal".into(),
+                    "events".into(),
+                    id.event,
+                    "contests".into(),
+                    id.contest,
+                    "remote_control".into(),
+                ]
+            };
+            match command {
+                RemoteControlCommand::Create { id, expires_in } => request(
+                    Method::POST,
+                    path(id),
+                    Some(json!({"expires_in_seconds":expires_in})),
+                ),
+                RemoteControlCommand::Revoke { id, key_file } => {
+                    let key = if key_file == Path::new("-") {
+                        let mut value = String::new();
+                        std::io::stdin().read_to_string(&mut value)?;
+                        value
+                    } else {
+                        std::fs::read_to_string(&key_file)
+                            .wrap_err("reading remote-control key file")?
+                    };
+                    let key = key.trim();
+                    ensure!(
+                        key.len() == 32 && key.bytes().all(|b| b.is_ascii_alphanumeric()),
+                        "expected a raw 32-character remote-control key"
+                    );
+                    request(Method::DELETE, append(path(id), key), None)
+                }
+            }
+        }
         Command::Capabilities => request(
             Method::GET,
             vec!["internal".into(), "capabilities".into()],
