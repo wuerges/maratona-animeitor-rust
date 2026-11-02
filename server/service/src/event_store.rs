@@ -1,7 +1,7 @@
 //! Database-backed event service. Domain rules and live channels are backend independent.
 mod engine;
 use crate::database::{Database, DatabaseError};
-use crate::{membroadcast, remote_control::ControlSender};
+use crate::{membroadcast, remote_control::RemoteConnection};
 use data::incremental::*;
 pub use engine::{
     Answer, ContestConfig, Envelope, ErrorEntry, EventState, PublicConfig, PublicContestState,
@@ -501,18 +501,36 @@ impl EventStore {
         self.refresh(event_name).await?;
         Ok(self.live.current_timer(event_name).await)
     }
+    pub async fn create_remote_session(
+        &self,
+        event: &str,
+        contest: &str,
+    ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
+        let _guard = self.gate.lock().await;
+        self.refresh(event).await?;
+        self.live.create_remote_session(event, contest).await
+    }
+    pub async fn revoke_remote_session(
+        &self,
+        event: &str,
+        contest: &str,
+        key: &str,
+    ) -> Result<bool, StoreError> {
+        let _guard = self.gate.lock().await;
+        self.refresh(event).await?;
+        Ok(self.live.revoke_remote_session(event, contest, key).await)
+    }
     pub async fn remote_control_sender(
         &self,
         event_name: &str,
         contest_name: &str,
         key: &str,
-    ) -> Result<Option<ControlSender>, StoreError> {
+    ) -> Result<Option<RemoteConnection>, StoreError> {
         let _guard = self.gate.lock().await;
         self.refresh(event_name).await?;
-        Ok(self
-            .live
+        self.live
             .remote_control_sender(event_name, contest_name, key)
-            .await)
+            .await
     }
     pub async fn has_event(&self, event_name: &str) -> Result<bool, StoreError> {
         let _guard = self.gate.lock().await;

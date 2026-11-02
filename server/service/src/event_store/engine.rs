@@ -17,7 +17,7 @@ use sha2::Sha256;
 use tokio::sync::{RwLock, broadcast};
 
 use crate::membroadcast;
-use crate::remote_control::{ControlSender, create_remote_control};
+use crate::remote_control::{RemoteConnection, RemoteSession, create_remote_session};
 
 const SALT_LEN: usize = 32;
 const KEY_LEN: usize = 12;
@@ -37,6 +37,8 @@ pub enum StoreError {
     /// A detached mutation already reported this failure; HTTP mapping must not report it twice.
     #[error(transparent)]
     ReportedStorage(crate::database::DatabaseError),
+    #[error("resource limit exceeded")]
+    LimitExceeded,
     #[error("{0}")]
     Conflict(String),
     #[error("{0} já existe")]
@@ -189,7 +191,7 @@ struct ContestEntry {
     config: ContestConfig,
     codes: RegexSet,
     sites: HashMap<String, SiteEntry>,
-    remote_control: HashMap<String, ControlSender>,
+    remote_control: HashMap<String, RemoteSession>,
 }
 
 struct Event {
@@ -923,26 +925,70 @@ impl Engine {
         inner.events.get(event_name).map(Event::timer)
     }
 
-    /// The broadcast channel of a remote-control key, creating it if needed.
-    pub async fn remote_control_sender(
+    pub async fn create_remote_session(
         &self,
-        event_name: &str,
-        contest_name: &str,
-        key: &str,
-    ) -> Option<ControlSender> {
+        event: &str,
+        contest: &str,
+    ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
         let mut inner = self.inner.write().await;
+        // Expired sessions are removed on issuance, so the registry remains bounded.
+        for event in inner.events.values_mut() {
+            for contest in event.contests.values_mut() {
+                contest
+                    .remote_control
+                    .retain(|_, session| !session.is_expired());
+            }
+        }
+        let total: usize = inner
+            .events
+            .values()
+            .flat_map(|e| e.contests.values())
+            .map(|c| c.remote_control.len())
+            .sum();
         let contest = inner
             .events
-            .get_mut(event_name)?
-            .contests
-            .get_mut(contest_name)?;
-        Some(
-            contest
-                .remote_control
-                .entry(key.to_string())
-                .or_insert_with(create_remote_control)
-                .clone(),
-        )
+            .get_mut(event)
+            .and_then(|e| e.contests.get_mut(contest))
+            .ok_or_else(|| StoreError::NotFound("event or contest".into()))?;
+        if total >= 256 || contest.remote_control.len() >= 16 {
+            return Err(StoreError::LimitExceeded);
+        }
+        let key = Alphanumeric.sample_string(&mut rand::rng(), 32);
+        let (session, info) = create_remote_session(key.clone());
+        contest.remote_control.insert(key, session);
+        Ok(info)
+    }
+
+    pub async fn revoke_remote_session(&self, event: &str, contest: &str, key: &str) -> bool {
+        let mut inner = self.inner.write().await;
+        inner
+            .events
+            .get_mut(event)
+            .and_then(|e| e.contests.get_mut(contest))
+            .and_then(|c| c.remote_control.remove(key))
+            .is_some()
+    }
+
+    pub async fn remote_control_sender(
+        &self,
+        event: &str,
+        contest: &str,
+        key: &str,
+    ) -> Result<Option<RemoteConnection>, StoreError> {
+        // Reject malformed keys without retaining or allocating a channel.
+        if key.len() != 32 || !key.bytes().all(|b| b.is_ascii_alphanumeric()) {
+            return Ok(None);
+        }
+        let inner = self.inner.read().await;
+        let Some(session) = inner
+            .events
+            .get(event)
+            .and_then(|e| e.contests.get(contest))
+            .and_then(|c| c.remote_control.get(key))
+        else {
+            return Ok(None);
+        };
+        session.connect()
     }
 
     /// Whether the server holds an event with this name.

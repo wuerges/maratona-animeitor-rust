@@ -29,3 +29,11 @@ pub enum ControlMessage {
     QueryString(QueryString),
     PhotoState(PhotoState),
 }
+
+/// Ephemeral capability issued by the authenticated internal API.
+#[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct RemoteSessionInfo {
+    pub key: String,
+    /// Unix timestamp in seconds. Sessions last one hour and do not survive restart.
+    pub expires_at: u64,
+}

@@ -212,7 +212,8 @@ async fn every_documented_event_route_enforces_role_and_ownership_before_body_pa
                 .replace("{site_name}", "s")
                 .replace("{run_id}", "1")
                 .replace("{login}", "team")
-                .replace("{problem}", "A");
+                .replace("{problem}", "A")
+                .replace("{key}", "session-key");
             let method = method.to_uppercase();
             if method != "GET" {
                 writes += 1;
@@ -271,4 +272,50 @@ async fn writer_can_create_update_delete_and_recreate_future_events() {
             StatusCode::NO_CONTENT
         );
     }
+}
+
+#[tokio::test]
+async fn writer_can_issue_and_revoke_scoped_remote_sessions() {
+    let (app, store) = fixture().await;
+    store
+        .create_contest(
+            "contest-one",
+            "c",
+            serde_json::from_value(json!({"name":"c","codes":[]})).unwrap(),
+        )
+        .await
+        .unwrap();
+    let path = "/internal/events/contest-one/contests/c/remote_control";
+    let (status, headers, body) = request(&app, Some("writer"), "POST", path, "").await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(headers["cache-control"], "no-store");
+    let key = body["data"]["key"].as_str().unwrap();
+    assert_eq!(key.len(), 32);
+    assert!(
+        store
+            .remote_control_sender("contest-one", "c", key)
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        store
+            .remote_control_sender("other", "c", key)
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert_eq!(
+        request(&app, Some("writer"), "DELETE", &format!("{path}/{key}"), "")
+            .await
+            .0,
+        StatusCode::NO_CONTENT
+    );
+    assert!(
+        store
+            .remote_control_sender("contest-one", "c", key)
+            .await
+            .unwrap()
+            .is_none()
+    );
 }
