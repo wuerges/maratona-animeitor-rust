@@ -42,7 +42,7 @@ jobs:
       - name: Test server, databases, and client model
         run: |
           make test-databases
-          cargo test --locked -p client-model -p offline-packager
+          cargo test --locked -p client-model -p client-sdk -p offline-packager -p viewer-load
       - name: Check dependencies
         run: |
           cargo install cargo-deny --version 0.19.9 --locked

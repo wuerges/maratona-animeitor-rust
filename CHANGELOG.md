@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9.1.0] - 2026-11-02
+
+### Added
+
+- Aggregate resource gauges, lifetime histograms and admission/recovery counters.
+- Repeatable browser-viewer load tooling and direct-serving capacity procedure.
+
+### Fixed
+
+- Cancel route-owned run polling when its reactive owner is disposed, releasing
+  the SDK subscription on navigation.
+
+
 ## [9.0.0] - 2026-11-02
 
 ### Breaking

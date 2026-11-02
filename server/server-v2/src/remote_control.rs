@@ -22,6 +22,7 @@ pub(crate) async fn relay_remote_control(
 ) -> Response {
     crate::resource_limits::websocket(ws).on_upgrade(move |socket| async move {
         let _permit = permit;
+        let _active = service::resource_metrics::Active::new("remote_socket");
         let sender = connection.sender.clone();
         let mut rec = sender.subscribe();
         let request_id = next_request_id();

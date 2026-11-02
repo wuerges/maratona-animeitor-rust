@@ -1,6 +1,8 @@
 # Protected server ingress
 
-Use nginx (or an equivalent trusted proxy) as the sole public ingress. The server
+These examples optionally place nginx in front of Animeitor. Direct Axum serving
+is supported; see [direct capacity testing](../capacity-testing.md). For these
+proxy examples, use nginx as the sole public ingress. The server
 binds HTTP and HTTPS to all interfaces. Application budgets cannot prevent raw
 TCP, TLS-handshake, or network-bandwidth floods; use a firewall and, for volumetric
 attacks, an upstream provider with filtering.
@@ -9,8 +11,8 @@ The Compose examples publish ports 8000 and 8443 on **127.0.0.1 only**. Host ngi
 can reach those ports. A containerized proxy on the same Docker network should
 use the `animeitor` service directly and omit host `ports` entirely. Do not
 publish the upstream ports on `0.0.0.0`; that bypasses proxy protection. Native
-systemd installations must configure the host firewall to allow server ports
-only from the local/private proxy, covering IPv4 and IPv6. Allow public 443 at
+systemd installations using this proxy topology must configure the host firewall
+to allow server ports only from the proxy, covering IPv4 and IPv6. Allow public 443 at
 the proxy. Keep internal administration on verified HTTPS.
 
 ## Install an example
@@ -70,15 +72,14 @@ load balancer, CDN, or log collector.
 
 ## Size and verify budgets
 
-The application uses conservative fixed limits documented in the public API:
-2,048 active WebSockets, 128 public and 32 internal requests, 32 detached
+The application uses configurable process limits documented in the public API:
+50,000 active WebSockets by default, 128 public and 32 internal requests, 32 detached
 mutations, heartbeat liveness checks, and bounded messages/write deadlines.
-Remote-control sessions have additional limits. Capacity changes in the
-application require a code change; keep proxy limits within those budgets.
+Remote-control sessions have additional limits. Process budgets are configured in the server `[limits]` table; keep proxy limits within those budgets.
 
-Compose and native server examples limit memory to 2 GiB, disable swap for the
-server, cap CPU at two cores, and cap processes/threads at 256. Native units begin
-memory reclaim at 1 GiB. These are example budgets, not capacity guarantees: load
+Compose demo examples limit memory to 2 GiB, disable swap, and cap CPU at two
+cores. Native units require measured CPU/memory limits through a systemd drop-in;
+they retain a 256-task budget. These are example budgets, not capacity guarantees: load
 the real roster, run replay, and static assets before deciding whether they fit.
 If MemoryMax is reached, the server can be killed; memory-backed events disappear.
 Docker server logs rotate at 10 MiB with three files. Configure journald retention

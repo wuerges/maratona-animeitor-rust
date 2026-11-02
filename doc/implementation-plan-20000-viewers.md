@@ -93,7 +93,7 @@ Implementation:
    | `header_timeout_seconds` | 10 | HTTP/1 header completion |
    | `write_stall_timeout_seconds` | 10 | No-progress write deadline |
    | `http_idle_timeout_seconds` | 60 | Idle ordinary HTTP connection |
-   | `websocket_write_timeout_seconds` | 10 | Existing send deadline |
+   | Fixed WebSocket write deadline | 10 | Existing send deadline |
 
    Keep heartbeat interval/deadline at 30/90 seconds, inbound WebSocket messages
    at 4 KiB, JSON bodies at 2 MiB, and remote session limits unchanged. Keep the
@@ -452,10 +452,36 @@ test files are committed. API specs, version, lockfile, and changelog travel tog
   include static assets. HTTP/1 headers, HTTP/2 bounds and IO stalls are enforced.
   Tests cover body EOF/drop, input/output deadline independence, shared listeners,
   upgrades, incomplete TLS/headers, trusted local TLS and HTTP/2.
-- [ ] 7. Metrics, load tool, browser smoke, and saved capacity results.
-- [ ] 8. Deployment/docs/version/API checks complete.
+- [x] 7. Metrics, load tool, browser smoke, and capacity procedure.
+  Aggregate resource guards/counters, bounded sampled traces, per-second active
+  socket samples, final-state validation and reconnect scenarios are implemented.
+  Native workload smoke and verified-HTTPS seed/live/correct/freeze publisher
+  tests pass. Dedicated capacity results remain pending below.
+- [x] 8. Deployment/docs/version/API checks complete.
+  Direct serving is documented, native descriptor budgets are 131,072, and
+  unmeasured 2-core/2-GiB production limits are removed in favor of measured
+  drop-ins. Demo Compose limits remain demo limits. Workspace 9.1.0, lockfile,
+  snapshots and changelog are updated together. Full local correctness, browser,
+  policy, dependency and API checks recorded in doc/capacity-testing.md.
 - [ ] Dedicated 20,000-viewer run meets acceptance targets, or is explicitly pending.
 
 For each completed package record the changed files, checks run, result, and any
 remaining constraint. The final handoff must distinguish implemented limits,
 automated correctness tests, measured capacity, and production deployment status.
+
+
+Implementation stack (base to top):
+
+- #68: configurable budgets (6.0.0).
+- #69: stream lag recovery (6.1.0).
+- #70: committed read/write lifecycle (7.0.0).
+- #71: browser retry/cancellation (8.0.0).
+- #72: direct HTTP/TLS lifecycle protection (9.0.0).
+- Final metrics/workload/deployment change: 9.1.0; see GitHub stack for PR link.
+
+Validation on 2026-11-02: both documented database suites; SDK/model/exporter and
+workload tests; headless Chrome idle cancellation and full real-browser application/export test;
+complete Trunk release build;
+policy/latency Python tests; cargo-deny advisories/bans/sources; formatting and
+OpenAPI comparisons to the implementation base, v2.4.0 and the final PR parent.
+No production deployment or dedicated 20,000-viewer benchmark was performed.

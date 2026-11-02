@@ -29,6 +29,7 @@ async fn admit(
     next: Next,
 ) -> Response {
     let Ok(_permit) = slots.try_acquire_owned() else {
+        service::resource_metrics::event("request_rejected");
         let mut response = crate::envelope::error_json(
             StatusCode::TOO_MANY_REQUESTS,
             "resource_limit",
@@ -40,6 +41,7 @@ async fn admit(
         );
         return response;
     };
+    let _active = service::resource_metrics::Active::new("http_handler");
     let writing = matches!(
         *request.method(),
         axum::http::Method::POST
@@ -49,11 +51,14 @@ async fn admit(
     );
     match tokio::time::timeout(Duration::from_secs(timeout_seconds), next.run(request)).await {
         Ok(response) => response,
-        Err(_) if writing => crate::envelope::error_json(
-            StatusCode::SERVICE_UNAVAILABLE,
-            "operation_outcome_unknown",
-            "request timed out; the operation may still commit; reconcile state before retrying",
-        ),
+        Err(_) if writing => {
+            service::resource_metrics::event("write_outcome_unknown");
+            crate::envelope::error_json(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "operation_outcome_unknown",
+                "request timed out; the operation may still commit; reconcile state before retrying",
+            )
+        }
         Err(_) => crate::envelope::error_json(
             StatusCode::REQUEST_TIMEOUT,
             "request_timeout",
@@ -68,13 +73,19 @@ pub fn websocket(ws: WebSocketUpgrade) -> WebSocketUpgrade {
         .max_write_buffer_size(128 * 1024 + 8192)
 }
 
-pub fn upgrade<F, Fut>(ws: WebSocketUpgrade, permit: OwnedSemaphorePermit, callback: F) -> Response
+pub fn upgrade<F, Fut>(
+    kind: &'static str,
+    ws: WebSocketUpgrade,
+    permit: OwnedSemaphorePermit,
+    callback: F,
+) -> Response
 where
     F: FnOnce(WebSocket) -> Fut + Send + 'static,
     Fut: std::future::Future<Output = ()> + Send + 'static,
 {
     websocket(ws).on_upgrade(move |socket| async move {
         let _permit = permit;
+        let _active = service::resource_metrics::Active::new(kind);
         callback(socket).await;
     })
 }
@@ -138,6 +149,7 @@ async fn admit_response(
     // Admission must precede handlers: rejecting a response after a mutation
     // committed would invite an unsafe retry of a successful operation.
     let Ok(permit) = slots.try_acquire_owned() else {
+        service::resource_metrics::event("response_rejected");
         return crate::envelope::error_json(
             StatusCode::TOO_MANY_REQUESTS,
             "resource_limit",
@@ -157,10 +169,12 @@ async fn admit_response(
         Body::new(AdmittedBody {
             body,
             permit: Some(permit),
+            active: Some(service::resource_metrics::Active::new("response_body")),
         }),
     )
 }
 struct AdmittedBody {
+    active: Option<service::resource_metrics::Active>,
     body: Body,
     permit: Option<OwnedSemaphorePermit>,
 }
@@ -177,6 +191,7 @@ impl http_body::Body for AdmittedBody {
             || this.body.is_end_stream()
         {
             this.permit.take();
+            this.active.take();
         }
         result
     }

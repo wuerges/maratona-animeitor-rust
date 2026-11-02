@@ -1,9 +1,9 @@
 [workspace]
-members = ["server/database-sqlite", "server/database-memory", "server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model", "tools/offline-packager"]
+members = ["server/database-sqlite", "server/database-memory", "server/data", "server/cli", "server/service", "server/server-v2", "animeitor-client", "client-sdk", "client-model", "tools/offline-packager", "tools/viewer-load"]
 resolver = "2"
 
 [workspace.package]
-version = "9.0.0"
+version = "9.1.0"
 edition = "2024"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 

@@ -8,7 +8,10 @@ use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
 use data::event::PublicConfig;
 use data::TimerData;
 use futures::StreamExt;
-use leptos::{prelude::*, task::spawn_local};
+use leptos::{
+    prelude::*,
+    task::{spawn_local, spawn_local_scoped_with_cancellation},
+};
 
 /// The event and contest a client is showing, parsed from the URL path
 /// (`/animeitor/{event}/{contest}`; the empty contest segment is the default).
@@ -140,7 +143,7 @@ pub fn provide_contest(ec: EventContest) -> impl Future<Output = ContestProvider
         )
         .await;
 
-        spawn_local(poll_runs(
+        spawn_local_scoped_with_cancellation(poll_runs(
             provider.starting_contest.clone(),
             create_runs(ec_for_runs),
             provider.new_contest_signal.clone(),

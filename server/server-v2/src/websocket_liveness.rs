@@ -79,6 +79,14 @@ impl Heartbeat {
         }
     }
 }
+impl Drop for Heartbeat {
+    fn drop(&mut self) {
+        if Instant::now() >= self.deadline() {
+            service::resource_metrics::event("heartbeat_expired");
+        }
+    }
+}
+
 async fn send(sender: &mut SplitSink<WebSocket, Message>, message: Message) -> bool {
     matches!(
         tokio::time::timeout(Duration::from_secs(10), sender.send(message)).await,

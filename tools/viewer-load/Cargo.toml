@@ -1,0 +1,25 @@
+[package]
+name = "viewer-load"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap.workspace = true
+tokio.workspace = true
+tokio-tungstenite = { workspace = true, features = ["rustls-tls-native-roots"] }
+futures.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+rand.workspace = true
+rustls.workspace = true
+rustls-pemfile.workspace = true
+data.workspace = true
+
+[dev-dependencies]
+axum-server.workspace = true
+axum.workspace = true
+server-v2.workspace = true
+service.workspace = true
+database-memory.workspace = true
+tempfile = "3.27.0"

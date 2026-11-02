@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "animeitor-client"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "any_spawner",
  "base64 0.23.1",
@@ -765,7 +765,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "cli"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "axum",
  "clap",
@@ -792,7 +792,7 @@ dependencies = [
 
 [[package]]
 name = "client-model"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "data",
  "futures",
@@ -804,7 +804,7 @@ dependencies = [
 
 [[package]]
 name = "client-sdk"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "client-model",
  "data",
@@ -1186,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "derivative",
  "regex",
@@ -1203,7 +1203,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "database-memory"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "serde_json",
  "service",
@@ -1213,7 +1213,7 @@ dependencies = [
 
 [[package]]
 name = "database-sqlite"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "rusqlite",
  "serde_json",
@@ -3032,7 +3032,7 @@ dependencies = [
 
 [[package]]
 name = "offline-packager"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -4249,7 +4249,7 @@ dependencies = [
 
 [[package]]
 name = "server-v2"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "autometrics",
  "axum",
@@ -4351,7 +4351,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "9.0.0"
+version = "9.1.0"
 dependencies = [
  "data",
  "hmac",
@@ -4860,7 +4860,11 @@ checksum = "17a073bfed563fa236697a068031408a93cd9522e08abf9933ead3e73411bd71"
 dependencies = [
  "futures-util",
  "log",
+ "rustls",
+ "rustls-native-certs",
+ "rustls-pki-types",
  "tokio",
+ "tokio-rustls",
  "tungstenite 0.30.0",
 ]
 
@@ -5121,6 +5125,8 @@ dependencies = [
  "httparse",
  "log",
  "rand 0.10.3",
+ "rustls",
+ "rustls-pki-types",
  "sha1 0.11.0",
  "thiserror 2.0.21",
 ]
@@ -5326,6 +5332,29 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "viewer-load"
+version = "9.1.0"
+dependencies = [
+ "axum",
+ "axum-server",
+ "clap",
+ "data",
+ "database-memory",
+ "futures",
+ "rand 0.10.3",
+ "rustls",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "server-v2",
+ "service",
+ "tempfile",
+ "tokio",
+ "tokio-tungstenite 0.30.0",
+ "url",
+]
 
 [[package]]
 name = "walkdir"

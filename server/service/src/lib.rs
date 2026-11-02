@@ -18,3 +18,5 @@ pub mod revelation;
 pub mod database;
 
 pub mod resource_limits;
+
+pub mod resource_metrics;

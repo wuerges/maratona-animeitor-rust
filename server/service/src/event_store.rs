@@ -104,6 +104,7 @@ impl EventStore {
                 let guard = store.gate.lock().await;
                 let names: Vec<_> = store.unavailable.read().await.keys().cloned().collect();
                 for name in names {
+                    crate::resource_metrics::event("recovery_attempt");
                     if store.refresh(&name).await.is_ok() {
                         store.unavailable.write().await.remove(&name);
                     }
@@ -159,6 +160,7 @@ impl EventStore {
             .try_acquire_owned()
             .map_err(|_| StoreError::LimitExceeded)?;
         // Cancellation while queued must prevent the operation from starting.
+        let active = crate::resource_metrics::Active::new("mutation");
         let guard = self.gate.clone().lock_owned().await;
         let this = self.clone();
         // Detaching the caller must not cancel persistence between commit and publish.
@@ -166,6 +168,7 @@ impl EventStore {
         tokio::spawn(
             async move {
                 let _permit = permit;
+                let _active = active;
                 let result = async {
                     let _guard = guard;
                     let before =
@@ -217,10 +220,12 @@ impl EventStore {
                             } else {
                                 this.start_recovery();
                             }
+                            crate::resource_metrics::event("mutation_ambiguous");
                             return Err(err.into());
                         }
                     }
                     this.live.install(&name, after).await?;
+                    crate::resource_metrics::event("mutation_success");
                     this.unavailable.write().await.remove(&name);
                     Ok(result)
                 }

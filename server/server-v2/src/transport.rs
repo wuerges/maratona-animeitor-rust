@@ -42,7 +42,10 @@ impl<S> Accept<TcpStream, S> for Acceptor {
             .slots
             .clone()
             .try_acquire_owned()
-            .map_err(|_| io::Error::other("connection capacity exceeded"))
+            .map_err(|_| {
+                service::resource_metrics::event("connection_rejected");
+                io::Error::other("connection capacity exceeded")
+            })
             .and_then(|permit| {
                 stream.set_nodelay(true)?;
                 let io = BudgetIo::new(stream, permit, &self.limits);
@@ -91,6 +94,7 @@ where
 
 pub(crate) struct BudgetIo<I> {
     inner: I,
+    _active: service::resource_metrics::Active,
     upgraded: Arc<AtomicBool>,
     _permit: OwnedSemaphorePermit,
     idle: Pin<Box<Sleep>>,
@@ -104,6 +108,7 @@ impl<I> BudgetIo<I> {
         let idle_duration = Duration::from_secs(limits.http_idle_timeout_seconds);
         Self {
             inner,
+            _active: service::resource_metrics::Active::new("transport"),
             upgraded: Arc::new(AtomicBool::new(false)),
             _permit: permit,
             idle: Box::pin(tokio::time::sleep(idle_duration)),
@@ -123,6 +128,7 @@ impl<I> BudgetIo<I> {
             .stalled
             .get_or_insert_with(|| Box::pin(tokio::time::sleep(self.write_duration)));
         if timer.as_mut().poll(cx).is_ready() {
+            service::resource_metrics::event("write_stalled");
             Poll::Ready(Err(io::Error::new(
                 io::ErrorKind::TimedOut,
                 "write stalled",
