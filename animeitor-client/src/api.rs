@@ -7,8 +7,11 @@ use std::{
 use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
 use data::event::PublicConfig;
 use data::TimerData;
-use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
-use leptos::{prelude::*, task::spawn_local};
+use futures::StreamExt;
+use leptos::{
+    prelude::*,
+    task::{spawn_local, spawn_local_scoped_with_cancellation},
+};
 
 /// The event and contest a client is showing, parsed from the URL path
 /// (`/animeitor/{event}/{contest}`; the empty contest segment is the default).
@@ -77,7 +80,7 @@ pub async fn create_secret_runs(key: String, ec: EventContest) -> data::RunsFile
     client_sdk::legacy::to_runs_file(data)
 }
 
-fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
+fn create_runs(ec: EventContest) -> client_sdk::Subscription<data::RunTuple> {
     client_sdk::create_runs(config(), ec)
 }
 
@@ -140,7 +143,7 @@ pub fn provide_contest(ec: EventContest) -> impl Future<Output = ContestProvider
         )
         .await;
 
-        spawn_local(poll_runs(
+        spawn_local_scoped_with_cancellation(poll_runs(
             provider.starting_contest.clone(),
             create_runs(ec_for_runs),
             provider.new_contest_signal.clone(),

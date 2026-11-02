@@ -145,11 +145,14 @@ pub(crate) fn store_error(err: StoreError) -> Response {
                 error_json(StatusCode::NOT_FOUND, "not_found", "event does not exist")
             }
         },
-        StoreError::LimitExceeded => error_json(
-            StatusCode::TOO_MANY_REQUESTS,
-            "resource_limit",
-            "resource limit exceeded",
-        ),
+        StoreError::LimitExceeded => {
+            service::resource_metrics::event("store_rejected");
+            error_json(
+                StatusCode::TOO_MANY_REQUESTS,
+                "resource_limit",
+                "resource limit exceeded",
+            )
+        }
         StoreError::Conflict(message) | StoreError::AlreadyExists(message) => {
             error_json(StatusCode::CONFLICT, "conflict", message)
         }

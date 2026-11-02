@@ -200,3 +200,18 @@ Filter deltas compare exact regex strings, preserve retained order, and append a
 Atomic PATCH prevents lost updates to unrelated fields among incremental callers. It does not stop the existing feeder or another full PUT caller from subsequently replacing fields. Coordinate manual changes with source configuration. Reconnect run streams after changing contest filters; freeze time changes automatically replay submissions with updated masking, and these changes do not add a stream reset protocol.
 
 Storage failures use the normal error envelope: `503 storage_unavailable` for unavailable or busy storage and `500 storage_error` for corrupt or unsupported data. A failed write can have an ambiguous outcome; read the resource before retrying.
+
+## Write deadlines and committed reads
+
+Ordinary internal reads use the last committed in-memory state after startup.
+A storage outage alone does not invalidate that state. If a write has an ambiguous
+commit result, its event is unavailable until bounded background reconciliation
+succeeds; other events stay available. External database writes remain unsupported.
+
+Mutation requests that exceed the configured deadline return HTTP 503 with
+`operation_outcome_unknown`: the write may still commit. Read and reconcile state
+before retrying, especially generated salt or credential creation. Waiting
+mutations are canceled when their caller times out; once persistence starts, the
+server completes commit/publication despite disconnection. There are no automatic
+admin mutation retries or exactly-once guarantees. Read deadlines use HTTP 408;
+admission exhaustion uses HTTP 429.

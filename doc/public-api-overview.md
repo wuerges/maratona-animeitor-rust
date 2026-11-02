@@ -43,13 +43,14 @@ A storage outage does not force public reads to reopen the database. One server
 process owns a database; external edits and multiple writers are unsupported.
 
 The public and internal APIs have separate request concurrency budgets (128 and
-32), a 15-second processing deadline, and return 429 or 408 when those limits are
-reached. Detached commit/publish tasks have an independent cap of 32, retained
+32 by default), a configurable processing deadline (15 seconds by default), and return 429 or 408 when those limits are
+reached for reads. Timed-out mutations return 503 `operation_outcome_unknown`;
+reconcile state before retrying because they may still commit. Detached commit/publish tasks have an independent cap of 32, retained
 until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
-2,048-connection process budget, no age limit while responsive, 4 KiB incoming frame/message
-limits, and a 10-second write deadline. Reconnect with backoff. A lagged stream
-is disconnected and must reconnect for a fresh replay; live buffers hold 1,024
-messages.
+configurable process budget (50,000 by default), no age limit while responsive, 4 KiB incoming frame/message
+limits, and a 10-second write deadline. Reconnect with backoff. A lagged runs stream recovers using a fresh shared replay on the same socket;
+lagged timers recover the latest value. Deleted events still close their streams.
+Live buffers hold 1,024 messages.
 
 Remote-control keys are secret server-issued capabilities, scoped to an event
 and contest. An owner with a read-write internal token issues a session with
@@ -74,3 +75,18 @@ Remote-control credential expiration is independent of stream liveness. Remote
 relays also use ping/pong heartbeats, so an idle healthy controller can remain
 connected until its credential expires or is revoked. Deleting/recreating its
 event or contest removes the credential.
+
+Server budgets are configured in the optional `[limits]` table. Defaults are
+admission ceilings; 20,000-viewer capacity still requires dedicated load testing.
+
+The browser SDK retries with exponential jitter (initial 0.5–1 second, capped
+at 15–30 seconds). A socket must stay open for 30 seconds to reset its backoff.
+Dropping an SDK subscription cancels its socket and any pending reconnect.
+
+Direct HTTP and HTTPS listeners share configured transport admission (60,000 by
+default). Ordinary HTTP idle connections expire after 60 seconds; upgraded browser
+sockets use their heartbeat policy. TLS handshakes and HTTP/1 headers default to
+10-second deadlines; writes have a 10-second no-progress deadline. HTTP/2 permits
+at most 128 concurrent streams per connection with a 32-KiB header-list limit.
+Ordinary API/static response bodies share 1,024 slots until EOF/error/drop;
+upgraded sockets retain transport admission instead. Excess admission is rejected.

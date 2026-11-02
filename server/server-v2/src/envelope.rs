@@ -22,7 +22,11 @@ pub(crate) async fn send_json<T: serde::Serialize>(
         .await
         {
             Ok(Ok(())) => true,
-            _ => false,
+            Err(_) => {
+                service::resource_metrics::event("websocket_write_timeout");
+                false
+            }
+            Ok(Err(_)) => false,
         },
         Err(err) => {
             tracing::warn!(?err, "failed serializing");

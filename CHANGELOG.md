@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9.1.0] - 2026-11-02
+
+### Added
+
+- Aggregate resource gauges, lifetime histograms and admission/recovery counters.
+- Repeatable browser-viewer load tooling and direct-serving capacity procedure.
+
+### Fixed
+
+- Cancel route-owned run polling when its reactive owner is disposed, releasing
+  the SDK subscription on navigation.
+
+
+## [9.0.0] - 2026-11-02
+
+### Breaking
+
+- Enforce configured connection, idle, write-stall, header and response-body
+  budgets on direct HTTP/HTTPS serving, including static assets. Connection
+  admission is shared across listeners and retained through WebSocket upgrades.
+- Bound HTTP/2 concurrent streams and header sizes; preserve browser heartbeats.
+
+
+## [8.0.0] - 2026-11-02
+
+### Breaking
+
+- Browser SDK stream functions return a cancel-on-drop Subscription stream.
+  Dropping consumers closes idle sockets and stops reconnecting.
+
+### Fixed
+
+- Spread browser WebSocket and HTTP retries using capped exponential jitter.
+  Reset socket retries only after 30 seconds; honor bounded HTTP Retry-After.
+
+
+## [7.0.0] - 2026-11-01
+
+### Breaking
+
+- Return 503 operation_outcome_unknown for timed-out writes; admitted commits may
+  finish after a caller disconnects. Cancel queued mutations before they start.
+- Serve ordinary internal reads from committed memory. Database read failures do
+  not discard committed state. Ambiguous write recovery is scoped to its event
+  with a single bounded retry worker; other events remain available.
+
+
+## [6.1.0] - 2026-11-01
+
+### Fixed
+
+- Recover lagged public runs streams using a shared replay on the existing socket,
+  preserving current freeze masking. Recover timer lag from current state.
+
+
+## [6.0.0] - 2026-11-01
+
+### Breaking
+
+- Configure server request, mutation and WebSocket budgets with optional `[limits]`.
+  Default WebSocket admission rises to 50,000, with 60,000 planned transport slots.
+  These are resource ceilings, not a measured viewer-capacity guarantee.
+
+### Added
+
+- Validate configured budgets and timeouts at startup; HTTP admission rejections
+  include Retry-After. Existing configuration files use defaults.
+
 ## [5.0.0] - 2026-11-01
 
 ### Breaking

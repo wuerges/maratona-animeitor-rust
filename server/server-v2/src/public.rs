@@ -174,7 +174,7 @@ async fn runs_ws(
     };
     let mut freeze = timer.score_freeze_time_seconds;
 
-    crate::resource_limits::upgrade(ws, permit, move |socket| async move {
+    crate::resource_limits::upgrade("runs_socket", ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
         let mut heartbeat = crate::websocket_liveness::Heartbeat::new();
         loop {
@@ -182,6 +182,7 @@ async fn runs_ws(
                 recv = runs_rx.recv() => {
                     match recv {
                         Ok(mut run) => {
+                            service::resource_metrics::event("run_stream_message");
                             // Read current policy even if a timer update is queued.
                             let Ok(Some(timer)) = store.current_timer(&event_name).await else {
                                 break;
@@ -204,10 +205,16 @@ async fn runs_ws(
                                 }
                             }
                         }
-                        Err(err) => {
-                            tracing::warn!(?err, "recv failed");
-                            break;
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                            service::resource_metrics::event("run_lag_recovery");
+                            // A single committed batch can exceed the live buffer. Recover
+                            // from the shared snapshot without forcing a network reconnect.
+                            let Ok(Some(replay)) = store.subscribe_runs(&event_name).await else {
+                                break;
+                            };
+                            runs_rx = replay;
                         }
+                        Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
                     }
                 }
                 update = timer_rx.recv() => {
@@ -281,7 +288,7 @@ async fn timer_ws(
         return StatusCode::NOT_FOUND.into_response();
     };
 
-    crate::resource_limits::upgrade(ws, permit, move |socket| async move {
+    crate::resource_limits::upgrade("timer_socket", ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
         let mut heartbeat = crate::websocket_liveness::Heartbeat::new();
 
@@ -297,10 +304,14 @@ async fn timer_ws(
                 recv = time_rx.recv() => {
                     match recv {
                         Ok(time) => time,
-                        Err(err) => {
-                            tracing::warn!(?err, "recv failed");
-                            break;
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                            let Ok(Some((current, receiver))) = store.timer_subscription(&event_name).await else {
+                                break;
+                            };
+                            time_rx = receiver;
+                            current
                         }
+                        Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
                     }
                 }
                 _ = tokio::time::sleep_until(heartbeat.deadline()) => break,

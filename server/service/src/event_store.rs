@@ -23,29 +23,46 @@ use tracing::Instrument;
 
 #[derive(Clone)]
 pub struct EventStore {
+    limits: Arc<crate::resource_limits::ResourceLimits>,
     database: Arc<dyn Database>,
     live: engine::Engine,
     salt: Arc<String>,
     // Serialize storage hydration and mutations; public reads use the engine RwLock.
     gate: Arc<Mutex<()>>,
     initialized: Arc<AtomicBool>,
+    unavailable: Arc<tokio::sync::RwLock<std::collections::HashMap<String, DatabaseError>>>,
+    recovering: Arc<AtomicBool>,
     websockets: Arc<tokio::sync::Semaphore>,
     mutations: Arc<tokio::sync::Semaphore>,
 }
 impl EventStore {
     pub fn new(database: Arc<dyn Database>, revelation_salt: String) -> Self {
+        Self::with_limits(database, revelation_salt, Default::default())
+    }
+    pub fn limits(&self) -> &crate::resource_limits::ResourceLimits {
+        &self.limits
+    }
+    pub fn with_limits(
+        database: Arc<dyn Database>,
+        revelation_salt: String,
+        limits: crate::resource_limits::ResourceLimits,
+    ) -> Self {
+        limits.validate().expect("valid resource limits");
         assert!(
             !revelation_salt.is_empty(),
             "revelation salt must not be empty"
         );
         Self {
+            websockets: Arc::new(tokio::sync::Semaphore::new(limits.max_websockets)),
+            mutations: Arc::new(tokio::sync::Semaphore::new(limits.max_mutations)),
+            limits: Arc::new(limits),
             database,
             live: engine::Engine::with_revelation_salt(revelation_salt.clone()),
             salt: Arc::new(revelation_salt),
             gate: Arc::new(Mutex::new(())),
             initialized: Arc::new(AtomicBool::new(false)),
-            websockets: Arc::new(tokio::sync::Semaphore::new(2048)),
-            mutations: Arc::new(tokio::sync::Semaphore::new(32)),
+            unavailable: Default::default(),
+            recovering: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -63,6 +80,46 @@ impl EventStore {
             self.initialized.store(true, Ordering::Release);
         }
         Ok(())
+    }
+
+    async fn ready(&self, event: &str) -> Result<(), StoreError> {
+        self.initialize().await?;
+        if let Some(error) = self.unavailable.read().await.get(event) {
+            return Err(StoreError::Storage(error.clone()));
+        }
+        Ok(())
+    }
+
+    // One bounded recovery worker per store, independent of public request volume.
+    fn start_recovery(&self) {
+        if self.recovering.swap(true, Ordering::AcqRel) {
+            return;
+        }
+        let store = self.clone();
+        tokio::spawn(async move {
+            let mut delay = 1;
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(delay)).await;
+                let permit = store.mutations.clone().acquire_owned().await.unwrap();
+                let guard = store.gate.lock().await;
+                let names: Vec<_> = store.unavailable.read().await.keys().cloned().collect();
+                for name in names {
+                    crate::resource_metrics::event("recovery_attempt");
+                    if store.refresh(&name).await.is_ok() {
+                        store.unavailable.write().await.remove(&name);
+                    }
+                }
+                // Schedule/termination both happen under the mutation gate, avoiding
+                // a lost wake-up when another ambiguous write adds a failed event.
+                if store.unavailable.read().await.is_empty() {
+                    store.recovering.store(false, Ordering::Release);
+                    break;
+                }
+                drop(guard);
+                drop(permit);
+                delay = (delay * 2).min(30);
+            }
+        });
     }
 
     pub fn websocket_permit(&self) -> Result<tokio::sync::OwnedSemaphorePermit, StoreError> {
@@ -84,12 +141,7 @@ impl EventStore {
                         "invalid event configuration".into(),
                     )),
                 }),
-            Err(err) => {
-                // Do not leave streams serving uncertain state after storage failure.
-                self.initialized.store(false, Ordering::Release);
-                self.live.install(name, None).await?;
-                Err(err.into())
-            }
+            Err(err) => Err(err.into()),
         }
     }
 
@@ -107,14 +159,18 @@ impl EventStore {
             .clone()
             .try_acquire_owned()
             .map_err(|_| StoreError::LimitExceeded)?;
+        // Cancellation while queued must prevent the operation from starting.
+        let active = crate::resource_metrics::Active::new("mutation");
+        let guard = self.gate.clone().lock_owned().await;
         let this = self.clone();
         // Detaching the caller must not cancel persistence between commit and publish.
         let hub = Arc::new(sentry::Hub::new_from_top(sentry::Hub::current()));
         tokio::spawn(
             async move {
                 let _permit = permit;
+                let _active = active;
                 let result = async {
-                    let _guard = this.gate.lock().await;
+                    let _guard = guard;
                     let before =
                         crate::database::observe("read", this.database.read(&name)).await?;
                     let stage = engine::Engine::staging((*this.salt).clone());
@@ -154,14 +210,23 @@ impl EventStore {
                         if let Err(err) = persisted {
                             // A commit may have succeeded despite a reported I/O failure.
                             // Close old streams and recover from the authoritative database.
+                            this.unavailable
+                                .write()
+                                .await
+                                .insert(name.clone(), err.clone());
                             this.live.install(&name, None).await?;
-                            if this.refresh(&name).await.is_err() {
-                                this.initialized.store(false, Ordering::Release);
+                            if this.refresh(&name).await.is_ok() {
+                                this.unavailable.write().await.remove(&name);
+                            } else {
+                                this.start_recovery();
                             }
+                            crate::resource_metrics::event("mutation_ambiguous");
                             return Err(err.into());
                         }
                     }
                     this.live.install(&name, after).await?;
+                    crate::resource_metrics::event("mutation_success");
+                    this.unavailable.write().await.remove(&name);
                     Ok(result)
                 }
                 .await;
@@ -200,8 +265,7 @@ impl EventStore {
         .await
     }
     pub async fn get_event(&self, event_name: &str) -> Result<Option<EventState>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.get_event(event_name).await)
     }
     pub async fn delete_event(&self, event_name: &str) -> Result<bool, StoreError> {
@@ -216,7 +280,7 @@ impl EventStore {
         Ok(self.live.list_events().await)
     }
     pub async fn is_started(&self, event_name: &str) -> Result<Option<bool>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.is_started(event_name).await)
     }
     pub async fn patch_time(
@@ -289,15 +353,14 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<ContestConfig>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.get_contest(event_name, contest_name).await)
     }
     pub async fn list_contests(
         &self,
         event_name: &str,
     ) -> Result<Option<Vec<ContestConfig>>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.list_contests(event_name).await)
     }
     pub async fn put_contest(
@@ -367,8 +430,7 @@ impl EventStore {
         contest_name: &str,
         site_name: &str,
     ) -> Result<Option<SiteConfig>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self
             .live
             .get_site(event_name, contest_name, site_name)
@@ -379,8 +441,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<Vec<SiteConfig>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.list_sites(event_name, contest_name).await)
     }
     pub async fn put_site(
@@ -444,8 +505,7 @@ impl EventStore {
         event_name: &str,
         public_url: &url::Url,
     ) -> Result<Option<Vec<data::event::RevelationUrl>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.revelation_urls(event_name, public_url).await)
     }
     pub async fn site_by_key(
@@ -454,7 +514,7 @@ impl EventStore {
         contest_name: &str,
         key: &str,
     ) -> Result<Option<(String, SiteConfig)>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.site_by_key(event_name, contest_name, key).await)
     }
     pub async fn public_state(
@@ -462,7 +522,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<PublicContestState>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.public_state(event_name, contest_name).await)
     }
     pub async fn public_config(
@@ -470,7 +530,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<PublicConfig>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.public_config(event_name, contest_name).await)
     }
     pub async fn contest_runs(
@@ -478,8 +538,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<Vec<Run>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.contest_runs(event_name, contest_name).await)
     }
     pub async fn site_runs(
@@ -488,7 +547,7 @@ impl EventStore {
         contest_name: &str,
         site_name: &str,
     ) -> Result<Option<Vec<Run>>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self
             .live
             .site_runs(event_name, contest_name, site_name)
@@ -499,33 +558,33 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<RegexSet>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.contest_codes(event_name, contest_name).await)
     }
     pub async fn subscribe_runs(
         &self,
         event_name: &str,
     ) -> Result<Option<membroadcast::Receiver<Run>>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.subscribe_runs(event_name).await)
     }
     pub async fn subscribe_timer(
         &self,
         event_name: &str,
     ) -> Result<Option<broadcast::Receiver<PublicTimer>>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.subscribe_timer(event_name).await)
     }
     pub async fn timer_subscription(
         &self,
         name: &str,
     ) -> Result<Option<(PublicTimer, broadcast::Receiver<PublicTimer>)>, StoreError> {
-        self.initialize().await?;
+        self.ready(name).await?;
         Ok(self.live.timer_subscription(name).await)
     }
 
     pub async fn current_timer(&self, event_name: &str) -> Result<Option<PublicTimer>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         Ok(self.live.current_timer(event_name).await)
     }
     pub async fn create_remote_session(
@@ -584,14 +643,13 @@ impl EventStore {
         contest_name: &str,
         key: &str,
     ) -> Result<Option<RemoteConnection>, StoreError> {
-        self.initialize().await?;
+        self.ready(event_name).await?;
         self.live
             .remote_control_sender(event_name, contest_name, key)
             .await
     }
     pub async fn has_event(&self, event_name: &str) -> Result<bool, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.ready(event_name).await?;
         Ok(self.live.has_event(event_name).await)
     }
     pub async fn patch_event(
@@ -642,8 +700,7 @@ impl EventStore {
         .await
     }
     pub async fn get_team(&self, event: &str, login: &str) -> Result<TeamInfo, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event).await?;
+        self.ready(event).await?;
         self.live.get_team(event, login).await
     }
     pub async fn patch_team(

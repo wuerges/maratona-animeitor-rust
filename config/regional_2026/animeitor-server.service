@@ -26,15 +26,12 @@ Environment=RUST_LOG=info
 # Each websocket connection holds a file descriptor for its lifetime.
 # Without this, the server runs with systemd's default soft limit of 1024
 # and runs out of file descriptors under load.
-LimitNOFILE=65536
-# Conservative host-protection budgets; size memory against the real event data.
-MemoryHigh=1G
-MemoryMax=2G
-MemorySwapMax=0
-CPUQuota=200%
+LimitNOFILE=131072
+# Set CPU/memory budgets in a systemd drop-in after measuring the real workload.
+# See doc/capacity-testing.md; previous 2-core/2-GiB values were not validated.
 TasksMax=256
-# The binary binds all interfaces. Restrict both upstream ports in the host
-# firewall to the local/private proxy; see doc/nginx-examples/README.md.
+# Axum serves production directly. Expose only the intended public HTTP/HTTPS
+# ports; internal administration requires verified HTTPS. No proxy is required.
 
 # Port 80 is privileged. Granting the capability here is more robust
 # than `setcap` on the binary: a rebuild or copy replaces the file and

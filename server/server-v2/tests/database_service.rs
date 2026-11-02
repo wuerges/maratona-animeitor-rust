@@ -559,3 +559,154 @@ async fn durable_credentials_obey_global_limit_across_events() {
         .unwrap();
     store.create_remote_session("event-16", "c").await.unwrap();
 }
+
+#[tokio::test]
+async fn internal_reads_keep_committed_cache_during_storage_outage() {
+    let (db, store) = setup().await;
+    store.initialize().await.unwrap();
+    let mut timer = store.subscribe_timer("e").await.unwrap().unwrap();
+    let reads = db.reads.load(Ordering::SeqCst);
+    db.fail_read.store(true, Ordering::SeqCst);
+    assert!(store.get_event("e").await.unwrap().is_some());
+    assert!(store.get_team("e", "team1").await.is_ok());
+    assert!(store.current_timer("e").await.unwrap().is_some());
+    assert!(store.patch_time("e", 42).await.is_err());
+    assert!(store.current_timer("e").await.unwrap().is_some());
+    assert_eq!(db.reads.load(Ordering::SeqCst), reads + 1);
+    assert!(matches!(
+        timer.try_recv(),
+        Err(tokio::sync::broadcast::error::TryRecvError::Empty)
+    ));
+}
+
+#[tokio::test]
+async fn canceled_queued_mutation_never_runs() {
+    let (db, store) = setup().await;
+    store.initialize().await.unwrap();
+    db.pause_write.store(true, Ordering::SeqCst);
+    let first_store = store.clone();
+    let first = tokio::spawn(async move { first_store.patch_time("e", 42).await });
+    db.entered.notified().await;
+    let second_store = store.clone();
+    let second = tokio::spawn(async move { second_store.patch_time("e", 99).await });
+    tokio::task::yield_now().await;
+    second.abort();
+    let _ = second.await;
+    db.release.notify_one();
+    first.await.unwrap().unwrap();
+    // A later write is a barrier behind every operation that could have queued.
+    store
+        .set_event_salt("e", Some("new-salt".into()))
+        .await
+        .unwrap();
+    assert_eq!(
+        store
+            .current_timer("e")
+            .await
+            .unwrap()
+            .unwrap()
+            .current_time_seconds,
+        42
+    );
+}
+
+#[tokio::test(start_paused = true)]
+async fn failed_reconciliation_is_scoped_and_recovers() {
+    let (db, store) = setup().await;
+    store
+        .create_event("other", shared::event("other").state)
+        .await
+        .unwrap();
+    store.initialize().await.unwrap();
+    db.pause_write.store(true, Ordering::SeqCst);
+    db.fail_write.store(true, Ordering::SeqCst);
+    let writer = store.clone();
+    let write = tokio::spawn(async move { writer.patch_time("e", 42).await });
+    db.entered.notified().await;
+    db.fail_read.store(true, Ordering::SeqCst);
+    db.release.notify_one();
+    assert!(write.await.unwrap().is_err());
+    assert!(matches!(
+        store.current_timer("e").await,
+        Err(StoreError::Storage(DatabaseError::Unavailable(_)))
+    ));
+    assert!(store.current_timer("other").await.unwrap().is_some());
+    db.fail_read.store(false, Ordering::SeqCst);
+    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+        loop {
+            if store.current_timer("e").await.is_ok() {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
+    })
+    .await
+    .unwrap();
+}
+
+#[tokio::test(start_paused = true)]
+async fn routed_write_timeout_reports_unknown_then_commits() {
+    let (db, store) = setup().await;
+    store.initialize().await.unwrap();
+    let mut timer = store.subscribe_timer("e").await.unwrap().unwrap();
+    let token = service::internal_auth::InternalToken::new(
+        "admin".into(),
+        "secret".into(),
+        data::internal_auth::InternalRole::ReadWrite,
+        vec!["e".into()],
+    )
+    .unwrap();
+    let app = server_v2::app(server_v2::AppState {
+        store: store.clone(),
+        public_url: "http://localhost".parse().unwrap(),
+        internal_tokens: Arc::new(std::collections::HashMap::from([("admin".into(), token)])),
+    });
+    db.pause_write.store(true, Ordering::SeqCst);
+    let request = tokio::spawn(
+        app.clone().oneshot(
+            Request::builder()
+                .method("PATCH")
+                .uri("/internal/events/e/time")
+                .header("authorization", "Basic YWRtaW46c2VjcmV0")
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"time_seconds":42}"#))
+                .unwrap(),
+        ),
+    );
+    db.entered.notified().await;
+    let queued = tokio::spawn(
+        app.oneshot(
+            Request::builder()
+                .method("PATCH")
+                .uri("/internal/events/e/time")
+                .header("authorization", "Basic YWRtaW46c2VjcmV0")
+                .header("content-type", "application/json")
+                .body(Body::from(r#"{"time_seconds":99}"#))
+                .unwrap(),
+        ),
+    );
+    let response = request.await.unwrap().unwrap();
+    assert_eq!(
+        queued.await.unwrap().unwrap().status(),
+        StatusCode::SERVICE_UNAVAILABLE
+    );
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    let json: serde_json::Value =
+        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    assert_eq!(json["errors"][0]["code"], "operation_outcome_unknown");
+    db.release.notify_one();
+    assert_eq!(timer.recv().await.unwrap().current_time_seconds, 42);
+    store
+        .set_event_salt("e", Some("barrier-salt".into()))
+        .await
+        .unwrap();
+    assert_eq!(
+        store
+            .current_timer("e")
+            .await
+            .unwrap()
+            .unwrap()
+            .current_time_seconds,
+        42
+    );
+}

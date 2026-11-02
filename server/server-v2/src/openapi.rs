@@ -99,10 +99,13 @@ fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
                     "429",
                     "Process request or WebSocket capacity exceeded; retry with backoff.",
                 ),
-                ("408", "Request processing exceeded the 15-second deadline."),
+                (
+                    "408",
+                    "Read request exceeded the configured processing deadline (15 seconds by default). Timed-out mutations return 503 with operation_outcome_unknown.",
+                ),
                 (
                     "503",
-                    "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying.",
+                    "Database unavailable or busy (storage_unavailable), or a mutating request timed out (operation_outcome_unknown). A failed or timed-out write may still commit: reconcile the resource before retrying.",
                 ),
                 (
                     "500",

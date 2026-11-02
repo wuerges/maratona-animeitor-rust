@@ -41,3 +41,13 @@ path = "sounds"
 # [database]
 # type = "sqlite"
 # path = "/data/animeitor.sqlite3"
+
+# Optional process budgets; defaults admit 40,000 viewer sockets plus headroom.
+# Admission ceilings are not a measured capacity guarantee.
+# [limits]
+# max_websockets = 50000
+# max_connections = 60000
+# max_public_requests = 128
+# max_internal_requests = 32
+# max_mutations = 32
+# request_timeout_seconds = 15

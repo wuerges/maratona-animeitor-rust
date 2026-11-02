@@ -905,8 +905,15 @@ async fn remote_control_rejects_oversized_frame() {
 
 #[tokio::test]
 async fn websocket_capacity_is_released_after_rejection() {
-    let store = test_store(None);
-    let mut permits: Vec<_> = (0..2048)
+    let store = EventStore::with_limits(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        "salt".into(),
+        service::resource_limits::ResourceLimits {
+            max_websockets: 2,
+            ..Default::default()
+        },
+    );
+    let mut permits: Vec<_> = (0..store.limits().max_websockets)
         .map(|_| store.websocket_permit().unwrap())
         .collect();
     let base = spawn_server(app_for(store)).await;
@@ -1011,4 +1018,47 @@ async fn remote_control_answers_ping_without_ending_session() {
             .await
             .is_ok()
     );
+}
+
+#[tokio::test]
+async fn run_batch_lag_recovers_on_the_same_socket() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    store.patch_time("ensaio", 60).await.unwrap();
+    let base = spawn_server(app_for(store.clone())).await;
+    let mut ws = connect(&base, "/api/events/ensaio/contests/brasil/runs_ws").await;
+    let batch: Vec<Run> = (0..2000)
+        .map(|id| {
+            serde_json::from_value(serde_json::json!({
+                "id":id,"team_login":"teambr001","prob":"A","time_seconds":10,"answer":"Y"
+            }))
+            .unwrap()
+        })
+        .collect();
+    store.add_runs("ensaio", batch).await.unwrap();
+    let mut seen = std::collections::HashSet::new();
+    tokio::time::timeout(Duration::from_secs(10), async {
+        while seen.len() < 2000 {
+            let run: Run = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+            seen.insert(run.id);
+        }
+    })
+    .await
+    .expect("all runs arrive without reconnecting");
+    let correction: Run = serde_json::from_value(serde_json::json!({
+        "id":1999,"team_login":"teambr001","prob":"A","time_seconds":10,"answer":"N"
+    }))
+    .unwrap();
+    store.add_runs("ensaio", vec![correction]).await.unwrap();
+    tokio::time::timeout(Duration::from_secs(5), async {
+        loop {
+            let run: Run = serde_json::from_str(&next_text(&mut ws).await).unwrap();
+            if run.id == 1999 && run.answer == service::event_store::Answer::No {
+                break;
+            }
+        }
+    })
+    .await
+    .expect("later correction arrives on existing socket");
 }

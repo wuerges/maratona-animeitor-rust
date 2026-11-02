@@ -574,3 +574,5 @@ manually too, since OpenAPI comparisons cannot capture every behavior change.
 For agent-driven patch or minor releases, follow [the release procedure](doc/releases.md).
 The tag-triggered Release workflow validates metadata, tests and publishes the Docker
 image, and creates the GitHub release. Production deployment is separate.
+
+For production served directly by Axum, see the [20,000-viewer capacity procedure](doc/capacity-testing.md) for configurable limits, host sizing evidence, and repeatable browser-style load tests. Dedicated capacity validation is pending.

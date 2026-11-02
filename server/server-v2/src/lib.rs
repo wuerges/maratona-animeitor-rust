@@ -8,6 +8,7 @@ pub mod public;
 mod remote_control;
 mod request_logging;
 mod resource_limits;
+mod transport;
 mod websocket_liveness;
 
 use std::collections::HashMap;
@@ -50,13 +51,29 @@ impl FromRef<AppState> for EventStore {
 /// Builds the router with the `/api` and `/internal` scopes. The state is
 /// provided here: the result is a `Router<()>` ready to serve.
 pub fn app(state: AppState) -> Router {
-    request_logging::layer(api_router(state))
+    let capacity = state.store.limits().max_response_bodies;
+    request_logging::layer(resource_limits::responses(api_router(state), capacity))
 }
 
 fn api_router(state: AppState) -> Router {
+    let limits = state.store.limits().clone();
     Router::new()
-        .nest("/api", resource_limits::http(public::router(), 128))
-        .nest("/internal", resource_limits::http(internal::router(), 32))
+        .nest(
+            "/api",
+            resource_limits::http(
+                public::router(),
+                limits.max_public_requests,
+                limits.request_timeout_seconds,
+            ),
+        )
+        .nest(
+            "/internal",
+            resource_limits::http(
+                internal::router(),
+                limits.max_internal_requests,
+                limits.request_timeout_seconds,
+            ),
+        )
         .layer(CompressionLayer::new())
         .with_state(state)
 }
@@ -118,6 +135,7 @@ fn volume_router(
 
 pub async fn serve_config(
     AppConfig {
+        limits,
         database,
         public_url,
         server_config: HttpConfig { port, tls },
@@ -134,9 +152,15 @@ pub async fn serve_config(
             Arc::new(database_sqlite::SqliteDatabase::open(path)?)
         }
     };
+    limits.validate().map_err(std::io::Error::other)?;
+    tracing::info!(?limits, "effective resource limits");
     let state = AppState {
         public_url,
-        store: service::event_store::EventStore::new(database, revelation_salt),
+        store: service::event_store::EventStore::with_limits(
+            database,
+            revelation_salt,
+            limits.clone(),
+        ),
         internal_tokens: Arc::new(internal_tokens),
     };
 
@@ -155,52 +179,47 @@ pub async fn serve_config(
             .expose_headers([axum::http::HeaderName::from_static("x-request-id")]),
     );
 
+    let app = resource_limits::responses(app, limits.max_response_bodies);
+    let acceptor = transport::Acceptor::new(limits.clone());
+    let handle = axum_server::Handle::new();
+    let shutdown = handle.clone();
+    tokio::spawn(async move {
+        let _ = tokio::signal::ctrl_c().await;
+        shutdown.graceful_shutdown(Some(std::time::Duration::from_secs(15)));
+    });
+    let http_app = request_logging::layer(
+        app.clone()
+            .layer(middleware::from_fn(reject_internal_over_http)),
+    );
+    let mut http = axum_server::bind(std::net::SocketAddr::from(([0, 0, 0, 0], port)))
+        .acceptor(acceptor.clone())
+        .handle(handle.clone());
+    transport::configure(http.http_builder(), &limits);
     match tls {
         Some(HttpTlsConfig {
             cert,
             key,
             port: tls_port,
         }) => {
-            // Like the old actix server, both listeners stay up: HTTP on
-            // `port` and HTTPS on `tls_port`.
             let mut tls_config = load_rustls_config(&cert, &key)?;
             tls_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
-
-            let handle = axum_server::Handle::new();
-            let shutdown_handle = handle.clone();
-            tokio::spawn(async move {
-                let _ = tokio::signal::ctrl_c().await;
-                shutdown_handle.graceful_shutdown(None);
-            });
-
-            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            let http_app = request_logging::layer(
-                app.clone()
-                    .layer(middleware::from_fn(reject_internal_over_http)),
-            );
-            let http = axum::serve(listener, http_app).with_graceful_shutdown(async {
-                let _ = tokio::signal::ctrl_c().await;
-            });
-
-            let https = axum_server::tls_rustls::bind_rustls(
-                std::net::SocketAddr::from(([0, 0, 0, 0], tls_port)),
-                axum_server::tls_rustls::RustlsConfig::from_config(std::sync::Arc::new(tls_config)),
+            let tls_acceptor = axum_server::tls_rustls::RustlsAcceptor::new(
+                axum_server::tls_rustls::RustlsConfig::from_config(Arc::new(tls_config)),
             )
-            .handle(handle)
-            .serve(request_logging::layer(app).into_make_service());
-
-            tokio::try_join!(http, https)?;
+            .handshake_timeout(std::time::Duration::from_secs(
+                limits.tls_handshake_timeout_seconds,
+            ))
+            .acceptor(acceptor);
+            let mut https = axum_server::bind(std::net::SocketAddr::from(([0, 0, 0, 0], tls_port)))
+                .acceptor(tls_acceptor)
+                .handle(handle);
+            transport::configure(https.http_builder(), &limits);
+            tokio::try_join!(
+                http.serve(http_app.into_make_service()),
+                https.serve(request_logging::layer(app).into_make_service())
+            )?;
         }
-        None => {
-            let listener = tokio::net::TcpListener::bind(("0.0.0.0", port)).await?;
-            let http_app =
-                request_logging::layer(app.layer(middleware::from_fn(reject_internal_over_http)));
-            axum::serve(listener, http_app)
-                .with_graceful_shutdown(async {
-                    let _ = tokio::signal::ctrl_c().await;
-                })
-                .await?;
-        }
+        None => http.serve(http_app.into_make_service()).await?,
     }
 
     Ok(())

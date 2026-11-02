@@ -58,7 +58,9 @@ impl<T: Clone> Sender<T> {
 
     pub(crate) fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
-        Receiver::new(rx, self.messages.read().clone())
+        let messages = self.messages.read().clone();
+        metrics::counter!("server_replay_messages_total").increment(messages.len() as u64);
+        Receiver::new(rx, messages)
     }
 
     #[cfg(test)]
