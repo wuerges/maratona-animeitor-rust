@@ -8,7 +8,15 @@ services:
     <<: *runtime
     entrypoint: /animeitor-server
     command: [--server-config, /workspace/server.toml]
-    ports: ["8000:8000", "8443:8443"]
+    # Host-local access only. A public proxy must be the sole ingress.
+    ports: ["127.0.0.1:8000:8000", "127.0.0.1:8443:8443"]
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: 2.0
+    pids_limit: 256
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
     environment:
       RUST_LOG: info
     ulimits:
