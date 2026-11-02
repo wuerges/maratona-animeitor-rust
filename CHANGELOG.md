@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reloading storage for every request/run. Public reads continue during storage
   outages; the single server process remains the sole supported database writer.
 
+### Deployment
+
+- Bind example Compose server and monitoring ports to loopback; bound server
+  memory, CPU, process counts, and Docker log retention. Add matching native
+  systemd resource budgets.
+- Provide nginx per-source request/connection limits, global connection limits,
+  bounded timeouts, verified HTTPS upstreams for internal administration, and
+  capability-safe logging. Document firewall isolation and capacity validation.
+
 ### Fixed
 
 - Read timer state and subscribe atomically when opening a public timer stream.
@@ -40,15 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Authenticated internal remote-control session issuance and revocation endpoints.
-
-### Deployment
-
-- Bind example Compose server and monitoring ports to loopback; bound server
-  memory, CPU, process counts, and Docker log retention. Add matching native
-  systemd resource budgets.
-- Provide nginx per-source request/connection limits, global connection limits,
-  bounded timeouts, verified HTTPS upstreams for internal administration, and
-  capability-safe logging. Document firewall isolation and capacity validation.
 
 ### Security
 
