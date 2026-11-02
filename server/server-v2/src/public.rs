@@ -147,6 +147,7 @@ async fn runs_ws(
     Path((event_name, contest_name)): Path<(String, String)>,
     ws: WebSocketUpgrade,
 ) -> Response {
+    let permit = crate::store_call!(store.websocket_permit());
     // Handshake errors carry no body: 404 for missing resources, bare 403
     // while the event has not started.
     match crate::store_call!(store.is_started(&event_name).await) {
@@ -173,7 +174,7 @@ async fn runs_ws(
     };
     let mut freeze = timer.score_freeze_time_seconds;
 
-    ws.on_upgrade(move |socket| async move {
+    crate::resource_limits::upgrade(ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
         loop {
             tokio::select! {
@@ -276,13 +277,14 @@ async fn timer_ws(
     Path(event_name): Path<String>,
     ws: WebSocketUpgrade,
 ) -> Response {
+    let permit = crate::store_call!(store.websocket_permit());
     let Some((current, mut time_rx)) =
         crate::store_call!(store.timer_subscription(&event_name).await)
     else {
         return StatusCode::NOT_FOUND.into_response();
     };
 
-    ws.on_upgrade(move |socket| async move {
+    crate::resource_limits::upgrade(ws, permit, move |socket| async move {
         let (mut sender, mut receiver) = socket.split();
 
         // The current value is sent immediately; the stream keeps it fresh,
@@ -332,6 +334,7 @@ async fn remote_control_ws(
     Path((event_name, contest_name, key)): Path<(String, String, String)>,
     ws: WebSocketUpgrade,
 ) -> Response {
+    let permit = crate::store_call!(store.websocket_permit());
     let Some(sender) = crate::store_call!(
         store
             .remote_control_sender(&event_name, &contest_name, &key)
@@ -339,5 +342,5 @@ async fn remote_control_ws(
     ) else {
         return StatusCode::NOT_FOUND.into_response();
     };
-    relay_remote_control(sender, ws).await
+    relay_remote_control(sender, ws, permit).await
 }

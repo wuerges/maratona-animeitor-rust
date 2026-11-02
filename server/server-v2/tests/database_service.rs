@@ -9,7 +9,7 @@ use service::{
 };
 use std::sync::{
     Arc,
-    atomic::{AtomicBool, Ordering},
+    atomic::{AtomicBool, AtomicUsize, Ordering},
 };
 use tokio::sync::Notify;
 use tower::ServiceExt;
@@ -22,6 +22,7 @@ mod shared;
 struct ControlledDatabase {
     memory: database_memory::MemoryDatabase,
     fail_read: AtomicBool,
+    reads: AtomicUsize,
     corrupt_read: AtomicBool,
     fail_write: AtomicBool,
     commit_then_fail: AtomicBool,
@@ -35,6 +36,7 @@ impl Database for ControlledDatabase {
     }
     fn read<'a>(&'a self, name: &'a str) -> DatabaseFuture<'a, Option<StoredEvent>> {
         Box::pin(async move {
+            self.reads.fetch_add(1, Ordering::SeqCst);
             if self.fail_read.load(Ordering::SeqCst) {
                 return Err(DatabaseError::Unavailable("injected failure".into()));
             }
@@ -342,4 +344,33 @@ fn sentry_reports_detached_failure_once_with_request_context() {
             .as_deref()
             .is_some_and(|s| s.contains("injected write failure"))
     }));
+}
+
+#[tokio::test]
+async fn public_snapshots_do_not_reload_storage_and_observe_commits() {
+    let (db, store) = setup().await;
+    store.initialize().await.unwrap();
+    let before = db.reads.load(Ordering::SeqCst);
+    // Even a storage outage cannot turn public replay into repeated database work.
+    db.fail_read.store(true, Ordering::SeqCst);
+    for _ in 0..100 {
+        assert!(store.current_timer("e").await.unwrap().is_some());
+        assert!(store.subscribe_runs("e").await.unwrap().is_some());
+        assert!(store.list_contests("missing").await.unwrap().is_none());
+        assert_eq!(store.list_events().await.unwrap(), vec!["e"]);
+    }
+    assert_eq!(before, db.reads.load(Ordering::SeqCst));
+    db.fail_read.store(false, Ordering::SeqCst);
+    store.patch_time("e", 42).await.unwrap();
+    assert_eq!(
+        store
+            .current_timer("e")
+            .await
+            .unwrap()
+            .unwrap()
+            .current_time_seconds,
+        42
+    );
+    store.delete_event("e").await.unwrap();
+    assert!(store.current_timer("e").await.unwrap().is_none());
 }

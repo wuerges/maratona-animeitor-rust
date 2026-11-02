@@ -36,6 +36,21 @@ Example bare run message:
 Remote-control channel keys are arbitrary shared identifiers, not site revelation keys. Valid messages are `{"y":120}`, `{"query":"sede=fiemg"}`, `"Hidden"`, and `{"Show":"teambr001"}`. The server forwards them to other connections on the same event/contest/channel; it does not echo them to the sender.
 
 
+
+Resource limits (4.0.0): public reads use the last committed in-memory snapshot.
+The server validates and loads storage at startup; writes publish only after commit.
+A storage outage does not force public reads to reopen the database. One server
+process owns a database; external edits and multiple writers are unsupported.
+
+The public and internal APIs have separate request concurrency budgets (128 and
+32), a 15-second processing deadline, and return 429 or 408 when those limits are
+reached. Detached commit/publish tasks have an independent cap of 32, retained
+until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
+2,048-connection process budget, a one-hour lifetime, 4 KiB incoming frame/message
+limits, and a 10-second write deadline. Reconnect with backoff. A lagged stream
+is disconnected and must reconnect for a fresh replay; live buffers hold 1,024
+messages.
+
 Remote-control keys are secret server-issued capabilities, scoped to an event
 and contest. An owner with a read-write internal token issues a session with
 `POST /internal/events/{event_name}/contests/{contest_name}/remote_control` and

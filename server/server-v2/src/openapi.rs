@@ -84,9 +84,6 @@ pub struct InternalApiDoc;
 fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
     use utoipa::openapi::{Content, Ref, ResponseBuilder};
     for (path, item) in &mut doc.paths.paths {
-        if path.ends_with("/metrics") || path.ends_with("/capabilities") || path == "/api/about" {
-            continue;
-        }
         for operation in [
             &mut item.get,
             &mut item.post,
@@ -99,6 +96,11 @@ fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
         {
             for (status, description) in [
                 (
+                    "429",
+                    "Process request or WebSocket capacity exceeded; retry with backoff.",
+                ),
+                ("408", "Request processing exceeded the 15-second deadline."),
+                (
                     "503",
                     "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying.",
                 ),
@@ -107,6 +109,13 @@ fn add_storage_responses(doc: &mut utoipa::openapi::OpenApi) {
                     "Stored data is corrupt or uses an unsupported schema (storage_error).",
                 ),
             ] {
+                if matches!(status, "500" | "503")
+                    && (path.ends_with("/metrics")
+                        || path.ends_with("/capabilities")
+                        || path == "/api/about")
+                {
+                    continue;
+                }
                 operation.responses.responses.insert(
                     status.into(),
                     ResponseBuilder::new()

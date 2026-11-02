@@ -1248,7 +1248,7 @@
       "name": ""
     },
     "title": "Animeitor internal API",
-    "version": "3.0.0"
+    "version": "4.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1285,6 +1285,26 @@
               }
             },
             "description": "Missing or invalid configured credentials; Cache-Control: no-store."
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           }
         },
         "summary": "Inspect your credential's capabilities",
@@ -1367,6 +1387,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -1377,6 +1407,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -1478,6 +1518,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -1487,6 +1537,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -1602,6 +1662,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -1611,6 +1681,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -1768,6 +1848,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -1796,6 +1886,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -1953,6 +2053,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -1963,6 +2073,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2084,6 +2204,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -2093,6 +2223,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2238,6 +2378,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -2248,6 +2398,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2314,6 +2474,16 @@
             },
             "description": "Missing or invalid configured username/token. WWW-Authenticate: Basic."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -2324,6 +2494,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2417,6 +2597,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -2427,6 +2617,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2547,6 +2747,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -2557,6 +2767,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2671,6 +2891,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -2680,6 +2910,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -2829,6 +3069,16 @@
             },
             "description": "Valid credential lacks event ownership or the read-write role (forbidden)."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -2857,6 +3107,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3024,6 +3284,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -3034,6 +3304,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3149,6 +3429,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -3159,6 +3449,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3250,6 +3550,16 @@
             },
             "description": "Event or contest missing."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "429": {
             "content": {
               "application/json": {
@@ -3258,7 +3568,7 @@
                 }
               }
             },
-            "description": "Session capacity exceeded."
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3350,6 +3660,26 @@
               }
             },
             "description": "Session missing."
+          },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3470,6 +3800,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -3480,6 +3820,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3587,6 +3937,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -3596,6 +3956,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3692,6 +4062,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -3701,6 +4081,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3818,6 +4208,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -3828,6 +4228,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -3921,6 +4331,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -3931,6 +4351,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4074,6 +4504,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -4084,6 +4524,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4187,6 +4637,16 @@
             },
             "description": "Event or submission does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -4197,6 +4657,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4333,6 +4803,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -4343,6 +4823,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4452,6 +4942,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -4461,6 +4961,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4566,6 +5076,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -4575,6 +5095,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4676,6 +5206,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -4685,6 +5225,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4799,6 +5349,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -4808,6 +5368,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -4944,6 +5514,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -4954,6 +5534,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5015,6 +5605,16 @@
             },
             "description": "Missing or invalid configured username/token. WWW-Authenticate: Basic."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -5025,6 +5625,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "description": "Metrics encoding failed; no body"
@@ -5119,6 +5729,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -5129,6 +5749,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5239,6 +5869,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -5248,6 +5888,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5371,6 +6021,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -5380,6 +6040,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5539,6 +6209,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -5567,6 +6247,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5726,6 +6416,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -5736,6 +6436,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -5866,6 +6576,16 @@
             },
             "description": "Event, parent resource, or item does not exist"
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "409": {
             "content": {
               "application/json": {
@@ -5875,6 +6595,16 @@
               }
             },
             "description": "Duplicate identifier, ambiguous legacy collection, or removal of an item with stored runs"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {
@@ -6029,6 +6759,16 @@
             },
             "description": "Required event, contest, or site does not exist."
           },
+          "408": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Request processing exceeded the 15-second deadline."
+          },
           "426": {
             "content": {
               "text/plain": {
@@ -6039,6 +6779,16 @@
               }
             },
             "description": "Internal requests on the cleartext listener are rejected; use the configured HTTPS endpoint"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Process request or WebSocket capacity exceeded; retry with backoff."
           },
           "500": {
             "content": {

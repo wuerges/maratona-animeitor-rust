@@ -10,7 +10,14 @@ pub use engine::{
 };
 use regex::RegexSet;
 use sentry::SentryFutureExt;
-use std::{future::Future, pin::Pin, sync::Arc};
+use std::{
+    future::Future,
+    pin::Pin,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+};
 use tokio::sync::{Mutex, broadcast};
 use tracing::Instrument;
 
@@ -19,8 +26,11 @@ pub struct EventStore {
     database: Arc<dyn Database>,
     live: engine::Engine,
     salt: Arc<String>,
-    // A single process coordinates reads, writes, subscription setup and publication.
+    // Serialize storage hydration and mutations; public reads use the engine RwLock.
     gate: Arc<Mutex<()>>,
+    initialized: Arc<AtomicBool>,
+    websockets: Arc<tokio::sync::Semaphore>,
+    mutations: Arc<tokio::sync::Semaphore>,
 }
 impl EventStore {
     pub fn new(database: Arc<dyn Database>, revelation_salt: String) -> Self {
@@ -33,7 +43,33 @@ impl EventStore {
             live: engine::Engine::with_revelation_salt(revelation_salt.clone()),
             salt: Arc::new(revelation_salt),
             gate: Arc::new(Mutex::new(())),
+            initialized: Arc::new(AtomicBool::new(false)),
+            websockets: Arc::new(tokio::sync::Semaphore::new(2048)),
+            mutations: Arc::new(tokio::sync::Semaphore::new(32)),
         }
+    }
+
+    /// Hydrate once. One process owns storage; mutations publish committed snapshots.
+    /// Public traffic never reopens storage or takes the mutation gate after startup.
+    pub async fn initialize(&self) -> Result<(), StoreError> {
+        if self.initialized.load(Ordering::Acquire) {
+            return Ok(());
+        }
+        let _guard = self.gate.lock().await;
+        if !self.initialized.load(Ordering::Acquire) {
+            for name in crate::database::observe("list", self.database.list()).await? {
+                self.refresh(&name).await?;
+            }
+            self.initialized.store(true, Ordering::Release);
+        }
+        Ok(())
+    }
+
+    pub fn websocket_permit(&self) -> Result<tokio::sync::OwnedSemaphorePermit, StoreError> {
+        self.websockets
+            .clone()
+            .try_acquire_owned()
+            .map_err(|_| StoreError::LimitExceeded)
     }
 
     async fn refresh(&self, name: &str) -> Result<(), StoreError> {
@@ -50,6 +86,7 @@ impl EventStore {
                 }),
             Err(err) => {
                 // Do not leave streams serving uncertain state after storage failure.
+                self.initialized.store(false, Ordering::Release);
                 self.live.install(name, None).await?;
                 Err(err.into())
             }
@@ -65,11 +102,17 @@ impl EventStore {
         + Send
         + 'static,
     ) -> Result<T, StoreError> {
+        let permit = self
+            .mutations
+            .clone()
+            .try_acquire_owned()
+            .map_err(|_| StoreError::LimitExceeded)?;
         let this = self.clone();
         // Detaching the caller must not cancel persistence between commit and publish.
         let hub = Arc::new(sentry::Hub::new_from_top(sentry::Hub::current()));
         tokio::spawn(
             async move {
+                let _permit = permit;
                 let result = async {
                     let _guard = this.gate.lock().await;
                     let before =
@@ -112,7 +155,9 @@ impl EventStore {
                             // A commit may have succeeded despite a reported I/O failure.
                             // Close old streams and recover from the authoritative database.
                             this.live.install(&name, None).await?;
-                            let _ = this.refresh(&name).await;
+                            if this.refresh(&name).await.is_err() {
+                                this.initialized.store(false, Ordering::Release);
+                            }
                             return Err(err.into());
                         }
                     }
@@ -167,11 +212,11 @@ impl EventStore {
         .await
     }
     pub async fn list_events(&self) -> Result<Vec<String>, StoreError> {
-        Ok(crate::database::observe("list", self.database.list()).await?)
+        self.initialize().await?;
+        Ok(self.live.list_events().await)
     }
     pub async fn is_started(&self, event_name: &str) -> Result<Option<bool>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.is_started(event_name).await)
     }
     pub async fn patch_time(
@@ -252,8 +297,7 @@ impl EventStore {
         &self,
         event_name: &str,
     ) -> Result<Option<Vec<ContestConfig>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.list_contests(event_name).await)
     }
     pub async fn put_contest(
@@ -410,8 +454,7 @@ impl EventStore {
         contest_name: &str,
         key: &str,
     ) -> Result<Option<(String, SiteConfig)>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.site_by_key(event_name, contest_name, key).await)
     }
     pub async fn public_state(
@@ -419,8 +462,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<PublicContestState>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.public_state(event_name, contest_name).await)
     }
     pub async fn public_config(
@@ -428,8 +470,7 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<PublicConfig>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.public_config(event_name, contest_name).await)
     }
     pub async fn contest_runs(
@@ -447,8 +488,7 @@ impl EventStore {
         contest_name: &str,
         site_name: &str,
     ) -> Result<Option<Vec<Run>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self
             .live
             .site_runs(event_name, contest_name, site_name)
@@ -459,46 +499,33 @@ impl EventStore {
         event_name: &str,
         contest_name: &str,
     ) -> Result<Option<RegexSet>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.contest_codes(event_name, contest_name).await)
     }
     pub async fn subscribe_runs(
         &self,
         event_name: &str,
     ) -> Result<Option<membroadcast::Receiver<Run>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.subscribe_runs(event_name).await)
     }
     pub async fn subscribe_timer(
         &self,
         event_name: &str,
     ) -> Result<Option<broadcast::Receiver<PublicTimer>>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.subscribe_timer(event_name).await)
     }
     pub async fn timer_subscription(
         &self,
         name: &str,
     ) -> Result<Option<(PublicTimer, broadcast::Receiver<PublicTimer>)>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(name).await?;
-        let Some(timer) = self.live.current_timer(name).await else {
-            return Ok(None);
-        };
-        let receiver = self
-            .live
-            .subscribe_timer(name)
-            .await
-            .expect("event is locked during subscription");
-        Ok(Some((timer, receiver)))
+        self.initialize().await?;
+        Ok(self.live.timer_subscription(name).await)
     }
 
     pub async fn current_timer(&self, event_name: &str) -> Result<Option<PublicTimer>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         Ok(self.live.current_timer(event_name).await)
     }
     pub async fn create_remote_session(
@@ -506,8 +533,7 @@ impl EventStore {
         event: &str,
         contest: &str,
     ) -> Result<data::remote_control::RemoteSessionInfo, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event).await?;
+        self.initialize().await?;
         self.live.create_remote_session(event, contest).await
     }
     pub async fn revoke_remote_session(
@@ -516,8 +542,7 @@ impl EventStore {
         contest: &str,
         key: &str,
     ) -> Result<bool, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event).await?;
+        self.initialize().await?;
         Ok(self.live.revoke_remote_session(event, contest, key).await)
     }
     pub async fn remote_control_sender(
@@ -526,8 +551,7 @@ impl EventStore {
         contest_name: &str,
         key: &str,
     ) -> Result<Option<RemoteConnection>, StoreError> {
-        let _guard = self.gate.lock().await;
-        self.refresh(event_name).await?;
+        self.initialize().await?;
         self.live
             .remote_control_sender(event_name, contest_name, key)
             .await
