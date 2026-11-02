@@ -9,15 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [9.1.0] - 2026-11-02
 
+This release includes all previously untagged changes since 2.4.0. The sections
+below retain the implementation history; intermediate versions are not published.
+
+### Breaking
+
+- Remote control now requires a secret, contest-scoped credential issued by an
+  event owner with a read-write internal token. Arbitrary shared room names no
+  longer work. Credentials default to seven days (maximum 30 days), survive SQLite
+  restarts, and support durable revocation. Event/contest deletion removes them.
+- Bound direct HTTP/HTTPS connections, request concurrency, response bodies,
+  mutation admission, incoming WebSocket frames, and stalled IO. Overload returns
+  429; read deadlines return 408; timed-out writes return 503
+  `operation_outcome_unknown` because a commit already started may still finish.
+  Reconcile state before retrying non-idempotent operations. Queued writes cancel
+  when their caller leaves.
+- Serve ordinary public and internal reads from committed memory after startup
+  hydration. Ambiguous writes temporarily make only their affected event
+  unavailable while a bounded worker reconciles storage. One server process owns
+  the database; direct external writes remain unsupported.
+- Browser SDK stream functions return cancel-on-drop `Subscription` streams.
+  Update Rust callers that explicitly named the old receiver type; public browser
+  JSON and WebSocket message shapes are preserved.
+- Deployment examples change host/proxy resource protection and loopback bindings.
+  Direct Axum serving is supported; configure measured host limits for the actual
+  workload. Default admission ceilings allow 50,000 WebSockets and 60,000 shared
+  HTTP/HTTPS transports; they are not a verified 20,000-viewer capacity guarantee.
+
 ### Added
 
+- Optional validated `[limits]` configuration and HTTP admission retry guidance.
+- Internal remote-control credential issuance/revocation and admin CLI commands
+  with configurable expiry and key-file/stdin support.
 - Aggregate resource gauges, lifetime histograms and admission/recovery counters.
-- Repeatable browser-viewer load tooling and direct-serving capacity procedure.
+- Repeatable browser-viewer load tooling, HTTPS publisher, latency analysis, and
+  direct-serving capacity procedure. The 20,000-viewer benchmark was not run.
 
 ### Fixed
 
-- Cancel route-owned run polling when its reactive owner is disposed, releasing
-  the SDK subscription on navigation.
+- Share immutable run replay snapshots and recover lagged runs on the existing
+  socket; recover current timer state atomically, preserving freeze masking.
+- Keep responsive browser WebSockets open across long contests with ping/pong
+  heartbeats. Retain remote relays across unrelated commits and release them on
+  disconnect, expiry, deletion, or durable revocation.
+- Spread browser HTTP/WebSocket retries with capped exponential jitter and bounded
+  Retry-After handling. Cancel idle subscriptions and route-owned run polling on
+  disposal so abandoned consumers do not reconnect indefinitely.
+- Redact remote capabilities from request paths and avoid caching issuance responses.
 
 
 ## [9.0.0] - 2026-11-02
