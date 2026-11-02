@@ -713,3 +713,16 @@ div#runheader>.cell {
   cursor: pointer;
 }
 .revelation-welcome button:focus-visible { outline: 3px solid #0f172a; outline-offset: 3px; }
+
+/* Only scoreboard rows are windowed; submission-panel transitions stay unchanged. */
+.scoreboard-row {
+  transition: transform 5s ease 0s;
+}
+@starting-style {
+  .scoreboard-row {
+    transform: translateY(var(--entry-y)) !important;
+  }
+}
+
+/* Keep negative ranking layers above the scoreboard background. */
+.scoreboard { isolation: isolate; }

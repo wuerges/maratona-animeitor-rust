@@ -1,4 +1,6 @@
-use std::sync::Arc;
+use super::virtual_rows::{Viewport, WindowRows};
+use leptos_use::{use_interval_fn, use_resize_observer};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc};
 
 use data::{configdata::Sede, ContestFile, Letter, TimerData};
 use itertools::Itertools;
@@ -10,14 +12,11 @@ use client_model::{
 };
 
 use crate::views::{
-    compress_placements::compress_placements,
     runs_panel::RunsPanel,
     team_media::{use_global_photo_state, PhotoState, TeamMedia},
     team_score_line::TeamScoreLine,
     timer::Timer,
 };
-
-use super::compress_placements::Compress;
 
 fn nome_sede(sede: &Sede) -> &str {
     sede.entry.name.as_str()
@@ -50,17 +49,16 @@ fn ContestPanelLine(
     team: Arc<TeamSignal>,
     sede: Signal<Arc<Sede>>,
     show_photo: RwSignal<PhotoState>,
+    y: ArcRwSignal<f64>,
+    initial_y: f64,
 ) -> impl IntoView {
-    let memo_placement = Memo::new(move |_| local_placement.get());
     let style = move || {
-        memo_placement.with(|t| match t {
-            Some(placement) => format!(
-                "top: {}; z-index: {};",
-                cell_top(*placement, &p_center.get()),
-                -(*placement as i32)
-            ),
-            None => "display: none;".to_string(),
-        })
+        format!(
+            "top: var(--root-top); transform: translateY({}px); --entry-y: {}px; z-index: {};",
+            y.get(),
+            initial_y,
+            -(local_placement.get().unwrap_or(0) as i32)
+        )
     };
 
     let team_login_1 = team.login.clone();
@@ -73,14 +71,13 @@ fn ContestPanelLine(
 
     view! {
         <div
-            class="run_box" id=team_login.clone() style={style}
+            class="run_box scoreboard-row" id=team_login.clone() style={style}
             on:click={move |_| {
                 log!("clicked");
                 show_photo.update(|s| s.clicked(&team_login_1))}}
         >
             <TeamScoreLine titulo is_center=is_center team=team.clone() sede local_placement />
         </div>
-        <TeamMedia team_login show={show_photo} team titulo local_placement sede />
     }
 }
 
@@ -96,44 +93,6 @@ fn ContestPanelHeader(sede: Signal<Arc<Sede>>, all_problems: Vec<Letter>) -> imp
                 <div class="cell problema quadrado">{p.to_string()}</div>
             }).collect_view()}
         </div>
-    }
-}
-
-struct ContestPanelLineWrap {
-    titulo: Signal<Option<Arc<Sede>>>,
-    team: Arc<TeamSignal>,
-    sede: Signal<Arc<Sede>>,
-    show_photo: RwSignal<PhotoState>,
-}
-
-impl Compress for ContestPanelLineWrap {
-    type Key = String;
-
-    fn key(&self) -> Signal<Option<String>> {
-        Some(self.team.login.clone()).into()
-    }
-
-    fn view_in_position(
-        self,
-        position: Signal<Option<usize>>,
-        center: Signal<Option<usize>>,
-    ) -> impl IntoView {
-        let Self {
-            titulo,
-            team,
-            sede,
-            show_photo,
-        } = self;
-        view! {
-            <ContestPanelLine
-                titulo
-                p_center=center
-                local_placement=position
-                team=team.clone()
-                sede
-                show_photo
-            />
-        }
     }
 }
 
@@ -178,7 +137,7 @@ pub fn ContestPanel(
 
     let placements_contest_signal = contest_signal.clone();
 
-    let placements = Signal::derive(move || {
+    let placements = Memo::new(move |_| {
         sede.with(|s| {
             placements_contest_signal.team_global_placements.with(|t| {
                 t.iter()
@@ -189,29 +148,151 @@ pub fn ContestPanel(
         })
     });
 
-    let panel_lines = compress_placements(
-        contest_signal
-            .teams
-            .values()
-            .map(|team| ContestPanelLineWrap {
-                titulo,
-                team: team.clone(),
-                sede,
-                show_photo,
-            })
-            .collect_vec(),
-        placements,
-        center,
+    let positions = Memo::new(move |_| {
+        Arc::new(placements.with(|order| {
+            order
+                .iter()
+                .enumerate()
+                .map(|(i, login)| (login.clone(), i + 1))
+                .collect::<HashMap<_, _>>()
+        }))
+    });
+    let p_center = Memo::new(move |_| {
+        center.with(|c| {
+            c.as_ref()
+                .and_then(|login| positions.with(|p| p.get(login).copied()))
+        })
+    });
+    let offset = Memo::new(move |_| p_center.get().unwrap_or(0).saturating_sub(9));
+    let probe = NodeRef::<leptos::html::Div>::new();
+    let viewport = RwSignal::new(Viewport {
+        top: 0.0,
+        height: 768.0,
+        row_height: 48.0,
+    });
+    let measure = move || {
+        if let Some(probe) = probe.get_untracked() {
+            let rect = probe.get_bounding_client_rect();
+            let next = Viewport {
+                top: -rect.top(),
+                height: window()
+                    .inner_height()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(768.0),
+                row_height: rect.height().max(1.0),
+            };
+            viewport.maybe_update(|old| {
+                if *old == next {
+                    false
+                } else {
+                    *old = next;
+                    true
+                }
+            });
+        }
+    };
+    Effect::new(move |_| {
+        probe.get();
+        measure();
+    });
+    let scroll = window_event_listener(ev::scroll, move |_| measure());
+    let resize = window_event_listener(ev::resize, move |_| measure());
+    let _observer = use_resize_observer(probe, move |_, _| measure());
+    on_cleanup(move || {
+        scroll.remove();
+        resize.remove();
+    });
+
+    // Poll only transition expiry and geometry; unchanged values do not notify rows.
+    let clock = RwSignal::new(js_sys::Date::now());
+    let _interval = use_interval_fn(
+        move || {
+            measure();
+            clock.set(js_sys::Date::now());
+        },
+        250,
     );
+    let rows = RwSignal::new(Vec::<(String, ArcRwSignal<f64>, f64)>::new());
+    let state = Rc::new(RefCell::new(WindowRows::default()));
+    let mut previous = Arc::new(HashMap::new());
+    let mut previous_offset = 0;
+    Effect::new(move |_| {
+        let current = positions.get();
+        let offset = offset.get();
+        let ranking_changed =
+            !previous.is_empty() && (current != previous || offset != previous_offset);
+        let mut state = state.borrow_mut();
+        placements.with(|order| {
+            state.update(
+                order,
+                &current,
+                &previous,
+                viewport.get(),
+                (offset, previous_offset),
+                ranking_changed,
+                clock.get(),
+            )
+        });
+        let mut membership_changed = false;
+        rows.update_untracked(|mounted| {
+            let old_len = mounted.len();
+            mounted.retain(|(login, _, _)| state.rows.contains_key(login));
+            membership_changed = mounted.len() != old_len;
+            for (login, row) in &state.rows {
+                if let Some((_, signal, _)) = mounted.iter().find(|(key, _, _)| key == login) {
+                    if signal.get_untracked() != row.y {
+                        signal.set(row.y);
+                    }
+                } else {
+                    membership_changed = true;
+                    mounted.push((login.clone(), ArcRwSignal::new(row.y), row.initial_y));
+                }
+            }
+        });
+        // For's keys preserve row owners across ranking updates.
+        if membership_changed {
+            rows.notify();
+        }
+        previous = current;
+        previous_offset = offset;
+    });
+    let row_teams = contest_signal.clone();
+    let panel_lines = view! {
+        <For each=move || rows.get() key=|(login, _, _)| login.clone()
+            children=move |(login, y, initial_y)| {
+                let team = row_teams.teams[&login].clone();
+                let local_placement = Memo::new(move |_| positions.with(|p| p.get(&login).copied()));
+                view! { <ContestPanelLine titulo p_center=p_center.into() local_placement=local_placement.into()
+                    team sede show_photo y initial_y /> }
+            }
+        />
+    };
+    // One overlay, keyed by selected login, survives scrolling and rank changes.
+    let media = move || {
+        let selected = match show_photo.get() {
+            PhotoState::Hidden => None,
+            PhotoState::Show(login) => Some(login),
+        };
+        selected.and_then(|login| {
+            let team = contest_signal.teams.get(&login)?.clone();
+            let key = login.clone();
+            let local_placement = Memo::new(move |_| positions.with(|p| p.get(&key).copied()));
+            Some(view! { <TeamMedia team_login=login show=show_photo team titulo local_placement=local_placement.into() sede /> })
+        })
+    };
 
     view! {
-        <div class="runstable">
+        <div class="runstable scoreboard" style:height=move || format!("calc(var(--root-top) + {}px)",
+            (placements.with(Vec::len).saturating_sub(offset.get()) + 1) as f64 * viewport.get().row_height)>
+            <div node_ref=probe aria-hidden="true" style="position:absolute;top:var(--root-top);height:var(--row-height);width:1px;visibility:hidden;pointer-events:none"></div>
             <div class="run_box" style:top={move || {
                 log!("center {:?}", center.get());
                 cell_top(0, &None)}}>
                 <ContestPanelHeader sede all_problems />
             </div>
             {panel_lines}
+            {media}
         </div>
     }
 }
