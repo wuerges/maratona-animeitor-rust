@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 enum Error {
     Gloo(gloo_net::Error),
     Serde(serde_json::Error),
+    Status(Option<u32>),
 }
 
 async fn get_url<M: for<'a> Deserialize<'a>>(url: &str, bearer: Option<&str>) -> Result<M, Error> {
@@ -15,6 +16,14 @@ async fn get_url<M: for<'a> Deserialize<'a>>(url: &str, bearer: Option<&str>) ->
         request = request.header("Authorization", &format!("Bearer {key}"));
     }
     let resp = request.send().await.map_err(Error::Gloo)?;
+    if !resp.ok() {
+        let delay = resp
+            .headers()
+            .get("Retry-After")
+            .and_then(|s| s.parse::<u32>().ok())
+            .map(|seconds| seconds.min(60) * 1000);
+        return Err(Error::Status(delay));
+    }
     let text = resp.text().await.map_err(Error::Gloo)?;
     let message = serde_json::from_str(&text).map_err(Error::Serde)?;
 
@@ -41,6 +50,7 @@ async fn create_request_maybe_bearer<M: for<'a> Deserialize<'a> + Serialize + Cl
     let url = url.to_string();
     info!("create_request: {url}");
 
+    let mut retry = crate::retry::Retry::default();
     loop {
         match get_url(&url, bearer).await {
             Ok(message) => {
@@ -51,9 +61,13 @@ async fn create_request_maybe_bearer<M: for<'a> Deserialize<'a> + Serialize + Cl
                 match error {
                     Error::Gloo(gloo) => error!("network error: {gloo:?}"),
                     Error::Serde(serde) => error!("failed to parse response: {serde:?}"),
+                    Error::Status(Some(delay)) => {
+                        TimeoutFuture::new(delay.max(retry.delay_ms(crate::retry::random()))).await;
+                        continue;
+                    }
+                    Error::Status(None) => error!("HTTP request rejected"),
                 }
-                info!("Wait 5 seconds to reconnect.");
-                TimeoutFuture::new(5_000).await;
+                retry.wait().await;
             }
         }
     }

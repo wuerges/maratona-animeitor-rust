@@ -78,3 +78,7 @@ event or contest removes the credential.
 
 Server budgets are configured in the optional `[limits]` table. Defaults are
 admission ceilings; 20,000-viewer capacity still requires dedicated load testing.
+
+The browser SDK retries with exponential jitter (initial 0.5–1 second, capped
+at 15–30 seconds). A socket must stay open for 30 seconds to reset its backoff.
+Dropping an SDK subscription cancels its socket and any pending reconnect.

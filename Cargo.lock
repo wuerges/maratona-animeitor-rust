@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "animeitor-client"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "any_spawner",
  "base64 0.23.1",
@@ -765,7 +765,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "cli"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "axum",
  "clap",
@@ -792,7 +792,7 @@ dependencies = [
 
 [[package]]
 name = "client-model"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "data",
  "futures",
@@ -804,17 +804,20 @@ dependencies = [
 
 [[package]]
 name = "client-sdk"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "client-model",
  "data",
  "futures",
  "gloo-net 0.7.0",
  "gloo-timers",
+ "js-sys",
  "log",
  "serde",
  "serde_json",
+ "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-bindgen-test",
  "web-sys",
 ]
 
@@ -1183,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "derivative",
  "regex",
@@ -1200,7 +1203,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "database-memory"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "serde_json",
  "service",
@@ -1210,7 +1213,7 @@ dependencies = [
 
 [[package]]
 name = "database-sqlite"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "rusqlite",
  "serde_json",
@@ -3029,7 +3032,7 @@ dependencies = [
 
 [[package]]
 name = "offline-packager"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -4246,7 +4249,7 @@ dependencies = [
 
 [[package]]
 name = "server-v2"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "autometrics",
  "axum",
@@ -4344,7 +4347,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "7.0.0"
+version = "8.0.0"
 dependencies = [
  "data",
  "hmac",

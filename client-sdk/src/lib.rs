@@ -1,4 +1,7 @@
 mod config;
+mod retry;
+mod subscription;
+pub use subscription::Subscription;
 pub mod legacy;
 mod request;
 mod websocket_stream;
@@ -8,11 +11,7 @@ pub use config::SdkConfig;
 use data::configdata::ConfigContest;
 use data::event::{Envelope, PublicConfig, PublicContestState, PublicTimer, Run, RunsData};
 use data::{ContestFile, RunTuple, TimerData};
-use futures::{
-    SinkExt, StreamExt,
-    channel::mpsc::{self, UnboundedReceiver},
-};
-use gloo_timers::future::TimeoutFuture;
+use futures::{FutureExt, SinkExt, StreamExt};
 use log::{error, warn};
 use wasm_bindgen_futures::spawn_local;
 
@@ -40,13 +39,14 @@ fn ws_url(config: &SdkConfig, ec: &EventContest, path: &str) -> String {
 /// without `data` (e.g. `not_found`, or `not_started` before the contest
 /// begins).
 async fn enveloped<T: for<'a> serde::Deserialize<'a> + serde::Serialize + Clone>(url: &str) -> T {
+    let mut retry = retry::Retry::default();
     loop {
         let envelope: Envelope<T> = create_request(url).await;
         match envelope.data {
             Some(data) => return data,
             None => {
                 log_envelope_error(&envelope, url);
-                TimeoutFuture::new(5_000).await;
+                retry.wait().await;
             }
         }
     }
@@ -110,20 +110,23 @@ pub fn to_legacy_config(config: PublicConfig) -> ConfigContest {
 }
 
 /// The live run stream of the contest, converted to the legacy client shape.
-pub fn create_runs(config: &SdkConfig, ec: EventContest) -> UnboundedReceiver<RunTuple> {
+pub fn create_runs(config: &SdkConfig, ec: EventContest) -> Subscription<RunTuple> {
     let runs = create_websocket_stream::<Run>(&ws_url(config, &ec, "runs_ws"));
-    let (mut tx, rx) = mpsc::unbounded::<RunTuple>();
+    let (mut tx, rx, canceled) = subscription::channel::<RunTuple>();
 
     spawn_local(async move {
-        let mut runs = runs;
-        let mut order = 0;
-        while let Some(run) = runs.next().await {
-            let tuple = legacy::to_run_tuple(&run, order);
-            order += 1;
-            if tx.send(tuple).await.is_err() {
-                break;
+        let work = async move {
+            let mut runs = runs;
+            let mut order = 0;
+            while let Some(run) = runs.next().await {
+                let tuple = legacy::to_run_tuple(&run, order);
+                order += 1;
+                if tx.send(tuple).await.is_err() {
+                    break;
+                }
             }
-        }
+        };
+        futures::select! { _ = work.fuse() => {}, _ = canceled.fuse() => {} }
     });
 
     rx
@@ -132,13 +135,14 @@ pub fn create_runs(config: &SdkConfig, ec: EventContest) -> UnboundedReceiver<Ru
 /// The secret runs of a site, unlocked by its key (Bearer header).
 pub async fn create_secret_runs(config: &SdkConfig, key: String, ec: EventContest) -> RunsData {
     let url = url(config, &ec, "runs_secret");
+    let mut retry = retry::Retry::default();
     loop {
         let envelope: Envelope<RunsData> = create_request_with_bearer(&url, &key).await;
         match envelope.data {
             Some(data) => return data,
             None => {
                 log_envelope_error(&envelope, &url);
-                TimeoutFuture::new(5_000).await;
+                retry.wait().await;
             }
         }
     }
@@ -152,21 +156,24 @@ pub fn remote_control_url(config: &SdkConfig, ec: &EventContest, key: &str) -> S
 }
 
 /// The timer stream of an event, converted to the legacy client shape.
-pub fn create_timer_stream(config: &SdkConfig, ec: EventContest) -> UnboundedReceiver<TimerData> {
+pub fn create_timer_stream(config: &SdkConfig, ec: EventContest) -> Subscription<TimerData> {
     let timers = create_websocket_stream::<PublicTimer>(&format!(
         "{}/events/{}/timer",
         config.ws_prefix, ec.event
     ));
-    let (mut tx, rx) = mpsc::unbounded::<TimerData>();
+    let (mut tx, rx, canceled) = subscription::channel::<TimerData>();
 
     spawn_local(async move {
-        let mut timers = timers;
-        while let Some(timer) = timers.next().await {
-            let data = legacy::to_timer_data(timer);
-            if tx.send(data).await.is_err() {
-                break;
+        let work = async move {
+            let mut timers = timers;
+            while let Some(timer) = timers.next().await {
+                let data = legacy::to_timer_data(timer);
+                if tx.send(data).await.is_err() {
+                    break;
+                }
             }
-        }
+        };
+        futures::select! { _ = work.fuse() => {}, _ = canceled.fuse() => {} }
     });
 
     rx

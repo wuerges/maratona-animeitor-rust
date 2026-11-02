@@ -441,7 +441,11 @@ test files are committed. API specs, version, lockfile, and changelog travel tog
   Mutation gate acquisition precedes detachment; writing deadlines return explicit
   503 unknown outcomes. Controlled storage tests cover cancellation, late commit,
   scoped failure and recovery.
-- [ ] 5. Browser retry jitter, stable reset, and abandoned-stream cleanup.
+- [x] 5. Browser retry jitter, stable reset, and abandoned-stream cleanup.
+  Cancel-on-drop subscriptions propagate cancellation through conversion tasks.
+  Browser WebSocket attempts await open before measuring stable lifetime; HTTP
+  and envelope retries use jitter and bounded Retry-After. Native SDK/model tests,
+  full Trunk release build, and headless Chrome idle-cancellation regression pass.
 - [ ] 6. Direct HTTP/HTTPS transport/body protections and lifecycle tests.
 - [ ] 7. Metrics, load tool, browser smoke, and saved capacity results.
 - [ ] 8. Deployment/docs/version/API checks complete.

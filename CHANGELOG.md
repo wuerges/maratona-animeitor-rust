@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.0] - 2026-11-02
+
+### Breaking
+
+- Browser SDK stream functions return a cancel-on-drop Subscription stream.
+  Dropping consumers closes idle sockets and stops reconnecting.
+
+### Fixed
+
+- Spread browser WebSocket and HTTP retries using capped exponential jitter.
+  Reset socket retries only after 30 seconds; honor bounded HTTP Retry-After.
+
+
 ## [7.0.0] - 2026-11-01
 
 ### Breaking

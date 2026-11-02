@@ -21,7 +21,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use contest_signal::ContestSignal;
 use data::{ContestFile, RunTuple, RunsFile, configdata::ConfigContest};
-use futures::{StreamExt, channel::mpsc::UnboundedReceiver};
+use futures::{Stream, StreamExt};
 use runs_panel_signal::RunsPanelItemManager;
 
 use crate::annotate_first_solved::annotate_first_solved;
@@ -73,7 +73,7 @@ pub async fn provide_contest(
 
 pub async fn poll_runs<F: Future<Output = ()>>(
     starting_contest: Arc<ContestFile>,
-    runs_stream: UnboundedReceiver<RunTuple>,
+    runs_stream: impl Stream<Item = RunTuple> + Unpin,
     new_contest_signal: Arc<ContestSignal>,
     runs_panel_item_manager: Arc<RunsPanelItemManager>,
     options: Options,

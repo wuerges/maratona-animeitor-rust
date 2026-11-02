@@ -7,7 +7,7 @@ use std::{
 use client_model::{poll_runs, ContestProvider, Options, TimerDataExt};
 use data::event::PublicConfig;
 use data::TimerData;
-use futures::{channel::mpsc::UnboundedReceiver, StreamExt};
+use futures::StreamExt;
 use leptos::{prelude::*, task::spawn_local};
 
 /// The event and contest a client is showing, parsed from the URL path
@@ -77,7 +77,7 @@ pub async fn create_secret_runs(key: String, ec: EventContest) -> data::RunsFile
     client_sdk::legacy::to_runs_file(data)
 }
 
-fn create_runs(ec: EventContest) -> UnboundedReceiver<data::RunTuple> {
+fn create_runs(ec: EventContest) -> client_sdk::Subscription<data::RunTuple> {
     client_sdk::create_runs(config(), ec)
 }
 
