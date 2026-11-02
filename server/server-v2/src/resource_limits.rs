@@ -1,4 +1,4 @@
-//! Process-wide admission limits. Per-source limits belong at the trusted proxy.
+//! Process admission and response lifetimes; transport.rs bounds direct socket IO.
 use axum::{
     Router,
     body::Body,
@@ -120,5 +120,112 @@ mod tests {
             .unwrap();
         assert_eq!(response.status(), StatusCode::REQUEST_TIMEOUT);
         assert_eq!(slots.available_permits(), 1);
+    }
+}
+
+/// Ordinary responses retain admission until their body finishes or is dropped.
+pub fn responses(router: Router, capacity: usize) -> Router {
+    router.layer(middleware::from_fn_with_state(
+        Arc::new(Semaphore::new(capacity)),
+        admit_response,
+    ))
+}
+async fn admit_response(
+    State(slots): State<Arc<Semaphore>>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
+    // Admission must precede handlers: rejecting a response after a mutation
+    // committed would invite an unsafe retry of a successful operation.
+    let Ok(permit) = slots.try_acquire_owned() else {
+        return crate::envelope::error_json(
+            StatusCode::TOO_MANY_REQUESTS,
+            "resource_limit",
+            "response capacity exceeded",
+        );
+    };
+    let connect = request.method() == axum::http::Method::CONNECT;
+    let response = next.run(request).await;
+    if response.status() == StatusCode::SWITCHING_PROTOCOLS
+        || (connect && response.status().is_success())
+    {
+        return response;
+    }
+    let (parts, body) = response.into_parts();
+    Response::from_parts(
+        parts,
+        Body::new(AdmittedBody {
+            body,
+            permit: Some(permit),
+        }),
+    )
+}
+struct AdmittedBody {
+    body: Body,
+    permit: Option<OwnedSemaphorePermit>,
+}
+impl http_body::Body for AdmittedBody {
+    type Data = axum::body::Bytes;
+    type Error = axum::Error;
+    fn poll_frame(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Result<http_body::Frame<Self::Data>, Self::Error>>> {
+        let this = self.get_mut();
+        let result = std::pin::Pin::new(&mut this.body).poll_frame(cx);
+        if matches!(result, std::task::Poll::Ready(None | Some(Err(_))))
+            || this.body.is_end_stream()
+        {
+            this.permit.take();
+        }
+        result
+    }
+    fn is_end_stream(&self) -> bool {
+        self.body.is_end_stream()
+    }
+    fn size_hint(&self) -> http_body::SizeHint {
+        self.body.size_hint()
+    }
+}
+
+#[cfg(test)]
+mod response_tests {
+    use super::*;
+    use tower::ServiceExt;
+    #[tokio::test]
+    async fn response_body_holds_slot_until_drop_or_consumption() {
+        use http_body_util::BodyExt;
+        let app = responses(
+            Router::new().route("/asset", axum::routing::get(|| async { "static bytes" })),
+            1,
+        );
+        let request = || {
+            Request::builder()
+                .uri("/asset")
+                .body(Body::empty())
+                .unwrap()
+        };
+        let first = app.clone().oneshot(request()).await.unwrap();
+        assert_eq!(first.status(), StatusCode::OK);
+        assert_eq!(
+            app.clone().oneshot(request()).await.unwrap().status(),
+            StatusCode::TOO_MANY_REQUESTS
+        );
+        drop(first);
+        let next = app.clone().oneshot(request()).await.unwrap();
+        assert_eq!(next.status(), StatusCode::OK);
+        assert!(
+            !next
+                .into_body()
+                .collect()
+                .await
+                .unwrap()
+                .to_bytes()
+                .is_empty()
+        );
+        assert_eq!(
+            app.oneshot(request()).await.unwrap().status(),
+            StatusCode::OK
+        );
     }
 }

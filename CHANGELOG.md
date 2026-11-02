@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9.0.0] - 2026-11-02
+
+### Breaking
+
+- Enforce configured connection, idle, write-stall, header and response-body
+  budgets on direct HTTP/HTTPS serving, including static assets. Connection
+  admission is shared across listeners and retained through WebSocket upgrades.
+- Bound HTTP/2 concurrent streams and header sizes; preserve browser heartbeats.
+
+
 ## [8.0.0] - 2026-11-02
 
 ### Breaking

@@ -446,7 +446,12 @@ test files are committed. API specs, version, lockfile, and changelog travel tog
   Browser WebSocket attempts await open before measuring stable lifetime; HTTP
   and envelope retries use jitter and bounded Retry-After. Native SDK/model tests,
   full Trunk release build, and headless Chrome idle-cancellation regression pass.
-- [ ] 6. Direct HTTP/HTTPS transport/body protections and lifecycle tests.
+- [x] 6. Direct HTTP/HTTPS transport/body protections and lifecycle tests.
+  Both listeners use one transport acceptor budget before TLS. IO retains permits
+  through upgrades; upgraded sockets bypass HTTP idle expiry. Response body guards
+  include static assets. HTTP/1 headers, HTTP/2 bounds and IO stalls are enforced.
+  Tests cover body EOF/drop, input/output deadline independence, shared listeners,
+  upgrades, incomplete TLS/headers, trusted local TLS and HTTP/2.
 - [ ] 7. Metrics, load tool, browser smoke, and saved capacity results.
 - [ ] 8. Deployment/docs/version/API checks complete.
 - [ ] Dedicated 20,000-viewer run meets acceptance targets, or is explicitly pending.

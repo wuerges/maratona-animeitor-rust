@@ -82,3 +82,11 @@ admission ceilings; 20,000-viewer capacity still requires dedicated load testing
 The browser SDK retries with exponential jitter (initial 0.5–1 second, capped
 at 15–30 seconds). A socket must stay open for 30 seconds to reset its backoff.
 Dropping an SDK subscription cancels its socket and any pending reconnect.
+
+Direct HTTP and HTTPS listeners share configured transport admission (60,000 by
+default). Ordinary HTTP idle connections expire after 60 seconds; upgraded browser
+sockets use their heartbeat policy. TLS handshakes and HTTP/1 headers default to
+10-second deadlines; writes have a 10-second no-progress deadline. HTTP/2 permits
+at most 128 concurrent streams per connection with a 32-KiB header-list limit.
+Ordinary API/static response bodies share 1,024 slots until EOF/error/drop;
+upgraded sockets retain transport admission instead. Excess admission is rejected.

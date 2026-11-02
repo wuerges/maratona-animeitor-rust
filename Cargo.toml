@@ -3,7 +3,7 @@ members = ["server/database-sqlite", "server/database-memory", "server/data", "s
 resolver = "2"
 
 [workspace.package]
-version = "8.0.0"
+version = "9.0.0"
 edition = "2024"
 authors = ["Emilio Wuerges <wuerges@gmail.com>"]
 
@@ -43,6 +43,8 @@ axum = { version = "0.8.9", features = ["ws", "http1", "http2", "json", "tokio"]
 axum-server = { version = "0.8.0", features = ["tls-rustls"] }
 tower = { version = "0.5.3", features = ["util"] }
 tower-http = { version = "0.7.1", features = ["cors", "trace", "fs", "compression-gzip"] }
+http-body = "1.1.0"
+hyper-util = { version = "0.1.21", features = ["server-auto", "tokio"] }
 http-body-util = "0.1.5"
 rstest = "0.27.0"
 tokio-stream = { version = "0.1.19", features = ["sync"] }
