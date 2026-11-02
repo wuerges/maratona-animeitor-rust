@@ -77,15 +77,13 @@ pub(crate) async fn relay_remote_control(sender: ControlSender, ws: WebSocketUpg
         let request_id = next_request_id();
         tracing::info!(?request_id, "established remote control");
 
-        let (send_result, read_result) = tokio::join!(
-            send_to_clients(rec, sender_half, request_id),
-            read_from_clients(&mut receiver_half, sender, request_id),
-        );
-        if let Err(err) = send_result {
-            tracing::debug!(?err, "failed sending");
-        }
-        if let Err(err) = read_result {
-            tracing::debug!(?err, "failed reading");
+        // Either half ending must release the other half and its socket.
+        let result = tokio::select! {
+            result = send_to_clients(rec, sender_half, request_id) => result,
+            result = read_from_clients(&mut receiver_half, sender, request_id) => result,
+        };
+        if let Err(err) = result {
+            tracing::debug!(?err, "remote control disconnected");
         }
     })
 }

@@ -701,6 +701,39 @@ async fn remote_control_relay() {
 }
 
 #[tokio::test]
+async fn remote_control_disconnect_releases_subscription() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let sender = store
+        .remote_control_sender("ensaio", "brasil", "cleanup")
+        .await
+        .unwrap()
+        .unwrap();
+    let base = spawn_server(app_for(store)).await;
+    let ws = connect(
+        &base,
+        "/api/events/ensaio/contests/brasil/remote_control/cleanup",
+    )
+    .await;
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while sender.receiver_count() != 1 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .unwrap();
+    drop(ws);
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while sender.receiver_count() != 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("disconnected relay must release its broadcast receiver");
+}
+
+#[tokio::test]
 async fn remote_control_404() {
     let app = app_for(test_store(Some("test-server-salt".into())));
     let base = spawn_server(app).await;

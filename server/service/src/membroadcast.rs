@@ -1,26 +1,30 @@
 use parking_lot::RwLock;
-use std::{collections::VecDeque, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::broadcast;
 
 pub struct Receiver<T: Clone> {
     rx: broadcast::Receiver<T>,
-    messages: VecDeque<T>,
+    messages: Arc<Vec<T>>,
+    position: usize,
 }
 
 impl<T: Clone> Receiver<T> {
-    fn new(rx: broadcast::Receiver<T>, messages: &Vec<T>) -> Self {
-        let mut deque = VecDeque::new();
-        for m in messages {
-            deque.push_back(m.clone())
-        }
+    fn new(rx: broadcast::Receiver<T>, messages: Arc<Vec<T>>) -> Self {
         Self {
             rx,
-            messages: deque,
+            messages,
+            position: 0,
         }
     }
 
     pub async fn recv(&mut self) -> Result<T, broadcast::error::RecvError> {
-        let front = self.messages.pop_front();
+        let front = self.messages.get(self.position).cloned();
+        if front.is_some() {
+            self.position += 1;
+        } else if !self.messages.is_empty() {
+            self.messages = Arc::new(Vec::new());
+            self.position = 0;
+        }
 
         match front {
             None => self.rx.recv().await,
@@ -32,29 +36,29 @@ impl<T: Clone> Receiver<T> {
 #[derive(Clone)]
 pub struct Sender<T: Clone> {
     tx: broadcast::Sender<T>,
-    messages: Arc<RwLock<Vec<T>>>,
+    messages: Arc<RwLock<Arc<Vec<T>>>>,
 }
 
 impl<T: Clone> Sender<T> {
     fn new(tx: broadcast::Sender<T>) -> Self {
         Self {
             tx,
-            messages: Arc::new(RwLock::new(Vec::new())),
+            messages: Arc::new(RwLock::new(Arc::new(Vec::new()))),
         }
     }
 
     pub(crate) fn send_memo(&self, value: T) -> usize {
-        self.messages.write().push(value.clone());
+        Arc::make_mut(&mut self.messages.write()).push(value.clone());
         self.tx.send(value).unwrap_or(0)
     }
 
     pub(crate) fn replace_memo(&self, messages: Vec<T>) {
-        *self.messages.write() = messages;
+        *self.messages.write() = Arc::new(messages);
     }
 
     pub(crate) fn subscribe(&self) -> Receiver<T> {
         let rx = self.tx.subscribe();
-        Receiver::new(rx, &self.messages.read())
+        Receiver::new(rx, self.messages.read().clone())
     }
 
     #[cfg(test)]
@@ -66,13 +70,31 @@ impl<T: Clone> Sender<T> {
 pub(crate) fn channel<T: Clone>(capacity: usize) -> (Sender<T>, Receiver<T>) {
     let (tx, rx) = broadcast::channel(capacity);
     let mem_tx = Sender::new(tx);
-    let mem_rx = Receiver::new(rx, &mem_tx.messages.read());
+    let mem_rx = Receiver::new(rx, mem_tx.messages.read().clone());
     (mem_tx, mem_rx)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn replay_is_shared_and_stable_across_updates() {
+        let (tx, _) = channel(16);
+        tx.replace_memo(vec![1, 2]);
+        let mut first = tx.subscribe();
+        let second = tx.subscribe();
+        assert!(Arc::ptr_eq(&first.messages, &second.messages));
+        tx.send_memo(3);
+        tx.replace_memo(vec![2, 3]);
+        assert_eq!(first.recv().await.unwrap(), 1);
+        assert_eq!(first.recv().await.unwrap(), 2);
+        assert_eq!(first.recv().await.unwrap(), 3);
+        assert!(first.messages.is_empty());
+        let mut fresh = tx.subscribe();
+        assert_eq!(fresh.recv().await.unwrap(), 2);
+        assert_eq!(fresh.recv().await.unwrap(), 3);
+    }
 
     #[tokio::test]
     async fn test_mem_broadcast() {
