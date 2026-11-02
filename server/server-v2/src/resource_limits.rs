@@ -40,8 +40,20 @@ async fn admit(
         );
         return response;
     };
+    let writing = matches!(
+        *request.method(),
+        axum::http::Method::POST
+            | axum::http::Method::PUT
+            | axum::http::Method::PATCH
+            | axum::http::Method::DELETE
+    );
     match tokio::time::timeout(Duration::from_secs(timeout_seconds), next.run(request)).await {
         Ok(response) => response,
+        Err(_) if writing => crate::envelope::error_json(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "operation_outcome_unknown",
+            "request timed out; the operation may still commit; reconcile state before retrying",
+        ),
         Err(_) => crate::envelope::error_json(
             StatusCode::REQUEST_TIMEOUT,
             "request_timeout",

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.0] - 2026-11-01
+
+### Breaking
+
+- Return 503 operation_outcome_unknown for timed-out writes; admitted commits may
+  finish after a caller disconnects. Cancel queued mutations before they start.
+- Serve ordinary internal reads from committed memory. Database read failures do
+  not discard committed state. Ambiguous write recovery is scoped to its event
+  with a single bounded retry worker; other events remain available.
+
+
 ## [6.1.0] - 2026-11-01
 
 ### Fixed

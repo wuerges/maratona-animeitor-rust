@@ -434,8 +434,13 @@ test files are committed. API specs, version, lockfile, and changelog travel tog
   Runs recover through shared replay; timers atomically replace lagged receivers.
   Regression: 2,000-run batch and later correction on the same socket. Existing
   freeze tests retain masking coverage; no new wire message shape.
-- [ ] 3. Committed reads survive storage outages; recovery is scoped.
-- [ ] 4. Queued cancellation and unknown write outcomes tested through HTTP.
+- [x] 3. Committed reads survive storage outages; recovery is scoped.
+  All ordinary getters use committed memory. One retry worker reconciles only
+  ambiguous events with backoff, retaining mutation admission and serialization.
+- [x] 4. Queued cancellation and unknown write outcomes tested through HTTP.
+  Mutation gate acquisition precedes detachment; writing deadlines return explicit
+  503 unknown outcomes. Controlled storage tests cover cancellation, late commit,
+  scoped failure and recovery.
 - [ ] 5. Browser retry jitter, stable reset, and abandoned-stream cleanup.
 - [ ] 6. Direct HTTP/HTTPS transport/body protections and lifecycle tests.
 - [ ] 7. Metrics, load tool, browser smoke, and saved capacity results.

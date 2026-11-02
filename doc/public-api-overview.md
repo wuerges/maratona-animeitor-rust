@@ -44,7 +44,8 @@ process owns a database; external edits and multiple writers are unsupported.
 
 The public and internal APIs have separate request concurrency budgets (128 and
 32 by default), a configurable processing deadline (15 seconds by default), and return 429 or 408 when those limits are
-reached. Detached commit/publish tasks have an independent cap of 32, retained
+reached for reads. Timed-out mutations return 503 `operation_outcome_unknown`;
+reconcile state before retrying because they may still commit. Detached commit/publish tasks have an independent cap of 32, retained
 until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
 configurable process budget (50,000 by default), no age limit while responsive, 4 KiB incoming frame/message
 limits, and a 10-second write deadline. Reconnect with backoff. A lagged runs stream recovers using a fresh shared replay on the same socket;
