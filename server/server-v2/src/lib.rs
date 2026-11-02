@@ -54,9 +54,24 @@ pub fn app(state: AppState) -> Router {
 }
 
 fn api_router(state: AppState) -> Router {
+    let limits = state.store.limits().clone();
     Router::new()
-        .nest("/api", resource_limits::http(public::router(), 128))
-        .nest("/internal", resource_limits::http(internal::router(), 32))
+        .nest(
+            "/api",
+            resource_limits::http(
+                public::router(),
+                limits.max_public_requests,
+                limits.request_timeout_seconds,
+            ),
+        )
+        .nest(
+            "/internal",
+            resource_limits::http(
+                internal::router(),
+                limits.max_internal_requests,
+                limits.request_timeout_seconds,
+            ),
+        )
         .layer(CompressionLayer::new())
         .with_state(state)
 }
@@ -118,6 +133,7 @@ fn volume_router(
 
 pub async fn serve_config(
     AppConfig {
+        limits,
         database,
         public_url,
         server_config: HttpConfig { port, tls },
@@ -134,9 +150,11 @@ pub async fn serve_config(
             Arc::new(database_sqlite::SqliteDatabase::open(path)?)
         }
     };
+    limits.validate().map_err(std::io::Error::other)?;
+    tracing::info!(?limits, "effective resource limits");
     let state = AppState {
         public_url,
-        store: service::event_store::EventStore::new(database, revelation_salt),
+        store: service::event_store::EventStore::with_limits(database, revelation_salt, limits),
         internal_tokens: Arc::new(internal_tokens),
     };
 

@@ -43,10 +43,10 @@ A storage outage does not force public reads to reopen the database. One server
 process owns a database; external edits and multiple writers are unsupported.
 
 The public and internal APIs have separate request concurrency budgets (128 and
-32), a 15-second processing deadline, and return 429 or 408 when those limits are
+32 by default), a configurable processing deadline (15 seconds by default), and return 429 or 408 when those limits are
 reached. Detached commit/publish tasks have an independent cap of 32, retained
 until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
-2,048-connection process budget, no age limit while responsive, 4 KiB incoming frame/message
+configurable process budget (50,000 by default), no age limit while responsive, 4 KiB incoming frame/message
 limits, and a 10-second write deadline. Reconnect with backoff. A lagged stream
 is disconnected and must reconnect for a fresh replay; live buffers hold 1,024
 messages.
@@ -74,3 +74,6 @@ Remote-control credential expiration is independent of stream liveness. Remote
 relays also use ping/pong heartbeats, so an idle healthy controller can remain
 connected until its credential expires or is revoked. Deleting/recreating its
 event or contest removes the credential.
+
+Server budgets are configured in the optional `[limits]` table. Defaults are
+admission ceilings; 20,000-viewer capacity still requires dedicated load testing.

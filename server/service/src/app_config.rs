@@ -1,6 +1,7 @@
 use crate::{http::HttpConfig, volume::Volume};
 
 pub struct AppConfig {
+    pub limits: crate::resource_limits::ResourceLimits,
     pub database: crate::database::DatabaseConfig,
     pub public_url: url::Url,
     pub revelation_salt: String,

@@ -23,6 +23,7 @@ use tracing::Instrument;
 
 #[derive(Clone)]
 pub struct EventStore {
+    limits: Arc<crate::resource_limits::ResourceLimits>,
     database: Arc<dyn Database>,
     live: engine::Engine,
     salt: Arc<String>,
@@ -34,18 +35,30 @@ pub struct EventStore {
 }
 impl EventStore {
     pub fn new(database: Arc<dyn Database>, revelation_salt: String) -> Self {
+        Self::with_limits(database, revelation_salt, Default::default())
+    }
+    pub fn limits(&self) -> &crate::resource_limits::ResourceLimits {
+        &self.limits
+    }
+    pub fn with_limits(
+        database: Arc<dyn Database>,
+        revelation_salt: String,
+        limits: crate::resource_limits::ResourceLimits,
+    ) -> Self {
+        limits.validate().expect("valid resource limits");
         assert!(
             !revelation_salt.is_empty(),
             "revelation salt must not be empty"
         );
         Self {
+            websockets: Arc::new(tokio::sync::Semaphore::new(limits.max_websockets)),
+            mutations: Arc::new(tokio::sync::Semaphore::new(limits.max_mutations)),
+            limits: Arc::new(limits),
             database,
             live: engine::Engine::with_revelation_salt(revelation_salt.clone()),
             salt: Arc::new(revelation_salt),
             gate: Arc::new(Mutex::new(())),
             initialized: Arc::new(AtomicBool::new(false)),
-            websockets: Arc::new(tokio::sync::Semaphore::new(2048)),
-            mutations: Arc::new(tokio::sync::Semaphore::new(32)),
         }
     }
 

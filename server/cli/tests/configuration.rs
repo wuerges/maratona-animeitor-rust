@@ -301,3 +301,20 @@ fn invalid_inline_permissions_are_rejected_without_exposing_secrets() {
     let path = temp.write("server.toml", &format!("{base}\n{valid}"));
     assert!(ServerConfig::load(&path).is_ok());
 }
+
+#[test]
+fn server_limits_default_override_and_reject_invalid_settings() {
+    let source = std::fs::read_to_string(root().join("server.toml.example")).unwrap();
+    let default: ServerConfig = toml::from_str(&source).unwrap();
+    assert_eq!(default.limits.max_websockets, 50_000);
+    let configured: ServerConfig = toml::from_str(&format!(
+        "{source}\n[limits]\nmax_websockets=4\nmax_connections=10\n"
+    ))
+    .unwrap();
+    configured.validate().unwrap();
+    assert_eq!(configured.limits.max_websockets, 4);
+    let invalid: ServerConfig =
+        toml::from_str(&format!("{source}\n[limits]\nmax_websockets=0\n")).unwrap();
+    assert!(invalid.validate().is_err());
+    assert!(toml::from_str::<ServerConfig>(&format!("{source}\n[limits]\nunknown=4\n")).is_err());
+}

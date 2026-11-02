@@ -214,6 +214,8 @@ impl EventSecrets {
 #[serde(deny_unknown_fields)]
 pub struct ServerConfig {
     #[serde(default)]
+    pub limits: service::resource_limits::ResourceLimits,
+    #[serde(default)]
     pub database: service::database::DatabaseConfig,
     pub revelation_salt: String,
     pub public_port: u16,
@@ -257,6 +259,7 @@ impl ServerConfig {
         Ok(value)
     }
     pub fn validate(&self) -> Result<()> {
+        self.limits.validate().map_err(|error| eyre!(error))?;
         if let service::database::DatabaseConfig::Sqlite { path } = &self.database {
             ensure!(
                 !path.as_os_str().is_empty(),

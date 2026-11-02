@@ -905,8 +905,15 @@ async fn remote_control_rejects_oversized_frame() {
 
 #[tokio::test]
 async fn websocket_capacity_is_released_after_rejection() {
-    let store = test_store(None);
-    let mut permits: Vec<_> = (0..2048)
+    let store = EventStore::with_limits(
+        std::sync::Arc::new(database_memory::MemoryDatabase::new()),
+        "salt".into(),
+        service::resource_limits::ResourceLimits {
+            max_websockets: 2,
+            ..Default::default()
+        },
+    );
+    let mut permits: Vec<_> = (0..store.limits().max_websockets)
         .map(|_| store.websocket_permit().unwrap())
         .collect();
     let base = spawn_server(app_for(store)).await;

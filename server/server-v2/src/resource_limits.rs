@@ -13,30 +13,39 @@ use axum::{
 use std::{sync::Arc, time::Duration};
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
-pub fn http(router: Router<crate::AppState>, capacity: usize) -> Router<crate::AppState> {
+pub fn http(
+    router: Router<crate::AppState>,
+    capacity: usize,
+    timeout_seconds: u64,
+) -> Router<crate::AppState> {
     router.layer(middleware::from_fn_with_state(
-        Arc::new(Semaphore::new(capacity)),
+        (Arc::new(Semaphore::new(capacity)), timeout_seconds),
         admit,
     ))
 }
 async fn admit(
-    State(slots): State<Arc<Semaphore>>,
+    State((slots, timeout_seconds)): State<(Arc<Semaphore>, u64)>,
     request: Request<Body>,
     next: Next,
 ) -> Response {
     let Ok(_permit) = slots.try_acquire_owned() else {
-        return crate::envelope::error_json(
+        let mut response = crate::envelope::error_json(
             StatusCode::TOO_MANY_REQUESTS,
             "resource_limit",
             "request capacity exceeded",
         );
+        response.headers_mut().insert(
+            axum::http::header::RETRY_AFTER,
+            axum::http::HeaderValue::from_static("1"),
+        );
+        return response;
     };
-    match tokio::time::timeout(Duration::from_secs(15), next.run(request)).await {
+    match tokio::time::timeout(Duration::from_secs(timeout_seconds), next.run(request)).await {
         Ok(response) => response,
         Err(_) => crate::envelope::error_json(
             StatusCode::REQUEST_TIMEOUT,
             "request_timeout",
-            "request exceeded 15 seconds",
+            format!("request exceeded {timeout_seconds} seconds"),
         ),
     }
 }
@@ -68,7 +77,7 @@ mod tests {
         let permit = slots.clone().acquire_owned().await.unwrap();
         let app = Router::new()
             .route("/", axum::routing::get(|| async { StatusCode::OK }))
-            .layer(middleware::from_fn_with_state(slots, admit));
+            .layer(middleware::from_fn_with_state((slots, 15), admit));
         let response = app
             .clone()
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
@@ -92,7 +101,7 @@ mod tests {
                 "/",
                 axum::routing::get(|| async { std::future::pending::<StatusCode>().await }),
             )
-            .layer(middleware::from_fn_with_state(slots.clone(), admit));
+            .layer(middleware::from_fn_with_state((slots.clone(), 15), admit));
         let response = app
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await

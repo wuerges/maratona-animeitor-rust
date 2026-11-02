@@ -35,6 +35,7 @@ async fn run(args: Args) -> color_eyre::eyre::Result<()> {
         .collect();
     server_v2::metrics::setup();
     server_v2::serve_config(AppConfig {
+        limits: config.limits,
         database: config.database,
         public_url: config.public_url.parse()?,
         revelation_salt: config.revelation_salt,

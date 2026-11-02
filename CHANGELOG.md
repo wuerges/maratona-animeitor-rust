@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-11-01
+
+### Breaking
+
+- Configure server request, mutation and WebSocket budgets with optional `[limits]`.
+  Default WebSocket admission rises to 50,000, with 60,000 planned transport slots.
+  These are resource ceilings, not a measured viewer-capacity guarantee.
+
+### Added
+
+- Validate configured budgets and timeouts at startup; HTTP admission rejections
+  include Retry-After. Existing configuration files use defaults.
+
 ## [5.0.0] - 2026-11-01
 
 ### Breaking
