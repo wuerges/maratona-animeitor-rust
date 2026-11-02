@@ -31,7 +31,7 @@ console_error_panic_hook.workspace = true
 any_spawner = { version = "0.3.0", features = ["wasm-bindgen"] }
 
 [dependencies.web-sys]
-features = ["Window", "ScrollToOptions", "ScrollBehavior", "HtmlDialogElement", "HtmlDetailsElement", "Document", "Element", "RequestInit", "Response", "Headers", "AbortSignal", "HtmlLinkElement", "HtmlStyleElement", "NodeList", "HtmlAnchorElement", "Blob", "BlobPropertyBag", "Url", "HtmlHeadElement"]
+features = ["Window", "DomRect", "ScrollToOptions", "ScrollBehavior", "HtmlDialogElement", "HtmlDetailsElement", "Document", "Element", "RequestInit", "Response", "Headers", "AbortSignal", "HtmlLinkElement", "HtmlStyleElement", "NodeList", "HtmlAnchorElement", "Blob", "BlobPropertyBag", "Url", "HtmlHeadElement"]
 version = "0.3.106"
 
 [target.'cfg(target_family = "wasm")'.dev-dependencies]

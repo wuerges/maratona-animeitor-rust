@@ -17,3 +17,5 @@ mod timer;
 
 pub mod global_settings;
 pub mod sedes;
+
+mod virtual_rows;

@@ -66,6 +66,25 @@ fn wav() -> Vec<u8> {
     b[40..44].copy_from_slice(&16000u32.to_le_bytes());
     b
 }
+fn capacity_count(path: &str) -> Option<usize> {
+    if path.contains("/capacity5000/") {
+        Some(5000)
+    } else if path.contains("/capacity2000/") {
+        Some(2000)
+    } else {
+        None
+    }
+}
+fn capacity_runs(count: usize) -> Vec<Value> {
+    (0..100_000)
+        .map(|i| {
+            json!({"id":i,"team_login":format!("a{:05}", i % count),
+        "prob":char::from(b'A' + ((i / count) % 15) as u8).to_string(),
+        "time_seconds":100 + i / 500,
+        "answer":if i % 7 == 0 {"Y"} else {"N"}})
+        })
+        .collect()
+}
 async fn socket(
     State(state): State<Fixture>,
     uri: Uri,
@@ -87,6 +106,16 @@ async fn socket(
                         .into(),
                 ))
                 .await;
+        }
+        if path.ends_with("/runs_ws") {
+            if let Some(count) = capacity_count(&path) {
+                for run in capacity_runs(count) {
+                    if ws.send(Message::Text(run.to_string().into())).await.is_err() { return; }
+                }
+                // A correction after the initial history exercises full score rebuilding.
+                sleep(Duration::from_secs(2)).await;
+                let _ = ws.send(Message::Text(json!({"id":0,"team_login":"a00000","prob":"A","time_seconds":100,"answer":"N"}).to_string().into())).await;
+            }
         }
         while ws.recv().await.is_some() {}
     })
@@ -141,12 +170,22 @@ async fn serve(State(state): State<Fixture>, uri: Uri, headers: HeaderMap) -> im
         );
     }
     if path.ends_with("/contest") {
+        if let Some(count) = capacity_count(path) {
+            return json_response(
+                json!({"event":"capacity","contest":"Capacity","problems":(b'A'..=b'O').map(|c|char::from(c).to_string()).collect::<Vec<_>>(),
+                "teams":(0..count).map(|i|json!({"login":format!("a{i:05}"),"escola":"School","nome":format!("Team {i}")})).collect::<Vec<_>>(),
+                "time_seconds":300,"score_freeze_time_seconds":240,"penalty_seconds":1200}),
+            );
+        }
         let teams: Vec<_> = ["a1","a2","b1"].into_iter().map(|login| json!({"login":login,"escola":"School","nome":format!("Team {login} São Paulo </script>")})).collect();
         return json_response(
             json!({"event":"test","contest":"Test","problems":["A"],"teams":teams,"time_seconds":300,"score_freeze_time_seconds":240,"penalty_seconds":1200}),
         );
     }
     if path.ends_with("/runs_secret") {
+        if let Some(count) = capacity_count(path) {
+            return json_response(json!({"runs":capacity_runs(count)}));
+        }
         assert_eq!(headers.get("authorization").unwrap(), "Bearer SECRET-TEST");
         return json_response(json!({"runs":[
             {"id":1,"team_login":"a1","prob":"A","time_seconds":100,"answer":"Y"},
@@ -165,10 +204,13 @@ async fn serve(State(state): State<Fixture>, uri: Uri, headers: HeaderMap) -> im
         if path.starts_with("/sounds/") {
             return response("audio/wav", wav());
         }
-        let file = if path == "/animeitor/test/main" {
+        let file = if path == "/animeitor/test/main"
+            || (capacity_count(path).is_some() && path.ends_with("/main"))
+        {
             "index.html"
         } else {
-            path.trim_start_matches("/animeitor/")
+            path.strip_prefix("/animeitor/")
+                .unwrap_or_else(|| path.trim_start_matches('/'))
         };
         if !file.contains("..") && !file.starts_with('/') {
             if let Ok(bytes) = fs::read(state.dist.join(file)) {
@@ -225,7 +267,7 @@ impl Driver {
             .spawn()?;
         let mut driver = Self {
             client: reqwest::Client::builder()
-                .timeout(Duration::from_secs(30))
+                .timeout(Duration::from_secs(180))
                 .build()?,
             base: format!("http://127.0.0.1:{port}"),
             session: String::new(),
@@ -297,6 +339,8 @@ impl Driver {
             .as_str()
             .ok_or("No WebDriver session")?
             .into();
+        self.command(reqwest::Method::POST, "/timeouts", json!({"script":180000}))
+            .await?;
         if offline && self.browser == "chrome" {
             self.command(
                 reqwest::Method::POST,
@@ -451,8 +495,8 @@ async fn run(driver: &mut Driver, fixture: &Fixture) -> Result<()> {
     driver.button("OK").await?;
     let frozen = driver.board().await?;
     ensure(
-        driver.property("#b1", "css/display").await? == "none",
-        "Other sede should be hidden",
+        driver.find("css selector", "#b1").await.is_err(),
+        "Other sede should not be mounted",
     )?;
     driver.button("All").await?;
     let final_scores = driver.board().await?;
@@ -1204,4 +1248,122 @@ async fn offline_html_in_real_browser() -> Result<()> {
     driver.close_session().await;
     server.abort();
     result
+}
+
+#[tokio::test]
+#[ignore = "requires release client, WebDriver and browser"]
+async fn capacity_scoreboard_in_real_browser() -> Result<()> {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
+    let fixture = Fixture {
+        dist: PathBuf::from(env::var("OFFLINE_CLIENT_DIST")?).canonicalize()?,
+        port: listener.local_addr()?.port(),
+        missing: Arc::new(AtomicBool::new(false)),
+        core_failure: Arc::new(AtomicBool::new(false)),
+        export_delay: Arc::new(AtomicBool::new(false)),
+        audio_failure: Arc::new(AtomicBool::new(false)),
+        requests: Default::default(),
+    };
+    let app = Router::new()
+        .route("/api/events/{event}/timer", get(socket))
+        .route(
+            "/api/events/{event}/contests/{contest}/runs_ws",
+            get(socket),
+        )
+        .fallback(serve)
+        .with_state(fixture.clone());
+    let server = tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
+    let temp = tempfile::Builder::new()
+        .prefix("scoreboard-capacity-")
+        .tempdir()?
+        .keep();
+    eprintln!("Browser artifacts: {}", temp.display());
+    let driver = Driver::start(temp).await?;
+    let baseline = env::var_os("CAPACITY_BASELINE").is_some();
+    for count in [2000, 5000] {
+        let base = format!(
+            "http://127.0.0.1:{}/animeitor/capacity{count}/main",
+            fixture.port
+        );
+        let started = Instant::now();
+        driver.goto(&base).await?;
+        driver.wait_text(".runstable", "Team").await?;
+        eprintln!(
+            "teams={count} initial_display_ms={}",
+            started.elapsed().as_millis()
+        );
+        sleep(Duration::from_secs(8)).await;
+        for fraction in [0.0, 0.5, 1.0, 0.2, 0.8, 0.0] {
+            driver.command(reqwest::Method::POST, "/execute/sync", json!({"script":"window.scrollTo(0, (document.documentElement.scrollHeight-innerHeight)*arguments[0]); return true", "args":[fraction]})).await?;
+            sleep(Duration::from_millis(300)).await;
+            let metrics = driver.command(reqwest::Method::POST, "/execute/sync", json!({"script":"return {rows:document.querySelectorAll('.runstable > .run_box[id]').length, nodes:document.querySelectorAll('*').length, scrollY, height:document.documentElement.scrollHeight, heap:performance.memory?.usedJSHeapSize}","args":[]})).await?;
+            eprintln!("teams={count} scroll={fraction} {metrics}");
+            let rows = metrics["rows"].as_u64().unwrap();
+            ensure(rows > 0, "No mounted rows after scrolling")?;
+            if !baseline {
+                ensure(rows < 150, "Scoreboard rows are not bounded")?;
+            }
+        }
+        let scrolling = driver
+            .command(
+                reqwest::Method::POST,
+                "/execute/async",
+                json!({"script":r#"
+            const done=arguments[arguments.length-1], times=[]; let last=performance.now(), i=0;
+            function frame(now) {times.push(now-last); last=now; window.scrollBy(0,48);
+                if(++i<60) requestAnimationFrame(frame); else {
+                    times.sort((a,b)=>a-b); done({frame_p95_ms:times[57], frames:times.length});
+                }} requestAnimationFrame(frame);
+        "#,"args":[]}),
+            )
+            .await?;
+        eprintln!("teams={count} scrolling={scrolling}");
+        if !baseline {
+            let resized = driver.command(reqwest::Method::POST, "/execute/async", json!({"script":r#"
+                const done=arguments[arguments.length-1]; window.scrollTo(0,0);
+                document.documentElement.style.setProperty('--row-height','64px');
+                window.dispatchEvent(new Event('resize'));
+                setTimeout(()=>done({height:document.querySelector('.scoreboard').getBoundingClientRect().height,
+                    rows:document.querySelectorAll('.scoreboard-row').length}),300);
+            "#,"args":[]})).await?;
+            ensure(
+                resized["height"].as_f64().unwrap() >= count as f64 * 64.0,
+                "Custom row height lost scroll extent",
+            )?;
+            ensure(
+                resized["rows"].as_u64().unwrap() < 150,
+                "Resize lost virtualization",
+            )?;
+        }
+        driver.goto(&format!("{base}?secret=SECRET-TEST")).await?;
+        driver.button("OK").await?;
+        driver.wait_text(".runstable", "Team").await?;
+        driver.button("Top 100").await?;
+        let metrics = driver.command(reqwest::Method::POST, "/execute/async", json!({"script":r#"
+            const done=arguments[arguments.length-1], forward=[], backward=[];
+            async function steps(code,out) {
+                for(let i=0;i<30;i++) {
+                    const start=performance.now();
+                    window.dispatchEvent(new KeyboardEvent('keydown',{code,bubbles:true}));
+                    await new Promise(requestAnimationFrame);
+                    out.push(performance.now()-start);
+                }
+            }
+            (async()=>{await steps('ArrowRight',forward); await steps('ArrowLeft',backward);
+                const p95=a=>a.sort((a,b)=>a-b)[Math.floor(a.length*.95)];
+                done({forward_p95_ms:p95(forward),backward_p95_ms:p95(backward),rows:document.querySelectorAll('.runstable > .run_box[id]').length});})();
+        "#,"args":[]})).await?;
+        eprintln!("teams={count} revelation={metrics}");
+        driver.key("y").await?;
+        driver.wait_text(".foto", "Team").await?;
+        driver.command(reqwest::Method::POST, "/execute/sync", json!({"script":"window.scrollTo(0,document.documentElement.scrollHeight); return true", "args":[]})).await?;
+        sleep(Duration::from_millis(300)).await;
+        driver.wait_text(".foto", "Team").await?;
+        driver.key("y").await?;
+        driver.button("Reset").await?;
+    }
+    driver.close_session().await;
+    server.abort();
+    Ok(())
 }
