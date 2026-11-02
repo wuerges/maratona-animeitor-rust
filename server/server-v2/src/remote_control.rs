@@ -7,7 +7,7 @@ use tokio::sync::broadcast::{Receiver, Sender, error::SendError};
 use tokio_stream::wrappers::BroadcastStream;
 use tracing::{debug, instrument};
 
-use service::remote_control::{ConnectionControlMessage, ControlSender, next_request_id};
+use service::remote_control::{ConnectionControlMessage, RemoteConnection, next_request_id};
 
 use crate::envelope::send_json;
 
@@ -34,7 +34,7 @@ async fn send_to_clients(
         message,
     })) = rec_stream.next().await
     {
-        if request_id != connection_request_id && !send_json(&mut sender, &message).await {
+        if request_id != connection_request_id && !send_remote_json(&mut sender, &message).await {
             return Ok(());
         }
     }
@@ -55,8 +55,22 @@ async fn read_from_clients(
     sender: Sender<ConnectionControlMessage>,
     request_id: u64,
 ) -> Result<(), Error> {
+    let mut budget = MessageBudget::new();
     while let Some(Ok(raw_message)) = stream.next().await {
+        if !budget.allow() {
+            break;
+        }
         if let Some(message) = get_text(raw_message)? {
+            let valid = match &message {
+                ControlMessage::QueryString(q) => q.query.len() <= 2048,
+                ControlMessage::PhotoState(data::remote_control::PhotoState::Show(team)) => {
+                    team.len() <= 256
+                }
+                _ => true,
+            };
+            if !valid {
+                break;
+            }
             debug!(?message, "receive");
             sender.send(ConnectionControlMessage {
                 request_id,
@@ -69,21 +83,79 @@ async fn read_from_clients(
 }
 
 /// Relays control messages between every client of the same sender channel.
-pub(crate) async fn relay_remote_control(sender: ControlSender, ws: WebSocketUpgrade) -> Response {
-    ws.on_upgrade(move |socket| async move {
-        let (sender_half, mut receiver_half) = socket.split();
-        let rec = sender.subscribe();
+pub(crate) async fn relay_remote_control(
+    mut connection: RemoteConnection,
+    ws: WebSocketUpgrade,
+) -> Response {
+    ws.max_message_size(4096)
+        .max_frame_size(4096)
+        .max_write_buffer_size(128 * 1024 + 8192)
+        .on_upgrade(move |socket| async move {
+            let sender = connection.sender.clone();
+            let (sender_half, mut receiver_half) = socket.split();
+            let rec = sender.subscribe();
 
-        let request_id = next_request_id();
-        tracing::info!(?request_id, "established remote control");
+            let request_id = next_request_id();
+            tracing::info!(?request_id, "established remote control");
 
-        // Either half ending must release the other half and its socket.
-        let result = tokio::select! {
-            result = send_to_clients(rec, sender_half, request_id) => result,
-            result = read_from_clients(&mut receiver_half, sender, request_id) => result,
-        };
-        if let Err(err) = result {
-            tracing::debug!(?err, "remote control disconnected");
+            // Either half ending must release the other half and its socket.
+            let result = tokio::select! {
+                result = send_to_clients(rec, sender_half, request_id) => result,
+                result = read_from_clients(&mut receiver_half, sender, request_id) => result,
+                _ = tokio::time::sleep_until(connection.expires) => Ok(()),
+                _ = connection.revoked.changed() => Ok(()),
+            };
+            if let Err(err) = result {
+                tracing::debug!(?err, "remote control disconnected");
+            }
+        })
+}
+
+async fn send_remote_json(
+    sender: &mut SplitSink<WebSocket, Message>,
+    message: &ControlMessage,
+) -> bool {
+    tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        send_json(sender, message),
+    )
+    .await
+    .unwrap_or(false)
+}
+
+/// Token bucket: sustained 30 frames/second, initial burst of 60 (including control frames).
+pub struct MessageBudget {
+    tokens: f64,
+    last: std::time::Instant,
+}
+impl MessageBudget {
+    pub fn new() -> Self {
+        Self {
+            tokens: 60.0,
+            last: std::time::Instant::now(),
         }
-    })
+    }
+    pub fn allow(&mut self) -> bool {
+        let now = std::time::Instant::now();
+        self.tokens = (self.tokens + now.duration_since(self.last).as_secs_f64() * 30.0).min(60.0);
+        self.last = now;
+        if self.tokens < 1.0 {
+            return false;
+        }
+        self.tokens -= 1.0;
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn message_budget_bounds_burst() {
+        let mut budget = MessageBudget::new();
+        for _ in 0..60 {
+            assert!(budget.allow());
+        }
+        assert!(!budget.allow());
+    }
 }

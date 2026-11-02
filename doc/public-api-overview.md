@@ -34,3 +34,17 @@ Example bare run message:
 ```
 
 Remote-control channel keys are arbitrary shared identifiers, not site revelation keys. Valid messages are `{"y":120}`, `{"query":"sede=fiemg"}`, `"Hidden"`, and `{"Show":"teambr001"}`. The server forwards them to other connections on the same event/contest/channel; it does not echo them to the sender.
+
+
+Remote-control keys are secret server-issued capabilities, scoped to an event
+and contest. An owner with a read-write internal token issues a session with
+`POST /internal/events/{event_name}/contests/{contest_name}/remote_control` and
+revokes it with `DELETE` at that path plus `/{key}`. Sessions expire after one
+hour and are lost on server restart. Unknown, expired, and revoked keys return
+404 without allocating a room. There are at most 16 sessions per contest, 256
+per process, and eight connections per session. Revocation disconnects existing
+relays. Treat the key as a secret; do not put complete request URIs in proxy logs.
+Remote-control incoming frames/messages are limited to 4 KiB, and writes to 10
+seconds. Control traffic allows 30 incoming frames/second with a burst of 60; excess
+traffic disconnects the sender. Query strings are at most 2,048 bytes and photo
+team identifiers at most 256 bytes.

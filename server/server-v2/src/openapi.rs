@@ -74,8 +74,8 @@ pub struct PublicApiDoc;
         rotate_site_salt,
         list_revelation_urls,
         internal_metrics,
-        token_capabilities),
-    components(schemas(data::internal_auth::InternalRole, data::internal_auth::TokenCapabilities, TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody)),
+        token_capabilities, create_remote_session, revoke_remote_session),
+    components(schemas(data::internal_auth::InternalRole, data::internal_auth::TokenCapabilities, TeamInfo, Answer, Run, ErrorEntry, EventState, ContestConfig, SiteConfig, RevelationUrl, TimeBody, RunsBody, SaltBody, data::remote_control::RemoteSessionInfo)),
     modifiers(&InternalMetadata),
     security(("basicAuth" = []))
 )]
@@ -647,16 +647,47 @@ pub async fn public_timer_stream() {}
 
 /// Relay frontend controls
 ///
-/// WebSocket available before start. The key is an arbitrary shared relay-channel identifier, NOT a revelation key. Messages are relayed only to other connections with the same event, contest, and key. Text frames contain bare JSON matching ControlMessage: {"y":120}, {"query":"sede=fiemg"}, "Hidden", or {"Show":"teambr001"}. No outer WindowScroll, QueryString, or PhotoState wrapper. Missing resources return a bare 404 handshake response.
+/// WebSocket available before start. The key is a secret capability issued by the authenticated internal session endpoint. Sessions expire after one hour, are revoked on restart, and allow eight connections. Unissued, expired, or revoked keys allocate no channel and return 404. Messages are relayed only to other connections with the same event, contest, and key. Text frames contain bare JSON matching ControlMessage: {"y":120}, {"query":"sede=fiemg"}, "Hidden", or {"Show":"teambr001"}. No outer WindowScroll, QueryString, or PhotoState wrapper. Missing resources return a bare 404 handshake response.
 #[utoipa::path(
     get, path = "/api/events/{event_name}/contests/{contest_name}/remote_control/{key}", operation_id = "public_remote_control", tag = "WebSockets",
-    params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("contest_name" = String, Path, description = "Nonempty contest identifier within the event. URL-encode as a path segment."), ("key" = String, Path, description = "Arbitrary shared remote-control channel identifier; not a revelation key.")),
+    params(("event_name" = String, Path, description = "Event identifier (not a display label). URL-encode as a path segment."), ("contest_name" = String, Path, description = "Nonempty contest identifier within the event. URL-encode as a path segment."), ("key" = String, Path, description = "Server-issued 32-character session capability; not a revelation key.")),
     responses(
         (status = 101, description = "WebSocket upgrade; subsequent text frames follow the message schema described above."),
-        (status = 404, description = "Resource not found; no body.")
+        (status = 404, description = "Resource not found; no body."),
+        (status = 429, description = "Session connection capacity exceeded.", body = Failure)
     )
 )]
 pub async fn public_remote_control() {}
+
+/// Issue an ephemeral remote-control session
+///
+/// Requires event ownership and the read-write role. Returns a secret random capability,
+/// scoped to this contest, valid for one hour. Sessions do not survive restart.
+/// Limits: 16 sessions per contest, 256 per process, eight connections per session.
+#[utoipa::path(
+    post, path = "/internal/events/{event_name}/contests/{contest_name}/remote_control",
+    operation_id = "create_remote_session", tag = "Remote control",
+    params(("event_name" = String, Path), ("contest_name" = String, Path)),
+    responses((status = 201, description = "Issued session; Cache-Control: no-store.", body = Success<data::remote_control::RemoteSessionInfo>),
+        (status = 401, description = "Credentials missing or invalid.", body = Failure),
+        (status = 404, description = "Event or contest missing.", body = Failure),
+        (status = 429, description = "Session capacity exceeded.", body = Failure))
+)]
+pub async fn create_remote_session() {}
+
+/// Revoke a remote-control session and close its active relays
+///
+/// Requires an owner with a read-write credential. Revocation releases the session
+/// slot immediately and disconnects its active relays. A missing session returns 404.
+#[utoipa::path(
+    delete, path = "/internal/events/{event_name}/contests/{contest_name}/remote_control/{key}",
+    operation_id = "revoke_remote_session", tag = "Remote control",
+    params(("event_name" = String, Path), ("contest_name" = String, Path), ("key" = String, Path)),
+    responses((status = 204, description = "Session revoked."),
+        (status = 401, description = "Credentials missing or invalid.", body = Failure),
+        (status = 404, description = "Session missing.", body = Failure))
+)]
+pub async fn revoke_remote_session() {}
 
 pub fn swagger_html(spec: &str) -> String {
     format!(

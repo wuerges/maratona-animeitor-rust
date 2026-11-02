@@ -455,3 +455,21 @@ Remoção de item com runs retorna `409 conflict`. Para times, `?keep_runs=true`
 PATCH em `.../contests/{evento}/{contest}/codes` ou `.../sites/{evento}/{contest}/{site}/codes` recebe `{"add":["regex"],"remove":["regex-antiga"]}`. As strings são comparadas exatamente; adições existentes e remoções ausentes não alteram nada. Toda validação ocorre antes da alteração.
 
 Veja [o contrato completo e exemplos](internal-api-setup.md#atomic-incremental-management), também incluídos na especificação OpenAPI interna. O feeder mantém seu comportamento e pode sobrescrever mudanças manuais a partir da fonte.
+
+
+## Remote-control sessions (3.0.0)
+
+A read-write credential owning the event can issue a session with
+`POST /internal/events/{event_name}/contests/{contest_name}/remote_control` (no
+request body). The 201 response is `{"data":{"key":"<random capability>",
+"expires_at":<Unix seconds>}}`, with `Cache-Control: no-store`. Distribute the
+secret key to the controller and viewers using the existing `remote_control`
+client query parameter. Each key is scoped to its event and contest.
+
+`DELETE /internal/events/{event_name}/contests/{contest_name}/remote_control/{key}`
+revokes the session, disconnects its clients, and returns 204; an unknown key
+returns 404. Both operations enforce event ownership and the read-write role.
+Sessions last one hour, are transient across restarts, and have fixed limits:
+16 per contest, 256 per server, eight connections per session. Capacity exhaustion
+returns 429. Issue a new session after expiration or restart; arbitrary room names
+are no longer accepted by the public WebSocket endpoint.

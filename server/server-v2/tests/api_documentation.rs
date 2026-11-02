@@ -140,7 +140,9 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
                 }
                 assert!(!operation["summary"].as_str().unwrap().is_empty());
                 assert!(operation["description"].as_str().unwrap().len() > 40);
-                if matches!(method.as_str(), "post" | "put" | "patch") {
+                if matches!(method.as_str(), "post" | "put" | "patch")
+                    && !path.ends_with("/remote_control")
+                {
                     assert!(
                         operation["requestBody"]["content"]["application/json"]["schema"]
                             .is_object(),
@@ -169,7 +171,7 @@ fn specs_have_complete_distinct_operations_and_resolved_schemas() {
             }
         }
     }
-    assert_eq!(ids.len(), 45);
+    assert_eq!(ids.len(), 47);
     let methods: Vec<_> = internal["paths"]["/internal/contests/{event_name}/{contest_name}"]
         .as_object()
         .unwrap()

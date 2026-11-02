@@ -145,6 +145,11 @@ pub(crate) fn store_error(err: StoreError) -> Response {
                 error_json(StatusCode::NOT_FOUND, "not_found", "event does not exist")
             }
         },
+        StoreError::LimitExceeded => error_json(
+            StatusCode::TOO_MANY_REQUESTS,
+            "resource_limit",
+            "resource limit exceeded",
+        ),
         StoreError::Conflict(message) | StoreError::AlreadyExists(message) => {
             error_json(StatusCode::CONFLICT, "conflict", message)
         }
@@ -251,6 +256,14 @@ pub fn router() -> Router<AppState> {
         .route(
             "/sites/{event_name}/{contest_name}/{site_name}/codes",
             patch(incremental::patch_site_codes),
+        )
+        .route(
+            "/events/{event_name}/contests/{contest_name}/remote_control",
+            post(create_remote_session),
+        )
+        .route(
+            "/events/{event_name}/contests/{contest_name}/remote_control/{key}",
+            axum::routing::delete(revoke_remote_session),
         )
         .route("/metrics", get(get_metrics))
         .route("/capabilities", get(get_capabilities))
@@ -721,4 +734,30 @@ async fn list_revelation_urls(
         header::HeaderValue::from_static("no-store"),
     );
     response
+}
+
+async fn create_remote_session(
+    _auth: InternalAuth,
+    State(store): State<EventStore>,
+    Path((event, contest)): Path<(String, String)>,
+) -> Response {
+    let info = crate::store_call!(store.create_remote_session(&event, &contest).await);
+    let mut response = data_json(info, StatusCode::CREATED);
+    response.headers_mut().insert(
+        header::CACHE_CONTROL,
+        axum::http::HeaderValue::from_static("no-store"),
+    );
+    response
+}
+
+async fn revoke_remote_session(
+    _auth: InternalAuth,
+    State(store): State<EventStore>,
+    Path((event, contest, key)): Path<(String, String, String)>,
+) -> Response {
+    if crate::store_call!(store.revoke_remote_session(&event, &contest, &key).await) {
+        StatusCode::NO_CONTENT.into_response()
+    } else {
+        crate::envelope::not_found("remote-control session")
+    }
 }

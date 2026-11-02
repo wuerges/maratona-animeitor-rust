@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-01
+
+### Breaking
+
+- Require an authenticated owner with a read-write token to issue remote-control
+  sessions. Public connections accept only issued, unexpired, contest-scoped keys;
+  arbitrary channel names no longer work. Sessions expire after one hour, are lost
+  on restart, and can be revoked (closing connected clients).
+- Bound remote control to 16 sessions per contest, 256 per process and eight
+  connections per session; cap incoming frames/messages at 4 KiB, control queries
+  at 2,048 bytes and photo identifiers at 256 bytes. Disconnect control senders
+  above 30 frames/second (burst 60).
+
+### Added
+
+- Authenticated internal remote-control session issuance and revocation endpoints.
+
+### Security
+
+- Redact remote-control capabilities from application request paths and Sentry
+  context; issuing session responses use Cache-Control: no-store.
+
+
 ### Fixed
 
 - Share immutable run replay snapshots across subscribers instead of copying the

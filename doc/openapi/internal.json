@@ -337,6 +337,25 @@
         ],
         "type": "object"
       },
+      "RemoteSessionInfo": {
+        "description": "Ephemeral capability issued by the authenticated internal API.",
+        "properties": {
+          "expires_at": {
+            "description": "Unix timestamp in seconds. Sessions last one hour and do not survive restart.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "expires_at"
+        ],
+        "type": "object"
+      },
       "RevelationUrl": {
         "description": "A private frontend revelation link. Anyone holding the URL holds the site key.",
         "properties": {
@@ -650,6 +669,44 @@
               "teams",
               "score_freeze_time_seconds",
               "penalty_seconds"
+            ],
+            "type": "object"
+          },
+          "warnings": {
+            "description": "Nonfatal issues, omitted when absent (currently unknown_team on run ingestion).",
+            "items": {
+              "$ref": "#/components/schemas/ErrorEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Success_RemoteSessionInfo": {
+        "description": "Successful JSON response. Requests do not use this envelope.",
+        "properties": {
+          "data": {
+            "description": "Ephemeral capability issued by the authenticated internal API.",
+            "properties": {
+              "expires_at": {
+                "description": "Unix timestamp in seconds. Sessions last one hour and do not survive restart.",
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "key": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "expires_at"
             ],
             "type": "object"
           },
@@ -1191,7 +1248,7 @@
       "name": ""
     },
     "title": "Animeitor internal API",
-    "version": "2.4.0"
+    "version": "3.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -3127,6 +3184,197 @@
         "summary": "List complete contest configurations",
         "tags": [
           "Contests"
+        ]
+      }
+    },
+    "/internal/events/{event_name}/contests/{contest_name}/remote_control": {
+      "post": {
+        "description": "Requires event ownership and the read-write role. Returns a secret random capability,\nscoped to this contest, valid for one hour. Sessions do not survive restart.\nLimits: 16 sessions per contest, 256 per process, eight connections per session.",
+        "operationId": "create_remote_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Success_RemoteSessionInfo"
+                }
+              }
+            },
+            "description": "Issued session; Cache-Control: no-store."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Credentials missing or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Valid credential lacks event ownership or the read-write role (forbidden)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Event or contest missing."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Session capacity exceeded."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Issue an ephemeral remote-control session",
+        "tags": [
+          "Remote control"
+        ]
+      }
+    },
+    "/internal/events/{event_name}/contests/{contest_name}/remote_control/{key}": {
+      "delete": {
+        "description": "Requires an owner with a read-write credential. Revocation releases the session\nslot immediately and disconnects its active relays. A missing session returns 404.",
+        "operationId": "revoke_remote_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "event_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contest_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session revoked."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Credentials missing or invalid."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Valid credential lacks event ownership or the read-write role (forbidden)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Session missing."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Stored data is corrupt or uses an unsupported schema (storage_error)."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Failure"
+                }
+              }
+            },
+            "description": "Database unavailable or busy (storage_unavailable). A failed write may have committed: read the resource before retrying."
+          }
+        },
+        "summary": "Revoke a remote-control session and close its active relays",
+        "tags": [
+          "Remote control"
         ]
       }
     },

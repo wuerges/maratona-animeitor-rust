@@ -673,20 +673,25 @@ async fn remote_control_relay() {
     let store = test_store(Some("test-server-salt".into()));
     seed_event(&store).await;
     seed_contest(&store).await;
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
     let app = app_for(store);
     let base = spawn_server(app).await;
 
     // A is the screen being controlled; B is the controller.
     let mut a = connect(
         &base,
-        "/api/events/ensaio/contests/brasil/remote_control/chave",
+        &format!("/api/events/ensaio/contests/brasil/remote_control/{key}"),
     )
     .await;
     // Let the server-side subscription land before B sends.
     tokio::time::sleep(Duration::from_millis(100)).await;
     let mut b = connect(
         &base,
-        "/api/events/ensaio/contests/brasil/remote_control/chave",
+        &format!("/api/events/ensaio/contests/brasil/remote_control/{key}"),
     )
     .await;
     b.send(tokio_tungstenite::tungstenite::Message::Text(
@@ -705,15 +710,22 @@ async fn remote_control_disconnect_releases_subscription() {
     let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
-    let sender = store
-        .remote_control_sender("ensaio", "brasil", "cleanup")
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
+    let connection = store
+        .remote_control_sender("ensaio", "brasil", &key)
         .await
         .unwrap()
         .unwrap();
+    let sender = connection.sender.clone();
+    drop(connection);
     let base = spawn_server(app_for(store)).await;
     let ws = connect(
         &base,
-        "/api/events/ensaio/contests/brasil/remote_control/cleanup",
+        &format!("/api/events/ensaio/contests/brasil/remote_control/{key}"),
     )
     .await;
     tokio::time::timeout(Duration::from_secs(2), async {
@@ -783,10 +795,15 @@ async fn remote_control_handshake_before_start() {
     let store = test_store(None);
     seed_event(&store).await;
     seed_contest(&store).await;
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
     let base = spawn_server(app_for(store)).await;
     let mut ws = connect(
         &base,
-        "/api/events/ensaio/contests/brasil/remote_control/channel",
+        &format!("/api/events/ensaio/contests/brasil/remote_control/{key}"),
     )
     .await;
     ws.close(None).await.unwrap();
@@ -794,3 +811,92 @@ async fn remote_control_handshake_before_start() {
 
 mod common;
 use common::test_store;
+
+#[tokio::test]
+async fn unknown_keys_allocate_no_sessions_and_registry_is_bounded() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    for i in 0..100 {
+        let key = format!("{i:032}");
+        assert!(
+            store
+                .remote_control_sender("ensaio", "brasil", &key)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+    for _ in 0..16 {
+        store
+            .create_remote_session("ensaio", "brasil")
+            .await
+            .unwrap();
+    }
+    assert!(matches!(
+        store.create_remote_session("ensaio", "brasil").await,
+        Err(service::event_store::StoreError::LimitExceeded)
+    ));
+}
+
+#[tokio::test]
+async fn remote_control_revoke_closes_socket_and_rejects_reconnect() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
+    let base = spawn_server(app_for(store.clone())).await;
+    let path = format!("/api/events/ensaio/contests/brasil/remote_control/{key}");
+    let mut ws = connect(&base, &path).await;
+    store
+        .revoke_remote_session("ensaio", "brasil", &key)
+        .await
+        .unwrap();
+    let frame = tokio::time::timeout(Duration::from_secs(2), ws.next())
+        .await
+        .expect("revocation closes relay");
+    assert!(!matches!(
+        frame,
+        Some(Ok(tokio_tungstenite::tungstenite::Message::Text(_)))
+    ));
+    assert_eq!(connect_error(&base, &path).await, StatusCode::NOT_FOUND);
+    // Revocation releases the registry slot.
+    store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn remote_control_rejects_oversized_frame() {
+    let store = test_store(None);
+    seed_event(&store).await;
+    seed_contest(&store).await;
+    let key = store
+        .create_remote_session("ensaio", "brasil")
+        .await
+        .unwrap()
+        .key;
+    let base = spawn_server(app_for(store)).await;
+    let mut ws = connect(
+        &base,
+        &format!("/api/events/ensaio/contests/brasil/remote_control/{key}"),
+    )
+    .await;
+    ws.send(tokio_tungstenite::tungstenite::Message::Text(
+        "x".repeat(4097).into(),
+    ))
+    .await
+    .unwrap();
+    let frame = tokio::time::timeout(Duration::from_secs(2), ws.next())
+        .await
+        .expect("oversized frame closes relay");
+    assert!(!matches!(
+        frame,
+        Some(Ok(tokio_tungstenite::tungstenite::Message::Text(_)))
+    ));
+}

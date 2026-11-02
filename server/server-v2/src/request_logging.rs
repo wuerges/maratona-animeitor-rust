@@ -19,7 +19,16 @@ pub(crate) fn layer(router: Router) -> Router {
     router.layer(middleware::from_fn(log_request))
 }
 
+fn safe_path(path: &str) -> String {
+    if let Some((prefix, _)) = path.split_once("/remote_control/") {
+        format!("{prefix}/remote_control/<redacted>")
+    } else {
+        path.to_owned()
+    }
+}
+
 async fn log_request(mut request: Request<Body>, next: Next) -> Response {
+    let path = safe_path(request.uri().path());
     let internal =
         request.uri().path() == "/internal" || request.uri().path().starts_with("/internal/");
     let header = request
@@ -34,14 +43,14 @@ async fn log_request(mut request: Request<Body>, next: Next) -> Response {
     hub.configure_scope(|scope| {
         scope.set_tag("request_id", header.to_str().unwrap_or("<non-UTF8>"));
         scope.set_extra("method", request.method().to_string().into());
-        scope.set_extra("path", request.uri().path().to_owned().into());
+        scope.set_extra("path", path.clone().into());
     });
     let span = sentry::Hub::run(hub.clone(), || {
         tracing::info_span!(
             "http_request",
             request_id = ?header,
             method = %request.method(),
-            path = %request.uri().path(),
+            path = %path,
             username = tracing::field::Empty,
         )
     });
@@ -96,6 +105,18 @@ mod tests {
         fn flush(&mut self) -> std::io::Result<()> {
             Ok(())
         }
+    }
+
+    #[test]
+    fn remote_capabilities_are_redacted() {
+        assert_eq!(
+            safe_path("/api/events/e/contests/c/remote_control/secret"),
+            "/api/events/e/contests/c/remote_control/<redacted>"
+        );
+        assert_eq!(
+            safe_path("/internal/events/e/contests/c/remote_control/secret"),
+            "/internal/events/e/contests/c/remote_control/<redacted>"
+        );
     }
 
     #[tokio::test]
