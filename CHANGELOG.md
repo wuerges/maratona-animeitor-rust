@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Share immutable run replay snapshots across subscribers instead of copying the
+  full replay on every connection.
+- Release both remote-control relay halves when either direction disconnects.
+
 ## [2.4.0] - 2026-10-26
 
 ### Added
