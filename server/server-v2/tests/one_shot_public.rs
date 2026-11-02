@@ -900,3 +900,25 @@ async fn remote_control_rejects_oversized_frame() {
         Some(Ok(tokio_tungstenite::tungstenite::Message::Text(_)))
     ));
 }
+
+#[tokio::test]
+async fn websocket_capacity_is_released_after_rejection() {
+    let store = test_store(None);
+    let mut permits: Vec<_> = (0..2048)
+        .map(|_| store.websocket_permit().unwrap())
+        .collect();
+    let base = spawn_server(app_for(store)).await;
+    assert_eq!(
+        connect_error(&base, "/api/events/missing/timer").await,
+        StatusCode::TOO_MANY_REQUESTS
+    );
+    permits.pop();
+    assert_eq!(
+        connect_error(&base, "/api/events/missing/timer").await,
+        StatusCode::NOT_FOUND
+    );
+    assert_eq!(
+        connect_error(&base, "/api/events/missing/timer").await,
+        StatusCode::NOT_FOUND
+    );
+}

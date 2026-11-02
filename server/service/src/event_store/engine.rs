@@ -252,7 +252,7 @@ impl Engine {
     pub fn with_revelation_salt(salt: String) -> Self {
         assert!(!salt.is_empty(), "revelation salt must not be empty");
         Self {
-            channel_capacity: 1_000_000,
+            channel_capacity: 1024,
             revelation_salt: Arc::new(salt),
             inner: Arc::new(RwLock::new(Inner {
                 order: Vec::new(),
@@ -355,7 +355,6 @@ impl Engine {
     }
 
     /// Lists event names in creation order.
-    #[cfg(test)]
     pub async fn list_events(&self) -> Vec<String> {
         let inner = self.inner.read().await;
         inner.order.clone()
@@ -917,6 +916,15 @@ impl Engine {
     ) -> Option<broadcast::Receiver<PublicTimer>> {
         let inner = self.inner.read().await;
         Some(inner.events.get(event_name)?.timer_tx.subscribe())
+    }
+
+    pub async fn timer_subscription(
+        &self,
+        name: &str,
+    ) -> Option<(PublicTimer, broadcast::Receiver<PublicTimer>)> {
+        let inner = self.inner.read().await;
+        let event = inner.events.get(name)?;
+        Some((event.timer(), event.timer_tx.subscribe()))
     }
 
     /// The current timer of an event.

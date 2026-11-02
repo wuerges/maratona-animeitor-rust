@@ -86,11 +86,13 @@ async fn read_from_clients(
 pub(crate) async fn relay_remote_control(
     mut connection: RemoteConnection,
     ws: WebSocketUpgrade,
+    permit: tokio::sync::OwnedSemaphorePermit,
 ) -> Response {
     ws.max_message_size(4096)
         .max_frame_size(4096)
         .max_write_buffer_size(128 * 1024 + 8192)
         .on_upgrade(move |socket| async move {
+            let _permit = permit;
             let sender = connection.sender.clone();
             let (sender_half, mut receiver_half) = socket.split();
             let rec = sender.subscribe();

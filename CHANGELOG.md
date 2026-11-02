@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-11-01
+
+### Breaking
+
+- Bound public/internal HTTP processing to 128/32 concurrent requests and 15
+  seconds; return 429/408 on exhaustion. Cap detached mutation tasks at 32,
+  including tasks whose callers disconnected. Limit WebSockets to 2,048 per
+  process, one-hour lifetimes and 10-second writes. Limit incoming frames/messages
+  to 4 KiB and live stream buffers to 1,024 messages; lagged clients reconnect.
+- Serve public reads from committed memory after startup hydration instead of
+  reloading storage for every request/run. Public reads continue during storage
+  outages; the single server process remains the sole supported database writer.
+
+### Fixed
+
+- Read timer state and subscribe atomically when opening a public timer stream.
+
 ## [3.0.0] - 2026-11-01
 
 ### Breaking

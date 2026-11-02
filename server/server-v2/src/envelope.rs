@@ -15,9 +15,14 @@ pub(crate) async fn send_json<T: serde::Serialize>(
     value: &T,
 ) -> bool {
     match serde_json::to_string(value) {
-        Ok(text) => match sender.send(Message::Text(text.into())).await {
-            Ok(()) => true,
-            Err(_) => false,
+        Ok(text) => match tokio::time::timeout(
+            std::time::Duration::from_secs(10),
+            sender.send(Message::Text(text.into())),
+        )
+        .await
+        {
+            Ok(Ok(())) => true,
+            _ => false,
         },
         Err(err) => {
             tracing::warn!(?err, "failed serializing");

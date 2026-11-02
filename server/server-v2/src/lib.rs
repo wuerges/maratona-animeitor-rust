@@ -7,6 +7,7 @@ pub mod openapi;
 pub mod public;
 mod remote_control;
 mod request_logging;
+mod resource_limits;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -53,8 +54,8 @@ pub fn app(state: AppState) -> Router {
 
 fn api_router(state: AppState) -> Router {
     Router::new()
-        .nest("/api", public::router())
-        .nest("/internal", internal::router())
+        .nest("/api", resource_limits::http(public::router(), 128))
+        .nest("/internal", resource_limits::http(internal::router(), 32))
         .layer(CompressionLayer::new())
         .with_state(state)
 }
@@ -132,16 +133,17 @@ pub async fn serve_config(
             Arc::new(database_sqlite::SqliteDatabase::open(path)?)
         }
     };
-    // Fail startup on unavailable or unreadable storage, rather than serving an empty database.
-    for name in database.list().await? {
-        database.read(&name).await?;
-    }
     let state = AppState {
         public_url,
         store: service::event_store::EventStore::new(database, revelation_salt),
         internal_tokens: Arc::new(internal_tokens),
     };
 
+    state
+        .store
+        .initialize()
+        .await
+        .map_err(|error| std::io::Error::other(error.to_string()))?;
     let mut app = api_router(state);
     let mut loaded_assets = HashMap::new();
     for volume in volumes {
