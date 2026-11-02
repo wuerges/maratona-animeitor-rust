@@ -51,9 +51,10 @@ Do not trust client-supplied forwarding headers for rate-limit identity. If a
 load balancer precedes nginx, configure real-IP handling only for its known
 addresses; otherwise all viewers appear to originate at that balancer.
 
-Proxy connect/write/read deadlines are 5/10/90 seconds. A frozen timer or an idle
-remote-control session can therefore reconnect after 90 seconds without server
-output. The client reconnects automatically; use backoff for custom clients.
+Proxy connect/write/read deadlines are 5/10/90 seconds. Public timer/runs heartbeat pings every 30 seconds keep healthy connections open,
+even with a frozen timer. An idle remote-control session without server output
+can reconnect after 90 seconds. The client reconnects automatically; use backoff
+for custom clients.
 Upgrades use the Connection header map; ordinary HTTP does not request an upgrade.
 
 ## Keep capabilities out of logs
@@ -71,7 +72,7 @@ load balancer, CDN, or log collector.
 
 The application uses conservative fixed limits documented in the public API:
 2,048 active WebSockets, 128 public and 32 internal requests, 32 detached
-mutations, one-hour socket lifetimes, and bounded messages/write deadlines.
+mutations, heartbeat liveness checks, and bounded messages/write deadlines.
 Remote-control sessions have additional limits. Capacity changes in the
 application require a code change; keep proxy limits within those budgets.
 

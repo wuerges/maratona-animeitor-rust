@@ -46,7 +46,7 @@ The public and internal APIs have separate request concurrency budgets (128 and
 32), a 15-second processing deadline, and return 429 or 408 when those limits are
 reached. Detached commit/publish tasks have an independent cap of 32, retained
 until the task finishes even if the caller disconnects. JSON requests retain the framework's 2 MiB limit. WebSockets share a
-2,048-connection process budget, a one-hour lifetime, 4 KiB incoming frame/message
+2,048-connection process budget, no age limit while responsive, 4 KiB incoming frame/message
 limits, and a 10-second write deadline. Reconnect with backoff. A lagged stream
 is disconnected and must reconnect for a fresh replay; live buffers hold 1,024
 messages.
@@ -63,3 +63,11 @@ Remote-control incoming frames/messages are limited to 4 KiB, and writes to 10
 seconds. Control traffic allows 30 incoming frames/second with a burst of 60; excess
 traffic disconnects the sender. Query strings are at most 2,048 bytes and photo
 team identifiers at most 256 bytes.
+
+
+Public timer and runs streams send a WebSocket ping every 30 seconds. A matching
+pong keeps the connection healthy; 90 seconds without a matching pong closes it.
+Browsers answer ping frames automatically, including when no contest data changes.
+Healthy public streams remain open across multi-hour contests without an hourly
+replay/reconnect. Control-frame floods are limited to 30 frames/second (burst 60).
+Remote-control session expiration is independent of public stream liveness.
