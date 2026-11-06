@@ -176,6 +176,7 @@ fn ContestScreen() -> impl IntoView {
     let params = use_params::<ContestParams>();
 
     view! {
+        <BackgroundColor />
         {move || {
             let Some(ec) = params.get().ok().and_then(ec_of) else {
                 return view! { <Landing /> }.into_any();
@@ -260,7 +261,6 @@ fn ContestScreen() -> impl IntoView {
                     }
                 };
                 view! {
-                    <BackgroundColor />
                     <RemoteControl event_contest=ec.clone() />
                     {settings_panel}
                     {animeitor}

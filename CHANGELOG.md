@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Apply the client's `background-color` query parameter on the pre-start countdown
+  as well as the scoreboard.
+
 ## [9.1.0] - 2026-11-02
 
 This release includes all previously untagged changes since 2.4.0. The sections
