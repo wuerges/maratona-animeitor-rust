@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "animeitor-client"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "any_spawner",
  "base64 0.23.1",
@@ -765,7 +765,7 @@ checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
 name = "cli"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "axum",
  "clap",
@@ -792,7 +792,7 @@ dependencies = [
 
 [[package]]
 name = "client-model"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "data",
  "futures",
@@ -804,7 +804,7 @@ dependencies = [
 
 [[package]]
 name = "client-sdk"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "client-model",
  "data",
@@ -1032,9 +1032,9 @@ dependencies = [
 
 [[package]]
 name = "cookie"
-version = "0.18.2"
+version = "0.18.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a373e3602691c3cdea496d2f0ee5935151e6168fe87739483c463db1b2f2f87"
+checksum = "d55f2d6c30eeec7d5c6f98bd4395d4abb1895629eab97ee6522d340623615f8a"
 dependencies = [
  "percent-encoding",
  "time",
@@ -1186,7 +1186,7 @@ dependencies = [
 
 [[package]]
 name = "data"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "derivative",
  "regex",
@@ -1203,7 +1203,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "database-memory"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "serde_json",
  "service",
@@ -1213,7 +1213,7 @@ dependencies = [
 
 [[package]]
 name = "database-sqlite"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "rusqlite",
  "serde_json",
@@ -1532,9 +1532,9 @@ checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
 name = "form_urlencoded"
-version = "1.2.2"
+version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
+checksum = "afa489199eaffb1211795df1c6236ce1ad0d41a6fa45250add73e3b02420f06e"
 dependencies = [
  "percent-encoding",
 ]
@@ -2558,9 +2558,9 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.38.2"
+version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1d20bef17f513b9b3004532233187769cd072d790971f4e4da0e346eb6401e8"
+checksum = "14a5f01b87b92705d07b433c06f96cbc764637d81a0bffb5734ce17cf0f9a2b3"
 dependencies = [
  "cc",
  "pkg-config",
@@ -3032,7 +3032,7 @@ dependencies = [
 
 [[package]]
 name = "offline-packager"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -3821,9 +3821,9 @@ dependencies = [
 
 [[package]]
 name = "rusqlite"
-version = "0.40.2"
+version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f2a97da3e3873c73cb2a2e71b35c40ff95e0b1eefa8d72d8499a6928c3b5b3"
+checksum = "9c026b4444579e8d754556c6c75d040d69c4a44283cdb648ab8a8d5965c2cfa8"
 dependencies = [
  "bitflags",
  "fallible-iterator",
@@ -4249,7 +4249,7 @@ dependencies = [
 
 [[package]]
 name = "server-v2"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "autometrics",
  "axum",
@@ -4351,7 +4351,7 @@ dependencies = [
 
 [[package]]
 name = "service"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "data",
  "hmac",
@@ -4668,7 +4668,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
@@ -5251,9 +5251,9 @@ dependencies = [
 
 [[package]]
 name = "url"
-version = "2.5.8"
+version = "2.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed"
+checksum = "f00cd2407bb42c0ef17be88d4cf020f5cceffd121665bac9b8b9493a369b3b1a"
 dependencies = [
  "form_urlencoded",
  "idna",
@@ -5335,7 +5335,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "viewer-load"
-version = "9.1.0"
+version = "9.1.1"
 dependencies = [
  "axum",
  "axum-server",

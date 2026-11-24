@@ -8,6 +8,7 @@ ignore = [
     { id = "RUSTSEC-2024-0436", reason = "current Leptos and reactive dependencies still require paste" },
     { id = "RUSTSEC-2026-0173", reason = "rstml still requires syn_derive, which depends on proc-macro-error2" },
     { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile has no maintained release; retaining the existing TLS PEM loader" },
+    { id = "RUSTSEC-2026-0543", reason = "leptos-use still requires chrono; no maintained chrono release is available" },
 ]
 
 [bans]

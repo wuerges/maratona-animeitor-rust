@@ -12,6 +12,7 @@ security advisories for the same crates.
 | [RUSTSEC-2024-0436](https://rustsec.org/advisories/RUSTSEC-2024-0436.html) | paste 1.0.15 | Leptos 0.8.21, leptos-use 0.19.2, either_of, reactive_graph, reactive_stores, and tachys → paste | Current framework releases still require it; no framework forks or vendored patches are introduced. |
 | [RUSTSEC-2026-0173](https://rustsec.org/advisories/RUSTSEC-2026-0173.html) | proc-macro-error2 2.0.1 | Leptos macro/hot-reload dependencies → rstml 0.12.1 → syn_derive 0.2.0 → proc-macro-error2 | Still required upstream, even after updating the Leptos macro crates. |
 | [RUSTSEC-2025-0134](https://rustsec.org/advisories/RUSTSEC-2025-0134.html) | rustls-pemfile 2.2.0 | service → rustls-pemfile | No maintained release; keep the existing certificate/private-key loader rather than migrating its parsing API solely for this notice. |
+| [RUSTSEC-2026-0543](https://rustsec.org/advisories/RUSTSEC-2026-0543.html) | chrono 0.4.45 | leptos-use 0.19.2 → chrono | Reviewed 2026-11-23: the existing frontend framework dependency still requires it; no maintained Chrono release is available. This accepts the maintenance notice only. |
 
 The update replaces vulnerable rustls 0.23.43 with 0.23.45, resolving
 [RUSTSEC-2026-0285](https://rustsec.org/advisories/RUSTSEC-2026-0285.html), and
@@ -24,6 +25,12 @@ zstd-safe 8.2.0, and zstd-sys 2.1.2. These updates resolve the newly reported
 security and soundness advisories without adding exceptions. The four accepted
 maintenance notices above remain unchanged.
 
+Reviewed again on 2026-11-23 for release 9.1.1. Targeted updates to `url`,
+`cookie`, and `rusqlite`/`libsqlite3-sys` resolve RUSTSEC-2026-0592,
+RUSTSEC-2026-0594, and RUSTSEC-2026-0459 without security exceptions. The Chrono
+maintenance notice above is accepted individually, consistently with the existing
+framework maintenance notices.
+
 `make cargo-deny` continues checking vulnerabilities, yanked releases, dependency
 bans, and unknown registry/Git sources across all workspace features. It reports
 the accepted advisory IDs as notes. Existing duplicate-version and local path
@@ -33,4 +40,4 @@ On each dependency refresh, rerun `cargo tree -i <crate>` and `make cargo-deny`,
 review the upstream advisories, and remove exceptions whose dependency has
 disappeared. New advisory IDs require separate review; do not disable maintenance
 checks globally. The weekly CI run refreshes RustSec independently of dependency
-updates and continues failing on findings outside these four accepted IDs.
+updates and continues failing on findings outside these five accepted IDs.

@@ -19,6 +19,7 @@ pub fn Landing() -> impl IntoView {
                         events.get().map(|names| {
                             names
                                 .into_iter()
+                                .rev()
                                 .map(|event| {
                                     let event_name = event.clone();
                                     let contests = LocalResource::new({

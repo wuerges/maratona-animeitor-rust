@@ -7,10 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [9.1.1] - 2026-11-23
+
+### Changed
+
+- Improve scoreboard rendering for large contests with viewport-based rows and
+  bounded revelation checkpoints for faster backtracking.
+
 ### Fixed
 
+- Show the most recently created events first on the landing page.
 - Apply the client's `background-color` query parameter on the pre-start countdown
   as well as the scoreboard.
+
+### Security
+
+- Update URL parsing, cookie handling, and bundled SQLite dependencies to resolve
+  RUSTSEC-2026-0592, RUSTSEC-2026-0594, and RUSTSEC-2026-0459.
 
 ## [9.1.0] - 2026-11-02
 
